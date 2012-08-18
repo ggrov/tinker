@@ -1,8 +1,8 @@
 signature BASIC_FEATURE =
 sig
   type feature
-  val match : RState.T -> feature -> PPlan.gname -> bool
-  val is_subfeature : RState.T -> feature -> feature -> bool
+  val match : feature -> PNode.gnode -> bool
+  val is_subfeature : Proof.context -> feature -> feature -> bool
 end (* sig *)
 
 (* for this to work we need to put values in the context!! *)
@@ -22,7 +22,7 @@ struct
        fdata : fdata,
        is_subfeature : theory -> feature -> bool,
        (* subsumes : theory -> feature -> bool, *)
-       matches : RState.T -> PPlan.gname -> bool}
+       matches : PNode.gnode -> PNode.factname -> bool}
 
   fun set_id v (Feature rep) = Feature {
      id = v, ftyp = #ftyp rep, fdata = #fdata rep,

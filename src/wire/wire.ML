@@ -1,4 +1,4 @@
-structure FullWire =
+structure Wire =
 struct
   
   exception undefined_exp of string
@@ -64,11 +64,13 @@ struct
           goal = BWire.default_wire,
           props = RF.NSet.empty};
 
+(*
   fun goal_embeds gwire factwire = 
     Wire {name = SStrName.mk "goal_embeds", 
           facts = W.NSet.single factwire,
           goal = gwire,
           props = RelFeature.embedded_in_goal (BWire.get_name factwire) |> RF.NSet.single};
+*)
 
   (* for name set *)
   type name = fwire;
@@ -82,5 +84,5 @@ struct
 
 end; (* structure *)
 
-structure FW = NameFun(structure Namer = FullWire val default_name = FullWire.default_wire);
+structure W = NameFun(structure Namer = Wire val default_name = Wire.default_wire);
 

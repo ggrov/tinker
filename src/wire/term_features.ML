@@ -120,6 +120,7 @@ struct
   fun has_shape th shape t =
     Term.exists_subterm (fn st => Pattern.matches th (shape,st)) t
 
+(*
   fun ctxt_embeds ctxt t1 t2 =
     let
      val ienv = InstEnv.init ctxt;
@@ -130,10 +131,11 @@ struct
     end;
 
   val embeds = ctxt_embeds o ProofContext.init_global
-
+*)
+(*
   fun is_inductable_structural th t = 
    not ((InductTac.inductable_things_in_term th t |> fst) = []);
-
+*)
   fun fo_au_match th patt t = Pattern.matches th (patt,t);
 
 end (* struct *)

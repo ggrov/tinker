@@ -11,7 +11,7 @@ struct
   datatype T = Prop of 
     {name : SStrName.name,
      prop : prop,
-     match : GNode.goal -> RState.T -> bool}
+     match : PNode.gnode -> bool}
 
   fun get_name (Prop rep) = #name rep;
   fun get_prop (Prop rep) = #prop rep;
@@ -35,7 +35,7 @@ struct
 
   val project_fact_names = SStrName.NSet.of_list o project_fact_names' o get_prop;
 
-  val default_prop = Prop {name = SStrName.mk "any", prop = Empty, match = K (K true)};
+  val default_prop = Prop {name = SStrName.mk "any", prop = Empty, match = K true};
 
   (* for name set *)
   type name = T;
@@ -47,8 +47,10 @@ struct
   fun eq (f1,f2) = (ord(f1,f2) = EQUAL);
   fun pretty f = Pretty.str (SStrName.dest (get_name f));
 
+(*
   fun goal_concl_term g pplan =
       PPlan.get_varified_ltrm pplan g |> Logic.strip_imp_concl;
+*)
 
   exception relfeature_exp of string * T option
 
@@ -59,6 +61,7 @@ struct
 
   (* examples *)
 
+(*
   fun embedded_in_goal fact_name = 
    let
      fun term_of rst g = goal_concl_term g (RState.get_pplan rst)
@@ -69,7 +72,8 @@ struct
    in
     Prop {name = SStrName.mk "embeds", prop = Rel (Atom (Fact fact_name),Atom Goal), match = match}
    end;
-  
+*)
+
 end;
 
 structure RF = NameFun(structure Namer = RelFeature val default_name = RelFeature.default_prop);

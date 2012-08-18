@@ -80,4 +80,5 @@ end
 
 structure W = NameFun(structure Namer = BWire val default_name = BWire.default_wire);
 structure WTab = BasicNameTabFun(structure NSet = W.NSet ; structure Namer = BWire);
-type gmap = Goaln.NSet.T WTab.T;
+type gmap = GFact.NSet.T WTab.T;
+

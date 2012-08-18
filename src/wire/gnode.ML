@@ -7,8 +7,8 @@ struct
    (* goal can also just be in the facts set?? *)
   datatype goal = Goal of {facts : gmap,
                             gtyp : Wire.name, 
-                            goal : Goaln.name,
-                            prev : Goaln.name option}
+                            goal : PNode.gname, (* or actually the gnode *)
+                            prev : PNode.gname option}
 
   fun get_goal (Goal rep) = #goal rep;
   fun get_facts (Goal rep) = #facts rep;
@@ -48,11 +48,11 @@ struct
 
   fun add_facts (fact,gs) gnode = 
      if WTab.contains (get_facts gnode) fact
-        then update_facts (WTab.map_entry (Goaln.NSet.union_merge gs) fact) gnode
+        then update_facts (WTab.map_entry (GFact.NSet.union_merge gs) fact) gnode
         else update_facts (WTab.ins (fact,gs)) gnode;
 
   val default_gnode = 
-    Goal {facts = WTab.empty, gtyp = Wire.default_wire, goal = Goaln.default_name, prev = NONE}; 
+    Goal {facts = WTab.empty, gtyp = Wire.default_wire, goal = GFact.default_name, prev = NONE}; 
 
   fun mk_goal facts gtyp goal = Goal {facts = facts, gtyp = gtyp, goal = goal, prev = NONE};
   val mk_goal_no_facts = mk_goal WTab.empty;
@@ -63,7 +63,7 @@ struct
    WTab.fold
     (fn (w,gs) => fn res =>
          if WTab.contains res w
-            then WTab.map_entry (Goaln.NSet.union_merge gs) w res
+            then WTab.map_entry (GFact.NSet.union_merge gs) w res
             else WTab.ins (w,gs) res)
     (get_facts goal2)
     (get_facts goal1);
@@ -93,16 +93,16 @@ struct
 
   fun get_all_goals gnds = 
     GN.NSet.fold
-      (fn g => Goaln.NSet.ins_fresh (GNode.get_goal g))  (* should only be one! *)
+      (fn g => GFact.NSet.ins_fresh (GNode.get_goal g))  (* should only be one! *)
       gnds
-      Goaln.NSet.empty;
+      GFact.NSet.empty;
 
   (* assumption: only 1 goal instance in each set *)
   fun combine_gsets' gset1 gset2 = 
     GN.NSet.fold
      (fn g1 => fn res =>
        let
-         val g2s' = GN.NSet.filter (fn g2 => Goaln.name_eq (GNode.get_goal g1,GNode.get_goal g2)) gset2
+         val g2s' = GN.NSet.filter (fn g2 => GFact.name_eq (GNode.get_goal g1,GNode.get_goal g2)) gset2
        in case GN.NSet.tryget_singleton g2s' of
              NONE => res (* fail either no singleton or not there *)
            | (SOME g2) => GN.NSet.ins_fresh (GNode.combine_facts g1 g2) res
@@ -117,12 +117,12 @@ struct
       val gset1' = gset1 
                 |> GN.NSet.filter 
                     (fn g1 => GN.NSet.exists 
-                               (fn comb => Goaln.name_eq (GNode.get_goal g1,GNode.get_goal comb)) 
+                               (fn comb => GFact.name_eq (GNode.get_goal g1,GNode.get_goal comb)) 
                                combined)
       val gset2' = gset2 
                 |> GN.NSet.filter 
                     (fn g2 => GN.NSet.exists 
-                               (fn comb => Goaln.name_eq (GNode.get_goal g2,GNode.get_goal comb)) 
+                               (fn comb => GFact.name_eq (GNode.get_goal g2,GNode.get_goal comb)) 
                                combined)
      in
        (gset1',gset2',combined)
@@ -130,7 +130,7 @@ struct
 
    (* various updates of gnode (to be used in tactics) *)
    fun upd_goal_only new_goal gnode = 
-    if Goaln.name_eq (GNode.get_goal gnode,new_goal)
+    if GFact.name_eq (GNode.get_goal gnode,new_goal)
      then gnode
      else gnode |> GNode.set_prev_value (GNode.get_goal gnode)
                 |> GNode.set_goal new_goal;
