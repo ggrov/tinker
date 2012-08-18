@@ -1,0 +1,53 @@
+-------------------------------------------------------------------------
+  List of project things we would like
+  Gudmund Grov
+-------------------------------------------------------------------------
+Goals:
+ 1) be able to draw techniques in a GUI which can be executed
+ 2) execute techniques as Isabelle methods/tactics (e.g. apply my_technique)
+  2a) create Isabelle rippling method/tactic [Yuhui]
+ 3) develop analogy method in Isabelle
+     e.g. apply (analogy: thm1), meaning we apply the proof strategy derived 
+     from proof of thm1 to prove current goal. Here, the anti-unification (if
+     required) to generalise object level details (such as shape) can combine
+     the goal of thm1 with the current open proof state.
+     If we have more than one proofs then apply (analogy: thm1 thm2 ...) will 
+     find a generalisation of all. Note that in a structure proof this can also
+     be used for "local" analogies since each subgoal is named (use this name instead
+     of thm)
+  4) A GUI combining Isabelle, quanto(graph) and a separate "Isaplanner" window
+  5) Data mining for new proof strategies
+      use technique in 3 to come up with new strategies (which we may try automatically).
+      this will probably be from a different interface[?]
+  6) Better integration with NCL
+      - learn search strategies (full process is captured there)?
+      - use failed branches to check for patterns (e.g. a failed branch in the interactive
+        proof may be in the family of another, although the actual end is not) 
+      - use of user-provided annotations. e.g. for grouping?
+
+------
+Requirements to fulfil goals:
+ 1) - Quanto needs support for edges 
+    - Unless we rely on all methods are just names, we need to add more structure
+      to data on vertices + add support for edit them (see 4).
+ 2) Change goal representation to be closer to Isabelle
+ 3) FIRST: ignore hypothesis unless explicit fwd proof
+   a) parsing of [all required] proofs into graphs
+       status: started/intermediate rep currently supported!
+   b) automatic feature detection, meaning features on wires
+   c) combining "common" edges
+   d) combining "common" graphs
+   e) discover/replace "patterns"
+   f) discover/replace equivalences
+   g) generalise two graphs into one (as little OR as possible)
+   h) change goal representation to be closer to Isabelle
+ 4) 
+   a) get quanto into eclipse
+   b) change the user-interaction
+   c) 
+ 5) a) ability to learn new features (new ILP)    
+    b) ability to spot what to generalise (clustering into families) [Katya?]
+ 6) Decide upon
+
+
+---

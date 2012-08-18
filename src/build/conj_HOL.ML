@@ -1,0 +1,1 @@
+structure ConjRTechn = ConjRTechnFun(LemmaConjLib);

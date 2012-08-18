@@ -1,0 +1,36 @@
+
+## targets
+
+default: HOL_IsaP
+images: HOL_IsaP
+test: 
+
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+
+USEDIR = $(ISABELLE_TOOL) usedir -v true -i false -g false -p 2 -b -s HOL_IsaP ## -i true -d pdf  ## -D generated
+TESTDIR = $(ISABELLE_TOOL) usedir -v true -i false -g false -p 2
+
+
+## HOL_IsaP
+
+HOL_IsaP: $(OUT)/HOL_IsaP
+
+$(OUT)/HOL_IsaP: ROOT.ML *.thy *.ML src/*/*.thy src/*/*.ML src/*/*/*.thy src/*/*/*.ML src/*/*/*/*.thy src/*/*/*/*.ML
+	@$(USEDIR) HOL HOL_IsaP
+
+
+test: $(OUT)/HOL_IsaP src/test/*.ML src/test/*.thy
+	@$(TESTDIR) src/test
+
+
+## clean
+
+clean:
+	@rm -f $(OUT)/HOL_IsaP
