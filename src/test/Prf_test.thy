@@ -1,12 +1,25 @@
 (* simple test of proof representation *)
 theory Prf_test                                                
-imports        
-  Main       
-  "../build/IsapLib"                                         
-uses
-  "../proof/pnode.ML"                                                                                                                                                           
-  "../proof/prf.ML"                   
+imports               
+ "../build/Prf"                                                                
 begin
+
+(* how does forward steps work?
+     - export should then be the same as child (just use it!)
+     - same as RS? yes should be 
+ *)
+
+(* example with tactics doing nothing - which a fwd tactics can be seen as*)
+ML{*
+ all_tac @{thm allI} |> Seq.list_of ;
+ val (gn,prf) = PPlan.init @{context} @{term "(\<forall> x. P x) ==> \<forall> x. P x"};
+ PPlan.export_name prf (PNode.get_name gn);
+ val ([g1],prf) = PPlan.apply_tac (K (rtac @{thm allI} 1)) (gn,prf) |> Seq.list_of |> hd;
+ val ([g2],prf) = PPlan.apply_tac (K (all_tac)) (g1,prf) |> Seq.list_of |> hd;
+ val ([g3],prf) = PPlan.apply_tac (K (all_tac)) (g2,prf) |> Seq.list_of |> hd;
+ val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (g3,prf) |> Seq.list_of |> hd;
+ PPlan.export_name prf (PNode.get_name gn);
+*}
 
 lemma "\<And> x. P x"
 proof -
@@ -24,9 +37,6 @@ qed
         in (Term.subst_bounds (map Free newps, t), (newps, params2)) end;
 *)
 
-ML{*
-Proof.add_fixes @{context} @{term "\<And> x y z. P x y \<Longrightarrow> (\<And> x. Q x z)"};
-*}
 
 (*
  meta-level quantifiers-- requires binding intro, has to done right away.
@@ -40,57 +50,49 @@ Proof.add_fixes @{context} @{term "\<And> x y z. P x y \<Longrightarrow> (\<And>
  *)
 
 ML{*
- val (gn,prf) = Proof.init @{context} @{term "(\<forall> x. P x) ==> \<forall> x. P x"};
- Proof.export_name prf (PNode.get_name gn);
- val ([g1],prf) = Proof.apply_tac (K (rtac @{thm allI} 1)) (gn,prf) |> Seq.list_of |> hd;
- val ([],prf) = Proof.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
- Proof.export_name prf (PNode.get_name gn);
+ val (gn,prf) = PPlan.init @{context} @{term "(\<forall> x. P x) ==> \<forall> x. P x"};
+ PPlan.export_name prf (PNode.get_name gn);
+ val ([g1],prf) = PPlan.apply_tac (K (rtac @{thm allI} 1)) (gn,prf) |> Seq.list_of |> hd;
+ val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
+ PPlan.export_name prf (PNode.get_name gn);
 *}
 
 (* this is fine *)
 ML{*
- val (gn,prf) = Proof.init @{context} @{term "(\<And> x. P x) ==> (\<And> x. P x)"};
- val ([g1],prf) = Proof.apply_fixes prf gn;
- val ([],prf) = Proof.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
- Proof.export_name prf (PNode.get_name gn);
+ val (gn,prf) = PPlan.init @{context} @{term "(\<And> x. P x) ==> (\<And> x. P x)"};
+ (* val ([g1],prf) = PPlan.apply_fixes prf gn; *)
+ val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (gn,prf) |> Seq.list_of |> hd;
+ PPlan.export_name prf (PNode.get_name gn);
+*}
+
+(* FIXME: init *)
+
+(* this is fine *)
+ML{*
+ val (gn,prf) = PPlan.init @{context} @{term "(\<And> x. P x ==> P x)"};
+ (* val ([g1],prf) = PPlan.apply_fixes prf gn; *)
+ val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (gn,prf) |> Seq.list_of |> hd;
+ PPlan.export_name prf (PNode.get_name gn);
 *}
 
 (* this is fine *)
 ML{*
- val (gn,prf) = Proof.init @{context} @{term "(\<And> x. P x ==> P x)"};
- val ([g1],prf) = Proof.apply_fixes prf gn;
- val ([],prf) = Proof.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
- Proof.export_name prf (PNode.get_name gn);
-*}
-
-(* this is fine *)
-ML{*
- val (gn,prf) = Proof.init @{context} @{term "(\<And> x. P x) ==> \<exists> x. P x"};
- val ([g1],prf) = Proof.apply_tac (K (rtac @{thm exI} 1)) (gn,prf) |> Seq.list_of |> hd;
- val ([],prf) = Proof.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
- Proof.export_name prf (PNode.get_name gn);
+ val (gn,prf) = PPlan.init @{context} @{term "(\<And> x. P x) ==> \<exists> x. P x"};
+ val ([g1],prf) = PPlan.apply_tac (K (rtac @{thm exI} 1)) (gn,prf) |> Seq.list_of |> hd;
+ val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
+ PPlan.export_name prf (PNode.get_name gn);
 *}
 
 (* problem is when x is bound in the proof.. *)
 ML{*
- val (gn,prf) = Proof.init @{context} @{term "(\<forall> x. P x) ==> \<forall> x. P x"};
- Proof.export_name prf (PNode.get_name gn);
- val ([g1],prf) = Proof.apply_tac (K (rtac @{thm allI} 1)) (gn,prf) |> Seq.list_of |> hd;
- val ([g2],prf) = Proof.apply_fixes prf g1;
- val ([],prf) = Proof.apply_all_asm_tac (auto_tac) (g2,prf) |> Seq.list_of |> hd;
-
-
- val (Proof.EClosed thm) = Proof.export_name prf (PNode.get_name g1); 
- val g = PNode.get_goal gn;  
- val (SOME gn') = Proof.lookup_node prf (PNode.get_name gn);
- val g' = PNode.get_goal gn';
+ val (gn,prf) = PPlan.init @{context} @{term "(\<forall> x. P x) ==> \<forall> x. P x"};
+ PPlan.export_name prf (PNode.get_name gn);
+ val ([g1],prf) = PPlan.apply_tac (K (rtac @{thm allI} 1)) (gn,prf) |> Seq.list_of |> hd;
+ val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
+ val (PPlan.EClosed thm) = PPlan.export_name prf (PNode.get_name gn); 
+ (Goal.conclude thm)
 *}
 
-(* FIXME: 
-ML{*
- val (Proof.EClosed thm) = Proof.export_name prf (PNode.get_name g2); 
- (Goal.conclude thm) RS g';
-*}
 notation ( output) "prop" ("#_" [1000] 1000)
 ML{*
  g';
@@ -98,18 +100,23 @@ ML{*
  Goal.conclude thm;
  Goal.conclude g';
  (Goal.conclude thm) RS (Goal.conclude g');
- Proof.export_name prf (PNode.get_name gn);
+ PPlan.export_name prf (PNode.get_name gn);
  (Goal.conclude thm) RS g';
 *}
  
 
 (* also fails when no assumptions... *)
 ML{*
- val (gn,prf) = Proof.init @{context} @{prop "(\<forall> x. (x::nat) \<ge> 0)"};
- Proof.export_name prf (PNode.get_name gn);
- val ([g1],prf) = Proof.apply_tac (K (rtac @{thm allI} 1)) (gn,prf) |> Seq.list_of |> hd;
- val ([],prf) = Proof.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
- (* Proof.export_name prf (PNode.get_name gn); *)
+ val (gn,prf) = PPlan.init @{context} @{prop "(\<forall> x. (x::nat) \<ge> 0)"};
+ PPlan.export_name prf (PNode.get_name gn);
+ val ([g1],prf) = PPlan.apply_tac (K (rtac @{thm allI} 1)) (gn,prf) |> Seq.list_of |> hd;
+ val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
+ (* PPlan.export_name prf (PNode.get_name gn); *)
+*}
+
+ML{*
+ val (PPlan.EClosed t) = PPlan.export_name prf (PNode.get_name g1);
+ Goal.conclude t;
 *}
 
 ML{*
@@ -144,23 +151,23 @@ ML{*
 *}
 
 ML{*
- val (gn,prf) = Proof.init @{context} @{prop "\<exists> x. P x"};
- Proof.export_name prf (PNode.get_name gn);
- val ([g1],prf) = Proof.apply_tac (K (rtac @{thm exI} 1)) (gn,prf) |> Seq.list_of |> hd;
- Proof.export_name prf (PNode.get_name gn); 
+ val (gn,prf) = PPlan.init @{context} @{prop "\<exists> x. P x"};
+ PPlan.export_name prf (PNode.get_name gn);
+ val ([g1],prf) = PPlan.apply_tac (K (rtac @{thm exI} 1)) (gn,prf) |> Seq.list_of |> hd;
+ PPlan.export_name prf (PNode.get_name gn); 
  PNode.get_goal g1 |> Thm.prop_of
 *}
 
 (* prop seems to work *)
 ML{*
 @{term "A ==> B ==> A \<and> B"};
- val (gn,prf) = Proof.init @{context} @{term "A ==> B ==> A \<and> B"};
- val ([g1,g2],prf) = Proof.apply_tac (K (rtac @{thm conjI} 1)) (gn,prf) |> Seq.list_of |> hd;
- val ([],prf) = Proof.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
- val ([],prf) = Proof.apply_all_asm_tac (auto_tac) (g2,prf) |> Seq.list_of |> hd;
- val (Proof.EClosed t1) = Proof.export_name prf (PNode.get_name g1);
- val (Proof.EClosed t2) = Proof.export_name prf (PNode.get_name g2);
- val (Proof.EClosed t) = Proof.export_name prf (PNode.get_name gn);
+ val (gn,prf) = PPlan.init @{context} @{term "A ==> B ==> A \<and> B"};
+ val ([g1,g2],prf) = PPlan.apply_tac (K (rtac @{thm conjI} 1)) (gn,prf) |> Seq.list_of |> hd;
+ val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
+ val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (g2,prf) |> Seq.list_of |> hd;
+ val (PPlan.EClosed t1) = PPlan.export_name prf (PNode.get_name g1);
+ val (PPlan.EClosed t2) = PPlan.export_name prf (PNode.get_name g2);
+ val (PPlan.EClosed t) = PPlan.export_name prf (PNode.get_name gn);
  val x = Assumption.export false (PNode.get_ctxt g1) (PNode.parent_ctxt g1) t;
  Variable.export (PNode.get_ctxt g1) (PNode.parent_ctxt g1) [x];
 *}
@@ -168,7 +175,7 @@ ML{*
 ML{*
 t2;
 t;
-val (SOME g) = Proof.lookup_node prf (PNode.get_name gn);
+val (SOME g) = PPlan.lookup_node prf (PNode.get_name gn);
 val myt = PNode.get_goal g;
 (Goal.conclude t2);
 (Goal.conclude t2) RS myt;
@@ -241,7 +248,7 @@ val this = Goal.init @{cprop "A \<and> B"};
 val res = r RS @{thm conjunct1};
 (* bck step *)
 val this = rtac @{thm conjI} 1 this |> Seq.list_of |> hd;
-Thm.prems_of this |> map (Thm.cterm_of (Proof_Context.theory_of ctxt));
+Thm.prems_of this |> map (Thm.cterm_of (PPlan_Context.theory_of ctxt));
 
 val this = rtac res 1 this |> Seq.list_of |> hd;
 (* export result *)
@@ -299,7 +306,7 @@ val this = rtac @{thm exI} 1 this |> Seq.list_of |> hd;
 val this = rtac @{thm conjI} 1 this |> Seq.list_of |> hd;
 val this = rtac @{thm ptrue} 1 this |> Seq.list_of |> hd;
 val this = rtac @{thm qfalse} 1 this |> Seq.list_of |> hd;
-Thm.prems_of this |> map (Thm.cterm_of (Proof_Context.theory_of ctxt));
+Thm.prems_of this |> map (Thm.cterm_of (PPlan_Context.theory_of ctxt));
 
 val this = Assumption.export false ctxt ctxt0 this;
 val [this] = Variable.export ctxt ctxt0 [this];

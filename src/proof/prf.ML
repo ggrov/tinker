@@ -1,7 +1,9 @@
-structure Proof = 
+structure PPlan = 
 struct
-
-  (* add tree-like structure or parent-of map? *)
+  (* add 
+      - information about tactic
+      - instenv for shared meta-variables
+  *)
   datatype prf = Prf of {
     ptab : PNode.gnode StrName.NTab.T,
     all_nms : StrName.NSet.T,
@@ -66,44 +68,95 @@ struct
    |  var_names (t1 $ t2) = var_names t1 @ var_names t2
    |  var_names _ = []
 
-  (* removed duplicates *)
+  (* remove duplicates *)
   val var_names' = StrName.NSet.list_of o StrName.NSet.of_list o var_names 
+ 
+  val is_bound_in_ctxt = Option.isSome oo Variable.lookup_fixed;
 
-  fun add_variable_fixes t ctxt = Variable.add_fixes (var_names' t) ctxt;
+  fun unb_var_names ctxt = (filter (not o (is_bound_in_ctxt ctxt))) o var_names';
 
+  fun add_variable_fixes t ctxt = Variable.add_fixes (unb_var_names ctxt t) ctxt;
+
+
+  (* turns P1 ==> ... ==> Pn into Pn with P1 to P(n-1) added as assumptions *)
+  fun upd_assumptions (asms,bvars,ctxt,goal) =
+   case Logic.strip_imp_prems goal of
+     [] => NONE
+   | xs =>
+      let
+        val assms' = map (Thm.cterm_of (Proof_Context.theory_of ctxt)) xs
+        val (asms', ctxt') = Assumption.add_assumes assms' ctxt;
+        val goal' = Logic.strip_imp_concl goal
+      in
+       SOME (asms @ asms',bvars,ctxt',goal')
+      end;
+  
   (* turns !! x .. z. P x .. z into P x .. z with x .. z fixed in ctxt (and possible renamed) *)
-  fun add_fixes ctxt t =
-    let 
-      val bodyt = Term.strip_all_body t;
-      val varst = Term.strip_all_vars t;
-      val vars = map fst varst;
-      (* (I think) variant_fixes renames if required *)
-      val (vars',ctxt') = Variable.variant_fixes vars ctxt;
-      val varst = ListPair.zip (vars,map snd varst);
-      val t' = Term.subst_bounds (map Free varst,bodyt);
-    in
-      (t',vars',ctxt')
-   end;
+   fun upd_bvars (asms,bvars,ctxt,goal) =
+     case Term.strip_all_vars goal of
+       [] => (asms,bvars,ctxt,goal)
+     | varst =>
+        let
+         val bodyt = Term.strip_all_body goal;
+         val vars = map fst varst;
+         (* (I think) variant_fixes renames if required *)
+         val (bvars',ctxt') = Variable.variant_fixes vars ctxt;
+         val varst = ListPair.zip (bvars',map snd varst);
+         val goal' = Term.subst_bounds (map Free varst,bodyt);
+       in
+        (asms,bvars @ bvars',ctxt',goal') 
+       end;
 
+  fun update_assm_vars ctxt0 goal = 
+   let 
+     val (fixes,ctxt1) = add_variable_fixes goal ctxt0     
+     fun mainloop data = 
+       let
+         val newdata = upd_bvars data 
+       in case upd_assumptions data of
+          NONE => newdata
+        | SOME res => mainloop res
+      end
+   in 
+     mainloop ([],fixes,ctxt1,goal)
+   end;
+   
+  (* doesn't really work with !! - turn it into variable *)
   fun init_goal nms ctxt0 goal = 
    let 
-     val assms' = Logic.strip_imp_prems goal |> map (Thm.cterm_of (Proof_Context.theory_of ctxt0))
-     val (fixes,ctxt1) = add_variable_fixes goal ctxt0
-     val (asms', ctxt2) = Assumption.add_assumes assms' ctxt1;
-     val concl = Logic.strip_imp_concl goal
-     val goal' = Thm.cterm_of (Proof_Context.theory_of ctxt2) concl
+     val (asms,bvars,ctxt,goal') = update_assm_vars ctxt0 goal;
+     val goal'' = Thm.cterm_of (Proof_Context.theory_of ctxt) goal'
      fun ins_asm a (lgns,map) = 
        let 
          val (n,map') =  StrName.NTab.add ("h",a) map
        in
          (StrName.NSet.ins_fresh n lgns,map')
        end
-     val (lassms,assms) = fold ins_asm asms' (StrName.NSet.empty,StrName.NTab.empty)
+     val (lassms,assms) = fold ins_asm asms (StrName.NSet.empty,StrName.NTab.empty)
    in
-     PNode.mk_goal (fresh_goal nms) ctxt0 ctxt2 (Goal.init goal')
+     PNode.mk_goal (fresh_goal nms) ctxt0 ctxt (Goal.init goal'')
      |> PNode.set_assms assms
      |> PNode.set_lassms lassms
-     |> PNode.set_fixes fixes
+     |> PNode.set_fixes bvars
+   end;
+
+  fun gnode_of prf gnode goal = 
+   let 
+     val (asms,bvars,ctxt,goal') = update_assm_vars (PNode.get_ctxt gnode) goal;
+     val goal'' = Thm.cterm_of (Proof_Context.theory_of ctxt) goal'
+     fun ins_asm a (lgns,map) = 
+       let 
+         val (n,map') = StrName.NTab.add ("h",a) map
+       in
+         (StrName.NSet.ins_fresh n lgns,map')
+       end
+     val (lassms,assms) = fold ins_asm asms (StrName.NSet.empty,PNode.get_assms gnode)
+   in
+    PNode.mk_goal (fresh_goal (get_all_nms prf)) (PNode.get_ctxt gnode) ctxt (Goal.init goal'')
+    |> PNode.set_assms assms
+    |> PNode.set_lassms lassms
+    |> PNode.set_goal_prev gnode
+    |> PNode.set_fixes bvars
    end;
 
   fun init ctxt goal = 
@@ -111,32 +164,11 @@ struct
    in (goal,init_prf |> add_root goal)
    end;
 
-  fun init_of prf gnode goal = 
-   let 
-     val assms' = Logic.strip_imp_prems goal 
-                |> map (Thm.cterm_of (Proof_Context.theory_of (PNode.get_ctxt gnode)))
-     val (asms', ctxt') = Assumption.add_assumes assms' (PNode.get_ctxt gnode);
-     val concl = Logic.strip_imp_concl goal
-     val goal' = Thm.cterm_of (Proof_Context.theory_of ctxt') concl
-     fun ins_asm a (lgns,map) = 
-       let 
-         val (n,map') = StrName.NTab.add ("h",a) map
-       in
-         (StrName.NSet.ins_fresh n lgns,map')
-       end
-     val (lassms,assms) = fold ins_asm asms' (StrName.NSet.empty,PNode.get_assms gnode)
-   in
-    PNode.mk_goal (fresh_goal (get_all_nms prf)) (PNode.get_ctxt gnode) ctxt' (Goal.init goal')
-    |> PNode.set_assms assms
-    |> PNode.set_lassms lassms
-    |> PNode.set_goal_prev gnode
-   end;
-
   (* create technique which inserts new nodes + updates everything *)
 
  fun add_open prf gnode goal =
    let 
-     val gnode = init_of prf gnode goal
+     val gnode = gnode_of prf gnode goal
    in 
      (gnode, insert_open_nd gnode prf)
    end;   
@@ -163,43 +195,6 @@ struct
 
   (* application *)
   exception application_exp of string * PNode.gnode
-
-  (* application to turn !! x1 .. xn. P into P with x1 .. xn bound *) 
-  fun apply_fixes prf gnode = 
-    let
-      fun goalf [x] = x 
-       |  goalf _ = raise application_exp ("Not working on single goal",gnode);
-      val goal = goalf (PNode.get_goal gnode |> Thm.prems_of)
-      val (ngoal,bv,ctxt) = add_fixes (PNode.get_ctxt gnode) goal;
-      val _ = case bv of 
-                [] => raise application_exp ("No bound variables",gnode)
-              | _ => ();
-      val assms' = Logic.strip_imp_prems ngoal 
-                 |> map (Thm.cterm_of (Proof_Context.theory_of ctxt))
-     val (asms', ctxt') = Assumption.add_assumes assms' ctxt;
-     val concl = Logic.strip_imp_concl ngoal
-     val goal' = Thm.cterm_of (Proof_Context.theory_of ctxt') concl
-     fun ins_asm a (lgns,map) = 
-       let 
-         val (n,map') =  StrName.NTab.add ("h",a) map
-       in
-         (StrName.NSet.ins_fresh n lgns,map')
-       end
-     val (lassms,assms) = fold ins_asm asms' (StrName.NSet.empty,PNode.get_assms gnode)
-     val newgnode = 
-         PNode.mk_goal (fresh_goal (get_all_nms prf)) (PNode.get_ctxt gnode) ctxt' (Goal.init goal')
-         |> PNode.set_assms assms
-         |> PNode.set_lassms lassms
-         |> PNode.set_goal_prev gnode
-         |> PNode.set_fixes bv;
-     val oldgnode = PNode.set_result (SOME [PNode.get_name newgnode]) gnode
-     val prf' = prf
-              |> remove_open_nd oldgnode
-              |> update_ptab_nd oldgnode
-              |> insert_open_nd newgnode 
-    in
-       ([newgnode],prf')
-    end;
 
   (* tactic application *)
 
@@ -279,3 +274,101 @@ struct
   | SOME gn => export prf gn;
 
 end
+
+(* TO DELETE 
+
+
+  fun init_goal_old nms ctxt0 goal = 
+   let 
+     val assms' = Logic.strip_imp_prems goal |> map (Thm.cterm_of (Proof_Context.theory_of ctxt0))
+     val (fixes,ctxt1) = add_variable_fixes goal ctxt0
+     val (asms', ctxt2) = Assumption.add_assumes assms' ctxt1;
+     val concl = Logic.strip_imp_concl goal
+     val goal' = Thm.cterm_of (Proof_Context.theory_of ctxt2) concl
+     fun ins_asm a (lgns,map) = 
+       let 
+         val (n,map') =  StrName.NTab.add ("h",a) map
+       in
+         (StrName.NSet.ins_fresh n lgns,map')
+       end
+     val (lassms,assms) = fold ins_asm asms' (StrName.NSet.empty,StrName.NTab.empty)
+   in
+     PNode.mk_goal (fresh_goal nms) ctxt0 ctxt2 (Goal.init goal')
+     |> PNode.set_assms assms
+     |> PNode.set_lassms lassms
+     |> PNode.set_fixes fixes
+   end;
+
+
+  fun init_of_old prf gnode goal = 
+   let 
+     val assms' = Logic.strip_imp_prems goal 
+                |> map (Thm.cterm_of (Proof_Context.theory_of (PNode.get_ctxt gnode)))
+     val (asms', ctxt') = Assumption.add_assumes assms' (PNode.get_ctxt gnode);
+     val concl = Logic.strip_imp_concl goal
+     val goal' = Thm.cterm_of (Proof_Context.theory_of ctxt') concl
+     fun ins_asm a (lgns,map) = 
+       let 
+         val (n,map') = StrName.NTab.add ("h",a) map
+       in
+         (StrName.NSet.ins_fresh n lgns,map')
+       end
+     val (lassms,assms) = fold ins_asm asms' (StrName.NSet.empty,PNode.get_assms gnode)
+   in
+    PNode.mk_goal (fresh_goal (get_all_nms prf)) (PNode.get_ctxt gnode) ctxt' (Goal.init goal')
+    |> PNode.set_assms assms
+    |> PNode.set_lassms lassms
+    |> PNode.set_goal_prev gnode
+   end;
+
+  (* turns !! x .. z. P x .. z into P x .. z with x .. z fixed in ctxt (and possible renamed) *)
+  fun add_fixes ctxt t =
+    let 
+      val bodyt = Term.strip_all_body t;
+      val varst = Term.strip_all_vars t;
+      val vars = map fst varst;
+      (* (I think) variant_fixes renames if required *)
+      val (vars',ctxt') = Variable.variant_fixes vars ctxt;
+      val varst = ListPair.zip (vars',map snd varst);
+      val t' = Term.subst_bounds (map Free varst,bodyt);
+    in
+      (t',vars',ctxt')
+   end;
+
+ (* application to turn !! x1 .. xn. P into P with x1 .. xn bound *) 
+  fun apply_fixes prf gnode = 
+    let
+      fun goalf [x] = x 
+       |  goalf _ = raise application_exp ("Not working on single goal",gnode);
+      val goal = goalf (PNode.get_goal gnode |> Thm.prems_of)
+      val (ngoal,bv,ctxt) = add_fixes (PNode.get_ctxt gnode) goal;
+      val _ = case bv of 
+                [] => raise application_exp ("No bound variables",gnode)
+              | _ => ();
+      val assms' = Logic.strip_imp_prems ngoal 
+                 |> map (Thm.cterm_of (Proof_Context.theory_of ctxt))
+     val (asms', ctxt') = Assumption.add_assumes assms' ctxt;
+     val concl = Logic.strip_imp_concl ngoal
+     val goal' = Thm.cterm_of (Proof_Context.theory_of ctxt') concl
+     fun ins_asm a (lgns,map) = 
+       let 
+         val (n,map') =  StrName.NTab.add ("h",a) map
+       in
+         (StrName.NSet.ins_fresh n lgns,map')
+       end
+     val (lassms,assms) = fold ins_asm asms' (StrName.NSet.empty,PNode.get_assms gnode)
+     val newgnode = 
+         PNode.mk_goal (fresh_goal (get_all_nms prf)) (PNode.get_ctxt gnode) ctxt' (Goal.init goal')
+         |> PNode.set_assms assms
+         |> PNode.set_lassms lassms
+         |> PNode.set_goal_prev gnode
+         |> PNode.set_fixes bv;
+     val oldgnode = PNode.set_result (SOME [PNode.get_name newgnode]) gnode
+     val prf' = prf
+              |> remove_open_nd oldgnode
+              |> update_ptab_nd oldgnode
+              |> insert_open_nd newgnode 
+    in
+       ([newgnode],prf')
+    end;
+*)

@@ -1,24 +1,32 @@
+structure GFact = StrName;
+
 structure PNode =
 struct
 
   exception gnode_exp of string;
 
+  type gname = StrName.name;
+  type factname = GFact.name;
+
+  (* add 
+      - information about tactic
+      - support for hierarchies ?
+  *)
   datatype gnode = Goal of 
-    { name : StrName.name,
+    { name : gname,
       ctxt : Proof.context,
       assms : Thm.thm StrName.NTab.T, (* split into local and global *)
       lassms : StrName.NSet.T, (* invariant: lassm subseteq domain(assms) *)
       fixes : string list,
       goal : Thm.thm,
       (* needs to be a list to keep it in order *)
-      result : (StrName.name list) option, (* NONE indicates open, SOME {} indicates complete *)
+      result : (gname list) option, (* NONE indicates open, SOME {} indicates complete *)
       prev : pnode} (* name should be sufficient - look up rest in Prf *)
   and 
    (* G should really just be name and context? *)
    pnode = G of gnode | R of Proof.context;
 
   type gtab = gnode StrName.NTab.T;
-  type gname = StrName.name;
 
   fun get_name (Goal rep) = #name rep;
   fun get_ctxt (Goal rep) = #ctxt rep;
