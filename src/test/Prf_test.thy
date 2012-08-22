@@ -4,6 +4,14 @@ imports
  "../build/Prf"                                                                
 begin
 
+(*
+structure TrmCtxtData = TrmCtxtDataFUN(IsabelleTrmWrap);
+structure TrmCtxt = TrmCtxtFUN(TrmCtxtData);
+structure Zipper = ZipperFUN(TrmCtxt);
+*)
+ML{*
+
+*}
 (* how does forward steps work?
      - export should then be the same as child (just use it!)
      - same as RS? yes should be 
@@ -190,7 +198,7 @@ ML{*
  Variable.focus t @{context}
 *}
 
-lemma test:
+lemma tes2t:
   fixes "A" "B" (* not sure what fixes does *)
   assumes r: "A & B"
   shows "A"
@@ -248,7 +256,7 @@ val this = Goal.init @{cprop "A \<and> B"};
 val res = r RS @{thm conjunct1};
 (* bck step *)
 val this = rtac @{thm conjI} 1 this |> Seq.list_of |> hd;
-Thm.prems_of this |> map (Thm.cterm_of (PPlan_Context.theory_of ctxt));
+Thm.prems_of this |> map (Thm.cterm_of (Proof_Context.theory_of ctxt));
 
 val this = rtac res 1 this |> Seq.list_of |> hd;
 (* export result *)
@@ -304,9 +312,9 @@ val res = r RS @{thm conjunct1};
 (* bck step *)
 val this = rtac @{thm exI} 1 this |> Seq.list_of |> hd;
 val this = rtac @{thm conjI} 1 this |> Seq.list_of |> hd;
-val this = rtac @{thm ptrue} 1 this |> Seq.list_of |> hd;
+val this = rtac @{thm ptrue} 1 this |> Seq.list_of |> hd;;
 val this = rtac @{thm qfalse} 1 this |> Seq.list_of |> hd;
-Thm.prems_of this |> map (Thm.cterm_of (PPlan_Context.theory_of ctxt));
+Thm.prems_of this |> map (Thm.cterm_of (Proof_Context.theory_of ctxt));
 
 val this = Assumption.export false ctxt ctxt0 this;
 val [this] = Variable.export ctxt ctxt0 [this];
@@ -343,6 +351,11 @@ lemma "A --> B"
   apply (rule conjI impI)
  oops
 
+
+ML{*
+Method.apply;
+*}
+
 notepad
 begin
 assume a: A and b: B
@@ -352,6 +365,7 @@ using a apply (tactic "resolve_tac facts 1" )
 using b apply (tactic "resolve_tac facts 1" )
 
 done
+
 have "A \<and> B"
 ML_val "@{Isar.goal}"
 using a and b

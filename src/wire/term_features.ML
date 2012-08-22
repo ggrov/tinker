@@ -132,10 +132,28 @@ struct
 
   val embeds = ctxt_embeds o ProofContext.init_global
 *)
-(*
+
+ fun inductable_things_in_term thry t = 
+    let 
+    fun add_term_frees (t, frees: term list) = case t of
+      Free   _ => Ord_List.insert Term_Ord.term_ord t frees
+      | Abs (_,_,body) => add_term_frees(body,frees)
+      | f$t =>  add_term_frees (f, add_term_frees(t, frees))
+      | _ => frees;
+    fun term_frees t = add_term_frees(t,[]);
+      val frees_of_term = map Term.dest_Free o term_frees;
+      fun datatype_chk (Type(tn,_))  = 
+           Basics.is_some (Datatype.get_info thry tn)
+        | datatype_chk _ = false;
+    in 
+      List.partition (datatype_chk o snd) 
+                     ((frees_of_term t) @ 
+                      (Term.strip_all_vars t))
+    end;
+
   fun is_inductable_structural th t = 
-   not ((InductTac.inductable_things_in_term th t |> fst) = []);
-*)
+   not ((inductable_things_in_term th t |> fst) = []);
+
   fun fo_au_match th patt t = Pattern.matches th (patt,t);
 
 end (* struct *)
