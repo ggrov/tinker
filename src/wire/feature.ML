@@ -2,7 +2,7 @@ structure Feature =
 struct
 
   datatype fdata = Terms of term list
-                 | Strings of string list
+                 | Strings of StrName.NSet.T
                  | StrCount of int StrTable.table
                  | Count of int
                  | Ref of string (* to put in context for unknown data : not sure how it'll work*)
@@ -13,33 +13,51 @@ struct
        id : string, (* should be unique for type: maybe keep track of this in context? *)
        ftyp : string,
        fdata : fdata,
-       is_subfeature : theory -> feature -> bool,
-       (* subsumes : theory -> feature -> bool, *)
-       matches : PNode.gnode -> PNode.factname -> bool}
+       sub : theory -> feature -> bool,
+       match : PNode.gnode -> PNode.factname -> bool}
 
-  fun set_id v (Feature rep) = Feature {
-     id = v, ftyp = #ftyp rep, fdata = #fdata rep,
-     is_subfeature = #is_subfeature rep,
-     (* subsumes = #subsumes rep, *)
-     matches  = #matches rep };
+  fun update_id f (Feature rep) = Feature {
+     id = f (#id rep), ftyp = #ftyp rep, fdata = #fdata rep,
+     sub = #sub rep,
+     match  = #match rep };
+  fun update_ftyp f (Feature rep) = Feature {
+     id = #id rep, ftyp = f (#ftyp rep), fdata = #fdata rep,
+     sub = #sub rep,
+     match  = #match rep };
+  fun update_fdata f (Feature rep) = Feature {
+     id = #id rep, ftyp = #ftyp rep, fdata = f (#fdata rep),
+     sub = #sub rep,
+     match  = #match rep };
+  fun update_sub f (Feature rep) = Feature {
+     id = #id rep, ftyp = #ftyp rep, fdata = #fdata rep,
+     sub = f (#sub rep),
+     match  = #match rep };
+  fun update_match f (Feature rep) = Feature {
+     id = #id rep, ftyp = #ftyp rep, fdata = #fdata rep,
+     sub = #sub rep,
+     match  = f (#match rep)};
+
+  val set_id = update_id o K;
+  val set_ftyp = update_ftyp o K;
+  val set_fdata = update_fdata o K;
+  val set_sub = update_sub o K;
+  val set_match = update_match o K;
 
   fun get_id (Feature rep) = #id rep;
   fun get_ftyp (Feature rep) = #ftyp rep;
   fun get_fdata (Feature rep) = #fdata rep;
-  fun get_matches (Feature rep) = #matches rep;
-  fun get_is_subfeature (Feature rep) = #is_subfeature rep;
-  (* fun get_subsumes (Feature rep) = #subsumes rep; *)
+  fun get_match (Feature rep) = #match rep;
+  fun get_sub (Feature rep) = #sub rep;
 
-  fun match f rst g = (get_matches f) rst g;
-  fun subfeature_of th f1 f2 = (get_is_subfeature f1) th f2;
-  (* fun subsumes f1 f2 = (get_subsumes f1) f2; *)
+  fun match f rst g = (get_match f) rst g;
+  fun subfeature_of th f1 f2 = (get_sub f1) th f2;
 
   val default_feature = Feature {
      id = "dummy",
      ftyp = "dummy",
      fdata = NoData,
-     matches = K (K false),
-     is_subfeature = K (K false)
+     match = K (K false),
+     sub = K (K false)
      (* subsumes = (K false) *)
    }
 

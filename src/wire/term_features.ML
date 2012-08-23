@@ -6,7 +6,7 @@ signature TERM_FEATURES =
 sig
   (* projections to abstraction spaces *)
   val num_constants : term -> int StrTable.table
-  val constants : term -> string list
+  val constants : term -> StrName.NSet.T
   val top_level_str : term -> string option
   val term_size : term -> int
   
@@ -61,7 +61,7 @@ struct
   (* bag of constants *)
   val num_constants = num_constants' StrTable.empty;
   (* set of contants *)
-  val constants = StrTable.keys o num_constants;
+  val constants = StrName.NSet.of_list o StrTable.keys o num_constants;
 
   fun get_numconstants_table str tab =
     case StrTable.lookup tab str of

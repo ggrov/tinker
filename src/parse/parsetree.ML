@@ -199,7 +199,7 @@ struct
 
  fun parse_file filename = 
    let
-     val is = TextIO.openIn "/u1/staff/gg10/Stratlang/src/parse/examples/simple1.yxml"
+     val is = TextIO.openIn filename
      val inp = TextIO.inputAll is;
      val _ = TextIO.closeIn is;
    in
