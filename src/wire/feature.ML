@@ -1,17 +1,10 @@
-signature BASIC_FEATURE =
-sig
-  type feature
-  val match : feature -> PNode.gnode -> bool
-  val is_subfeature : Proof.context -> feature -> feature -> bool
-end (* sig *)
-
-(* for this to work we need to put values in the context!! *)
 structure Feature =
 struct
 
   datatype fdata = Terms of term list
                  | Strings of string list
                  | StrCount of int StrTable.table
+                 | Count of int
                  | Ref of string (* to put in context for unknown data : not sure how it'll work*)
                  | NoData
 
