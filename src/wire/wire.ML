@@ -3,6 +3,10 @@ struct
   
   exception undefined_exp of string
 
+  (* eq is currently on name only!
+      - should be on the features!
+      - should we even bother with having named wires?
+ *)
   datatype fwire = Wire of { 
     name : SStrName.name, 
     facts : W.NSet.T, 
@@ -34,14 +38,17 @@ struct
      NONE => raise undefined_exp "no such fact"
      | SOME (_,n) => n;
 
+(*
   fun subfact th w2 fact =  (* relies on matching on name and same name *)
     BWire.sub_wire th fact (lookup_fact w2 fact);   
-
+*)
+(*
   fun subwire th w1 w2 = 
     BWire.sub_wire th (get_goal w1) (get_goal w2)
    andalso (* assume same name for facts!! *)
     W.NSet.forall (subfact th w2) (get_facts w1);
    (* and also properties *)
+*)
 
   fun project_fact_names w =
     RF.NSet.fold 
@@ -80,8 +87,10 @@ struct
                 | SOME n => SOME (set_name n f);
   fun ord (f1,f2) = SStrName.Namer.ord (get_name f1,get_name f2);
   fun eq (f1,f2) = (ord(f1,f2) = EQUAL);
-  fun pretty f =  Pretty.str "";
-
+  fun pretty w = Pretty.block 
+                   ((map BWire.pretty (get_facts w |> W.NSet.list_of))
+                   @ [Pretty.str " |- ",BWire.pretty (get_goal w)]);
+                 
 end; (* structure *)
 
 structure W = NameFun(structure Namer = Wire val default_name = Wire.default_wire);

@@ -1,7 +1,7 @@
 theory pp_interface 
 imports
   Main
-  "../build/Wire"
+  "../build/RTechn"
 uses
   "../parse/parsetree.ML"   
 begin
@@ -35,8 +35,6 @@ text "Similar proofs with small difference,
 
 (* example similar lemmas *)
 
-
-
 lemma lem1: "! x y. P x \<and> P y --> P x \<and> P y"
  apply (rule allI)
  apply (rule allI)
@@ -56,16 +54,70 @@ lemma lem2: "! x. P x --> P x"
 
 ML{*
  open ParseTree;
+ structure FE = FeatureEnv;
+ structure TF = TermFeatures;
+
 *}
 ML{*
-val (Goal pg) = parse_file "/u1/staff/gg10/Stratlang/src/parse/examples/attempt_lem2.yxml" 
+val (Goal pg) = parse_file "/Users/ggrov/Stratlang/src/parse/examples/attempt_lem2.yxml" 
 val (Proof p) = #cont pg;
 val (_,_,StrTerm g) = #state pg;
+
+fun cont_of_prf (Goal pg) = case #cont pg of Proof p => p |> snd;
+fun meth_of_prf (Goal pg) = case #cont pg of Proof p => p |> fst |> snd; 
+fun term_of_prf (Goal pg) = case #state pg of
+     (_,_,StrTerm g) => g;
+
+fun oterms_of_prf g = map term_of_prf (cont_of_prf g)
+
 *}
 (* lift term to features *)
 ML{*
-structure TF = TermFeatures;
+fun wire_of_str ctxt str =
+  let 
+    val t = Syntax.read_prop ctxt str;
+    val fs = FE.get_features t 
+    val gwire = BWire.default_wire
+              |> BWire.set_pos fs;
+  in
+   Wire.default_wire 
+   |> Wire.set_goal gwire
+  end;
+
+fun rtech_of_goal ctxt goal =
+  RTechn.id
+  |> RTechn.set_inputs (W.NSet.single (wire_of_str ctxt (term_of_prf goal)))
+  |> RTechn.set_outputs (W.NSet.of_list (map (wire_of_str ctxt) (oterms_of_prf goal)))
 *}
+
+
+ML{*
+val t = term_of_prf (Goal pg);
+val t' = Syntax.read_prop @{context} "\<forall>x. PP x \<longrightarrow> PP x"
+ |> Thm.cterm_of @{theory};
+Goal.init;
+val w = wire_of_str @{context} t;
+Wire.get_goal w |> BWire.get_pos;
+W.NSet.single w;
+*}
+
+
+ML{*
+rtech_of_goal @{context}(Goal pg);
+
+fun rtechns_of_proof ctxt g = 
+ (rtech_of_goal ctxt g) :: (maps (rtechns_of_proof ctxt) (cont_of_prf g))
+*}
+
+ML{*
+rtechns_of_proof @{context} (Goal pg);
+*}
+
+ML{*
+val prs = parse_file "/Users/ggrov/Stratlang/src/parse/examples/attempt_lem1.yxml"; 
+rtechns_of_proof @{context} prs;
+*}
+
 ML{*
 val t = @{prop "! x y. P x \<and> P y --> P x \<and> P y"};
 TF.constants t 

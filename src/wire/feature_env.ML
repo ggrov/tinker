@@ -4,26 +4,20 @@ struct
  local open Feature in
   (* should really just use set rather than list! *)
   fun mk_const_goal_feature t =
-   let 
-     val consts = TF.constants t
-     fun match gnode _ = gnode
-                       |> GNode.get_goal
-                       |> Thm.prop_of
-                       |> TF.constants
-                       |> (fn cs => StrName.NSet.subset (consts,cs))
-     fun sub _ f = if get_ftyp f = "consts" then 
-                     case get_fdata f of
-                        (Strings cs) => StrName.NSet.eq (consts,cs)
-                       | _ => false 
-                   else false
-   in 
-    default_feature 
-    |> set_fdata (Strings consts);
-    |> set_id "goal-consts"
-    |> set_ftyp "consts"
-    |> set_match match
-    |> set_sub sub
-  end (* fun *)
+   if StrName.NSet.is_empty (TF.constants t)
+    then []
+    else [(Strings (TF.constants t,"consts"))];
+
+  fun mk_top_level t = 
+    case TF.top_level_str t of 
+       SOME s => [Ref (s,"top-level-const")]
+     | NONE => [];
+
+  fun simple_shape t = [Terms ([t],"shape")];
+
+  fun get_features t =
+    (mk_top_level t) @ (mk_const_goal_feature t) @ (simple_shape t)
+    |> F.NSet.of_list;
     
  end (* local *)
 end (* struct *)

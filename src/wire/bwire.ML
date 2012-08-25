@@ -25,6 +25,7 @@ struct
 
   (* invariant:
       if two names are equal then it is the same wire!!
+      - hmmm. should really check features
       - no feature can be contradictory (including pos vs neg) *)
   datatype bwire = BWire of { name : SStrName.name, 
                               pos : F.NSet.T,
@@ -51,21 +52,24 @@ struct
           pos = F.NSet.empty,
           neg = F.NSet.empty};
 
+(*
   fun match w rst g = 
     (* all positive features matches *)
     F.NSet.forall (fn f => Feature.match f rst g) (get_pos w) 
      andalso 
     (* and no negative features matches *)
     not(F.NSet.exists (fn f => Feature.match f rst g) (get_neg w));
+*)
 
   (* fixme: is this correct? maybe Feature.sub_feature_of?? *)
+(*
   fun sub_pos_one th p = F.NSet.exists (Feature.subfeature_of th p)
 
   fun sub_pos th ps1 ps2 = F.NSet.forall (fn p => sub_pos_one th p ps2) ps1;
 
   fun sub_wire th w1 w2 = (* fixme: what does this mean for negative features? *)
     sub_pos th (get_pos w1) (get_pos w2);
-
+*)
   (* for name set *)
   type name = bwire;
   fun suc f = set_name (SStrName.Namer.suc (get_name f)) f
@@ -74,8 +78,10 @@ struct
                 | SOME n => SOME (set_name n f);
   fun ord (f1,f2) = SStrName.Namer.ord (get_name f1,get_name f2);
   fun eq (f1,f2) = (ord(f1,f2) = EQUAL);
-  fun pretty f =  Pretty.str "";
-
+  fun pretty bw = Pretty.block (* fixme: comma between features *)
+                   ([Pretty.str (SStrName.dest (get_name bw)), Pretty.str ": {"]
+                   @ (map Feature.pretty (get_pos bw |> F.NSet.list_of))
+                   @ [Pretty.str "}"]);
 end
 
 structure W = NameFun(structure Namer = BWire val default_name = BWire.default_wire);
