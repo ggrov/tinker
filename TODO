@@ -25,6 +25,8 @@ Goals:
         proof may be in the family of another, although the actual end is not) 
       - use of user-provided annotations. e.g. for grouping?
 
+  - make a BNF grammar for features. 
+
 ------
 Requirements to fulfil goals:
  1) - Quanto needs support for edges 
