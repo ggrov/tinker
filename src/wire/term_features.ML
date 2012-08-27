@@ -60,8 +60,15 @@ struct
 
   (* bag of constants *)
   val num_constants = num_constants' StrTable.empty;
+
   (* set of contants *)
-  val constants = StrName.NSet.of_list o StrTable.keys o num_constants;
+
+  val ignore_consts = ["HOL.Trueprop","all","==>"]
+
+  (* the actual constants *)
+  val delete_ignore = fold StrName.NSet.delete ignore_consts;
+
+  val constants = delete_ignore o StrName.NSet.of_list o StrTable.keys o num_constants;
 
   fun get_numconstants_table str tab =
     case StrTable.lookup tab str of
@@ -73,9 +80,13 @@ struct
       |> get_numconstants_table s;
 
  fun top_level_str (Const (s,_)) = SOME s
+  | top_level_str ((Const ("all",_)) $ f) = top_level_str f
+  | top_level_str ((Const ("HOL.Trueprop",_)) $ f) = top_level_str f
+  | top_level_str ((Const ("Trueprop",_)) $ f) = top_level_str f
+  | top_level_str ((Const ("==>",_)) $ f) = top_level_str f
   | top_level_str (f $ _) = top_level_str f
-  | top_level_str (Abs (s,_,_)) = SOME s
-  | top_level_str _ = NONE
+  | top_level_str (Abs (_,_,t)) = top_level_str t
+  | top_level_str _ = NONE;
 
  val term_size = Term.size_of_term;
 

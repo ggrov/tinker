@@ -4,7 +4,7 @@ imports
   Prf                                                    
 uses
   "../wire/term_fo_au.ML"  
-  "../wire/term_features.ML"           
+  "../wire/term_features.ML"               
   "../wire/feature.ML"                          
   "../wire/bwire.ML"                    
   "../wire/gnode.ML"

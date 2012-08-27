@@ -53,26 +53,19 @@ lemma lem2: "! x. P x --> P x"
  done
 
 ML{*
- open ParseTree;
+ val path = "/u1/staff/gg10/"
+*}
+
+ML{*
+local open ParseTree; in
  structure FE = FeatureEnv;
  structure TF = TermFeatures;
 
-*}
-ML{*
-val (Goal pg) = parse_file "/Users/ggrov/Stratlang/src/parse/examples/attempt_lem2.yxml" 
-val (Proof p) = #cont pg;
-val (_,_,StrTerm g) = #state pg;
+  fun cont_of_prf (Goal pg) = case #cont pg of Proof p => p |> snd;
+  fun meth_of_prf (Goal pg) = case #cont pg of Proof p => p |> fst |> snd; 
+  fun term_of_prf (Goal pg) = case #state pg of (_,_,StrTerm g) => g;
+  fun oterms_of_prf g = map term_of_prf (cont_of_prf g)
 
-fun cont_of_prf (Goal pg) = case #cont pg of Proof p => p |> snd;
-fun meth_of_prf (Goal pg) = case #cont pg of Proof p => p |> fst |> snd; 
-fun term_of_prf (Goal pg) = case #state pg of
-     (_,_,StrTerm g) => g;
-
-fun oterms_of_prf g = map term_of_prf (cont_of_prf g)
-
-*}
-(* lift term to features *)
-ML{*
 fun wire_of_str ctxt str =
   let 
     val t = Syntax.read_prop ctxt str;
@@ -84,97 +77,42 @@ fun wire_of_str ctxt str =
    |> Wire.set_goal gwire
   end;
 
+fun name_of_thm_name (Thm s) = s
+ |  name_of_thm_name (Hyp s) = s;
+
+fun meth_name (Rule thn) = "rule: " ^ name_of_thm_name thn
+ | meth_name (Erule (a,th)) = "erule: " ^ name_of_thm_name th (* which assumption + thm *)
+ | meth_name (Frule (a,th)) = "frule" (* which assumption + thm *)
+ | meth_name (Subst_thm th) = "subst_thm" (* rule used *)
+ | meth_name (Subst_asm_thm (th1,th2)) = "subst_asm" (* rule used *)
+ | meth_name (Subst_using_asm t) = "subst_using_asm" (* which assumption in list *)
+ | meth_name (Case t) = "cases" (* term which case is applied for *)
+ | meth_name (Tactic at) = "tactic"
+ | meth_name (Using (th,m)) =  "erule: "
+ | meth_name (Unknown s) = s;
+
 fun rtech_of_goal ctxt goal =
   RTechn.id
+  |> RTechn.set_atomic_appf (goal |> meth_of_prf |> meth_name)
   |> RTechn.set_inputs (W.NSet.single (wire_of_str ctxt (term_of_prf goal)))
   |> RTechn.set_outputs (W.NSet.of_list (map (wire_of_str ctxt) (oterms_of_prf goal)))
-*}
-
-
-ML{*
-val t = term_of_prf (Goal pg);
-val t' = Syntax.read_prop @{context} "\<forall>x. PP x \<longrightarrow> PP x"
- |> Thm.cterm_of @{theory};
-Goal.init;
-val w = wire_of_str @{context} t;
-Wire.get_goal w |> BWire.get_pos;
-W.NSet.single w;
-*}
-
-
-ML{*
-rtech_of_goal @{context}(Goal pg);
 
 fun rtechns_of_proof ctxt g = 
  (rtech_of_goal ctxt g) :: (maps (rtechns_of_proof ctxt) (cont_of_prf g))
-*}
-
-ML{*
-rtechns_of_proof @{context} (Goal pg);
-*}
-
-ML{*
-val prs = parse_file "/Users/ggrov/Stratlang/src/parse/examples/attempt_lem1.yxml"; 
-rtechns_of_proof @{context} prs;
-*}
-
-ML{*
-val t = @{prop "! x y. P x \<and> P y --> P x \<and> P y"};
-TF.constants t 
-*}
 
 
+fun rtechns_of_file ctxt fname = 
+  parse_file fname
+  |> rtechns_of_proof ctxt;
 
-
-
-
-ML{*
- open ParseTree;
-*}
-
-ML{*
-val tac1 = Auto {simp = [],intro = [], dest = []};
-val s0 = ([],[],IsaTerm @{term "x + x = 0"}) : PS;
-(*val t1 = Goal {state = s0,cont = Gap};
-val t2 = Goal {state = s0,cont = Proof (("",Tactic tac1),[])}*)
+end;
 *}
 
 
 ML{*
-print_depth 100;
+val rtechn_l1 = rtechns_of_file @{context} (path ^ "/Stratlang/src/parse/examples/attempt_lem1.yxml");
+val rtechn_l2 = rtechns_of_file @{context} (path ^ "/Stratlang/src/parse/examples/attempt_lem2.yxml");
 *}
-
-ML{*
-XML.Text "test";
-XML.Elem (("Unknown",[("arg","test")]),[]);
-val t = XML.Elem (("Simp",[]),[XML.Elem (("dest",[("val","l1")]),[]),XML.Elem (("dest",[("val","l2")]),[])]);
-val yt = YXML.string_of t;
-val t' = YXML.parse yt;
-(YXML.parse o YXML.string_of);
-val x = Print_Mode.setmp [] ((YXML.parse o YXML.string_of)) t;
-*}
-
-ML{*
-val (Goal pg) = parse_file "/u1/staff/gg10/Stratlang/src/parse/examples/simple2.yxml" 
-*}
-
-(* todo - parse -> then map to features *)
-ML{*
-val (_,_,StrTerm g) = #state pg;
-val x = "\<forall>i. zero i = 0 \<or> zero (- i) = 0";
-String.explode g;
-(String.explode x)=(String.explode g);
-Syntax.parse_prop @{context} g;
-*}
-
-ML{*
-Syntax.read_prop_global @{theory} g;
-Syntax.parse_prop @{context} g;
-*}
-
-
-
-
 
 end;
 
