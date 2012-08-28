@@ -5,7 +5,7 @@
 structure RTechn_GraphParam
 : GRAPH_PARAM
 = struct
-  val pretty_theory_name = Pretty.str "isaplanner_rtechn";
+  val pretty_theory_name = Pretty.str "strategy_language";
 
   (* Vertices with string data and prefix-substring matching *)
   structure VData = RTechn_VertexData;
@@ -13,12 +13,19 @@ structure RTechn_GraphParam
 
   (* substitutions for variables in vertex/edge data 
      (usually, we only have data on vertices) *)
-  type subst = unit;
+  type subst = VData.subst * EData.subst;
 
-  val empty_subst = ();
-  fun compose_subst u1 u2 = (); 
-  fun try_match_vertex d1 d2 u = VData.match_data (d1,d2) u;
-  fun try_match_edge e1 e2 u = EData.match_data (e1,e2) u;
+  val empty_subst = (VData.empty_subst,EData.empty_subst);
+  fun compose_subst (vu1,eu1) (vu2,eu2) = 
+        (VData.compose_subst (vu1,vu2),EData.compose_subst (eu1,eu2)); 
+  fun try_match_vertex d1 d2 (vu,eu) = 
+      case VData.match_data (d1,d2) vu of
+         NONE => NONE
+       | (SOME vu') => SOME (vu',eu);
+  fun try_match_edge e1 e2 (vu,eu) =
+      case EData.match_data (d1,d2) eu of
+         NONE => NONE
+       | (SOME eu') => SOME (vu,eu');
 
   (* IMPROVE: what data do we want here? should it be add_exp *)
   exception match_exp of unit;

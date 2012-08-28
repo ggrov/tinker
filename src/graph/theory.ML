@@ -1,7 +1,7 @@
-structure RTechn_Theory = GraphicalTheory(
-  structure OParam = RTechn_OGraphParam
-  structure VComponentData = RTechn_OVertexComponentData
-  structure EComponentData = RTechn_EdgeComponentData
+structure Strategy_Theory = GraphicalTheory(
+  structure OParam = Strategy_OGraphParam
+  structure VComponentData = Strategy_OVertexComponentData
+  structure EComponentData = Strategy_EdgeComponentData
 );
 
-structure RTechn_Controller = Controller(RTechn_Theory);
+structure Strategy_Controller = Controller(Strategy_Theory);

@@ -1,6 +1,7 @@
 (* authors: Gudmund Grov and Andrius Velykis *)
 structure ParseTree =
 struct
+  structure XML = IsaXML;
 
   (* String-based term for when Isabelle term cannot be determined *)
   datatype term_ref = IsaTerm of term | StrTerm of string

@@ -1,7 +1,7 @@
 theory pp_interface 
 imports
   Main
-  "../build/RTechn"
+  "../build/Graph"
 uses
   "../parse/parsetree.ML"   
 begin
@@ -113,6 +113,63 @@ ML{*
 val rtechn_l1 = rtechns_of_file @{context} (path ^ "/Stratlang/src/parse/examples/attempt_lem1.yxml");
 val rtechn_l2 = rtechns_of_file @{context} (path ^ "/Stratlang/src/parse/examples/attempt_lem2.yxml");
 *}
+
+(* next: start making graph! *)
+
+(* for each: previous node (if any), input wire, current graph, ProofNode to be parsed,
+    returns updated graph *)
+ML{*
+
+fun graph_of_goal' prev ctxt goal g0 = 
+  let 
+      val rt = rtech_of_goal ctxt goal
+      val (SOME wire) = (W.NSet.tryget_singleton o RTechn.get_inputs) rt
+      val (l,g1) = Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.RT rt)) g0
+      val g2 = Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W wire) prev l g1
+             |> snd
+ 
+  in
+     fold (graph_of_goal' l ctxt) (cont_of_prf goal) g2
+  end;
+
+ fun graph_of_goal ctxt goal =
+  let 
+      val rt = rtech_of_goal ctxt goal
+      val (SOME wire) = (W.NSet.tryget_singleton o RTechn.get_inputs) rt
+      val (l,g0) = Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.RT rt)) Strategy_Theory.Graph.empty
+      val (prev,g1) = Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert g0
+      val g2 = Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W wire) prev l g1
+             |> snd
+  in
+     fold (graph_of_goal' l ctxt) (cont_of_prf goal) g2
+  end;
+*}
+
+ML{*
+ val g2 = ParseTree.parse_file (path ^ "/Stratlang/src/parse/examples/attempt_lem1.yxml");
+ val graph = graph_of_goal @{context} g2;
+ val str = Strategy_OutputGraphDot.output graph;
+ writeln str;
+*}
+
+(*
+     val is = TextIO.openIn filename
+     val inp = TextIO.inputAll is;
+     val _ = TextIO.closeIn is;
+
+*)
+ML{*
+val filename = "/u1/staff/gg10/test.dot";
+val outs = TextIO.openOut filename;
+val _ = TextIO.output (outs,str);
+TextIO.closeOut outs;
+(* then do 
+     edit strange formatting and
+     dot -Tpdf test.dot -o test.pdf 
+    would be nicer if data rather V/E names are printed
+*)
+*}
+
 
 end;
 
