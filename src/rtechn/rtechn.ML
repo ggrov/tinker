@@ -66,6 +66,7 @@ sig
 
   (* pretty printing *)
   val pretty : T -> Pretty.T
+  val pretty_name : T -> Pretty.T
   val print : T -> unit
 
 end;
@@ -215,6 +216,8 @@ structure RTechn
                        [Pretty.str "Inputs: ", W.NSet.pretty (get_inputs rt)],
                      Pretty.chunks
                        [Pretty.str "Outputs: ", W.NSet.pretty (get_outputs rt)]];
+  
+  fun pretty_name rt = Pretty.str (get_name rt);
 
   val print = Pretty.writeln o pretty;
 

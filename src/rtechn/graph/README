@@ -1,7 +1,0 @@
-This folder contains the graph specific part, and talk about
-strategies only in terms of wire, goal & rtechn names and their graphs.
-
-For graphical stuff graph_layout.ML can be ignored. 
-
-The visualise subfolder is my attempt to load a visualisation theory, but
-doesn't seem to work (may be link with underlying ML level). 

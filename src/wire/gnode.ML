@@ -5,7 +5,7 @@ struct
    structure Wire = BWire;
 
    (* goal can also just be in the facts set?? *)
-  datatype goal = Goal of {facts : gmap,
+  datatype goal = Goal of {facts : gmap, (* map from BWire to a set of assumption *)
                             gtyp : Wire.name, 
                             goal : PNode.gname, (* or actually the gnode *)
                             prev : PNode.gname option}

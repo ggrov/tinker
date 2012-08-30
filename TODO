@@ -1,3 +1,11 @@
+TO DO short term
+ - complete representation of rtechn
+ - evaluation of technique, including matching for features
+ - test rewriting
+ - fix combinators etc from graph_comb.ML
+ - 
+
+
 -------------------------------------------------------------------------
   List of project things we would like
   Gudmund Grov

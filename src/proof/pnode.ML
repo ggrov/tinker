@@ -20,7 +20,7 @@ struct
       fixes : string list,
       goal : Thm.thm,
       (* needs to be a list to keep it in order *)
-      result : (gname list) option, (* NONE indicates open, SOME {} indicates complete *)
+      result : (gname list) option, (* NONE indicates open, SOME [] indicates complete *)
       prev : pnode} (* name should be sufficient - look up rest in Prf *)
   and 
    (* G should really just be name and context? *)

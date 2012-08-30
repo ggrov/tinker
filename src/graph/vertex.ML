@@ -29,7 +29,7 @@ structure DB_VertexData
 
   val print_data = Pretty.writeln o pretty_data;
   
-  fun pretty_node (RT rt) = RTechn.pretty rt
+  fun pretty_node (RT rt) = RTechn.pretty_name rt
    |  pretty_node (GN gn) = GNode.pretty gn
    |  pretty_node (RVar s) = Pretty.str ("?R_" ^ s)
    |  pretty_node (GVar s) = Pretty.str ("?G_" ^ s);
@@ -42,6 +42,8 @@ structure DB_VertexData
   (* u2 overrides u1 *)
   fun compose_subst (u1,u2) = (StrName.NTab.merge_joint data_eq u1 u2);
 
+  (* shouldn't really be variable on rhs. Matching gets a bit
+     complicated due to the two different types of variables *)
   fun match_data (RVar v1,RVar v2) subst =
       (case StrName.NTab.lookup subst v1 of 
             NONE => SOME (StrName.NTab.ins (v1,RVar v2) subst) (* bind vi if not bound - infinite loop?? *)

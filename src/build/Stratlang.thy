@@ -1,9 +1,10 @@
 (* simple test of proof representation *)
-theory Stratlang                                               
-imports        
-  Graph                                     
+theory Stratlang                                                      
+imports         
+  Graph                                      
 uses
-  "../graph/graph_comb.ML"                      
+  "../graph/graph_dot.ML"
+  (* "../graph/graph_comb.ML" *)                
 begin
 
 end

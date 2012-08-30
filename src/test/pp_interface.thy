@@ -1,7 +1,7 @@
 theory pp_interface 
 imports
   Main
-  "../build/Graph"
+  "../build/Stratlang"
 uses
   "../parse/parsetree.ML"   
 begin
@@ -35,6 +35,10 @@ text "Similar proofs with small difference,
 
 (* example similar lemmas *)
 
+lemma "A \<and> B --> B \<and> A"
+ apply (rule impI)
+oops
+
 lemma lem1: "! x y. P x \<and> P y --> P x \<and> P y"
  apply (rule allI)
  apply (rule allI)
@@ -53,7 +57,7 @@ lemma lem2: "! x. P x --> P x"
  done
 
 ML{*
- val path = "/u1/staff/gg10/"
+ val path = "/u1/staff/gg112/"
 *}
 
 ML{*
@@ -145,12 +149,6 @@ fun graph_of_goal' prev ctxt goal g0 =
   end;
 *}
 
-ML{*
- val g2 = ParseTree.parse_file (path ^ "/Stratlang/src/parse/examples/attempt_lem1.yxml");
- val graph = graph_of_goal @{context} g2;
- val str = Strategy_OutputGraphDot.output graph;
- writeln str;
-*}
 
 (*
      val is = TextIO.openIn filename
@@ -159,8 +157,11 @@ ML{*
 
 *)
 ML{*
-val filename = "/u1/staff/gg10/test.dot";
-val outs = TextIO.openOut filename;
+ val g2 = ParseTree.parse_file (path ^ "/Stratlang/src/parse/examples/attempt_lem1.yxml");
+ val graph = graph_of_goal @{context} g2;
+ val str = Strategy_OutputGraphDot.output graph;
+val filename = "/u1/staff/gg112/test1.dot";
+val outs = TextIO.openOut filename; 
 val _ = TextIO.output (outs,str);
 TextIO.closeOut outs;
 (* then do 
@@ -170,6 +171,19 @@ TextIO.closeOut outs;
 *)
 *}
 
+ML{*
+ val g2 = ParseTree.parse_file (path ^ "/Stratlang/src/parse/examples/attempt_lem2.yxml");
+ val graph = graph_of_goal @{context} g2;
+
+ val str = Strategy_OutputGraphDot.output graph;
+val filename = "/u1/staff/gg112/test2.dot";
+val outs = TextIO.openOut filename;
+val _ = TextIO.output (outs,str); 
+TextIO.closeOut outs;
+  Strategy_Dot.write_dot_to_file "/u1/staff/gg112/mytest.dot" graph;
+  Print_Mode.setmp [] (fn () => Strategy_Dot.output graph) ();
+  ;
+*}
 
 end;
 
