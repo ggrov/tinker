@@ -3,6 +3,14 @@
 signature RTECHN = 
 sig
   type T
+  datatype atomic =
+      Rule of StrName.NSet.T (* rules used - what about with wire? *)
+    | ERule of StrName.name * StrName.NSet.T (* wire + rules used *)
+    | FRule of StrName.name * StrName.NSet.T (* wire + rules used *)
+    | Subst of StrName.NSet.T (* separate rule vs bwire? *)
+    | SubstAsm of StrName.name * StrName.NSet.T (* bwre and rules - sep. rule vs bwire *)
+    | Tactic of StrName.NSet.T * string (* bwire as fact + name of stactic *)
+
   type appfn 
   type wire = W.name;
   type wset = W.NSet.T;
@@ -26,7 +34,7 @@ sig
   val set_outputs :  wset -> T -> T 
   val set_appf : appfn -> T -> T
 
-  val set_atomic_appf :string -> T -> T 
+  val set_atomic_appf : atomic -> T -> T 
   val set_hgraph_appf : T -> T
   val set_merge_appf : T -> T
   val set_or_appf : T -> T
@@ -89,12 +97,20 @@ structure RTechn
     timeout : Time.time
     } 
 
+ datatype atomic =
+    Rule of StrName.NSet.T (* rules used - what about with wire? *)
+  | ERule of StrName.name * StrName.NSet.T (* wire + rules used *)
+  | FRule of StrName.name * StrName.NSet.T (* wire + rules used *)
+  | Subst of StrName.NSet.T (* separate rule vs bwire? *)
+  | SubstAsm of StrName.name * StrName.NSet.T (* bwre and rules - sep. rule vs bwire *)
+  | Tactic of StrName.NSet.T * string (* bwires as facts + name of stactic *)
+
  (* must be serialisable! *)
- datatype appfn = Appf of string
+ datatype appfn = Appf of atomic
                 | HGraph of EvalData option
                 | Merge
-                | Or of EvalData option
-                | Try of EvalData option
+                | Or (* of EvalData option *)
+                | Try (* of EvalData option *)
 
  (* must be serialisable *)
  datatype T =
@@ -133,8 +149,8 @@ structure RTechn
   val set_atomic_appf = set_appf o Appf;
   val set_hgraph_appf = set_appf (HGraph NONE);
   val set_merge_appf = set_appf Merge;
-  val set_or_appf = set_appf (Or NONE);
-  val set_try_appf = set_appf (Try NONE);
+  val set_or_appf = set_appf Or;
+  val set_try_appf = set_appf Try;
 
   fun set_io ws = set_inputs ws #> set_outputs ws;
   
@@ -147,10 +163,10 @@ structure RTechn
   fun is_merge_appfn  Merge = true
    |  is_merge_appfn    _     = false;
 
-  fun is_or_appfn  (Or _) = true
+  fun is_or_appfn  Or      = true
    |  is_or_appfn    _     = false;
 
-  fun is_try_appfn (Try _) = true
+  fun is_try_appfn Try      = true
    |  is_try_appfn    _     = false;
 
   val is_atomic = is_atomic_appfn o get_appf;
@@ -173,7 +189,7 @@ structure RTechn
 *) 
 
   val id = RTechn {name = "id", inputs = W.NSet.empty, outputs = W.NSet.empty, 
-                   appf = Appf "id"};
+                   appf = Appf (Tactic (StrName.NSet.empty,"id_tac"))};
 
   val merge = RTechn {name = "merge", inputs = W.NSet.empty, outputs = W.NSet.empty, 
                    appf = Merge};
@@ -189,8 +205,8 @@ structure RTechn
          |> set_outputs (W.NSet.single wire)
 
   val fail = id 
-              |> set_atomic_appf "fail" 
-              |> set_name "fail";
+           |> set_atomic_appf (Tactic (StrName.NSet.empty,"id_tac"))
+           |> set_name "fail";
 
 (*  fun ofstep f = id
     |> set_name "ofstep"

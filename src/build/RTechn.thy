@@ -3,7 +3,7 @@ theory RTechn
 imports        
   Wire                                     
 uses
-  "../rtechn/rtechn.ML"                        
+  "../rtechn/rtechn.ML"                               
 begin
   (* due to XML usage by Quanto *)
   ML{*

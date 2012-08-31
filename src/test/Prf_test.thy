@@ -91,6 +91,13 @@ ML{*
  PPlan.export_name prf (PNode.get_name gn);
 *}
 
+ML{*
+rtac;
+ftac;
+etac;
+PPlan.apply_tac;
+*}
+
 (* problem is when x is bound in the proof.. *)
 ML{*
  val (gn,prf) = PPlan.init @{context} @{term "(\<forall> x. P x) ==> \<forall> x. P x"};
