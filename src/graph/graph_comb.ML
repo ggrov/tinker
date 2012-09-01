@@ -102,7 +102,7 @@ struct
      ((rnv,rne),g')
    end;
 
- fun theng g1 g2 = graph_then g1 g2 |> snd;
+ fun theng g1 g2 = graph_theng g1 g2 |> snd;
  
  (* add OR, etc -- now in graph_comb at the end *)
 

@@ -3,6 +3,7 @@
 signature RTECHN = 
 sig
   type T
+
   datatype atomic =
       Rule of StrName.NSet.T (* rules used - what about with wire? *)
     | ERule of StrName.name * StrName.NSet.T (* wire + rules used *)

@@ -6,6 +6,13 @@ uses
   "../parse/parsetree.ML"   
 begin
 
+ML{*
+Context.theory_of;
+Global_Theory.get_thm @{theory} "allI";
+
+Facts.named "HOL.allI";
+
+*}
 text "Similar proofs with small difference, 
       similar cases in a proof"
 

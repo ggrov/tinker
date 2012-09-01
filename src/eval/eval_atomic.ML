@@ -2,9 +2,58 @@ structure EvalAtomic =
 struct
 
   exception atomic_eval_exp of V.name * string
-  exception goalnode_exp of GoalNode.T * string * V.name
 
-  val flush_io = RState.reset_io;
+  fun get_thm gnode name =
+   Global_Theory.get_thm (Context.theory_of (GNode.get_ctxt gnode)) name;
+
+  fun thm_seq gnode thm_nms =
+     thm_nms 
+     |> StrName.NSet.list_of 
+     |> map (get_thm gnode)
+     |> Seq.of_list;
+
+  fun get_pnode ctxt gnode = PNode_Ctxt.get_goal ctxt (GNode.get_goal gnode);
+
+  (* update a given node according to wire
+      - input gnode: old gnode
+              pnode: new subgoal
+      - output SOME pnode or NONE if failure
+      - may delete facts that are not matching anymore....
+  *)
+  fun upd_by_wire ctxt gnode pnode wire =
+
+
+  (* ignores hyps and wire *)
+  fun upd_rule ctxt gnode (prf,pnds) = 
+    let
+     (* new goal keeps all ctxt information *)
+     fun upd_goal goal = gnode
+                       |> GNode.set_prev (SOME gnode)
+                       |> GNode.set_goal (PNode.get_name goal)
+     val ctxt' = ctxt
+               |> Prf_Ctxt.map (K prf) (* updates proof in context *)
+               |> PNode_Ctxt.del_goal (PNode.get_goal gnode) (* deletes goal from ctxt (now in prf) *)
+               |> PNode_Ctxt.add_goals pnds
+     val del_goal pname
+   in
+      (ctxt',map upd_goal pnds)
+   end
+
+  fun apply_appf ctxt wset (RTechn.Rule thm_nms) gnode =
+     thm_seq gnode thm_nms
+     |> Seq.maps (PPlanEnv.apply_rule (get_pnode ctxt gnode,Prf_Ctxt.get ctxt));
+     |> Seq.map (upd_rule wset ctxt gnode)
+(*   |  apply_appf ctxt (RTechn.ERule (nbwire,thm_nms)) gnode =
+     thm_seq gnode thm_nms
+     |> Seq.maps (PPlanEnv.apply_erule (gnode,prf) nbwire);
+   |  apply_appf ctxt (RTechn.FRule (nbwire,thm_nms)) gnode =
+     thm_seq gnode thm_nms
+     |> Seq.maps (PPlanEnv.apply_frule (gnode,prf) nbwire);
+   |  apply_appf ctxt (RTechn.Subst thm_nms) gnode =
+   |  apply_appf ctxt (RTechn.SubstAsm (nbwire,thm_nms)) gnode = *)
+   |  apply_appf ctxt (RTechn.Tactic (bwire_nms,tac_name)) gnode =
+
+  exception goalnode_exp of GoalNode.T * string * V.name
 
   fun in_edge_no_edge_point g e = 
     let
@@ -17,7 +66,6 @@ struct
             | _ => raise atomic_eval_exp (inp_node,"Vertex (or pre vertex) does not have 1 input")
    end;
 
-  val dummy = Unsynchronized.ref [];
 
   fun apply_atomic (g,rst,v) = (* assumes v is atomic! *)  
     let val (vdata,(in_edges,out_edges)) = RTechn_Theory.Graph.get_vertex g v

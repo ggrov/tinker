@@ -5,10 +5,10 @@ struct
    structure Wire = BWire;
 
    (* goal can also just be in the facts set?? *)
-  datatype goal = Goal of {facts : gmap, (* map from BWire to a set of assumption *)
-                            gtyp : Wire.name, 
-                            goal : PNode.gname, (* or actually the gnode *)
-                            prev : PNode.gname option}
+  datatype T = Goal of {facts : gmap, (* map from BWire to a set of assumption *)
+                        gtyp : Wire.name, (* do we need this??? *)
+                        goal : PNode.gname, (* or actually the gnode *)
+                        prev : T option}
 
   fun get_goal (Goal rep) = #goal rep;
   fun get_facts (Goal rep) = #facts rep;
@@ -71,86 +71,10 @@ struct
   fun combine_facts goal1 goal2 =
     set_facts (combine_facts' goal1 goal2) goal1
 
-   type name = goal
-   fun suc (Goal rep) = update_goal StrNamer.suc (Goal rep);
-   fun pred goal = case StrNamer.pred (get_goal goal) of
-                           NONE => NONE
-                         | SOME v => SOME (set_goal v goal);
-   fun ord (n1,n2) = StrNamer.ord (get_goal n1, get_goal n2);
-   fun eq (n1,n2) = StrNamer.eq (get_goal n1, get_goal n2);
-  
   (* fixme add remaining *)
    fun pretty goal = Pretty.block
      [Pretty.str "Goal goal: ",
       Pretty.str (get_goal goal)]
 
 end (* struct GNode *)
-
-structure GN = NameFun(structure Namer = GNode val default_name = GNode.default_gnode);
-
-structure GNodeSet =
-struct
-
-  fun get_all_goals gnds = 
-    GN.NSet.fold
-      (fn g => GFact.NSet.ins_fresh (GNode.get_goal g))  (* should only be one! *)
-      gnds
-      GFact.NSet.empty;
-
-  (* assumption: only 1 goal instance in each set *)
-  fun combine_gsets' gset1 gset2 = 
-    GN.NSet.fold
-     (fn g1 => fn res =>
-       let
-         val g2s' = GN.NSet.filter (fn g2 => GFact.name_eq (GNode.get_goal g1,GNode.get_goal g2)) gset2
-       in case GN.NSet.tryget_singleton g2s' of
-             NONE => res (* fail either no singleton or not there *)
-           | (SOME g2) => GN.NSet.ins_fresh (GNode.combine_facts g1 g2) res
-       end)
-     gset1
-     GN.NSet.empty;
-
-  (* returns (gset1',gset2',combined) *)
-  fun combine_gsets gset1 gset2 =
-    let 
-      val combined = combine_gsets' gset1 gset2
-      val gset1' = gset1 
-                |> GN.NSet.filter 
-                    (fn g1 => GN.NSet.exists 
-                               (fn comb => GFact.name_eq (GNode.get_goal g1,GNode.get_goal comb)) 
-                               combined)
-      val gset2' = gset2 
-                |> GN.NSet.filter 
-                    (fn g2 => GN.NSet.exists 
-                               (fn comb => GFact.name_eq (GNode.get_goal g2,GNode.get_goal comb)) 
-                               combined)
-     in
-       (gset1',gset2',combined)
-     end;
-
-   (* various updates of gnode (to be used in tactics) *)
-   fun upd_goal_only new_goal gnode = 
-    if GFact.name_eq (GNode.get_goal gnode,new_goal)
-     then gnode
-     else gnode |> GNode.set_prev_value (GNode.get_goal gnode)
-                |> GNode.set_goal new_goal;
-
-   fun upd_hyps_only (to_delete,to_add) =
-      GNode.delete_facts to_delete
-      #> fold GNode.add_facts to_add;
-
-   fun upd_gnode (new_goal,to_delete,to_add) =
-     upd_goal_only new_goal
-     #> upd_hyps_only (to_delete,to_add);
-
-   fun upd_hyps_only_single (to_delete,to_add) =
-      GNode.delete_fact to_delete
-      #> GNode.add_facts to_add;
-
-   fun upd_gnode_single (new_goal,to_delete,to_add) =
-     upd_goal_only new_goal
-     #> upd_hyps_only_single (to_delete,to_add);
-
-end (* struct *)
-
 

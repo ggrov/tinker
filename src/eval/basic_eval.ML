@@ -8,6 +8,23 @@ sig
  val pop : T -> (V.name * T) (* raises eval_ex exception *)
 end (* signature *)
 
+
+(* instead of updating context *)
+functor EvalData (EV : EVAL) =
+struct
+
+  (* also ruleset *)
+  datatype T = EData of { 
+      pplan : PPlan.T,
+      goals : PNode.T StrName.NTab.T,
+      ruleset : Strategy_Theory.Ruleset.T, 
+      active : EV.T
+  }
+
+end;
+
+
+
 structure Ev_list =
 struct
   type T = V.name list;
@@ -41,10 +58,10 @@ sig
  val push_list : V.name list -> T -> T
  val push_set : V.NSet.T -> T -> T
  val of_list : V.name list -> T
- val apply : ((RTechnComb.graph * RState.T * V.name) -> (RTechnComb.graph * RState.T) Seq.seq) (* atomic fun eval *)
-             -> (RState.T -> RTechnComb.graph -> V.name -> V.name list)  (* new enabled boxes *)
-             -> (RTechnComb.graph * RState.T * T) (* input *)
-             -> (RTechnComb.graph * RState.T * T) Seq.seq
+ val apply : ((Strategy_Theory.Graph.T * PPlan.prf * V.name) -> (Strategy_Theory.Graph.T * PPlan.prf) Seq.seq) (* atomic fun eval *)
+             -> (PPlan.prf -> Strategy_Theory.Graph.T -> V.name -> V.name list)  (* new enabled boxes *)
+             -> (Strategy_Theory.Graph.T * PPlan.prf * T) (* input *)
+             -> (Strategy_Theory.Graph.T * PPlan.prf * T) Seq.seq
 end (* signature *)
 
 functor Evaluate_Fun(Ev : EVAL) : EVALF =

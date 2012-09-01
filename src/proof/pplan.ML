@@ -5,7 +5,7 @@ struct
       - instenv for shared meta-variables
   *)
   datatype prf = Prf of {
-    ptab : PNode.gnode StrName.NTab.T,
+    ptab : PNode.T StrName.NTab.T,
     all_nms : StrName.NSet.T,
     open_nms : StrName.NSet.T,
     root_nms : StrName.NSet.T }
@@ -194,7 +194,7 @@ struct
    end;  
 
   (* application *)
-  exception application_exp of string * PNode.gnode
+  exception application_exp of string * PNode.T
 
   (* tactic application *)
 

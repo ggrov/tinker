@@ -5,7 +5,7 @@ imports
 uses
   (* "../graph/graph_dot.ML" *)
   "../rtechn/rtechn_rs.ML"
-  "../graph/graph_comb.ML"                                       
+  "../graph/graph_comb.ML"                                        
 begin
 
 end

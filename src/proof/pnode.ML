@@ -12,7 +12,7 @@ struct
       - information about tactic
       - support for hierarchies ?
   *)
-  datatype gnode = Goal of 
+  datatype T = Goal of 
     { name : gname,
       ctxt : Proof.context,
       assms : Thm.thm StrName.NTab.T, (* split into local and global *)
@@ -24,9 +24,9 @@ struct
       prev : pnode} (* name should be sufficient - look up rest in Prf *)
   and 
    (* G should really just be name and context? *)
-   pnode = G of gnode | R of Proof.context;
+   pnode = G of T | R of Proof.context;
 
-  type gtab = gnode StrName.NTab.T;
+  type gtab = T StrName.NTab.T;
 
   fun get_name (Goal rep) = #name rep;
   fun get_ctxt (Goal rep) = #ctxt rep;
@@ -96,6 +96,4 @@ struct
    |  assms_of (G (Goal rep)) = (#assms rep);
 
 end
-
-
 
