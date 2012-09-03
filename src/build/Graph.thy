@@ -8,7 +8,7 @@ uses
   "../graph/edge.ML"  
   "../graph/graph.ML"             
   "../graph/theory.ML" 
-  "../graph/io.ML"                   
+  "../graph/io.ML"                      
 begin
 
 end

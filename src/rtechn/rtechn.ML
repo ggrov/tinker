@@ -17,8 +17,8 @@ sig
   type wset = W.NSet.T;
 
   exception rtechn_exp of string * T;
-  exception goal_lacks_type_exp of PNode.gnode;
-  exception wrong_wire_type_exp of (PNode.gnode * wire);
+  exception goal_lacks_type_exp of PNode.T;
+  exception wrong_wire_type_exp of (PNode.T * wire);
 
   val get_name : T -> string
   val get_inputs : T -> wset
@@ -48,6 +48,8 @@ sig
   val is_merge : T -> bool
   val is_or : T -> bool
   val is_try : T -> bool
+
+  val get_atomic : T -> atomic option
 
   val union_inputs : T -> T -> T (* second technique with inputs unioned with first *)
   val union_outputs : T -> T -> T (* second technique with outputs unioned with first *)
@@ -122,11 +124,11 @@ structure RTechn
   		appf: appfn}
  
   (* what about global properties like instantiations of meta-vars? *)
-  type appf = T -> tactic -> PNode.gnode -> (PNode.gnode * PNode.gnode list) Seq.seq
+  type appf = T -> tactic -> PNode.T -> (PNode.T * PNode.T list) Seq.seq
 
   exception rtechn_exp of string * T;
-  exception goal_lacks_type_exp of PNode.gnode;
-  exception wrong_wire_type_exp of (PNode.gnode * W.name);
+  exception goal_lacks_type_exp of PNode.T;
+  exception wrong_wire_type_exp of (PNode.T * W.name);
 
   fun get_name (RTechn rep) = #name rep;
   fun get_inputs (RTechn rep) = #inputs rep;
@@ -175,6 +177,11 @@ structure RTechn
   val is_merge = is_merge_appfn o get_appf;
   val is_or = is_or_appfn o get_appf;
   val is_try = is_try_appfn o get_appf;
+
+  fun get_atomic rt = 
+    case get_appf rt 
+    of (Appf atom) => SOME atom
+    | _ => NONE;
 
   (* We should really check this w.r.t hgraph graphs since they have to be invariant *)
   val union_inputs = update_inputs o W.NSet.union_merge o get_inputs;

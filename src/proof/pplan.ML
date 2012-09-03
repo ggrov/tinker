@@ -4,7 +4,7 @@ struct
       - information about tactic
       - instenv for shared meta-variables
   *)
-  datatype prf = Prf of {
+  datatype T = Prf of {
     ptab : PNode.T StrName.NTab.T,
     all_nms : StrName.NSet.T,
     open_nms : StrName.NSet.T,

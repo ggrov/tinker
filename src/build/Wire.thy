@@ -9,8 +9,8 @@ uses
   "../wire/bwire.ML"                    
   "../wire/gnode.ML"
   "../wire/rel_feature.ML"                                             
-  "../wire/wire.ML"  
-
+  "../wire/wire.ML"            
+ 
   "../wire/feature_env.ML"   
 begin
 

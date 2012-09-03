@@ -1,48 +1,95 @@
 structure EvalAtomic =
 struct
 
-  exception atomic_eval_exp of V.name * string
+  exception rtechn_exp of RTechn.T * string
+  exception gnode_exp of string
+ 
+  (* should be a functor - df is default *)
+  structure EData = EvalD_DF;
 
-  fun get_thm gnode name =
-   Global_Theory.get_thm (Context.theory_of (GNode.get_ctxt gnode)) name;
-
-  fun thm_seq gnode thm_nms =
-     thm_nms 
-     |> StrName.NSet.list_of 
-     |> map (get_thm gnode)
-     |> Seq.of_list;
-
+(*
   fun get_pnode ctxt gnode = PNode_Ctxt.get_goal ctxt (GNode.get_goal gnode);
+*)
+  fun upd_gnode_goal goal gnode = gnode
+                                |> GNode.set_prev (SOME gnode)
+                                |> GNode.set_goal (PNode.get_name goal);
 
-  (* update a given node according to wire
-      - input gnode: old gnode
-              pnode: new subgoal
-      - output SOME pnode or NONE if failure
-      - may delete facts that are not matching anymore....
-  *)
-  fun upd_by_wire ctxt gnode pnode wire =
+  fun matching_hyps fmap gnode pnode bwire = 
+    StrName.NSet.filter 
+      (fn hname => WMatch.bwire_match fmap (PNode.get_ctxt pnode) bwire 
+                                      (StrName.NTab.get (PNode.get_assms pnode) hname))
+      (PNode.get_lassms pnode)
 
+  fun upd_hyp fmap pnode bwire gnode =
+     matching_hyps fmap gnode pnode bwire
+     |> (fn gs => GNode.add_facts (bwire,gs) gnode)
+
+  fun upd_hyps_by_wire fmap gnode pnode wire =
+    BW.NSet.fold 
+     (upd_hyp fmap pnode)
+     (Wire.get_facts wire)
+     gnode;
+
+  fun upd_goal_by_wire fmap gnode pnode wire = 
+    if WMatch.bwire_match 
+             fmap 
+             (PNode.get_ctxt pnode) (Wire.get_goal wire) (PNode.get_goal pnode) 
+    then SOME (upd_gnode_goal pnode gnode) 
+    else NONE
+    handle _ => NONE;
+
+  fun upd_by_wire fmap gnode pnode wire =
+    case upd_goal_by_wire fmap gnode pnode wire 
+     of NONE => NONE
+     |  (SOME gn) => SOME (wire,upd_hyps_by_wire fmap gn pnode wire);
+
+  (* what if there are more than one? or none? 
+      -> currently fails! 
+  *)  
+  fun upd_by_wires fmap gnode wset pnode =
+    let 
+      fun prj_unique [] = raise gnode_exp "no matching outputs"
+       |  prj_unique [SOME g] = g
+       |  prj_unique _ = raise gnode_exp "many matching outputs"
+    in 
+      map (upd_by_wire fmap gnode pnode) (W.NSet.list_of wset)
+      |> filter (Option.isSome)
+      |> prj_unique
+    end;
 
   (* ignores hyps and wire *)
-  fun upd_rule ctxt gnode (prf,pnds) = 
+  fun upd_rule wset edata gnode (pnds,prf) = 
     let
-     (* new goal keeps all ctxt information *)
-     fun upd_goal goal = gnode
-                       |> GNode.set_prev (SOME gnode)
-                       |> GNode.set_goal (PNode.get_name goal)
-     val ctxt' = ctxt
-               |> Prf_Ctxt.map (K prf) (* updates proof in context *)
-               |> PNode_Ctxt.del_goal (PNode.get_goal gnode) (* deletes goal from ctxt (now in prf) *)
-               |> PNode_Ctxt.add_goals pnds
-     val del_goal pname
+     val edata' = edata
+               |> EData.set_pplan prf (* updates proof in context *)
+               |> EData.del_goal (GNode.get_goal gnode) (* deletes goal from ctxt (now in prf) *)
+               |> EData.add_goals pnds
    in
-      (ctxt',map upd_goal pnds)
+      (edata',map (upd_by_wires (EData.get_fmatch edata) gnode wset) pnds)
    end
 
-  fun apply_appf ctxt wset (RTechn.Rule thm_nms) gnode =
-     thm_seq gnode thm_nms
-     |> Seq.maps (PPlanEnv.apply_rule (get_pnode ctxt gnode,Prf_Ctxt.get ctxt));
-     |> Seq.map (upd_rule wset ctxt gnode)
+   (* actual application of proof technique *)
+    fun get_thm edata gnode name =
+      let 
+         val th = gnode
+                |> GNode.get_goal 
+                |> EData.get_goal edata
+                |> PNode.get_ctxt
+                |> Proof_Context.theory_of
+      in
+        Global_Theory.get_thm th name
+      end;  
+
+    fun thm_seq edata gnode thm_nms =
+      thm_nms 
+      |> StrName.NSet.list_of 
+      |> map (get_thm edata gnode)
+      |> Seq.of_list;
+
+  fun apply_appf edata wset gnode (RTechn.Rule thm_nms) =
+     thm_seq edata gnode thm_nms
+     |> Seq.maps (PPlanEnv.apply_rule (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata))
+     |> Seq.map (upd_rule wset edata gnode)
 (*   |  apply_appf ctxt (RTechn.ERule (nbwire,thm_nms)) gnode =
      thm_seq gnode thm_nms
      |> Seq.maps (PPlanEnv.apply_erule (gnode,prf) nbwire);
@@ -50,89 +97,77 @@ struct
      thm_seq gnode thm_nms
      |> Seq.maps (PPlanEnv.apply_frule (gnode,prf) nbwire);
    |  apply_appf ctxt (RTechn.Subst thm_nms) gnode =
-   |  apply_appf ctxt (RTechn.SubstAsm (nbwire,thm_nms)) gnode = *)
-   |  apply_appf ctxt (RTechn.Tactic (bwire_nms,tac_name)) gnode =
+   |  apply_appf ctxt (RTechn.SubstAsm (nbwire,thm_nms)) gnode =
+   |  apply_appf ctxt (RTechn.Tactic (bwire_nms,tac_name)) gnode =  *);
 
-  exception goalnode_exp of GoalNode.T * string * V.name
-
-  fun in_edge_no_edge_point g e = 
+  
+  fun delete_input_rule (gnode,w) = 
     let
-        val inp_node = GraphComb.edge_src g e
+      val (inp,g0) = Strategy_Theory.Graph.empty
+                   |> Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert;
+      val (outp,g1) = g0
+                    |> Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert;
+      val rhs = g1
+             |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) inp outp
+             |> snd
+      val (v,g2) = g1
+                 |> Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.GN gnode)) 
+      val lhs = g2 
+              |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) inp v
+              |> snd
+              |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) v outp
+              |> snd
     in
-     if GraphComb.is_vdata g inp_node
-      then inp_node
-      else case  E.NSet.list_of (RTechn_Theory.Graph.in_enames g inp_node) of
-              [e] => in_edge_no_edge_point g e
-            | _ => raise atomic_eval_exp (inp_node,"Vertex (or pre vertex) does not have 1 input")
-   end;
+      Strategy_Theory.Rule.mk (lhs,rhs)
+    end;  
+
+  fun output_gnode rtechn (w,gnode) = 
+    let
+      val (v_rt,g0) = Strategy_Theory.Graph.empty
+                   |> Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.RT rtechn))
+      val (outp,g1) = g0
+                    |> Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert;
+      val lhs = g1
+             |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) v_rt outp
+             |> snd
+      val (v,g2) = g1
+                 |> Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.GN gnode)) 
+      val rhs = g2 
+              |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) v_rt v
+              |> snd
+              |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) v outp
+              |> snd
+    in
+      Strategy_Theory.Rule.mk (lhs,rhs)
+    end;     
+
+  fun mk_result (gnode,w) rtechn (edata,outgs) =
+    (edata,delete_input_rule (gnode,w), map (output_gnode rtechn) outgs)
+  
+  fun eval_rtechn (gnode,w) rtechn edata =
+   case RTechn.get_atomic rtechn
+   of (SOME atom) => apply_appf edata (RTechn.get_outputs rtechn) gnode atom
+                    |> Seq.map (mk_result (gnode,w) rtechn)
+   | NONE => raise rtechn_exp (rtechn,"not atomic technique");
+
+  (* lookup gnode and rtechn and eval and then apply eval_rtechn *)
+  fun eval_v_rtechn (v_gnode,v_rtechn) (edata,graph) = graph;
+    
+ 
+
+  (* maybe assume a subgraph with one gnode and one rtechn? *)
 
 
-  fun apply_atomic (g,rst,v) = (* assumes v is atomic! *)  
-    let val (vdata,(in_edges,out_edges)) = RTechn_Theory.Graph.get_vertex g v
-        val th = ProofContext.theory_of (RState.get_ctxt rst)
-        val rt = RTechn_Ctxt.RState.get_rtechn rst (GraphComb.v_to_rtechn g v) (* fixme: convert vdata directly  *)
-                 handle _ => raise atomic_eval_exp (v,"Vertex not a reasoning technique")
-        val in_edge = case E.NSet.tryget_singleton in_edges of
-                         NONE => raise atomic_eval_exp (v,"Vertex has more than one input")
-                       | SOME e => e
-        val inp_node = in_edge_no_edge_point g in_edge 
-        val (wname,gndnms) = GraphComb.v_to_goalnode g inp_node
-                    handle _ => raise atomic_eval_exp (v,"Vertex input not a goalnode")
-       val _ = dummy := [(g,rst,v)] @ (!dummy)
-       val (gnode as (bw,gnds)) = 
-            (GNode_Ctxt.Wire.get wname rst, (* wire name *)
-             gndnms |> GNodeKey.NSet.list_of (* goal nodes *)
-                    |> map (fn gname => GNode_Ctxt.get gname rst)
-                    |> GNode.GoalSet.of_list) 
-    in 
-     if not (RTechn.is_atomic rt)
-      then raise atomic_eval_exp (v,"Reasoning technqiue not atomic")
-     else if GoalNode.is_empty gnode
-      then raise atomic_eval_exp (v,"Empty goalnode")
-     else 
-      rst |> flush_io
-          |> RState.set_inputs_value gnode
-          |> RTechn.apply_atomic rt
-          |> Seq.map (fn rst => (rst,(in_edge,inp_node),out_edges))
-     end;
-
-  fun delete_input_node (graph,rst) node (inp_edge,inp_node) =
-   let
-    val (gnode as (w,nds)) = GraphComb.v_to_goalnode graph inp_node
-    val rst' = 
-      GNodeKey.NSet.fold
-        GNode_Ctxt.delete
-        nds
-        (GNode_Ctxt.Wire.delete w rst) 
-    val graph' =
-      E.NSet.fold (* should really be just one! *)
+  (*   fun delete_input_node (v_techn,v_gnode,g) =
+     E.NSet.fold
         (GraphComb.change_edge_dest node) 
         (RTechn_Theory.Graph.in_enames graph inp_node)
         graph
      |> RTechn_Theory.Graph.delete_edge inp_edge
      |> RTechn_Theory.Graph.delete_vertex inp_node
-  in
-    (graph',rst')
-  end;
+   *)
 
-  (* 
-    very simplified: only matches overall wire and not each gnode
-     - should really match each individually and only match those
-       that fully matches!!
-     - should also match goal with "features"
-  *)
-
-  fun simple_edge_match (gw,_) e graph rst =
-    let 
-      val (w,_) = GraphComb.edge_data graph e
-                |> FWire_Ctxt.RState.get_wire rst
-    in
-      BWire.wire_match w gw
-    end;
- 
-  val default_gname = V.mk "G";
-
-  fun move_gnode (gnode as (bw,nds)) edges rst0 graph0 =
+(*  fun move_gnode (gnode as (bw,nds)) edges rst0 graph0 =
     E.NSet.fold
     (fn e => fn (status,(graph,rst)) =>
        if simple_edge_match gnode e graph rst
@@ -182,6 +217,6 @@ struct
 
   fun eval_atomic (g,rst,v) =
        apply_atomic (g,rst,v)
-    |> Seq.map (update_io v g);
+    |> Seq.map (update_io v g); *)
     
 end (* structure *)

@@ -7,12 +7,12 @@ struct
   val default_fdata = "ignore";  
   fun suc_fdata str = str ^ "0";
 
-  datatype feature = Terms of term list * fdata
-                 | Strings of StrName.NSet.T * fdata
-                 | StrCount of (int StrTable.table) * fdata
-                 | Count of int * fdata
-                 | Ref of string * fdata 
-                 | NoData of fdata
+  datatype T  = Terms of term list * fdata
+              | Strings of StrName.NSet.T * fdata
+              | StrCount of (int StrTable.table) * fdata
+              | Count of int * fdata
+              | Ref of string * fdata 
+              | NoData of fdata
 
   fun get_fdata (Terms (_,fd)) = fd
    |  get_fdata (Strings (_,fd)) = fd
@@ -29,7 +29,7 @@ struct
    |  upd_fdata f (NoData fd) = (NoData (f fd));
 
   val default_feature = NoData default_fdata;
-  type name = feature;
+  type name = T;
   val suc = upd_fdata suc_fdata;
   fun pred f = NONE;
 

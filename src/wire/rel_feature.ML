@@ -11,7 +11,7 @@ struct
   datatype T = Prop of 
     {name : SStrName.name,
      prop : prop,
-     match : PNode.gnode -> bool}
+     match : PNode.T -> bool}
 
   fun get_name (Prop rep) = #name rep;
   fun get_prop (Prop rep) = #prop rep;

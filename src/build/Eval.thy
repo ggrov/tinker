@@ -3,7 +3,11 @@ theory Eval
 imports         
   Graph                                      
 uses
-  "../eval/basic_eval.ML"                                       
+  "../wire/match.ML"
+  "../rtechn/rtechn_rs.ML" 
+  "../eval/basic_eval.ML"       
+  "../proof/pplan_env.ML"                                     
+  "../eval/eval_atomic.ML"                                      
 begin
 
 end

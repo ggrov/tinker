@@ -5,7 +5,7 @@ imports
  "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                            
 uses
   "../proof/pnode.ML"                                                                                                                                                           
-  "../proof/pplan.ML"                         
+  "../proof/pplan.ML"                          
 begin
 
 end

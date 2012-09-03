@@ -2,7 +2,7 @@ structure DB_VertexData
 = struct
 
   datatype data = RT of RTechn.T
-                 | GN of GNode.goal
+                 | GN of GNode.T
                  | RVar of string (* variable of rtechn *)
                  | GVar of string (* variable of goalnode *)
 

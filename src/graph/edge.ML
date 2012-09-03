@@ -1,7 +1,7 @@
 structure DB_EdgeData
 = struct
 
-  datatype data =  W of Wire.name
+  datatype data =  W of Wire.T
                  | EVar of string (* variable of goalnode *)
 
   (* ordering is used for building tables, sorting, etc *)
