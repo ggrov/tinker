@@ -151,7 +151,16 @@ struct
    | NONE => raise rtechn_exp (rtechn,"not atomic technique");
 
   (* lookup gnode and rtechn and eval and then apply eval_rtechn *)
-  fun eval_v_rtechn (v_gnode,v_rtechn) (edata,graph) = graph;
+  fun eval_v_rtechn (v_gnode,v_rtechn) (edata,graph) =
+   let 
+     val gnode = GraphEnv.v_to_gnode graph v_gnode
+     val wire = case E.NSet.tryget_singleton (Strategy_Theory.Graph.out_enames graph v_gnode)
+                of NONE => raise gnode_exp ("gnode does not have single output")
+                | SOME e => GraphEnv.e_to_wire graph e
+     val rtechn = GraphEnv.v_to_rtechn graph v_rtechn 
+   in
+    eval_rtechn (gnode,wire) rtechn edata
+   end;
     
  
 

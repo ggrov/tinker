@@ -83,44 +83,57 @@ struct
   (* also ruleset *)
   datatype T = EData of { 
       pplan : PPlan.T,
+      graph : Strategy_Theory.Graph.T,
       goals : PNode.T StrName.NTab.T,
       (* maybe something similar for relations? *)
       fmatch : (Feature.T -> Proof.context -> Thm.thm -> bool) StrName.NTab.T,
       ruleset : Strategy_Theory.Ruleset.T, 
+      tactics : (Thm.thm list -> Proof.context -> tactic) StrName.NTab.T,
       active : EV.T
   }
 
   fun get_pplan (EData rep) = #pplan rep;
+  fun get_graph (EData rep) = #graph rep;
   fun get_goals (EData rep) = #goals rep;
   fun get_fmatch (EData rep) = #fmatch rep;
   fun get_ruleset (EData rep) = #ruleset rep;
+  fun get_tactics (EData rep) = #tactics rep;
   fun get_active (EData rep) = #active rep;
 
   fun update_pplan f (EData rep) =
-    EData {pplan = f (#pplan rep), goals = #goals rep, fmatch = #fmatch rep, 
-           ruleset = #ruleset rep,active = #active rep};
+    EData {pplan = f (#pplan rep), graph = #graph rep, goals = #goals rep, fmatch = #fmatch rep, 
+           ruleset = #ruleset rep,tactics = #tactics rep, active = #active rep};
+  fun update_graph f (EData rep) =
+    EData {pplan = #pplan rep, graph = f (#graph rep), goals = #goals rep, fmatch = #fmatch rep, 
+           ruleset = #ruleset rep,tactics = #tactics rep,active = #active rep};
   fun update_goals f (EData rep) =
-    EData {pplan = #pplan rep, goals = f (#goals rep), fmatch = #fmatch rep, 
-           ruleset = #ruleset rep,active = #active rep};
+    EData {pplan = #pplan rep, graph = #graph rep, goals = f (#goals rep), fmatch = #fmatch rep, 
+           ruleset = #ruleset rep,tactics = #tactics rep, active = #active rep};
   fun update_fmatch f (EData rep) =
-    EData {pplan = #pplan rep, goals = #goals rep, fmatch = f (#fmatch rep), 
-           ruleset = #ruleset rep,active = #active rep};
+    EData {pplan = #pplan rep, graph = #graph rep, goals = #goals rep, fmatch = f (#fmatch rep), 
+           ruleset = #ruleset rep,tactics = #tactics rep, active = #active rep};
   fun update_ruleset f (EData rep) =
-    EData {pplan = #pplan rep, goals = #goals rep, fmatch = #fmatch rep, 
-           ruleset = f (#ruleset rep),active = #active rep};
+    EData {pplan = #pplan rep, graph = #graph rep, goals = #goals rep, fmatch = #fmatch rep, 
+           ruleset = f (#ruleset rep),tactics = #tactics rep, active = #active rep};
+  fun update_tactics f (EData rep) =
+    EData {pplan = #pplan rep, graph = #graph rep, goals = #goals rep, fmatch = #fmatch rep, 
+           ruleset = #ruleset rep,tactics = f (#tactics rep), active = #active rep};
   fun update_active f (EData rep) =
-    EData {pplan = #pplan rep, goals = #goals rep, fmatch = #fmatch rep, 
-           ruleset = #ruleset rep,active = f (#active rep)};
+    EData {pplan = #pplan rep, graph = #graph rep, goals = #goals rep, fmatch = #fmatch rep, 
+           ruleset = #ruleset rep,tactics = #tactics rep, active = f (#active rep)};
 
   val set_pplan = update_pplan o K;
+  val set_graph = update_graph o K;
   val set_goals = update_goals o K;
   val set_fmatch = update_fmatch o K;
   val set_ruleset = update_ruleset o K;
+  val set_tactics = update_tactics o K;
   val set_active = update_active o K;
 
-  fun init_of prf gs active th =
-    EData {pplan = prf, goals = gs, fmatch = FeatureData.get th,
-           ruleset = Strategy_RS.Ctxt.get th, active = EV.push_list active EV.empty};
+  fun init_of prf graph gs active th =
+    EData {pplan = prf, graph = graph, goals = gs, fmatch = FeatureData.get th,
+           ruleset = Strategy_RS.Ctxt.get th, tactics = StrName.NTab.empty,
+           active = EV.push_list active EV.empty};
            
   fun ins_tab pnode = StrName.NTab.ins (PNode.get_name pnode,pnode);
   val lookup_goal = StrName.NTab.lookup o get_goals;

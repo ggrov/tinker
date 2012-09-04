@@ -91,7 +91,9 @@ fun wire_of_str ctxt str =
 fun name_of_thm_name (Thm s) = s
  |  name_of_thm_name (Hyp s) = s;
 
-fun meth_name (Rule thn) = "rule: " ^ name_of_thm_name thn
+fun meth_name (Rule thn) = RTechn.Rule (StrName.NSet.single (name_of_thm_name thn))
+ | meth_name _ = RTechn.Rule (StrName.NSet.empty)
+(*
  | meth_name (Erule (a,th)) = "erule: " ^ name_of_thm_name th (* which assumption + thm *)
  | meth_name (Frule (a,th)) = "frule" (* which assumption + thm *)
  | meth_name (Subst_thm th) = "subst_thm" (* rule used *)
@@ -101,6 +103,7 @@ fun meth_name (Rule thn) = "rule: " ^ name_of_thm_name thn
  | meth_name (Tactic at) = "tactic"
  | meth_name (Using (th,m)) =  "erule: "
  | meth_name (Unknown s) = s;
+*)
 
 fun rtech_of_goal ctxt goal =
   RTechn.id
