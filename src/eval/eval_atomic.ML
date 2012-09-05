@@ -3,6 +3,7 @@ struct
 
   exception rtechn_exp of RTechn.T * string
   exception gnode_exp of string
+  exception graph_exp of string * Strategy_Theory.Graph.T
  
   (* should be a functor - df is default *)
   structure EData = EvalD_DF;
@@ -121,11 +122,12 @@ struct
       Strategy_Theory.Rule.mk (lhs,rhs)
     end;  
 
-  fun output_gnode rtechn (w,gnode) = 
+  fun output_gnode (wr,rtechn) (w,gnode) = 
     let
       val (v_rt,g0) = Strategy_Theory.Graph.empty
                    |> Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.RT rtechn))
       val (outp,g1) = g0
+                    |> GraphEnv.add_boundary_to (DB_EdgeData.W wr) v_rt (* input edge *)
                     |> Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert;
       val lhs = g1
              |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) v_rt outp
@@ -142,7 +144,7 @@ struct
     end;     
 
   fun mk_result (gnode,w) rtechn (edata,outgs) =
-    (edata,delete_input_rule (gnode,w), map (output_gnode rtechn) outgs)
+    (edata,delete_input_rule (gnode,w), map (output_gnode (w,rtechn)) outgs)
   
   fun eval_rtechn (gnode,w) rtechn edata =
    case RTechn.get_atomic rtechn
@@ -161,71 +163,70 @@ struct
    in
     eval_rtechn (gnode,wire) rtechn edata
    end;
+
+  fun rewrite rule graph = 
+    let 
+      val matches = Strategy_Theory.RulesetRewriter.rule_matches rule graph |> snd |> Seq.list_of;
+      fun rewr match = Strategy_Theory.GraphSubst.rewrite graph (Strategy_Theory.Rule.get_lhs rule) match (Strategy_Theory.Rule.get_rhs rule)
+    in
+      map (snd o rewr) matches
+    end;
+
+  (* evaluated graph (of only one gnode and one rtech) *)
+  fun eval_graph edata lhs =
+   let
+     val v_gnode = (case V.NSet.tryget_singleton (GraphEnv.get_goalnodes_of_graph lhs)
+                    of NONE => raise graph_exp ("graph does not contain exactly 1 goalnode",lhs)
+                    | SOME v => v)
+      val v_rtechn = (case V.NSet.tryget_singleton (GraphEnv.get_rtechns_of_graph lhs)
+                    of NONE => raise graph_exp ("graph does not contain exactly 1 rtechn",lhs)
+                    | (SOME v) => v)
+      fun apply_subst rws = fold (fn r => maps (rewrite r)) rws [lhs]
+      fun update (edata',ri,ros) =  (edata',apply_subst (ri::ros))  
+   in
+      Seq.map update (eval_v_rtechn (v_gnode,v_rtechn) (edata,lhs))
+   end
+
+  fun eval_var_graph graph_pat graph edata =
+   let 
+   (* match - FIXME: must be a better way than creating a dummy rule *)
+    val subst = Strategy_Theory.RulesetRewriter.rule_matches 
+                   (Strategy_Theory.Rule.mk(graph_pat,graph_pat))
+                   graph
+                |> snd
+                |> Seq.map Strategy_Theory.Match.get_match_subst
+    val gvars = GraphEnv.get_gvars_of_graph graph_pat;
+    fun inst sub v g = 
+      (case StrName.NTab.lookup sub (GraphEnv.v_to_gvar g v)
+             of NONE => g
+             | (SOME vdata) => Strategy_Theory.Graph.update_vertex_data 
+                                (K (Strategy_OVData.NVert vdata)) v g)    
+  in
+    subst |> Seq.map (fn sub => V.NSet.fold (inst sub) gvars graph_pat)
+          |> Seq.maps (eval_graph edata)
+  end 
     
+  (* creates a graph to match *)
+  fun mk_match_graph graph v =
+    let 
+     val ins = Strategy_Theory.Graph.in_enames graph v |> E.NSet.list_of
+     val outs = Strategy_Theory.Graph.out_enames graph v
+     val get_wire = GraphEnv.e_to_wire graph
+     val rtechn = GraphEnv.v_to_rtechn graph v
+     (* graph with rtechn *)
+     val (v_rt,g) = Strategy_Theory.Graph.empty
+               |> Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.RT rtechn))
+     (* adding goalnode variable *)
+     val (v_gvar,g) = 
+            Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.GVar "g")) g
+     fun mk_match_graph' inp = g
+         |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W (get_wire inp)) v_gvar v_rt
+         |> snd
+         |> GraphEnv.add_boundary_to (DB_EdgeData.W (get_wire inp)) v_gvar
+         |> E.NSet.fold (fn outp => GraphEnv.add_boundary_from (DB_EdgeData.W (get_wire outp)) v_rt) outs
  
-
-  (* maybe assume a subgraph with one gnode and one rtechn? *)
-
-
-  (*   fun delete_input_node (v_techn,v_gnode,g) =
-     E.NSet.fold
-        (GraphComb.change_edge_dest node) 
-        (RTechn_Theory.Graph.in_enames graph inp_node)
-        graph
-     |> RTechn_Theory.Graph.delete_edge inp_edge
-     |> RTechn_Theory.Graph.delete_vertex inp_node
-   *)
-
-(*  fun move_gnode (gnode as (bw,nds)) edges rst0 graph0 =
-    E.NSet.fold
-    (fn e => fn (status,(graph,rst)) =>
-       if simple_edge_match gnode e graph rst
-         then
-           let 
-             val wname = bw
-                       |> BWire.string_of
-                       |> GNode_Ctxt.Wire.of_str
-                       |> GNode_Ctxt.Wire.fresh_name rst
-             val rst1 = GNode_Ctxt.Wire.add (wname,bw) rst0
-             fun mk_node_ctxt gn (gs,rst) = 
-                let 
-                  val gnm = GNode.get_goal gn |> GNode_Ctxt.of_str |> GNode_Ctxt.fresh_name rst
-                  val rst' = GNode_Ctxt.add (gnm,gn) rst
-                in
-                 (gs @ [gnm],rst')
-                end;
-             val (gnms,rst2) = GNode.GoalSet.fold mk_node_ctxt nds ([],rst1)
-                             |> (fn (ls,rst) => (StrIntName.NSet.of_list ls,rst))
-             val graph' = GraphComb.insert_goalnode (e,graph) (default_gname,(wname,gnms))
-            in
-              (true,(graph',rst2))
-            end
-         else (status,(graph,rst))) 
-    edges
-    (false,(graph0,rst0));
-
-
-  fun delete_empty_gnodes gs = gs
-    |> GoalNode.G.NSet.list_of
-    |> filter (fn (_,gs) => not (GNode.GoalSet.is_empty gs))
-    |> GoalNode.G.NSet.of_list;
-
-
-  fun move_output v edges (graph0,rst0) =
-    GoalNode.G.NSet.fold
-    (fn gnode => fn (graph,rst) =>
-       case move_gnode gnode edges rst graph of
-         (true,graphrst) => graphrst
-       | (false,_) => raise goalnode_exp (gnode,"no matching output wires",v))
-    (delete_empty_gnodes (RState.get_outputs rst0))
-    (graph0,rst0);
-        
-  fun update_io v g (rst,inps,out_edges) =
-    delete_input_node (g,rst) v inps
-    |> move_output v out_edges
-
-  fun eval_atomic (g,rst,v) =
-       apply_atomic (g,rst,v)
-    |> Seq.map (update_io v g); *)
+  in
+     map mk_match_graph' ins
+   end;
     
 end (* structure *)

@@ -148,12 +148,18 @@ struct
     end;
 
 
-  (* what about variables ? *)
   fun is_gnode_vertex (DB_VertexData.GN _) = true
    |  is_gnode_vertex _ = false;
 
   fun is_rtechn_vertex (DB_VertexData.RT _) = true
    |  is_rtechn_vertex _ = false;
+
+  fun is_gvar_vertex (DB_VertexData.GVar _) = true
+   |  is_gvar_vertex _ = false;
+
+  fun is_rvar_vertex (DB_VertexData.RVar _) = true
+   |  is_rvar_vertex _ = false;
+
 
   fun is_gnode g v = get_vdata g v 
                       |> is_gnode_vertex
@@ -163,11 +169,25 @@ struct
                     |> is_rtechn_vertex
                     handle vertex_exp _ => false; 
 
+  fun is_rvar g v = get_vdata g v 
+                    |> is_rvar_vertex
+                    handle vertex_exp _ => false; 
+
+  fun is_gvar g v = get_vdata g v 
+                    |> is_gvar_vertex
+                    handle vertex_exp _ => false; 
+
   fun vertex_to_gnode (DB_VertexData.GN gnd) = SOME gnd
    |  vertex_to_gnode _ = NONE;
 
   fun vertex_to_rtechn (DB_VertexData.RT rt) = SOME rt
    |  vertex_to_rtechn _ = NONE;
+
+  fun vertex_to_rvar (DB_VertexData.RVar rt) = SOME rt
+   |  vertex_to_rvar _ = NONE;
+
+  fun vertex_to_gvar (DB_VertexData.GVar gnd) = SOME gnd
+   |  vertex_to_gvar _ = NONE;
 
   fun v_to_gnode g v =
     case vertex_to_gnode (get_vdata g v) of
@@ -176,9 +196,18 @@ struct
 
   fun v_to_rtechn g v =
     case vertex_to_rtechn (get_vdata g v) of
-      NONE => raise vertex_exp ("not Strategy vertex",SOME v)
+      NONE => raise vertex_exp ("not rtechn vertex",SOME v)
     | SOME gs => gs;
 
+  fun v_to_gvar g v =
+    case vertex_to_gvar (get_vdata g v) of
+      NONE => raise vertex_exp ("not goal variable vertex",SOME v)
+    | SOME gs => gs;
+
+  fun v_to_rvar g v =
+    case vertex_to_rvar (get_vdata g v) of
+      NONE => raise vertex_exp ("not rtechn variable vertex",SOME v)
+    | SOME gs => gs;
   
 
   fun get_rtechns_of_graph g =
@@ -186,6 +215,12 @@ struct
 
   fun get_goalnodes_of_graph g =
     Graph.get_vnames g |> V.NSet.filter (is_gnode g)
+
+  fun get_rvars_of_graph g =
+    Graph.get_vnames g |> V.NSet.filter (is_rvar g)
+
+  fun get_gvars_of_graph g =
+    Graph.get_vnames g |> V.NSet.filter (is_gvar g)
 
   (* edges *)
 

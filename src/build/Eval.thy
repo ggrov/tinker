@@ -7,7 +7,7 @@ uses
   "../rtechn/rtechn_rs.ML" 
   "../eval/basic_eval.ML"       
   "../proof/pplan_env.ML"                                     
-  "../eval/eval_atomic.ML"                                           
+  "../eval/eval_atomic.ML"                                                              
 begin
 
 end

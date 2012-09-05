@@ -1,7 +1,7 @@
 TO DO short term
- - evaluation of technique, including matching for features
- - fix combinators etc from graph_comb.ML
- - test rewriting
+ - evaluation of technique, including matching for features [not sure if I am doing this]
+ - evaluation beyond a single box
+ - see if theory has to be moved back into context!
  - identify problems with the gui
 
 
