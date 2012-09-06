@@ -164,31 +164,42 @@ struct
     eval_rtechn (gnode,wire) rtechn edata
    end;
 
-  fun rewrite rule graph = 
+  fun rewrite_lazy rule graph = 
     let 
-      val matches = Strategy_Theory.RulesetRewriter.rule_matches rule graph |> snd |> Seq.list_of;
-      fun rewr match = Strategy_Theory.GraphSubst.rewrite graph (Strategy_Theory.Rule.get_lhs rule) match (Strategy_Theory.Rule.get_rhs rule)
+      val graph' = Strategy_Theory.Graph.normalise graph;
+      val matches = Strategy_Theory.RulesetRewriter.rule_matches rule graph' |> snd;
+      fun rewr match = Strategy_Theory.GraphSubst.rewrite graph' (Strategy_Theory.Rule.get_lhs rule) match (Strategy_Theory.Rule.get_rhs rule)
     in
-      map (snd o rewr) matches
+      Seq.map (snd o rewr) matches
     end;
 
+  val rewrite = Seq.list_of oo rewrite_lazy;
+  (* FIXME: this is just the rewrite rule!!! *)
+
   (* evaluated graph (of only one gnode and one rtech) *)
-  fun eval_graph edata lhs =
+  fun eval_mk_all_rules edata lhs =
    let
      val v_gnode = (case V.NSet.tryget_singleton (GraphEnv.get_goalnodes_of_graph lhs)
                     of NONE => raise graph_exp ("graph does not contain exactly 1 goalnode",lhs)
                     | SOME v => v)
       val v_rtechn = (case V.NSet.tryget_singleton (GraphEnv.get_rtechns_of_graph lhs)
                     of NONE => raise graph_exp ("graph does not contain exactly 1 rtechn",lhs)
-                    | (SOME v) => v)
-      fun apply_subst rws = fold (fn r => maps (rewrite r)) rws [lhs]
-      fun update (edata',ri,ros) =  (edata',apply_subst (ri::ros))  
+                    | (SOME v) => v)  
    in
-      Seq.map update (eval_v_rtechn (v_gnode,v_rtechn) (edata,lhs))
+      (eval_v_rtechn (v_gnode,v_rtechn) (edata,lhs))
    end
 
-  fun eval_var_graph graph_pat graph edata =
+  fun eval_mk_rule edata lhs =
+   let
+      fun apply_subst rws = fold (fn r => maps (rewrite r)) rws [lhs]
+      fun update (edata',ri,ros) =  (edata',map (fn r => (lhs,r)) (apply_subst (ri::ros)))  
+   in
+      Seq.map update (eval_mk_all_rules edata lhs)
+   end
+
+  fun eval_var_mk_rule_aux edata graph_pat =
    let 
+    val graph = EData.get_graph edata
    (* match - FIXME: must be a better way than creating a dummy rule *)
     val subst = Strategy_Theory.RulesetRewriter.rule_matches 
                    (Strategy_Theory.Rule.mk(graph_pat,graph_pat))
@@ -203,13 +214,30 @@ struct
                                 (K (Strategy_OVData.NVert vdata)) v g)    
   in
     subst |> Seq.map (fn sub => V.NSet.fold (inst sub) gvars graph_pat)
-          |> Seq.maps (eval_graph edata)
   end 
-    
+
+  fun eval_var_mk_rule edata graph_pat =
+   Seq.maps (eval_mk_rule edata) (eval_var_mk_rule_aux edata graph_pat);
+
+  (* almost the same as above - just used for debugging *)
+  fun eval_var_mk_all_rules edata graph_pat =
+   Seq.maps (eval_mk_all_rules edata) (eval_var_mk_rule_aux edata graph_pat);
+
+
+   fun eval_rule edata rule = 
+     rewrite_lazy (Strategy_Theory.Rule.mk rule) (EData.get_graph edata)
+     |> Seq.map (fn g => EData.set_graph g edata)
+
+   fun eval_rules (edata,rules) =  Seq.map (eval_rule edata) (Seq.of_list rules);
+
+   fun eval_graph edata lhs =
+     eval_var_mk_rule edata lhs
+     |> Seq.maps eval_rules;    
+
   (* creates a graph to match *)
   fun mk_match_graph graph v =
     let 
-     val ins = Strategy_Theory.Graph.in_enames graph v |> E.NSet.list_of
+     val ins = Strategy_Theory.Graph.in_enames graph v  
      val outs = Strategy_Theory.Graph.out_enames graph v
      val get_wire = GraphEnv.e_to_wire graph
      val rtechn = GraphEnv.v_to_rtechn graph v
@@ -224,9 +252,11 @@ struct
          |> snd
          |> GraphEnv.add_boundary_to (DB_EdgeData.W (get_wire inp)) v_gvar
          |> E.NSet.fold (fn outp => GraphEnv.add_boundary_from (DB_EdgeData.W (get_wire outp)) v_rt) outs
- 
-  in
-     map mk_match_graph' ins
+         (* empty input for remaining input (so rewriting works) *)
+         |> E.NSet.fold (fn o_inp => GraphEnv.add_boundary_from (DB_EdgeData.W (get_wire o_inp)) v_rt) 
+                        (E.NSet.delete' inp ins) 
+   in
+     map mk_match_graph' (E.NSet.list_of ins)
    end;
     
 end (* structure *)

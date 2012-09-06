@@ -3,6 +3,7 @@ TO DO short term
  - evaluation beyond a single box
  - see if theory has to be moved back into context!
  - identify problems with the gui
+ - fix problem with using Unix.execute to generate pdf from the dot file
 
 
 -------------------------------------------------------------------------

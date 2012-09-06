@@ -16,7 +16,7 @@ structure DB_EdgeData
       (case data_ord xy of EQUAL => true
           | _ => false);
  
-  fun pretty_data (W w) = Wire.pretty w
+  fun pretty_data (W w) = SStrName.pretty_name (Wire.get_name w)
    |  pretty_data (EVar v) = Pretty.str ("?" ^ v)
 
   val print_data = Pretty.writeln o pretty_data;

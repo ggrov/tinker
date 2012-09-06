@@ -1,6 +1,6 @@
 theory eval_test 
 imports
-  "../build/Eval" 
+  "../build/Eval"   
 begin
 
 ML{*
@@ -74,6 +74,69 @@ ML{*
      EvalD_DF.init_of pplan graph' ptab enabled th
    end;
 *}
+
+
+ML{*
+val edata = init_edata @{theory} g Wire.default_wire @{prop "A --> A"};
+val [p1,p2] = GraphEnv.get_rtechns_of_graph g
+|> V.NSet.list_of
+|> maps (EvalAtomic.mk_match_graph g);
+
+Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test.dot" g;
+(* Unix.execute ("/usr/bin/dot",["-Tjpeg /u1/staff/gg112/eval_test.dot","-o /u1/staff/gg112/eval_test.pdf"])
+|> Unix.reap
+|> OS.Process.isSuccess; *)
+(*
+val p = Unix.execute ("/bin/ls",[]);
+p |> Unix.reap
+|> OS.Process.isSuccess;
+*)
+
+*}
+ML{*
+val (_,ri,[ros]) = EvalAtomic.eval_var_mk_all_rules edata p1 |> Seq.list_of |> hd;
+Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test.dot" (Strategy_Theory.Rule.get_lhs ros); 
+Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test2.dot" (Strategy_Theory.Rule.get_rhs ros);    
+*} 
+
+(* rewriting doesn't work -- is it due to input? *)
+(*
+ML{*
+val g = EvalD_DF.get_graph edata |> GraphEnv.add_boundary_to (DB_EdgeData.W Wire.default_wire) (V.mk "Vc")
+|> Strategy_Theory.Graph.del_from_boundary (V.mk "Vc") ;
+      val [m] = Strategy_Theory.RulesetRewriter.rule_matches ri g |> snd |> Seq.list_of;
+val g' = Strategy_Theory.GraphSubst.rewrite g (Strategy_Theory.Rule.get_lhs ri) m (Strategy_Theory.Rule.get_rhs ri)
+       |> snd;
+
+(* val g' = EvalAtomic.rewrite ri g |> hd; *)
+Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test3.dot" g;   
+Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test4.dot" g'; 
+*}
+*)
+
+ML{*
+val g = EvalD_DF.get_graph edata;
+val g' = EvalAtomic.rewrite ros g |> hd; 
+Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test3.dot" g;   
+Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test4.dot" g'; 
+*}
+
+(*
+ML{*
+val g = EvalAtomic.eval_var_mk_rule_aux edata p1 |> Seq.list_of |> hd |> Strategy_Theory.Graph.normalise;
+val g' = EvalAtomic.rewrite ri g |> hd;
+Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test3.dot" g; 
+Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test4.dot" g'; 
+*}
+*)
+
+(*
+ML{*
+val (l,r) = EvalAtomic.eval_var_mk_rule edata p1 |> Seq.list_of |> hd |> snd |> hd;
+Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test.dot" l; 
+Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test2.dot" r;
+*}
+*)
 
 (* *)
 ML{*

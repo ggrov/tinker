@@ -8,20 +8,20 @@ struct
   structure Graph = Strategy_Theory.Graph
   structure DotStyle = Strategy_DotStyle
  
-
-
   fun pretty_node g v =
     case Strategy_OVData.idata_of (Graph.get_vertex_data g v) of
        NONE => V.pretty_name v
-     | (SOME v) => DB_VertexData.pretty_node v;
+     | (SOME n) =>  V.pretty_name v (* DB_VertexData.pretty_node n *);
   
-  fun pretty_edge g e =
-   DB_EdgeData.pretty_node (Graph.get_edge_data g e); 
+  fun pretty_edge g e = DB_EdgeData.pretty_data (Graph.get_edge_data g e);  
 
   fun node_block graph = let
     val boxtab = Graph.get_bbox_table graph
     fun sty nm = case Graph.get_vertex graph nm
-                   of (Graph.OVData.NVert data, _) => " " ^ (DotStyle.style_for_ivertex_data data)
+                   of (Graph.OVData.NVert (DB_VertexData.RT rt), _) => " [style=filled,fillcolor=white,fontcolor=black,shape=box,label=" ^(RTechn.get_name rt)^ "]"
+                    | (Graph.OVData.NVert (DB_VertexData.GN gn), _) => " [style=filled,fillcolor=white,fontcolor=black,shape=circle,label=" ^(GNode.get_goal gn)^ "]"
+                    | (Graph.OVData.NVert (DB_VertexData.GVar x), _) => " [style=filled,fillcolor=grey,fontcolor=black,shape=circle,label=" ^x^ "]"
+                    | (Graph.OVData.NVert (DB_VertexData.RVar x), _) => " [style=filled,fillcolor=grey,fontcolor=black,shape=box,label=" ^x^ "]"
                     | (Graph.OVData.WVert, _) => " [style=filled,fillcolor=gray,shape=box,width=0,height=0,fontcolor=white]"
     fun f nm list = (pretty_node graph nm)::
                     (Pretty.str (sty nm))::
