@@ -1,6 +1,6 @@
 theory eval_test 
 imports
-  "../build/Eval"   
+  "../build/Eval"       
 begin
 
 ML{*
@@ -9,19 +9,6 @@ ML{*
             |> RTechn.set_io (W.NSet.single Wire.default_wire);
 
  val g = GraphComb.theng (GraphEnv.graph_of_rtechn rtechn) (GraphEnv.graph_of_rtechn rtechn);
-*}
-
-ML{*
-val match_patts =
-GraphEnv.get_rtechns_of_graph g
-|> V.NSet.list_of
-|> maps (EvalAtomic.mk_match_graph g);
-*}
-
-ML{*
-GraphEnv.get_rtechns_of_graph g |> V.NSet.list_of
-|> maps (EvalAtomic.mk_match_graph g)
-|> map Strategy_Dot.output
 *}
 
 (* initialise evaluation *)
@@ -53,7 +40,6 @@ val fg = GraphComb.theng pg g |> Strategy_Theory.Graph.normalise;
 ML{*
 val ptab = StrName.NTab.ins (PNode.get_name pnode,pnode) (StrName.NTab.empty);
 val edata = EvalD_DF.init_of pplan fg ptab [] @{theory};
-
 *}
 
 ML{*
@@ -81,9 +67,16 @@ val edata = init_edata @{theory} g Wire.default_wire @{prop "A --> A"};
 val [p1,p2] = GraphEnv.get_rtechns_of_graph g
 |> V.NSet.list_of
 |> maps (EvalAtomic.mk_match_graph g);
+*}
 
-Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test.dot" g;
-(* Unix.execute ("/usr/bin/dot",["-Tjpeg /u1/staff/gg112/eval_test.dot","-o /u1/staff/gg112/eval_test.pdf"])
+ML{*
+(* EvalAtomic.eval_var_mk_rule edata p1; *)
+val edata' = EvalAtomic.eval_graph edata p1 |> Seq.list_of |> hd |> Seq.list_of |> hd;
+val g = EvalAtomic.EData.get_graph edata;
+val g' = EvalAtomic.EData.get_graph edata';
+Strategy_Dot.write_dot_to_file "/Users/ggrov/eval_before.dot" g;
+Strategy_Dot.write_dot_to_file "/Users/ggrov/eval_after.dot" g';
+(* Unix.execute ("/usr/bin/dot",["-Tjpeg /Users/ggrov/eval_test.dot","-o /Users/ggrov/eval_test.pdf"])
 |> Unix.reap
 |> OS.Process.isSuccess; *)
 (*
@@ -91,12 +84,17 @@ val p = Unix.execute ("/bin/ls",[]);
 p |> Unix.reap
 |> OS.Process.isSuccess;
 *)
-
 *}
+
+(* TODO: fixes has to be updated when updating a node within a proof node! *)
+ML{*
+EvalAtomic.EData.get_pplan edata';
+*}
+
 ML{*
 val (_,ri,[ros]) = EvalAtomic.eval_var_mk_all_rules edata p1 |> Seq.list_of |> hd;
-Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test.dot" (Strategy_Theory.Rule.get_lhs ros); 
-Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test2.dot" (Strategy_Theory.Rule.get_rhs ros);    
+Strategy_Dot.write_dot_to_file "/Users/ggrov/eval_test.dot" (Strategy_Theory.Rule.get_lhs ros); 
+Strategy_Dot.write_dot_to_file "/Users/ggrov/eval_test2.dot" (Strategy_Theory.Rule.get_rhs ros);    
 *} 
 
 (* rewriting doesn't work -- is it due to input? *)
@@ -109,41 +107,40 @@ val g' = Strategy_Theory.GraphSubst.rewrite g (Strategy_Theory.Rule.get_lhs ri) 
        |> snd;
 
 (* val g' = EvalAtomic.rewrite ri g |> hd; *)
-Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test3.dot" g;   
-Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test4.dot" g'; 
+Strategy_Dot.write_dot_to_file "/Users/ggrov/eval_test3.dot" g;   
+Strategy_Dot.write_dot_to_file "/Users/ggrov/eval_test4.dot" g'; 
 *}
 *)
 
+(* doesn't seem to do the final merge of boundary vertices ! *)
+(* maybe I need to add to boundary?? *)
+
 ML{*
-val g = EvalD_DF.get_graph edata;
-val g' = EvalAtomic.rewrite ros g |> hd; 
-Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test3.dot" g;   
-Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test4.dot" g'; 
+Strategy_Dot.write_dot_to_file "/Users/ggrov/eval_lhs.dot" ol1;   
+Strategy_Dot.write_dot_to_file "/Users/ggrov/eval_rhs.dot" or2; 
+
+Strategy_Dot.write_dot_to_file "/Users/ggrov/eval_test3.dot" g;   
+Strategy_Dot.write_dot_to_file "/Users/ggrov/eval_test4.dot" g'; 
+  
 *}
 
 (*
 ML{*
 val g = EvalAtomic.eval_var_mk_rule_aux edata p1 |> Seq.list_of |> hd |> Strategy_Theory.Graph.normalise;
 val g' = EvalAtomic.rewrite ri g |> hd;
-Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test3.dot" g; 
-Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test4.dot" g'; 
+Strategy_Dot.write_dot_to_file "/Users/ggrov/eval_test3.dot" g; 
+Strategy_Dot.write_dot_to_file "/Users/ggrov/eval_test4.dot" g'; 
 *}
 *)
 
 (*
 ML{*
 val (l,r) = EvalAtomic.eval_var_mk_rule edata p1 |> Seq.list_of |> hd |> snd |> hd;
-Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test.dot" l; 
-Strategy_Dot.write_dot_to_file "/u1/staff/gg112/eval_test2.dot" r;
+Strategy_Dot.write_dot_to_file "/Users/ggrov/eval_test.dot" l; 
+Strategy_Dot.write_dot_to_file "/Users/ggrov/eval_test2.dot" r;
 *}
 *)
 
-(* *)
-ML{*
-(* note: doesn't matter which match_patt is used since they both create the 
-    same value *)
-EvalAtomic.eval_var_graph ((hd o tl) match_patts) fg edata |> Seq.list_of ;
-*}
 
 
 
@@ -205,11 +202,6 @@ ML{*
 val (edat,ri,[ro]) = EvalAtomic.eval_rtechn (gn,w) rtechn edata |> Seq.list_of |> hd;
 *}
 
-ML{*
-val ng = maps (rewrite ro) (rewrite ri fg) |> length;
-Strategy_Dot.output ng;
-Strategy_Dot.output fg;
-*}
 
 ML{*
 Strategy_Dot.output (Strategy_Theory.Rule.get_lhs ro)
@@ -265,6 +257,33 @@ ML{*
 Strategy_Theory.RulesetRewriter.rule_matches rule g |> snd |> Seq.list_of
 *}
 
+
+(*
+methods are stored in Method.Methods which are hidden!
+  - how can I get hold of it?
+  - maybe via Method.method @{theory} ??
+  - need to read upon on out syntax parsing first!
+*)
+
+consts x :: "nat" 
+       y :: nat
+
+lemma test: "x=y" sorry
+
+lemma test2: "P x"
+ apply (tactic "EqSubst.eqsubst_tac @{context} [0] [@{thm test}] 1")
+ sorry
+
+ML{*
+EqSubst.eqsubst_asm_tac @{context} [0] [@{thm test}] 1 @{thm test2} |> Seq.list_of;
+EqSubst.eqsubst_tac;
+*}
+(* 
+
+eqsubst_asm_tac ctxt occL inthms
+eqsubst_tac ctxt occL inthms
+
+*)
 
 end;
 

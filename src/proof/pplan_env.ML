@@ -8,6 +8,10 @@ struct
 
   fun apply_erule (gnode,prf) thm = PPlan.apply_tac (K (etac thm 1)) (gnode,prf)
 
+  fun apply_subst (gnode,prf) thms = 
+    PPlan.apply_tac (fn ctxt => EqSubst.eqsubst_tac ctxt [0] thms 1) (gnode,prf);
+
+  (* why K combinator - shouldn't this be removed from the graph *)
   fun apply_tactic (gnode,prf) tac = PPlan.apply_tac (K tac) (gnode,prf) 
 
 

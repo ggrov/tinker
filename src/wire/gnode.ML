@@ -5,7 +5,7 @@ struct
    structure Wire = BWire;
 
    (* goal can also just be in the facts set?? *)
-  datatype T = Goal of {facts : gmap, (* map from BWire to a set of assumption *)
+  datatype T = Goal of {facts : GFact.NSet.T BW.NTab.T, (* map from BWire to a set of assumption *)
                         goal : PNode.gname, (* or actually the gnode *)
                         prev : T option}
 

@@ -81,11 +81,13 @@ struct
         Global_Theory.get_thm th name
       end;  
 
-    fun thm_seq edata gnode thm_nms =
+    fun thm_list edata gnode thm_nms =
       thm_nms 
       |> StrName.NSet.list_of 
       |> map (get_thm edata gnode)
-      |> Seq.of_list;
+
+    fun thm_seq edata gnode thm_nms =
+     Seq.of_list (thm_list edata gnode thm_nms);
 
   fun apply_appf edata wset gnode (RTechn.Rule thm_nms) =
      thm_seq edata gnode thm_nms
@@ -96,18 +98,42 @@ struct
      |> Seq.maps (PPlanEnv.apply_erule (gnode,prf) nbwire);
    |  apply_appf ctxt (RTechn.FRule (nbwire,thm_nms)) gnode =
      thm_seq gnode thm_nms
-     |> Seq.maps (PPlanEnv.apply_frule (gnode,prf) nbwire);
-   |  apply_appf ctxt (RTechn.Subst thm_nms) gnode =
-   |  apply_appf ctxt (RTechn.SubstAsm (nbwire,thm_nms)) gnode =
-   |  apply_appf ctxt (RTechn.Tactic (bwire_nms,tac_name)) gnode =  *);
-
+     |> Seq.maps (PPlanEnv.apply_frule (gnode,prf) nbwire); *)
+   |  apply_appf edata wset gnode (RTechn.Subst thm_nms) = 
+       thm_list edata gnode thm_nms
+       |> PPlanEnv.apply_subst (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata)
+       |> Seq.map (upd_rule wset edata gnode)
+(* |  apply_appf ctxt (RTechn.SubstAsm (nbwire,thm_nms)) gnode = *)
+   |  apply_appf edata wset gnode (RTechn.Tactic (bwire_nms,tac_name)) =
+       let 
+         val pnode = EData.get_goal edata (GNode.get_goal gnode);
+         fun lookup_fact fname = case GNode.lookup_facts_by_name (SStrName.mk fname) gnode
+                                  of NONE => GFact.NSet.empty
+                                   | (SOME ns) => ns
+         val fnames =
+           StrName.NSet.fold 
+             (fn wn => GFact.NSet.union_merge (lookup_fact wn))
+             GFact.NSet.empty
+             bwire_nms
+         val facts = map (StrName.NTab.get (PNode.get_assms pnode))
+                         (GFact.NSet.list_of fnames);
+         val tac = StrName.NTab.get (EData.get_tactics edata) tac_name
+       in
+         pnode
+         |> PNode.get_ctxt
+         |> tac facts
+         |> PPlanEnv.apply_tactic (pnode, EData.get_pplan edata) 
+         |> Seq.map (upd_rule wset edata gnode)
+       end;
   
   fun delete_input_rule (gnode,w) = 
     let
       val (inp,g0) = Strategy_Theory.Graph.empty
-                   |> Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert;
+                   |> Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert
+                   |> (fn (n,g) => (n,Strategy_Theory.Graph.add_to_boundary n g));
       val (outp,g1) = g0
-                    |> Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert;
+                    |> Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert
+                    |> (fn (n,g) => (n,Strategy_Theory.Graph.add_to_boundary n g));
       val rhs = g1
              |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) inp outp
              |> snd
@@ -128,7 +154,8 @@ struct
                    |> Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.RT rtechn))
       val (outp,g1) = g0
                     |> GraphEnv.add_boundary_to (DB_EdgeData.W wr) v_rt (* input edge *)
-                    |> Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert;
+                    |> Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert
+                    |> (fn (n,g) => (n,Strategy_Theory.Graph.add_to_boundary n g));
       val lhs = g1
              |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) v_rt outp
              |> snd
@@ -167,10 +194,14 @@ struct
   fun rewrite_lazy rule graph = 
     let 
       val graph' = Strategy_Theory.Graph.normalise graph;
-      val matches = Strategy_Theory.RulesetRewriter.rule_matches rule graph' |> snd;
-      fun rewr match = Strategy_Theory.GraphSubst.rewrite graph' (Strategy_Theory.Rule.get_lhs rule) match (Strategy_Theory.Rule.get_rhs rule)
+      val (rule',matches) = Strategy_Theory.RulesetRewriter.rule_matches rule graph';
+      fun rewr match = Strategy_Theory.GraphSubst.do_rewrite 
+                         graph' 
+                         (Strategy_Theory.Rule.get_lhs rule') 
+                         match 
+                         (Strategy_Theory.Rule.get_rhs rule')
     in
-      Seq.map (snd o rewr) matches
+      Seq.map rewr matches
     end;
 
   val rewrite = Seq.list_of oo rewrite_lazy;
@@ -228,7 +259,7 @@ struct
      rewrite_lazy (Strategy_Theory.Rule.mk rule) (EData.get_graph edata)
      |> Seq.map (fn g => EData.set_graph g edata)
 
-   fun eval_rules (edata,rules) =  Seq.map (eval_rule edata) (Seq.of_list rules);
+   fun eval_rules (edata,rules) = Seq.map (eval_rule edata) (Seq.of_list rules);
 
    fun eval_graph edata lhs =
      eval_var_mk_rule edata lhs

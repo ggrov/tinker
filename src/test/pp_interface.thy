@@ -64,8 +64,14 @@ lemma lem2: "! x. P x --> P x"
  done
 
 ML{*
- val path = "/u1/staff/gg112/"
+ val path = "/Users/ggrov"
 *}
+
+ML{*
+K (atac 1);
+
+*}
+
 
 ML{*
 local open ParseTree; in
@@ -102,7 +108,8 @@ fun meth_name (Rule thn) = RTechn.Rule (StrName.NSet.single (name_of_thm_name th
  | meth_name (Case t) = "cases" (* term which case is applied for *)
  | meth_name (Tactic at) = "tactic"
  | meth_name (Using (th,m)) =  "erule: "
- | meth_name (Unknown s) = s;
+ | meth_name (Unknown s) = s; (Need to write a parser with known tactics
+     and fail if not!!!)
 *)
 
 fun rtech_of_goal ctxt goal =
@@ -170,7 +177,7 @@ ML{*
  val g2 = ParseTree.parse_file (path ^ "/Stratlang/src/parse/examples/attempt_lem1.yxml");
  val graph = graph_of_goal @{context} g2;
  val str = Strategy_OutputGraphDot.output graph;
-val filename = "/u1/staff/gg112/test1.dot";
+val filename = path ^ "/pp_test1.dot";
 val outs = TextIO.openOut filename; 
 val _ = TextIO.output (outs,str);
 TextIO.closeOut outs;
@@ -186,13 +193,12 @@ ML{*
  val graph = graph_of_goal @{context} g2;
 
  val str = Strategy_OutputGraphDot.output graph;
-val filename = "/u1/staff/gg112/test2.dot";
+val filename = path ^ "/pp_test2.dot";
 val outs = TextIO.openOut filename;
 val _ = TextIO.output (outs,str); 
 TextIO.closeOut outs;
-  Strategy_Dot.write_dot_to_file "/u1/staff/gg112/mytest.dot" graph;
+  Strategy_Dot.write_dot_to_file (path ^ "/pp_mytest.dot") graph;
   Print_Mode.setmp [] (fn () => Strategy_Dot.output graph) ();
-  ;
 *}
 
 end;

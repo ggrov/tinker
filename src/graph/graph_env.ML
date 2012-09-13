@@ -488,10 +488,12 @@ struct
        val (v,g) = Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.RT rt)) Graph.empty 
        fun in_wire wire g =
             g |> Graph.add_vertex boundary_vertex
+              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
               |> (fn (n,g) => Graph.add_edge (Graph.Directed,DB_EdgeData.W wire) n v g)
               |> (fn (_,g') => g')
        fun out_wire wire g =
             g |> Graph.add_vertex boundary_vertex
+              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
               |> (fn (n,g) => Graph.add_edge (Graph.Directed, DB_EdgeData.W wire) v n g)
               |> (fn (_,g') => g')  
      in 
@@ -503,11 +505,13 @@ struct
 
  fun add_boundary_to data dest graph =
    graph |> Strategy_Theory.Graph.add_vertex boundary_vertex
+         |> (fn (n,g) => (n,Strategy_Theory.Graph.add_to_boundary n g))
          |> (fn (n,g) => Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed, data) n dest g)
          |> snd;
 
  fun add_boundary_from data source graph =
    graph |> Strategy_Theory.Graph.add_vertex boundary_vertex
+         |> (fn (n,g) => (n,Strategy_Theory.Graph.add_to_boundary n g))
          |> (fn (n,g) => Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed, data) source n g)
          |> snd;
 
