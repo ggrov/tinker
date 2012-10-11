@@ -2,12 +2,15 @@
 theory Eval                                                       
 imports         
   Stratlang                                                  
-uses
+uses             
   "../wire/match.ML"             
   "../rtechn/rtechn_rs.ML"       
   "../eval/basic_eval.ML"       
-  "../proof/pplan_env.ML"                                     
-  "../eval/eval_atomic.ML"                                                                   
+  "../proof/pplan_env.ML" 
+  "../eval/eval_appf.ML"
+(*                                    
+  "../eval/eval_atomic.ML"                                                                  
+*) 
 begin
 
 end

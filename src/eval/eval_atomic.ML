@@ -89,6 +89,7 @@ struct
     fun thm_seq edata gnode thm_nms =
      Seq.of_list (thm_list edata gnode thm_nms);
 
+  (* type?? *)
   fun apply_appf edata wset gnode (RTechn.Rule thm_nms) =
      thm_seq edata gnode thm_nms
      |> Seq.maps (PPlanEnv.apply_rule (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata))
@@ -195,11 +196,7 @@ struct
     let 
       val graph' = Strategy_Theory.Graph.normalise graph;
       val (rule',matches) = Strategy_Theory.RulesetRewriter.rule_matches rule graph';
-      fun rewr match = Strategy_Theory.GraphSubst.do_rewrite 
-                         graph' 
-                         (Strategy_Theory.Rule.get_lhs rule') 
-                         match 
-                         (Strategy_Theory.Rule.get_rhs rule')
+      fun rewr match = Strategy_Theory.GraphSubst.do_rewrite match graph' 
     in
       Seq.map rewr matches
     end;

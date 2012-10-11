@@ -1,8 +1,51 @@
 theory eval_test 
 imports
-  "../build/Eval"       
+  "../build/Eval"        
 begin
 
+consts
+  f :: nat
+  g :: nat
+  P :: "nat => bool"
+
+lemma test: "f = g" sorry
+
+lemma t: "P f" sorry
+
+ML{*
+
+*}
+
+ML{*
+ val x = Unsynchronized.ref @{term "t"}; 
+ Tactic.rotate_tac;
+  
+Thm.nprems_of @{thm t};
+fun ngls thm = 
+ (Thm.prems_of thm |> hd |> Logic.count_prems) - 1;
+
+val ins = Method.insert_tac [@{thm t}] 1;
+fun rot thm = Tactic.rotate_tac (ngls thm) 1 thm;
+val sub = EqSubst.eqsubst_asm_tac @{context} [1] [@{thm test}] 1;
+
+val mytac = ins THEN rot THEN sub;
+*}
+
+lemma "A ==> A  ==> B \<and> B"
+  apply (rule conjI)
+  apply (tactic "mytac")
+  apply (insert t)
+  apply (tactic "(fn thm => Tactic.rotate_tac (ngls thm) 1 thm)")
+  apply (subst(asm) test)
+  oops
+
+ML{*
+Logic.count_prems (!x)
+*}
+
+ML{*
+EqSubst.eqsubst_asm_tac @{context} [0] [@{thm test}] 1 @{thm test} |> Seq.list_of;
+*}
 ML{*
  val rtechn = RTechn.id
             |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.single "impI"))
@@ -68,6 +111,30 @@ val [p1,p2] = GraphEnv.get_rtechns_of_graph g
 |> V.NSet.list_of
 |> maps (EvalAtomic.mk_match_graph g);
 *}
+
+ML{*
+val (l,r) = EvalAtomic.eval_var_mk_rule edata p1 |> Seq.list_of |> hd |> snd |> hd;
+Strategy_Dot.write_dot_to_file "/Users/ggrov/left.dot" l;
+Strategy_Dot.write_dot_to_file "/Users/ggrov/right.dot" r;
+*}
+
+ML{*
+val (_,r1,[r2]) = EvalAtomic.eval_mk_all_rules edata l |> Seq.list_of |> hd;
+*}
+
+ML{*
+ val l1 = EvalAtomic.rewrite r1 l |> hd;
+Strategy_Dot.write_dot_to_file "/Users/ggrov/erewr1.dot" l1;
+*}
+
+ML{*
+Strategy_Dot.write_dot_to_file "/Users/ggrov/e1l.dot" 
+  (Strategy_Theory.Rule.get_lhs r1);
+Strategy_Dot.write_dot_to_file "/Users/ggrov/e1r.dot" 
+  (Strategy_Theory.Rule.get_rhs r1);
+
+*}
+
 
 ML{*
 (* EvalAtomic.eval_var_mk_rule edata p1; *)

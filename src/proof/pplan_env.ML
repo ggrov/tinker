@@ -14,6 +14,8 @@ struct
   (* why K combinator - shouldn't this be removed from the graph *)
   fun apply_tactic (gnode,prf) tac = PPlan.apply_tac (K tac) (gnode,prf) 
 
+  fun apply_ctxt_tactic (gnode,prf) tac = PPlan.apply_tac tac (gnode,prf) 
+    
 
 end (* struct *)
 

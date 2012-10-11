@@ -10,7 +10,7 @@ sig
     | FRule of StrName.name * StrName.NSet.T (* wire + rules used *)
     | Subst of StrName.NSet.T (* separate rule vs bwire? *)
     | SubstAsm of StrName.name * StrName.NSet.T (* bwre and rules - sep. rule vs bwire *)
-    | Tactic of StrName.NSet.T * string (* bwire as fact + name of stactic *)
+    | Tactic of StrName.NSet.T * string (* bwire as fact + name of tactic *)
 
   type appfn 
   type wire = W.name;

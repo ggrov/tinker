@@ -1,8 +1,15 @@
 structure DB_VertexData
 = struct
 
+  datatype GNList = GList of GNode.T list
+                  | GApp of Wire.T * (PNode.T list) 
+
+  fun eval_gnlist (GList gl) = (GList gl)
+   |  eval_gnlist (GApp (w,pn)) =  
+
   datatype data = RT of RTechn.T
                  | GN of GNode.T
+                 (* | GNList of GNode.T list *)
                  | RVar of string (* variable of rtechn *)
                  | GVar of string (* variable of goalnode *)
 
