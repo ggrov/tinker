@@ -5,7 +5,7 @@ structure DB_VertexData
                   | GApp of Wire.T * (PNode.T list) 
 
   fun eval_gnlist (GList gl) = (GList gl)
-   |  eval_gnlist (GApp (w,pn)) =  
+   |  eval_gnlist (GApp (w,pn)) =  (GList []);
 
   datatype data = RT of RTechn.T
                  | GN of GNode.T
