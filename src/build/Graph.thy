@@ -2,7 +2,7 @@
 theory Graph                                               
 imports        
   RTechn
-  "~~/contrib/quantomatic/core/isabelle/QuantoCore"                                            
+  "~~/contrib/quantomatic/core/isabelle/QuantoCore"                                             
 uses
   "../graph/vertex.ML"                        
   "../graph/edge.ML"  

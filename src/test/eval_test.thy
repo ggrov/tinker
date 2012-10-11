@@ -4,48 +4,21 @@ imports
 begin
 
 consts
-  f :: nat
-  g :: nat
-  P :: "nat => bool"
+  A :: bool
+  B :: bool
+  C :: bool
 
-lemma test: "f = g" sorry
+lemma a: "A ==> B" sorry
+lemma b: "B ==> C" sorry
 
-lemma t: "P f" sorry
+lemmas x = a[THEN b]
 
+thm x
 ML{*
-
+ fold;
+ @{thm a} RS @{thm b}
 *}
 
-ML{*
- val x = Unsynchronized.ref @{term "t"}; 
- Tactic.rotate_tac;
-  
-Thm.nprems_of @{thm t};
-fun ngls thm = 
- (Thm.prems_of thm |> hd |> Logic.count_prems) - 1;
-
-val ins = Method.insert_tac [@{thm t}] 1;
-fun rot thm = Tactic.rotate_tac (ngls thm) 1 thm;
-val sub = EqSubst.eqsubst_asm_tac @{context} [1] [@{thm test}] 1;
-
-val mytac = ins THEN rot THEN sub;
-*}
-
-lemma "A ==> A  ==> B \<and> B"
-  apply (rule conjI)
-  apply (tactic "mytac")
-  apply (insert t)
-  apply (tactic "(fn thm => Tactic.rotate_tac (ngls thm) 1 thm)")
-  apply (subst(asm) test)
-  oops
-
-ML{*
-Logic.count_prems (!x)
-*}
-
-ML{*
-EqSubst.eqsubst_asm_tac @{context} [0] [@{thm test}] 1 @{thm test} |> Seq.list_of;
-*}
 ML{*
  val rtechn = RTechn.id
             |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.single "impI"))

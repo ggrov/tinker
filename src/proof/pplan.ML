@@ -191,7 +191,32 @@ struct
                |> update_ptab_nd newgnode
    in
      (subgoals,prf'')
-   end;  
+   end;
+
+  (* for forward steps where facts are just added *)
+  fun add_facts facts prf gnode = 
+    let 
+     fun ins_asm a (lgns,map) =
+       let 
+         val (n,map') = StrName.NTab.add ("h",a) map
+       in
+         (StrName.NSet.ins_fresh n lgns,map')
+       end
+     val (lassms,assms) = fold ins_asm facts (StrName.NSet.empty,PNode.get_assms gnode)
+     val gnode' = 
+         PNode.mk_goal (fresh_goal (get_all_nms prf)) (PNode.get_ctxt gnode) ctxt (Goal.init goal'')
+         |> PNode.set_assms assms (* not sure a new fact should be treated as a new assumption? *)
+         |> PNode.set_lassms lassms (* as above *)
+         |> PNode.set_goal_prev gnode
+     val newgnode = gnode 
+                   |> PNode.set_result (SOME [gnode'])
+     val prf' = prf
+              |> insert_open_nd gnode'
+              |> remove_open_nd newgnode
+              |> update_ptab_nd newgnode
+     in
+       ([gnode'],prf')
+     end;     
 
   (* application *)
   exception application_exp of string * PNode.T

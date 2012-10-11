@@ -27,6 +27,12 @@ struct
     fun thm_seq edata gnode thm_nms =
      Seq.of_list (thm_list edata gnode thm_nms);
 
+   fun thm_seq_of_bwire_nm edata gnode bwire_nm = 
+     (case GNode.lookup_facts_by_name (SStrName.mk bwire_nm) gnode
+         of NONE => GFact.NSet.empty
+                 | (SOME ns) => ns)
+      |> thm_seq edata gnode
+
   (*
    FIXME: function to substitute in asm - must be a simpler way
     (note new fact will be added to assumption the way proof is working)  
@@ -49,21 +55,26 @@ struct
      |> Seq.maps (PPlanEnv.apply_rule (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata))
 (*   |  apply_appf ctxt (RTechn.ERule (nbwire,thm_nms)) gnode =
      thm_seq gnode thm_nms
-     |> Seq.maps (PPlanEnv.apply_erule (gnode,prf) nbwire);
-   |  apply_appf ctxt (RTechn.FRule (nbwire,thm_nms)) gnode =
-     thm_seq gnode thm_nms
-     |> Seq.maps (PPlanEnv.apply_frule (gnode,prf) nbwire); *)
+     |> Seq.maps (PPlanEnv.apply_erule (gnode,prf) nbwire); *)
+
+   (* TODO: fixme - not sure this is really frule! *)
+   |  apply_appf edata gnode (RTechn.FRule (bwire_nms,thm_nms)) =
+         let
+          val thm_snd = thm_seq edata gnode thm_nms
+          val thm_fst = thm_seq_of_bwire_nm edata gnode bwire_nm
+        in
+           PPlanEnv.apply_frule (gnode,prf) fst_thms snd_thms
+        end
+     |> Seq.maps (PPlanEnv.apply_frule (gnode,prf) nbwire); 
+
    |  apply_appf edata gnode (RTechn.Subst thm_nms) = 
        thm_list edata gnode thm_nms
        |> PPlanEnv.apply_subst (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata)
       (* should I capture failure here or should we just let it fail? *)
-   |  apply_appf edata gnode (RTechn.SubstAsm (nbwire,thm_nms)) =  (* why not a wire? *)
+   |  apply_appf edata gnode (RTechn.SubstAsm (bwire_nm,thm_nms)) =  (* why not a wire? *)
         let
           val thm_eqs = thm_seq edata gnode thm_nms
-          val thms = (case GNode.lookup_facts_by_name (SStrName.mk nbwire) gnode
-                                  of NONE => GFact.NSet.empty
-                                   | (SOME ns) => ns)
-                  |> thm_seq edata gnode
+          val thms = thm_seq_of_bwire_nm edata gnode bwire_nm
         in
            Seq.maps (fn fact =>
              Seq.maps (fn eq =>

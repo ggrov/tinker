@@ -3,8 +3,23 @@ struct
 
   fun apply_rule (gnode,prf) thm = PPlan.apply_tac (K (rtac thm 1)) (gnode,prf)
 
-  (* and vs or wires *)
-  fun apply_frule (gnode,prf) bwire thm = PPlan.apply_tac (K (ftac thm 1)) (gnode,prf) 
+   (* TODO: fixme - not sure this is really frule! *)
+  fun apply_frule' (gnode,prf) new_thms = 
+      PPlan.add_facts new_thms prf gnode;
+  
+  (* tries to combine all possible fsts with snds *)
+  (* fixme: try both ways? *)
+  fun combine_thms fst_thms snd_thms =
+    fold 
+      (fn fst_thm =>
+          (fold 
+            (fn snd_thm => fn res => res @ [(fst_thm RS snd_thm)] handle _ => res ) 
+             snd_thms)
+       fst_thms
+       [];
+   (* TODO: fixme - not sure this is really frule! *)   
+  fun apply_frule (gnode,prf) fst_thms snd_thms = 
+        apply_frule' (gnode,prf)  (combine_thms fst_thms snd_thms);
 
   fun apply_erule (gnode,prf) thm = PPlan.apply_tac (K (etac thm 1)) (gnode,prf)
 
