@@ -49,7 +49,13 @@ struct
      (EqSubst.eqsubst_asm_tac ctxt [1] [thm_eq] 1)
     end;
 
-  (* type?? *)
+   (* should also be split! *)
+   fun erule_tac fact thm = 
+      (Method.insert_tac [thm] 1)
+      THEN
+      (etac fact 1);
+
+  (* Fixme: update so that proof captures rules *)
   fun apply_appf edata gnode (RTechn.Rule thm_nms) =
      thm_seq edata gnode thm_nms
      |> Seq.maps (PPlanEnv.apply_rule (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata))
@@ -57,16 +63,30 @@ struct
      thm_seq gnode thm_nms
      |> Seq.maps (PPlanEnv.apply_erule (gnode,prf) nbwire); *)
 
-   (* TODO: fixme - not sure this is really frule! *)
-   |  apply_appf edata gnode (RTechn.FRule (bwire_nms,thm_nms)) =
+   (* should this be one step or many steps in the proof - should really be a high proof! *)
+(*
+   |  apply_appf edata gnode (RTechn.ERule (bwire_nm,thm_nms)) =
          let
-          val thm_snd = thm_seq edata gnode thm_nms
-          val thm_fst = thm_seq_of_bwire_nm edata gnode bwire_nm
+          val thms = thm_list edata gnode thm_nms
+          val new_hyps = thm_seq_of_bwire_nm edata gnode bwire_nm |> Seq.list_of
         in
-           PPlanEnv.apply_frule (gnode,prf) fst_thms snd_thms
+          fold 
+            (fn hyp => fn (gs,prf) => Seq.maps (erule_tac fact) thms)
+            new_hyps
         end
-     |> Seq.maps (PPlanEnv.apply_frule (gnode,prf) nbwire); 
-
+*)
+   (* TODO: fixme - needs testing! *)
+   |  apply_appf edata gnode (RTechn.FRule (bwire_nm,thm_nms)) =
+         let
+          val snd_thms = thm_list edata gnode thm_nms
+          val fst_thms = thm_seq_of_bwire_nm edata gnode bwire_nm |> Seq.list_of
+        in
+           PPlanEnv.apply_frule
+              (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata) 
+              fst_thms 
+              snd_thms
+           |> Seq.single
+        end
    |  apply_appf edata gnode (RTechn.Subst thm_nms) = 
        thm_list edata gnode thm_nms
        |> PPlanEnv.apply_subst (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata)

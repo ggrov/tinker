@@ -18,7 +18,7 @@ struct
   fun node_block graph = let
     val boxtab = Graph.get_bbox_table graph
     fun sty nm = case Graph.get_vertex graph nm
-                   of (Graph.OVData.NVert (DB_VertexData.RT rt), _) => " [style=filled,fillcolor=white,fontcolor=black,shape=box,label=" ^(RTechn.get_name rt)^ "]"
+                   of (Graph.OVData.NVert (DB_VertexData.RT rt), _) => " [style=filled,fillcolor=white,fontcolor=black,shape=box,label=\"" ^(RTechn.get_name rt)^ "\"]"
                     | (Graph.OVData.NVert (DB_VertexData.GN gn), _) => " [style=filled,fillcolor=white,fontcolor=black,shape=circle,label=" ^(GNode.get_goal gn)^ "]"
                     | (Graph.OVData.NVert (DB_VertexData.GVar x), _) => " [style=filled,fillcolor=grey,fontcolor=black,shape=circle,label=" ^x^ "]"
                     | (Graph.OVData.NVert (DB_VertexData.RVar x), _) => " [style=filled,fillcolor=grey,fontcolor=black,shape=box,label=" ^x^ "]"

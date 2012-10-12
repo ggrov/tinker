@@ -1,7 +1,7 @@
 (* simple test of proof representation *)
 theory Prf_test                                                
 imports               
- "../build/Prf"                                                                
+ "../build/Prf"                                                                  
 begin
 
 (*
@@ -21,12 +21,12 @@ ML{*
 ML{*
  all_tac @{thm allI} |> Seq.list_of ;
  val (gn,prf) = PPlan.init @{context} @{term "(\<forall> x. P x) ==> \<forall> x. P x"};
- PPlan.export_name prf (PNode.get_name gn);
+ PPExpThm.export_name prf (PNode.get_name gn);
  val ([g1],prf) = PPlan.apply_tac (K (rtac @{thm allI} 1)) (gn,prf) |> Seq.list_of |> hd;
  val ([g2],prf) = PPlan.apply_tac (K (all_tac)) (g1,prf) |> Seq.list_of |> hd;
  val ([g3],prf) = PPlan.apply_tac (K (all_tac)) (g2,prf) |> Seq.list_of |> hd;
  val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (g3,prf) |> Seq.list_of |> hd;
- PPlan.export_name prf (PNode.get_name gn);
+ PPExpThm.export_name prf (PNode.get_name gn);
 *}
 
 lemma "\<And> x. P x"
@@ -59,10 +59,10 @@ qed
 
 ML{*
  val (gn,prf) = PPlan.init @{context} @{term "(\<forall> x. P x) ==> \<forall> x. P x"};
- PPlan.export_name prf (PNode.get_name gn);
+ PPExpThm.export_name prf (PNode.get_name gn);
  val ([g1],prf) = PPlan.apply_tac (K (rtac @{thm allI} 1)) (gn,prf) |> Seq.list_of |> hd;
  val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
- PPlan.export_name prf (PNode.get_name gn);
+ PPExpThm.export_name prf (PNode.get_name gn);
 *}
 
 (* this is fine *)

@@ -11,6 +11,8 @@ consts
 lemma a: "A ==> B" sorry
 lemma b: "B ==> C" sorry
 
+lemma t: "\<forall> x. P x" sorry
+
 lemmas x = a[THEN b]
 
 thm x

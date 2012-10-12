@@ -12,7 +12,7 @@ struct
   fun combine_thms fst_thms snd_thms =
     fold 
       (fn fst_thm =>
-          (fold 
+          fold 
             (fn snd_thm => fn res => res @ [(fst_thm RS snd_thm)] handle _ => res ) 
              snd_thms)
        fst_thms

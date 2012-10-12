@@ -12,6 +12,25 @@ struct
       - information about tactic
       - support for hierarchies ?
   *)
+
+  (* e.g.
+     by tactic using fact: thms:
+     by rules     using 
+     by frule     of     
+  *)
+  datatype desc_typ =
+    (* name and configs: (type,args) pair *) 
+    DTac of string * ((string * string list) list)
+  | DRule 
+  | DErule 
+  | DFrule 
+  | DUnknown of string
+
+  datatype desc = Desc of {
+    desc_typ : desc_typ,
+    desc_thms : string list,
+    desc_facts : string list };
+
   datatype T = Goal of 
     { name : gname,
       ctxt : Proof.context,
@@ -21,7 +40,8 @@ struct
       goal : Thm.thm,
       (* needs to be a list to keep it in order *)
       result : (gname list) option, (* NONE indicates open, SOME [] indicates complete *)
-      prev : pnode} (* name should be sufficient - look up rest in Prf *)
+      prev : pnode, (* name should be sufficient - look up rest in Prf *)
+      desc : desc option}
   and 
    (* G should really just be name and context? *)
    pnode = G of T | R of Proof.context;
@@ -36,45 +56,51 @@ struct
   fun get_goal (Goal rep) = #goal rep;
   fun get_result (Goal rep) = #result rep;
   fun get_prev (Goal rep) = #prev rep;
+  fun get_desc (Goal rep) = #desc rep;
 
   val get_all_assms = StrName.NTab.values o get_assms;
 
   fun update_name f (Goal rep) = Goal
    {name = f (#name rep), ctxt = #ctxt rep, assms = #assms rep, lassms = #lassms rep,
-    fixes = #fixes rep, goal = #goal rep, result = #result rep, prev = #prev rep};
+    fixes = #fixes rep, goal = #goal rep, result = #result rep, prev = #prev rep, desc = #desc rep};
 
   fun update_ctxt f (Goal rep) = Goal
    {name = #name rep, ctxt = f (#ctxt rep), assms = #assms rep, lassms = #lassms rep,
-    fixes = #fixes rep, goal = #goal rep, result = #result rep, prev = #prev rep};
+    fixes = #fixes rep, goal = #goal rep, result = #result rep, prev = #prev rep, desc = #desc rep};
 
   fun update_assms f (Goal rep) = Goal
    {name = #name rep, ctxt = #ctxt rep, assms = f (#assms rep), lassms = #lassms rep,
-    fixes = #fixes rep, goal = #goal rep, result = #result rep, prev = #prev rep};
+    fixes = #fixes rep, goal = #goal rep, result = #result rep, prev = #prev rep, desc = #desc rep};
 
   fun update_lassms f (Goal rep) = Goal
    {name = #name rep, ctxt = #ctxt rep, assms = #assms rep, lassms = f (#lassms rep),
-    fixes = #fixes rep, goal = #goal rep, result = #result rep, prev = #prev rep};
+    fixes = #fixes rep, goal = #goal rep, result = #result rep, prev = #prev rep, desc = #desc rep};
 
   fun update_fixes f (Goal rep) = Goal
    {name = #name rep, ctxt = #ctxt rep, assms = #assms rep, lassms = #lassms rep,
-   fixes = f (#fixes rep),  goal = #goal rep, result = #result rep, prev = #prev rep};
+   fixes = f (#fixes rep),  goal = #goal rep, result = #result rep, prev = #prev rep, desc = #desc rep};
 
   fun update_goal f (Goal rep) = Goal
    {name = #name rep, ctxt = #ctxt rep, assms = #assms rep, lassms = #lassms rep,
-   fixes = #fixes rep,  goal = f (#goal rep), result = #result rep, prev = #prev rep};
+   fixes = #fixes rep,  goal = f (#goal rep), result = #result rep, prev = #prev rep, desc = #desc rep};
 
   fun update_result f (Goal rep) = Goal
    {name = #name rep, ctxt = #ctxt rep, assms = #assms rep, lassms = #lassms rep,
-    fixes = #fixes rep, goal = #goal rep, result = f (#result rep), prev = #prev rep};
+    fixes = #fixes rep, goal = #goal rep, result = f (#result rep), prev = #prev rep, desc = #desc rep};
 
   fun update_prev f (Goal rep) = Goal
    {name = #name rep, ctxt = #ctxt rep, assms = #assms rep, lassms = #lassms rep,
-    fixes = #fixes rep, goal = #goal rep, result = #result rep, prev = f (#prev rep)};
+    fixes = #fixes rep, goal = #goal rep, result = #result rep, prev = f (#prev rep), desc = #desc rep};
+
+  fun update_desc f (Goal rep) = Goal
+   {name = #name rep, ctxt = #ctxt rep, assms = #assms rep, lassms = #lassms rep,
+    fixes = #fixes rep, goal = #goal rep, result = #result rep, prev = #prev rep, desc = f (#desc rep)};
+
 
   fun mk_goal name ctxt0 ctxt1 goal =
    Goal {name = name, ctxt = ctxt1, assms = StrName.NTab.empty,  
          lassms = StrName.NSet.empty, fixes = [], goal = goal, result = NONE, 
-         prev = R ctxt0}; 
+         prev = R ctxt0, desc = NONE}; 
 
   val set_name = update_name o K;
   val set_ctxt = update_ctxt o K;
@@ -84,6 +110,7 @@ struct
   val set_goal = update_goal o K;
   val set_result = update_result o K;
   val set_prev = update_prev o K;
+  val set_desc = update_desc o K;
 
   val set_goal_prev = set_prev o G;
 
