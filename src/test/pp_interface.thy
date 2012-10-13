@@ -11,10 +11,21 @@ Facts.named "HOL.allI";
 
 *}
 
+
+ML{*
+
+exists;
+@{term "F"} = @{term "FG"}
+*}
+
 (* example similar lemmas *)
 
-lemma "A \<and> B --> B \<and> A"
+(* compare premises before and after! *)
+(* always the last one! *)
+lemma "AA \<and> B ==> B \<and> C ==> C ==> B \<and> A"
+ apply (frule conjunct1)
  apply (rule impI)
+ apply (elim conjE disjE)
 oops
 
 lemma lem1: "! x y. P x \<and> P y --> P x \<and> P y"
@@ -35,7 +46,7 @@ lemma lem2: "! x. P x --> P x"
  done
 
 ML{*
- val path = "/u1/staff/gg112/"
+ val path = "/Users/gudmund/IsaPlanner"
 *}
 
 ML{*
@@ -43,7 +54,13 @@ K (atac 1);
 
 *}
 
-
+ML{*
+ val t1 = @{term " P x \<and> P y \<Longrightarrow> P x"};
+ val t2 = @{term "\<And>x y. P x \<and> P y \<Longrightarrow> P x"};
+*}
+ML{*
+ GraphTransfer.get_missing_hyps @{context} ("\<And>x y. P x \<and> P y \<Longrightarrow> P x",["\<And>x y. P x \<and> P y \<Longrightarrow> P x"]);
+*}
 
 ML{*
 val rtechn_l1 = GraphTransfer.rtechns_of_file @{context} (path ^ "/Stratlang/src/parse/examples/attempt_lem1.yxml");

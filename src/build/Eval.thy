@@ -2,7 +2,7 @@
 theory Eval                                                       
 imports         
   Stratlang                                                  
-uses             
+uses              
   "../wire/match.ML"             
   "../rtechn/rtechn_rs.ML"       
   "../eval/basic_eval.ML"             

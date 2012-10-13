@@ -11,36 +11,58 @@ struct
   fun term_of_prf (Goal pg) = case #state pg of (_,_,StrTerm g) => g;
   fun oterms_of_prf g = map term_of_prf (cont_of_prf g)
 
+ fun bwire_of_term term =
+   BWire.default_wire
+   |> BWire.set_pos (FE.get_features term);
+
+ fun bwire_of_str ctxt str =
+   bwire_of_term (Syntax.read_prop ctxt str);
+
  fun wire_of_str ctxt str =
-  let 
-    val t = Syntax.read_prop ctxt str;
-    val fs = FE.get_features t 
-    val gwire = BWire.default_wire
-              |> BWire.set_pos fs;
-  in
    Wire.default_wire 
-   |> Wire.set_goal gwire
-  end;
+   |> Wire.set_goal (bwire_of_str ctxt str);
 
 fun name_of_thm_name (Thm s) = s
  |  name_of_thm_name (Hyp s) = s;
 
-fun meth_name (Rule thn) = 
+fun flatten [] = []
+ |  flatten [[]] = []
+ |  flatten (x::xs) = x @ (flatten xs);
+
+ (* TO DO: replace dangling bounds with variables! *)
+fun get_missing_hyps ctxt (old,new) = 
+  let  
+     fun hyps s = Syntax.read_term ctxt s 
+                |> Term.strip_all_body
+                |> Logic.strip_imp_prems
+     val tbefore = hyps old
+     val tafter = map hyps new
+  in
+    filter (fn t1 => not (exists (fn t2 => t1=t2) (flatten tafter))) tbefore
+  end;
+
+fun meth_name _ (Rule thn) = 
       let val name = name_of_thm_name thn
       in 
-        ("rule: " ^ name,RTechn.Rule (StrName.NSet.single name))
+        ([],"rule: " ^ name,RTechn.Rule (StrName.NSet.single name))
       end
-  | meth_name (Erule (a,thn)) =  
+  | meth_name (ctxt,i,os) (Erule (a,thn)) =  
       let val name = name_of_thm_name thn
-        val wire = case a of
-             NONE => "unknown"
-           | SOME v => name_of_thm_name v
+        val (new_ws,wname) = case a of
+               (* FIXME: need an OR feature thing here!! + lifting of get_missing_hyps to feature *)
+             NONE => (case get_missing_hyps ctxt (i,os) of 
+                        [] => ([],"unknown") (* fixme: should fail? *)
+                      (* assume only first is relevant! *)
+                      | (t::_) => 
+                           ([bwire_of_term t |> BWire.set_name (SStrName.mk "h_erule")],"h_erule"))
+           (* fixme: need to find wire *)
+           | SOME v => ([],name_of_thm_name v)
       in 
-         ("erule: " ^ name,RTechn.ERule (wire,StrName.NSet.single name))
+         (new_ws,"erule: " ^ name,RTechn.ERule (wname,StrName.NSet.single name))
       end 
- | meth_name (Unknown s) = 
-    ("tactic: " ^ s,RTechn.Tactic (StrName.NSet.empty,s))
- | meth_name _ = ("unknown",RTechn.Rule (StrName.NSet.empty))
+ | meth_name _ (Unknown s) = 
+    ([],"tactic: " ^ s,RTechn.Tactic (StrName.NSet.empty,s))
+ | meth_name _ _ = ([],"unknown",RTechn.Rule (StrName.NSet.empty))
 (*
 
 = "erule: " ^ name_of_thm_name th (* which assumption + thm *)
@@ -54,11 +76,22 @@ fun meth_name (Rule thn) =
 *)
 
 fun rtech_of_goal ctxt goal =
-  RTechn.id
-  |> RTechn.set_name (goal |> meth_of_prf |> meth_name |> fst)
-  |> RTechn.set_atomic_appf (goal |> meth_of_prf |> meth_name |> snd)
-  |> RTechn.set_inputs (W.NSet.single (wire_of_str ctxt (term_of_prf goal)))
-  |> RTechn.set_outputs (W.NSet.of_list (map (wire_of_str ctxt) (oterms_of_prf goal)))
+  let 
+     val ins = term_of_prf goal
+     val outs = oterms_of_prf goal
+     val (new_ws,name,appf)  = goal |> meth_of_prf |> meth_name (ctxt,ins,outs)
+     val iwire = (* input wire: add hyps if returned *)
+       (case new_ws of 
+           [] => wire_of_str ctxt ins
+         | xs  => wire_of_str ctxt ins
+                  |> Wire.set_facts (BW.NSet.of_list xs))
+  in 
+    RTechn.id
+    |> RTechn.set_name name
+    |> RTechn.set_atomic_appf appf
+    |> RTechn.set_inputs (W.NSet.single iwire)
+    |> RTechn.set_outputs (W.NSet.of_list (map (wire_of_str ctxt) outs))
+  end;
 
 fun rtechns_of_proof ctxt g = 
  (rtech_of_goal ctxt g) :: (maps (rtechns_of_proof ctxt) (cont_of_prf g))

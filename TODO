@@ -1,4 +1,8 @@
 TO DO short term
+ - get rewriting (evaluation) to work (Oxford hopefully)
+ - look for identical/generalisable subgraphs ~> generalise
+ - parsing 
+ - look for identical (after gen) output branches and combine!
  - evaluation of technique, including matching for features [not sure if I am doing this]
  - evaluation beyond a single box
  - see if theory has to be moved back into context!
