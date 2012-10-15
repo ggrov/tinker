@@ -41,6 +41,7 @@ fun get_missing_hyps ctxt (old,new) =
     filter (fn t1 => not (exists (fn t2 => t1=t2) (flatten tafter))) tbefore
   end;
 
+(* what about outputs hyps? *)
 fun meth_name _ (Rule thn) = 
       let val name = name_of_thm_name thn
       in 
@@ -68,7 +69,7 @@ fun meth_name _ (Rule thn) =
 = "erule: " ^ name_of_thm_name th (* which assumption + thm *)
  | meth_name (Frule (a,th)) = "frule" (* which assumption + thm *)
  | meth_name (Subst_thm th) = "subst_thm" (* rule used *)
- | meth_name (Subst_asm_thm (th1,th2)) = "subst_asm" (* rule used *)
+ | meth_name (Subst_asm_thm (th1,th2)) = "subst_asm" (* rule used ~ is this correct? *)
  | meth_name (Subst_using_asm t) = "subst_using_asm" (* which assumption in list *)
  | meth_name (Case t) = "cases" (* term which case is applied for *)
  | meth_name (Tactic at) = "tactic"

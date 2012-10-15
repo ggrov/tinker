@@ -20,13 +20,7 @@ exists;
 
 (* example similar lemmas *)
 
-(* compare premises before and after! *)
-(* always the last one! *)
-lemma "AA \<and> B ==> B \<and> C ==> C ==> B \<and> A"
- apply (frule conjunct1)
- apply (rule impI)
- apply (elim conjE disjE)
-oops
+
 
 lemma lem1: "! x y. P x \<and> P y --> P x \<and> P y"
  apply (rule allI)
@@ -46,7 +40,7 @@ lemma lem2: "! x. P x --> P x"
  done
 
 ML{*
- val path = "/Users/gudmund/IsaPlanner"
+ val path = "/u1/staff/gg112/"
 *}
 
 ML{*
