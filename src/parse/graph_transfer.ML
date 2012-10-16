@@ -41,6 +41,23 @@ fun get_missing_hyps ctxt (old,new) =
     filter (fn t1 => not (exists (fn t2 => t1=t2) (flatten tafter))) tbefore
   end;
 
+(* unknown *)
+
+val known_unknown_tacs = 
+  ["atac",K (atac 1)];
+
+fun parse_unknown str = 
+  let
+    fun tac_of ["assumption"] = ([],"tactic: assumption",RTechn.Tactic (StrName.NSet.empty,"atac"))
+     |  tac_of (s::_) = ([],"unknown tactic: " ^ s,RTechn.Tactic (StrName.NSet.empty,s))
+     |  tac_of [] = ([],"no tactic ",RTechn.Tactic (StrName.NSet.empty,"notactic"));
+    val ignore_str = ["apply"];
+  in 
+   str |> String.tokens (fn s => s = #" ")
+       |> filter (fn s => not((member (op =) ignore_str s)))
+       |> tac_of
+  end;
+
 (* what about outputs hyps? *)
 fun meth_name _ (Rule thn) = 
       let val name = name_of_thm_name thn
@@ -61,8 +78,7 @@ fun meth_name _ (Rule thn) =
       in 
          (new_ws,"erule: " ^ name,RTechn.ERule (wname,StrName.NSet.single name))
       end 
- | meth_name _ (Unknown s) = 
-    ([],"tactic: " ^ s,RTechn.Tactic (StrName.NSet.empty,s))
+ | meth_name _ (Unknown s) = parse_unknown s
  | meth_name _ _ = ([],"unknown",RTechn.Rule (StrName.NSet.empty))
 (*
 
