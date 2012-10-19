@@ -10,7 +10,6 @@ uses
   "../eval/eval_appf.ML"                                  
   "../eval/eval_output.ML" 
   "../eval/eval_atomic.ML"  
-
   "../eval/rtechn_eval.ML"                    
 begin
 

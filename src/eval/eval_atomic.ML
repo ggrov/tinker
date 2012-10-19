@@ -90,7 +90,8 @@ struct
     let 
       val graph' = Strategy_Theory.Graph.normalise graph;
       val (rule',matches) = Strategy_Theory.RulesetRewriter.rule_matches rule graph';
-      fun rewr match = Strategy_Theory.GraphSubst.do_rewrite graph' (Strategy_Theory.Rule.get_lhs rule') match (Strategy_Theory.Rule.get_rhs rule')
+      fun rewr match = 
+        Strategy_Theory.GraphSubst.do_rewrite match (Strategy_Theory.Rule.get_rhs rule')
     in
       Seq.map rewr matches
     end;
