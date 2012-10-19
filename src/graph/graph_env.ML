@@ -547,6 +547,17 @@ struct
 
  fun lift_fanout n wire = lift_fanout_vertex n wire |> snd;
 
+  fun lift_vertex node wire =
+    let 
+     val (v,g) = Strategy_Theory.Graph.empty
+               |> Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert node)
+    in
+      g |> add_boundary_from (DB_EdgeData.W wire) v
+        |> add_boundary_to (DB_EdgeData.W wire) v
+    end;
+
+  fun lift_gnode gnode = lift_vertex (DB_VertexData.GN gnode);
+
   (* collapsing of graph into a vertex *)
   fun collapse_graph_vertex rt_typ name g =
    let 

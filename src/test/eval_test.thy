@@ -3,35 +3,45 @@ imports
   "../build/Eval"        
 begin
 
-consts
-  A :: bool
-  B :: bool
-  C :: bool
-
-lemma a: "A ==> B" sorry
-lemma b: "B ==> C" sorry
-
-lemma t: "\<forall> x. P x" sorry
-
-lemmas x = a[THEN b]
-
-thm x
+-- "setup of technique"
 ML{*
- fold;
- @{thm a} RS @{thm b}
-*}
 
-ML{*
- val rtechn = RTechn.id
+ val path = "/Users/gudmund/";
+
+ structure EData = EvalD_DF;
+ val rtechn1 = RTechn.id
+            |> RTechn.set_name "rule impI"
             |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.single "impI"))
             |> RTechn.set_io (W.NSet.single Wire.default_wire);
+ val rtechn2 = RTechn.id
+            |> RTechn.set_name "rule conjI"
+            |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.single "conjI"))
+            |> RTechn.set_io (W.NSet.single Wire.default_wire);
 
- val g = GraphComb.theng (GraphEnv.graph_of_rtechn rtechn) (GraphEnv.graph_of_rtechn rtechn);
+ val gf = LIFT (GraphEnv.graph_of_rtechn rtechn1) THENG LIFT (GraphEnv.graph_of_rtechn rtechn2);
+val edata0 = RTechnEval.init @{theory} [@{prop "A --> A \<and> A"}] gf;
 *}
 
-(* initialise evaluation *)
+-- "evaluate two steps"
+ML{*
+val edata1 = RTechnEval.eval_any edata0 |> Seq.list_of |> hd;
+val edata2 = RTechnEval.eval_any edata1 |> Seq.list_of |> hd;
+*}
 
-(* prove A --> A *)
+-- "print"
+ML{*
+Strategy_Dot.write_dot_to_file (path ^ "aag1.dot") (EData.get_graph edata0 |> Strategy_Theory.Graph.minimise);
+Strategy_Dot.write_dot_to_file (path ^ "aag2.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise);
+Strategy_Dot.write_dot_to_file (path ^ "aag3.dot") (EData.get_graph edata2 |> Strategy_Theory.Graph.minimise);
+*}
+
+
+
+
+
+(* OLD STUFF (need to delete when necessary) *)
+
+
 
 ML{* 
 fun lift_vertex node wire =
@@ -89,8 +99,8 @@ val [p1,p2] = GraphEnv.get_rtechns_of_graph g
 
 ML{*
 val (l,r) = EvalAtomic.eval_var_mk_rule edata p1 |> Seq.list_of |> hd |> snd |> hd;
-Strategy_Dot.write_dot_to_file "/Users/ggrov/left.dot" l;
-Strategy_Dot.write_dot_to_file "/Users/ggrov/right.dot" r;
+Strategy_Dot.write_dot_to_file "/Users/gudmund/left.dot" l;
+Strategy_Dot.write_dot_to_file "/Users/gudmund/right.dot" r;
 *}
 
 ML{*
@@ -99,13 +109,13 @@ val (_,r1,[r2]) = EvalAtomic.eval_mk_all_rules edata l |> Seq.list_of |> hd;
 
 ML{*
  val l1 = EvalAtomic.rewrite r1 l |> hd;
-Strategy_Dot.write_dot_to_file "/Users/ggrov/erewr1.dot" l1;
+Strategy_Dot.write_dot_to_file "/Users/gudmund/erewr1.dot" l1;
 *}
 
 ML{*
-Strategy_Dot.write_dot_to_file "/Users/ggrov/e1l.dot" 
+Strategy_Dot.write_dot_to_file "/Users/gudmund/e1l.dot" 
   (Strategy_Theory.Rule.get_lhs r1);
-Strategy_Dot.write_dot_to_file "/Users/ggrov/e1r.dot" 
+Strategy_Dot.write_dot_to_file "/Users/gudmund/e1r.dot" 
   (Strategy_Theory.Rule.get_rhs r1);
 
 *}

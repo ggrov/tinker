@@ -1,28 +1,16 @@
-structure EvalAtomic =
+structure EvalOutput =
 struct
 
-  exception rtechn_exp of RTechn.T * string
   exception gnode_exp of string
-  exception graph_exp of string * Strategy_Theory.Graph.T
- 
-  (* should be a functor - df is default *)
-  structure EData = EvalD_DF;
 
-(*
-  fun get_pnode ctxt gnode = PNode_Ctxt.get_goal ctxt (GNode.get_goal gnode);
-*)
-  fun upd_gnode_goal goal gnode = gnode
-                                |> GNode.set_prev (SOME gnode)
-                                |> GNode.set_goal (PNode.get_name goal);
-
-  fun matching_hyps fmap gnode pnode bwire = 
+  fun matching_hyps fmap pnode bwire = 
     StrName.NSet.filter 
       (fn hname => WMatch.bwire_match fmap (PNode.get_ctxt pnode) bwire 
                                       (StrName.NTab.get (PNode.get_assms pnode) hname))
       (PNode.get_lassms pnode)
 
   fun upd_hyp fmap pnode bwire gnode =
-     matching_hyps fmap gnode pnode bwire
+     matching_hyps fmap pnode bwire
      |> (fn gs => GNode.add_facts (bwire,gs) gnode)
 
   fun upd_hyps_by_wire fmap gnode pnode wire =
@@ -31,11 +19,12 @@ struct
      (Wire.get_facts wire)
      gnode;
 
+  (* make gnode into a function *)
   fun upd_goal_by_wire fmap gnode pnode wire = 
     if WMatch.bwire_match 
              fmap 
              (PNode.get_ctxt pnode) (Wire.get_goal wire) (PNode.get_goal pnode) 
-    then SOME (upd_gnode_goal pnode gnode) 
+    then SOME gnode 
     else NONE
     handle _ => NONE;
 
@@ -47,7 +36,7 @@ struct
   (* what if there are more than one? or none? 
       -> currently fails! 
   *)  
-  fun upd_by_wires fmap gnode wset pnode =
+  fun lift_gnode_by_wires fmap gnode wset pnode =
     let 
       fun prj_unique [] = raise gnode_exp "no matching outputs"
        |  prj_unique [SOME g] = g
@@ -58,15 +47,16 @@ struct
       |> prj_unique
     end;
 
-  (* ignores hyps and wire *)
-  fun upd_rule wset edata gnode (pnds,prf) = 
-    let
-     val edata' = edata
-               |> EData.set_pplan prf (* updates proof in context *)
-               |> EData.del_goal (GNode.get_goal gnode) (* deletes goal from ctxt (now in prf) *)
-               |> EData.add_goals pnds
-   in
-      (edata',map (upd_by_wires (EData.get_fmatch edata) gnode wset) pnds)
-   end
+  fun lift_pnode_by_wires fmap wset pnode =
+    lift_gnode_by_wires fmap (GNode.mk_goal_no_facts (PNode.get_name pnode)) wset pnode
+
+  fun upd_by_wires fmap gnode wset pnode =
+    let 
+      val gnode' = gnode
+                 |> GNode.set_prev (SOME gnode)
+                 |> GNode.set_goal (PNode.get_name pnode)
+    in
+      lift_gnode_by_wires fmap gnode' wset pnode
+    end;
 
 end (* structure *)

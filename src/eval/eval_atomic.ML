@@ -8,56 +8,6 @@ struct
   (* should be a functor - df is default *)
   structure EData = EvalD_DF;
 
-(*
-  fun get_pnode ctxt gnode = PNode_Ctxt.get_goal ctxt (GNode.get_goal gnode);
-*)
-  fun upd_gnode_goal goal gnode = gnode
-                                |> GNode.set_prev (SOME gnode)
-                                |> GNode.set_goal (PNode.get_name goal);
-
-  fun matching_hyps fmap gnode pnode bwire = 
-    StrName.NSet.filter 
-      (fn hname => WMatch.bwire_match fmap (PNode.get_ctxt pnode) bwire 
-                                      (StrName.NTab.get (PNode.get_assms pnode) hname))
-      (PNode.get_lassms pnode)
-
-  fun upd_hyp fmap pnode bwire gnode =
-     matching_hyps fmap gnode pnode bwire
-     |> (fn gs => GNode.add_facts (bwire,gs) gnode)
-
-  fun upd_hyps_by_wire fmap gnode pnode wire =
-    BW.NSet.fold 
-     (upd_hyp fmap pnode)
-     (Wire.get_facts wire)
-     gnode;
-
-  fun upd_goal_by_wire fmap gnode pnode wire = 
-    if WMatch.bwire_match 
-             fmap 
-             (PNode.get_ctxt pnode) (Wire.get_goal wire) (PNode.get_goal pnode) 
-    then SOME (upd_gnode_goal pnode gnode) 
-    else NONE
-    handle _ => NONE;
-
-  fun upd_by_wire fmap gnode pnode wire =
-    case upd_goal_by_wire fmap gnode pnode wire 
-     of NONE => NONE
-     |  (SOME gn) => SOME (wire,upd_hyps_by_wire fmap gn pnode wire);
-
-  (* what if there are more than one? or none? 
-      -> currently fails! 
-  *)  
-  fun upd_by_wires fmap gnode wset pnode =
-    let 
-      fun prj_unique [] = raise gnode_exp "no matching outputs"
-       |  prj_unique [SOME g] = g
-       |  prj_unique _ = raise gnode_exp "many matching outputs"
-    in 
-      map (upd_by_wire fmap gnode pnode) (W.NSet.list_of wset)
-      |> filter (Option.isSome)
-      |> prj_unique
-    end;
-
   (* ignores hyps and wire *)
   fun upd_rule wset edata gnode (pnds,prf) = 
     let
@@ -66,66 +16,8 @@ struct
                |> EData.del_goal (GNode.get_goal gnode) (* deletes goal from ctxt (now in prf) *)
                |> EData.add_goals pnds
    in
-      (edata',map (upd_by_wires (EData.get_fmatch edata) gnode wset) pnds)
+      (edata',map (EvalOutput.upd_by_wires (EData.get_fmatch edata) gnode wset) pnds)
    end
-
-   (* actual application of proof technique *)
-    fun get_thm edata gnode name =
-      let 
-         val th = gnode
-                |> GNode.get_goal 
-                |> EData.get_goal edata
-                |> PNode.get_ctxt
-                |> Proof_Context.theory_of
-      in
-        Global_Theory.get_thm th name
-      end;  
-
-    fun thm_list edata gnode thm_nms =
-      thm_nms 
-      |> StrName.NSet.list_of 
-      |> map (get_thm edata gnode)
-
-    fun thm_seq edata gnode thm_nms =
-     Seq.of_list (thm_list edata gnode thm_nms);
-
-  (* type?? *)
-  fun apply_appf edata wset gnode (RTechn.Rule thm_nms) =
-     thm_seq edata gnode thm_nms
-     |> Seq.maps (PPlanEnv.apply_rule (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata))
-     |> Seq.map (upd_rule wset edata gnode)
-(*   |  apply_appf ctxt (RTechn.ERule (nbwire,thm_nms)) gnode =
-     thm_seq gnode thm_nms
-     |> Seq.maps (PPlanEnv.apply_erule (gnode,prf) nbwire);
-   |  apply_appf ctxt (RTechn.FRule (nbwire,thm_nms)) gnode =
-     thm_seq gnode thm_nms
-     |> Seq.maps (PPlanEnv.apply_frule (gnode,prf) nbwire); *)
-   |  apply_appf edata wset gnode (RTechn.Subst thm_nms) = 
-       thm_list edata gnode thm_nms
-       |> PPlanEnv.apply_subst (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata)
-       |> Seq.map (upd_rule wset edata gnode)
-(* |  apply_appf ctxt (RTechn.SubstAsm (nbwire,thm_nms)) gnode = *)
-   |  apply_appf edata wset gnode (RTechn.Tactic (bwire_nms,tac_name)) =
-       let 
-         val pnode = EData.get_goal edata (GNode.get_goal gnode);
-         fun lookup_fact fname = case GNode.lookup_facts_by_name (SStrName.mk fname) gnode
-                                  of NONE => GFact.NSet.empty
-                                   | (SOME ns) => ns
-         val fnames =
-           StrName.NSet.fold 
-             (fn wn => GFact.NSet.union_merge (lookup_fact wn))
-             GFact.NSet.empty
-             bwire_nms
-         val facts = map (StrName.NTab.get (PNode.get_assms pnode))
-                         (GFact.NSet.list_of fnames);
-         val tac = StrName.NTab.get (EData.get_tactics edata) tac_name
-       in
-         pnode
-         |> PNode.get_ctxt
-         |> tac facts
-         |> PPlanEnv.apply_tactic (pnode, EData.get_pplan edata) 
-         |> Seq.map (upd_rule wset edata gnode)
-       end;
   
   fun delete_input_rule (gnode,w) = 
     let
@@ -173,12 +65,14 @@ struct
 
   fun mk_result (gnode,w) rtechn (edata,outgs) =
     (edata,delete_input_rule (gnode,w), map (output_gnode (w,rtechn)) outgs)
-  
+
   fun eval_rtechn (gnode,w) rtechn edata =
    case RTechn.get_atomic rtechn
-   of (SOME atom) => apply_appf edata (RTechn.get_outputs rtechn) gnode atom
+   of (SOME atom) => EvalAppf.apply_appf edata gnode atom
+                    |> Seq.map (upd_rule (RTechn.get_outputs rtechn) edata gnode)
                     |> Seq.map (mk_result (gnode,w) rtechn)
    | NONE => raise rtechn_exp (rtechn,"not atomic technique");
+
 
   (* lookup gnode and rtechn and eval and then apply eval_rtechn *)
   fun eval_v_rtechn (v_gnode,v_rtechn) (edata,graph) =
@@ -196,7 +90,7 @@ struct
     let 
       val graph' = Strategy_Theory.Graph.normalise graph;
       val (rule',matches) = Strategy_Theory.RulesetRewriter.rule_matches rule graph';
-      fun rewr match = Strategy_Theory.GraphSubst.do_rewrite match graph' 
+      fun rewr match = Strategy_Theory.GraphSubst.do_rewrite graph' (Strategy_Theory.Rule.get_lhs rule') match (Strategy_Theory.Rule.get_rhs rule')
     in
       Seq.map rewr matches
     end;
@@ -251,12 +145,11 @@ struct
   fun eval_var_mk_all_rules edata graph_pat =
    Seq.maps (eval_mk_all_rules edata) (eval_var_mk_rule_aux edata graph_pat);
 
-
    fun eval_rule edata rule = 
      rewrite_lazy (Strategy_Theory.Rule.mk rule) (EData.get_graph edata)
      |> Seq.map (fn g => EData.set_graph g edata)
 
-   fun eval_rules (edata,rules) = Seq.map (eval_rule edata) (Seq.of_list rules);
+   fun eval_rules (edata,rules) = Seq.maps (eval_rule edata) (Seq.of_list rules);
 
    fun eval_graph edata lhs =
      eval_var_mk_rule edata lhs
@@ -286,5 +179,11 @@ struct
    in
      map mk_match_graph' (E.NSet.list_of ins)
    end;
+
+  (* makes match graphs and evaluates *)
+  fun eval_atomic edata v = 
+    v |> mk_match_graph (EData.get_graph edata)
+      |> Seq.of_list
+      |> Seq.maps (eval_graph edata);
     
 end (* structure *)

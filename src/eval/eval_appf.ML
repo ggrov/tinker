@@ -1,11 +1,13 @@
 (* 
-  Actual application of node
+  Contains link between application of rule/tac/.. and the update of the proof object.a
 *)
 structure EvalAppf =
 struct
 
   (* should be a functor - df is default *)
   structure EData = EvalD_DF;
+
+  exception eval_appf_exp of string;
 
    (* actual application of proof technique *)
     fun get_thm edata gnode name =
@@ -59,11 +61,6 @@ struct
   fun apply_appf edata gnode (RTechn.Rule thm_nms) =
      thm_seq edata gnode thm_nms
      |> Seq.maps (PPlanEnv.apply_rule (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata))
-(*   |  apply_appf ctxt (RTechn.ERule (nbwire,thm_nms)) gnode =
-     thm_seq gnode thm_nms
-     |> Seq.maps (PPlanEnv.apply_erule (gnode,prf) nbwire); *)
-
-   (* should this be one step or many steps in the proof - should really be a high proof! *)
 (*
    |  apply_appf edata gnode (RTechn.ERule (bwire_nm,thm_nms)) =
          let
@@ -123,6 +120,7 @@ struct
          |> PNode.get_ctxt
          |> tac facts
          |> PPlanEnv.apply_tactic (pnode, EData.get_pplan edata) 
-       end;
+       end
+   |  apply_appf _ _ _ = raise eval_appf_exp "unknown application type";
 
 end (* structure *)

@@ -12,9 +12,15 @@ sig
     (Strategy_Theory.Graph.VertexCRnm.renaming * Strategy_Theory.Graph.EdgeCRnm.renaming) * graph
 
   (* use these *)
-  val tensor :  graph -> graph -> graph
-  val theng :  graph -> graph -> graph
- 
+  val tensor_g :  graph -> graph -> graph
+  val then_g :  graph -> graph -> graph
+
+  val THENG: ((theory -> graph*theory) * (theory -> graph*theory)) -> theory -> graph * theory
+  val TENSOR: ((theory -> graph*theory) * (theory -> graph*theory)) -> theory -> graph * theory
+  val OR: ((theory -> graph*theory) * (theory -> graph*theory)) -> theory -> graph * theory
+  val TRY_ORELSE: ((theory -> graph*theory) * (theory -> graph*theory)) -> theory -> graph * theory 
+
+  val LIFT: graph -> theory -> graph * theory
 end; (* sig *)
 
 structure GraphComb_DB =
@@ -40,7 +46,7 @@ struct
      ((rnm,rnme),Graph.merge_by_vertices g1 g2'')
   end;
 
- fun tensor g1 g2 = graph_tensor g1 g2 |> snd;
+ fun tensor_g g1 g2 = graph_tensor g1 g2 |> snd;
 
  (* src, dest *)
  fun check_pluggable_el (_,(_,e1),_) (_,(_,e2),_) =
@@ -78,31 +84,31 @@ struct
      ((rnv,rne),g')
    end;
 
- fun theng g1 g2 = graph_theng g1 g2 |> snd;
+ fun then_g g1 g2 = graph_theng g1 g2 |> snd;
  
  (* add OR, etc -- now in graph_comb at the end *)
 
   (* combinators *)
-  fun th_theng (f1,f2) th =
+  fun THENG (f1,f2) th =
     let 
       val (g1,th1) = f1 th
       val (g2,th2) = f2 th1
     in
-      (theng g1 g2,th2)
-    end;
+      (then_g g1 g2,th2)
+    end; 
 
  (* fixme: may want to join input and output *)
-  fun th_tensor (f1,f2) th =
+  fun TENSOR (f1,f2) th =
     let 
       val (g1,th1) = f1 th
       val (g2,th2) = f2 th1
     in
-       (tensor g1 g2,th2)
+       (tensor_g g1 g2,th2)
     end; 
 
 (* for simplicity we assume all are non-equal! *)
  (* FIXME: need to check that disjoint output is preserved *)
- fun th_or (fg1,fg2) th0 =
+ fun OR (fg1,fg2) th0 =
    let 
      val (g1,th1) = fg1 th0
      val (g2,th2) = fg2 th1 
@@ -124,7 +130,7 @@ struct
    end
 
  (* FIXME: same issues as OR graph *)
- fun th_try_or_else (fg1,fg2) th0 =
+ fun TRY_ORELSE (fg1,fg2) th0 =
    let 
      val (g1,th1) = fg1 th0
      val (g2,th2) = fg2 th1     
@@ -145,8 +151,19 @@ struct
       else raise GraphEnv.combine_exp "new graphs does not have disjoint IO" 
    end
 
+  fun LIFT g th = (g,th);
+
 end; (* end struct *)
 
 structure GraphComb : GRAPH_COMB  = GraphComb_DB 
 
+infixr 6 THENG;
+val op THENG = GraphComb.THENG;
+infixr 6 TENSOR;
+val op TENSOR = GraphComb.TENSOR;
+infixr 5 OR;
+val op OR = GraphComb.OR;
+infixr 5 TRY_ORELSE
+val op OR = GraphComb.OR;
+val LIFT = GraphComb.LIFT;
 
