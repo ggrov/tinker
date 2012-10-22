@@ -44,7 +44,7 @@ fun get_missing_hyps ctxt (old,new) =
 (* unknown *)
 
 val known_unknown_tacs = 
-  ["atac",K (atac 1)];
+  [("atac",K (atac 1))];
 
 fun parse_unknown str = 
   let

@@ -6,7 +6,7 @@ begin
 -- "setup of technique"
 ML{*
 
- val path = "/Users/gudmund/";
+ val path = "/Users/ggrov/";
 
  structure EData = EvalD_DF;
  val rtechn1 = RTechn.id

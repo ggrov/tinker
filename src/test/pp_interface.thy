@@ -4,26 +4,8 @@ imports
 begin
 
 ML{*
-Context.theory_of;
-Global_Theory.get_thm @{theory} "allI";
-
-Facts.named "HOL.allI";
-
+ val path = "/Users/ggrov/"
 *}
-
-ML{*
-
-*}
-
-ML{*
-
-exists;
-@{term "F"} = @{term "FG"}
-*}
-
-(* example similar lemmas *)
-
-
 
 lemma lem1: "! x y. P x \<and> P y --> P x \<and> P y"
  apply (rule allI)
@@ -43,13 +25,39 @@ lemma lem2: "! x. P x --> P x"
  done
 
 ML{*
- val path = "/u1/staff/gg112/"
-*}
+val g1 =  ParseTree.parse_file (path ^ "/Stratlang/src/parse/examples/attempt_lem1.yxml")
+       |> GraphTransfer.graph_of_goal @{context}
+       |> Strategy_Dot.write_dot_to_file ( path ^ "/pp_test1.dot")
+
+val g2 =  ParseTree.parse_file (path ^ "/Stratlang/src/parse/examples/attempt_lem2.yxml")
+       |> GraphTransfer.graph_of_goal @{context}
+       |> Strategy_Dot.write_dot_to_file ( path ^ "/pp_test2.dot") 
+*} 
+
+
 
 ML{*
-K (atac 1);
+Context.theory_of;
+Global_Theory.get_thm @{theory} "allI";
+
+Facts.named "HOL.allI";
 
 *}
+
+
+ML{*
+
+exists;
+@{term "F"} = @{term "FG"}
+*}
+
+(* example similar lemmas *)
+
+
+
+
+
+
 
 ML{*
  val t1 = @{term " P x \<and> P y \<Longrightarrow> P x"};
