@@ -66,7 +66,11 @@ struct
        else raise feature_typ_exp (f,"wrong feature type with shape");
 
   fun get_features t =
-    (mk_top_level t) @ (mk_const_goal_feature t) @ (simple_shape t)
+    (mk_top_level t) 
+       @ (mk_const_goal_feature t) 
+       (* dangling bounds existing.. needs to be turned into variables... *)
+       (* @ (simple_shape t) *)
+ 
     |> F.NSet.of_list;
 
     
