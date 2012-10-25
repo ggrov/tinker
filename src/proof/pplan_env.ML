@@ -31,6 +31,7 @@ struct
 
   fun apply_ctxt_tactic (gnode,prf) tac = PPlan.apply_tac tac (gnode,prf) 
     
+  fun apply_tactic_all_asm (gnode,prf) tac = PPlan.apply_all_asm_tac tac (gnode,prf);
 
 end (* struct *)
 

@@ -4,13 +4,15 @@ signature RTECHN =
 sig
   type T
 
+  datatype tac_assms = TNoAsm | TAllAsm | TClass of StrName.NSet.T
+
   datatype atomic =
       Rule of StrName.NSet.T (* rules used - what about with wire? *)
     | ERule of StrName.name * StrName.NSet.T (* wire + rules used *)
     | FRule of StrName.name * StrName.NSet.T (* wire + rules used *)
     | Subst of StrName.NSet.T (* separate rule vs bwire? *)
     | SubstAsm of StrName.name * StrName.NSet.T (* bwre and rules - sep. rule vs bwire *)
-    | Tactic of StrName.NSet.T * string (* bwire as fact + name of tactic *)
+    | Tactic of tac_assms * string (* bwire as fact + name of tactic *)
 
   type appfn 
   type wire = W.name;
@@ -100,13 +102,15 @@ structure RTechn
     timeout : Time.time
     } 
 
+ datatype tac_assms = TNoAsm | TAllAsm | TClass of StrName.NSet.T
+
  datatype atomic =
     Rule of StrName.NSet.T (* rules used - what about with wire? *)
   | ERule of StrName.name * StrName.NSet.T (* wire + rules used *)
   | FRule of StrName.name * StrName.NSet.T (* wire + rules used *)
   | Subst of StrName.NSet.T (* separate rule vs bwire? *)
   | SubstAsm of StrName.name * StrName.NSet.T (* bwre and rules - sep. rule vs bwire *)
-  | Tactic of StrName.NSet.T * string (* bwires as facts + name of stactic *)
+  | Tactic of tac_assms * string (* bwires as facts + name of stactic *)
 
  (* must be serialisable! *)
  datatype appfn = Appf of atomic
@@ -197,7 +201,7 @@ structure RTechn
 *) 
 
   val id = RTechn {name = "id", inputs = W.NSet.empty, outputs = W.NSet.empty, 
-                   appf = Appf (Tactic (StrName.NSet.empty,"id_tac"))};
+                   appf = Appf (Tactic (TNoAsm,"id_tac"))};
 
   val merge = RTechn {name = "merge", inputs = W.NSet.empty, outputs = W.NSet.empty, 
                    appf = Merge};
@@ -213,7 +217,7 @@ structure RTechn
          |> set_outputs (W.NSet.single wire)
 
   val fail = id 
-           |> set_atomic_appf (Tactic (StrName.NSet.empty,"id_tac"))
+           |> set_atomic_appf (Tactic (TNoAsm,"id_tac"))
            |> set_name "fail";
 
 (*  fun ofstep f = id

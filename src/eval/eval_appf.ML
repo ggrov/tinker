@@ -57,6 +57,44 @@ struct
       THEN
       (etac fact 1);
 
+  fun apply_tactic edata gnode tac_name RTechn.TNoAsm = 
+       let 
+         val pnode = EData.get_goal edata (GNode.get_goal gnode)
+         val pplan = EData.get_pplan edata
+         val tac = StrName.NTab.get (EData.get_tactics edata) tac_name
+       in 
+         PPlanEnv.apply_tactic (pnode,pplan) (tac [] (PNode.get_ctxt pnode))
+       end
+   |  apply_tactic edata gnode tac_name RTechn.TAllAsm = 
+       let 
+         val pnode = EData.get_goal edata (GNode.get_goal gnode)
+         val pplan = EData.get_pplan edata
+         val tac = StrName.NTab.get (EData.get_tactics edata) tac_name
+       in 
+         PPlanEnv.apply_tactic_all_asm (pnode,pplan) (tac [])
+       end
+   |  apply_tactic edata gnode tac_name (RTechn.TClass bwire_nms) =
+       let 
+         val pnode = EData.get_goal edata (GNode.get_goal gnode);
+         fun lookup_fact fname = case GNode.lookup_facts_by_name (SStrName.mk fname) gnode
+                                  of NONE => GFact.NSet.empty
+                                   | (SOME ns) => ns
+         val fnames =
+           StrName.NSet.fold 
+             (fn wn => GFact.NSet.union_merge (lookup_fact wn))
+             GFact.NSet.empty
+             bwire_nms
+         val facts = map (StrName.NTab.get (PNode.get_assms pnode))
+                         (GFact.NSet.list_of fnames);
+         val tac = StrName.NTab.get (EData.get_tactics edata) tac_name
+       in
+         pnode
+         |> PNode.get_ctxt
+         |> tac facts
+         |> PPlanEnv.apply_tactic (pnode, EData.get_pplan edata) 
+       end;
+
+
   (* Fixme: update so that proof captures rules *)
   fun apply_appf edata gnode (RTechn.Rule thm_nms) =
      thm_seq edata gnode thm_nms
@@ -101,26 +139,8 @@ struct
                 thm_eqs) 
              thms
         end
-   |  apply_appf edata gnode (RTechn.Tactic (bwire_nms,tac_name)) =
-       let 
-         val pnode = EData.get_goal edata (GNode.get_goal gnode);
-         fun lookup_fact fname = case GNode.lookup_facts_by_name (SStrName.mk fname) gnode
-                                  of NONE => GFact.NSet.empty
-                                   | (SOME ns) => ns
-         val fnames =
-           StrName.NSet.fold 
-             (fn wn => GFact.NSet.union_merge (lookup_fact wn))
-             GFact.NSet.empty
-             bwire_nms
-         val facts = map (StrName.NTab.get (PNode.get_assms pnode))
-                         (GFact.NSet.list_of fnames);
-         val tac = StrName.NTab.get (EData.get_tactics edata) tac_name
-       in
-         pnode
-         |> PNode.get_ctxt
-         |> tac facts
-         |> PPlanEnv.apply_tactic (pnode, EData.get_pplan edata) 
-       end
+   |  apply_appf edata gnode (RTechn.Tactic (tac_data,name)) =
+        apply_tactic edata gnode name tac_data
    |  apply_appf _ _ _ = raise eval_appf_exp "unknown application type";
 
 end (* structure *)

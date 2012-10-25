@@ -48,9 +48,9 @@ val known_unknown_tacs =
 
 fun parse_unknown str = 
   let
-    fun tac_of ["assumption"] = ([],"tactic: assumption",RTechn.Tactic (StrName.NSet.empty,"atac"))
-     |  tac_of (s::_) = ([],"unknown tactic: " ^ s,RTechn.Tactic (StrName.NSet.empty,s))
-     |  tac_of [] = ([],"no tactic ",RTechn.Tactic (StrName.NSet.empty,"notactic"));
+    fun tac_of ["assumption"] = ([],"tactic: assumption",RTechn.Tactic (RTechn.TAllAsm,"atac"))
+     |  tac_of (s::_) = ([],"unknown tactic: " ^ s,RTechn.Tactic (RTechn.TNoAsm,s))
+     |  tac_of [] = ([],"no tactic ",RTechn.Tactic (RTechn.TNoAsm,"notactic"));
     val ignore_str = ["apply"];
   in 
    str |> String.tokens (fn s => s = #" ")

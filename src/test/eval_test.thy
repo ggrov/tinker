@@ -6,9 +6,81 @@ begin
 -- "setup of technique"
 ML{*
 
- val path = "/Users/ggrov/";
-
+ val path = "/u1/staff/gg112/";
  structure EData = EvalD_DF;
+*}
+(* tactic *)
+
+ML{*
+ val artechn = RTechn.id
+            |> RTechn.set_name "assumption"
+            |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm,"atac"))
+            |> RTechn.set_inputs (W.NSet.single Wire.default_wire);
+val gf = LIFT (GraphEnv.graph_of_rtechn artechn);
+
+val edata0 = RTechnEval.init @{theory} [@{prop "A ==> A"}] gf
+           |> EData.set_tactics (StrName.NTab.of_list [("atac",K (K (atac 1)))]);
+Strategy_Dot.write_dot_to_file (path ^ "tactest.dot") (EData.get_graph edata0 |> Strategy_Theory.Graph.minimise);
+*}
+
+ML{*
+val [r1] = GraphEnv.get_rtechns_of_graph (EData.get_graph edata0)
+|> V.NSet.list_of;
+val graph_pat = EvalAtomic.mk_match_graph (EData.get_graph edata0) r1 |> hd;
+*}
+
+(*
+ML{*
+Strategy_Theory.Rule.mk (graph_pat,graph_pat);
+*}
+*)
+
+(*
+ML{*
+val edata1 = RTechnEval.eval_any edata0 |> Seq.list_of |> hd;
+Strategy_Dot.write_dot_to_file (path ^ "tactest.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise);
+*}
+*)
+
+(* succeeds *)
+ML{*
+ val artechn = RTechn.id
+            |> RTechn.set_name "assumption"
+            |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm,"atac"))
+            |> RTechn.set_io (W.NSet.single Wire.default_wire);
+val gf = LIFT (GraphEnv.graph_of_rtechn artechn);
+
+val edata0 = RTechnEval.init @{theory} [@{prop "A ==> A"}] gf
+           |> EData.set_tactics (StrName.NTab.of_list [("atac",K (K (atac 1)))]);
+Strategy_Dot.write_dot_to_file (path ^ "tactest.dot") (EData.get_graph edata0 |> Strategy_Theory.Graph.minimise);
+*}
+
+
+ML{*
+val edata1 = RTechnEval.eval_any edata0 |> Seq.list_of |> hd;
+Strategy_Dot.write_dot_to_file (path ^ "tactest.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise);
+*}
+
+ML{*
+
+val ( PPExpThm.EClosed g) = PPExpThm.export_name (EData.get_pplan edata1) "g";
+Goal.conclude g; 
+*}
+
+ML{*
+val prf = EData.get_pplan edata0;
+val (SOME g) = PPlan.lookup_node prf "g";
+val t = PNode.get_goal g;
+PPlanEnv.apply_tactic (g,prf) (atac 1) |> Seq.list_of;
+PPlan.apply_all_asm_tac (K (atac 1)) (g,prf) |> Seq.list_of;
+*}
+
+
+
+(* rules *)
+
+ML{*
+
  val rtechn1 = RTechn.id
             |> RTechn.set_name "rule impI"
             |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.single "impI"))

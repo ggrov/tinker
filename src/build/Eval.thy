@@ -3,7 +3,7 @@ theory Eval
 imports         
   Stratlang                                                         
 uses              
-  "../wire/match.ML"             
+  "../wire/match.ML"                            
   "../rtechn/rtechn_rs.ML"       
   "../eval/basic_eval.ML"               
   "../proof/pplan_env.ML" 
