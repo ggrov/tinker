@@ -29,18 +29,18 @@ val [r1] = GraphEnv.get_rtechns_of_graph (EData.get_graph edata0)
 val graph_pat = EvalAtomic.mk_match_graph (EData.get_graph edata0) r1 |> hd;
 *}
 
-(*
+
 ML{*
 Strategy_Theory.Rule.mk (graph_pat,graph_pat);
 *}
-*)
 
-(*
+
+
 ML{*
 val edata1 = RTechnEval.eval_any edata0 |> Seq.list_of |> hd;
 Strategy_Dot.write_dot_to_file (path ^ "tactest.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise);
 *}
-*)
+
 
 (* succeeds *)
 ML{*
