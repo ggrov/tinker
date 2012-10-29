@@ -28,22 +28,41 @@ lemma lem2: "! x. P x --> P x"
 (* fixme change to Feature_Theory *)
 (* fixme: add dynamically within feature lib *)
 
-(*
 setup {*
 Feature_Ctxt.add ("top-level-const",FeatureEnv.fmatch_top_level);
 *}
 setup {*
 Feature_Ctxt.add ("consts",FeatureEnv.fmatch_const);
 *}
-*) 
 
 
+(*
 setup {*
 Feature_Ctxt.add ("top-level-const",K (K (K true)));
 *}
 setup {*
 Feature_Ctxt.add ("consts",K (K (K true)));
 *} 
+*)
+
+(* add dummy output to end *)
+ML{*
+local open GraphEnv_DB in
+    fun add_out_wire v g =
+     if E.NSet.is_empty (get_out_edges g v)
+       then
+            g |> Graph.add_vertex boundary_vertex
+              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
+              |> (fn (n,g) => Graph.add_edge (Graph.Directed, DB_EdgeData.W Wire.default_wire) v n g)
+              |> (fn (_,g') => g') 
+       else 
+           g
+end;
+
+fun upd_w_outs g = 
+  fold add_out_wire (V.NSet.list_of (GraphEnv.get_rtechns_of_graph g)) g ;
+*}
+
 
 
 ML{*
@@ -60,16 +79,59 @@ val g2 =  ParseTree.parse_file (path ^ "/Stratlang/src/parse/examples/attempt_le
 Strategy_Dot.write_dot_to_file ( path ^ "/pp_test2.dot") g2;
 *} 
 
+ML{* 
 
+ fun reachable g v1 v2 = true
+
+ fun all_reachable_from g v1 vs = true;
+
+ fun all_reachable g vs = true;
+   
+ fun naive_subgraphs g = 
+   let 
+      val ng = Strategy_Theory.Graph.normalise g
+      val rts = GraphEnv.get_rtechns_of_graph ng
+      val size = V.NSet.cardinality rts
+   in
+     rts
+     |> V.NSet.powerset 
+     |> filter (fn vs => V.NSet.cardinality vs > 1 andalso V.NSet.cardinality vs < size)
+     |> filter (all_reachable ng)
+     |> map (fn vs => Strategy_Theory.Graph.get_open_subgraph vs ng)
+   end;
+
+val [s1,s2,s3] = naive_subgraphs g2 |> map Strategy_Theory.Graph.minimise ;
+*}
+
+ML{*
+Strategy_Dot.write_dot_to_file ( path ^ "/tmp.dot") s1;
+
+*}
 (* eval graph *)
 ML{*
  structure EData = EvalD_DF;
-val edata0 = RTechnEval.init @{theory} [@{prop "! x. P x --> P x"}] (fn th => (g2,th));
+val edata0 = RTechnEval.init @{theory} [@{prop "! x. P x --> P x"}] (fn th => (g2,th))
+           |> EData.set_tactics (StrName.NTab.of_list [("atac",K (K (atac 1)))]);;
 
-Strategy_Dot.write_dot_to_file ( path ^ "/pp_test2_1.dot") (EData.get_graph edata0); 
+Strategy_Dot.write_dot_to_file ( path ^ "/pp_test2_1.dot") (EData.get_graph edata0 |> Strategy_Theory.Graph.minimise); 
 *}
 
+ML{*
+val edata1 = RTechnEval.eval_any edata0 |> Seq.list_of |> hd;
+Strategy_Dot.write_dot_to_file ( path ^ "/pp_test2_2.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise );
+*}
 
+ML{*
+val edata2 = RTechnEval.eval_any edata1 |> Seq.list_of |> hd;
+Strategy_Dot.write_dot_to_file ( path ^ "/pp_test2_3.dot") (EData.get_graph edata2 |> Strategy_Theory.Graph.minimise );
+*}
+
+ML{*
+val edata3 = RTechnEval.eval_any edata2 |> Seq.list_of |> hd;
+Strategy_Dot.write_dot_to_file ( path ^ "/pp_test2_4.dot") (EData.get_graph edata3 |> Strategy_Theory.Graph.minimise );
+*}
+
+(*
 ML{*
 val [r1,r2,r3] = GraphEnv.get_rtechns_of_graph (EData.get_graph edata0)
 |> V.NSet.list_of
@@ -80,6 +142,7 @@ ML{*
 val edata1 = RTechnEval.one_step edata0 r2 |> Seq.list_of |> hd;
 Strategy_Dot.write_dot_to_file ( path ^ "/pp_test2_2.dot") (EData.get_graph edata1); 
 *}
+*)
 
 ML{*
 val [r1,r2,r3] = GraphEnv.get_rtechns_of_graph (EData.get_graph edata1)
@@ -98,146 +161,6 @@ val [r1,r2,r3] = GraphEnv.get_rtechns_of_graph (EData.get_graph edata2)
 (* |> maps (EvalAtomic.mk_match_graph g1); *)
 *}
 
-(* gen_order *)
-
-
-(* maybe the problem is no output wires *)
-ML{*
-val g = EvalAtomic.mk_match_graph (EData.get_graph edata2) r1 |> hd;
-Strategy_Dot.write_dot_to_file ( path ^ "/mytest.dot") g;
-val (lhs,rhs) = (g,g);
-*}
-
-ML{*
- open Strategy_Theory.Rule;
-*}
-
-ML{*
-val lhsbndry : V.NSet.T = Graph.get_boundary lhs;
-check_rule_consistency lhs rhs;
-val ignorevnames = (* ignore boundary and also fresh rhs vnames *)
-            V.NSet.union_merge 
-              lhsbndry
-              (V.NSet.subtract (Graph.get_vnames rhs)
-                                    (Graph.get_vnames lhs)); 
-        val ignoreenames = E.NSet.subtract (Graph.get_enames rhs)
-                            (Graph.get_enames lhs);
-        val vrn = V.mk_renaming ignorevnames 
-                    (V.NSet.union_merge ignorevnames 
-                      (Graph.get_vnames lhs))
-                    V.NTab.empty
-
-        val ern = E.mk_renaming ignoreenames 
-                    (E.NSet.union_merge ignoreenames (Graph.get_enames lhs))
-                    E.NTab.empty
-        val xrn = X.Rnm.empty;
-        val ((_,vrn,ern), rhs') = Graph.rename (xrn,vrn,ern) rhs
-        val lhsauts = (Seq.list_of oo GraphIso.get) lhs lhs
-        val rhsauts = (Seq.list_of oo GraphIso.get) rhs rhs'
-        val lhsba = map (fn x => ((  VInjEndo.restrict_dom_to lhsbndry
-                                   o GraphIso.get_vmap) x,GraphIso.get_subst x))
-                        lhsauts
-        val rhsba = map (fn x => ((  VInjEndo.restrict_dom_to lhsbndry
-                                   o GraphIso.get_vmap) x,GraphIso.get_subst x))
-                        rhsauts
-        fun filterorbits (x::xs) os =
-            let val orbit = map ((VInjEndo.compose (fst x)) o fst) rhsba 
-                fun eq a b = ((V.NTab.fold 
-                                      (fn (d,c) => VInjEndo.add d c)
-                                      (VInjEndo.get_domtab a) b; true)
-                             handle VInjEndo.add_exp _ => false)
-                val xs' = filter_out
-                            (fn a => exists (eq (fst a)) orbit)
-                            xs
-            in filterorbits xs' (x::os) end
-          | filterorbits [] os = os;
-filterorbits lhsba [];
-*}
-
-ML{*
-val g = lhs;
-val auts = lhsauts;
-val done = V.NSet.empty;
-val bound = V.NSet.empty;
-*}
-
-ML{*
-fun maybe_box vn v = if Graph.is_bboxed g vn then
-                               Boxed (Graph.get_bboxes_of g vn,v)
-                             else v;
-val aset = Graph.incident_vertices g done;
-        val (root,vset)=if V.NSet.is_empty aset
-                      then (NONE,Graph.get_vnames g
-                                 |> V.NSet.remove_set done
-                                 |> V.NSet.remove_set (Graph.get_boundary g))
-                      else (SOME((the (* must be nonempty by adjacency *)
-                                 o V.NSet.get_local_bot
-                                oo V.NSet.intersect) done
-                                     ((Graph.adj_vnames g
-                                     o the
-                                     o V.NSet.get_local_bot) aset))
-                             ,aset);
-V.NSet.is_empty vset;
-root;
-
-val vsetb = V.NSet.intersect vset bound
-                                  val (vset,typ) = if V.NSet.is_empty vsetb
-                                                 then (vset,Initial Arbitrary)
-                                                 else (vsetb,Initial Constrained)
-                                  val (v,orb,_) = take_orbit auts vset
-                                  val auts' = fix v auts
-                                  val bound' = V.NSet.union_merge bound orb;
- (maybe_box v typ,Tree(v,[]));
- :: gen_order g auts'
-                                             (V.NSet.add v done) bound'
-                                 
-*}
-
-(*
-fun gen_order g auts done bound =
-    let 
-        
-
-    in if V.NSet.is_empty vset then []
-    else case root of NONE => let 
-                              in  
-                              end
-                  | SOME x => let val (v,orb,_) = take_orbit auts vset
-                                  val auts' = fix v auts
-                                  val (auts'',subtr)
-                                      = gen_order_sub g auts'
-                                                      (V.NSet.delete v orb) 
-                              in (maybe_box v 
-                                   (if      V.NSet.contains bound v
-                                  then Rooted (Constrained,x)
-                                  else   if Graph.is_boundary g v
-                                       then Boundary x
-                                       else Rooted (Arbitrary,x)),
-                                  Tree(v, subtr))::gen_order g auts''
-                                         (V.NSet.union_merge done orb)
-                                         bound
-                              end
-*)
-
-
-
-(*
-ML{*
-
-
-
-      in (Rule { lhs = lhs, rhs = rhs',
-                lhs_aut = lhsauts,
-                selfapps = filterorbits lhsba [],
-                order = gen_order lhs lhsauts
-                                  V.NSet.empty V.NSet.empty },
-          (vrn,ern))
-      end
-    else
-      raise bad_rule_exp ("mk: Left and right hand side boundaries are different", lhs, rhs)
-    end;
-*}
-*)
 ML{*
 val edata = edata2;
 val graph_pat = g;

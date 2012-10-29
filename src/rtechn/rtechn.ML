@@ -232,7 +232,9 @@ structure RTechn
 
   fun ord (rt1,rt2) = 
    case String.compare (get_name rt1,get_name rt2) of
-    EQUAL => prod_ord W.NSet.ord W.NSet.ord ((get_inputs rt1,get_inputs rt2),(get_outputs rt1,get_outputs rt1))
+    EQUAL => EQUAL 
+        (* this may be the problem with matching an empty output!!! - just do name (for now)
+             prod_ord W.NSet.ord W.NSet.ord ((get_inputs rt1,get_inputs rt2),(get_outputs rt1,get_outputs rt1)) *)
     | x => x
 
   fun eq (rt1,rt2) = (ord (rt1,rt2) = EQUAL)

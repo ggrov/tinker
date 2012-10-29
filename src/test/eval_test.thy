@@ -9,13 +9,36 @@ ML{*
  val path = "/u1/staff/gg112/";
  structure EData = EvalD_DF;
 *}
+
+
+(* problem seems to occur when output set is empty!! - weird... *) 
+
+(* add dummy output to end *)
+ML{*
+local open GraphEnv_DB in
+    fun add_out_wire v g =
+     if E.NSet.is_empty (get_out_edges g v)
+       then
+            g |> Graph.add_vertex boundary_vertex
+              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
+              |> (fn (n,g) => Graph.add_edge (Graph.Directed, DB_EdgeData.W Wire.default_wire) v n g)
+              |> (fn (_,g') => g') 
+       else 
+           g
+end;
+
+fun upd_w_outs g = 
+  fold add_out_wire (V.NSet.list_of (GraphEnv.get_rtechns_of_graph g)) g ;
+*}
+
 (* tactic *)
 
 ML{*
  val artechn = RTechn.id
             |> RTechn.set_name "assumption"
             |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm,"atac"))
-            |> RTechn.set_inputs (W.NSet.single Wire.default_wire);
+            |> RTechn.set_inputs (W.NSet.single Wire.default_wire)
+            |> RTechn.set_outputs (W.NSet.single Wire.default_wire);
 val gf = LIFT (GraphEnv.graph_of_rtechn artechn);
 
 val edata0 = RTechnEval.init @{theory} [@{prop "A ==> A"}] gf
@@ -27,8 +50,46 @@ ML{*
 val [r1] = GraphEnv.get_rtechns_of_graph (EData.get_graph edata0)
 |> V.NSet.list_of;
 val graph_pat = EvalAtomic.mk_match_graph (EData.get_graph edata0) r1 |> hd;
+Strategy_Dot.write_dot_to_file (path ^ "tmp1.dot") (EData.get_graph edata0); 
 *}
 
+ML{*
+val [gv] = GraphEnv.get_goalnodes_of_graph  (EData.get_graph edata0 )|> V.NSet.list_of ;
+val g = GraphEnv.v_to_gnode (EData.get_graph edata0 ) gv;
+val rt = GraphEnv.v_to_rtechn (EData.get_graph edata0 ) r1;
+val (SOME ra) = RTechn.get_atomic rt;
+EvalAppf.apply_appf edata0 g ra |> Seq.list_of;
+*}
+
+(* empty *)
+ML{*
+EvalAtomic.eval_atomic edata0 r1 |> Seq.list_of
+*}
+
+(* empty *)
+ML{*
+EvalAtomic.eval_var_mk_rule_aux edata0 graph_pat |> Seq.list_of
+*}
+
+
+ML{*
+    val graph = EData.get_graph edata0
+   (* match - FIXME: must be a better way than creating a dummy rule *)
+    val subst = Strategy_Theory.RulesetRewriter.rule_matches 
+                   (Strategy_Theory.Rule.mk(EData.get_graph edata0,EData.get_graph edata0))
+                   (EData.get_graph edata0)
+                |> snd
+                |> Seq.map Strategy_Theory.Match.get_match_subst
+   |> Seq.list_of
+*}
+
+
+ML{*
+EvalAtomic.eval_mk_all_rules edata0 graph_pat;
+*}
+ML{*
+EvalAtomic.eval_v_rtechn (gv,r1) (edata0,graph_pat)
+*}
 
 ML{*
 Strategy_Theory.Rule.mk (graph_pat,graph_pat);

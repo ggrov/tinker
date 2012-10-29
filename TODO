@@ -1,5 +1,7 @@
 TO DO short term
- - get rewriting (evaluation) to work (Oxford hopefully)
+ - check that hierarchies work
+ - try to compute "valid" strategy graph subgraphs 
+     start with singleton sets - add neighbours until no changes
  - look for identical/generalisable subgraphs ~> generalise
  - parsing 
  - look for identical (after gen) output branches and combine!
