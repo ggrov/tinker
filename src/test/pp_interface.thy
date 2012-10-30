@@ -1,7 +1,9 @@
 theory pp_interface 
 imports
   "../build/Parse"
-  "../build/Eval"  
+  "../build/Eval"
+uses
+  "../learn/graph_extract.ML"          
 begin
 
 ML{*
@@ -35,6 +37,9 @@ setup {*
 Feature_Ctxt.add ("consts",FeatureEnv.fmatch_const);
 *}
 
+ML{*
+
+*}
 
 (*
 setup {*
@@ -73,6 +78,11 @@ Strategy_Dot.write_dot_to_file ( path ^ "/pp_test1.dot") g1;
 *}
 
 ML{*
+val [t1,t2] = GraphExtract.get_matching_sub (6,0) g1 |> map (fn (r,_,_) => r) |> map (Strategy_Theory.Rule.get_lhs);
+Strategy_Dot.write_dot_to_file ( path ^ "tmp1.dot") t1;
+Strategy_Dot.write_dot_to_file ( path ^ "tmp2.dot") t2; 
+*}
+ML{*
 val g2 =  ParseTree.parse_file (path ^ "/Stratlang/src/parse/examples/attempt_lem2.yxml")
        |> GraphTransfer.graph_of_goal @{context};
 
@@ -80,13 +90,45 @@ Strategy_Dot.write_dot_to_file ( path ^ "/pp_test2.dot") g2;
 *} 
 
 ML{* 
+ fun compute_next_graph g =
+   let 
+     val g' = Strategy_Theory.Graph.minimise g
+     val rts = GraphEnv.get_rtechns_of_graph g'
+     val outs = GraphEnv.get_outputs_of_vertex g' #> V.NSet.of_list;
+     fun add v = V.NTab.ins (v,outs v)
+  in
+     (rts,V.NSet.fold add rts V.NTab.empty)
+  end
 
- fun reachable g v1 v2 = true
+ fun is_reachable_dest vtab seen from to =
+   if V.name_eq (from,to) then true
+   else if V.NSet.contains seen from then false
+   else case V.NTab.lookup vtab from
+         of NONE => false
+        | (SOME vs) => V.NSet.exists (fn v => is_reachable_dest vtab (V.NSet.add from seen) v to) vs;
 
- fun all_reachable_from g v1 vs = true;
+ fun is_reachable_both vtab seen from to =
+   if is_reachable_dest vtab seen from to
+    then true
+    else is_reachable_dest vtab seen to from;
 
- fun all_reachable g vs = true;
-   
+ fun is_reachable vtab rtechns from =
+   V.NSet.forall (is_reachable_both vtab V.NSet.empty from) (V.NSet.delete from rtechns);
+
+ fun all_reachable g = 
+   let 
+     val (rtechns,vtab) = compute_next_graph g
+   in
+     V.NSet.forall (is_reachable vtab rtechns) rtechns
+   end;
+*}
+
+ML{*
+all_reachable g2;
+
+*}
+
+ML{* 
  fun naive_subgraphs g = 
    let 
       val ng = Strategy_Theory.Graph.normalise g
@@ -96,11 +138,11 @@ ML{*
      rts
      |> V.NSet.powerset 
      |> filter (fn vs => V.NSet.cardinality vs > 1 andalso V.NSet.cardinality vs < size)
-     |> filter (all_reachable ng)
      |> map (fn vs => Strategy_Theory.Graph.get_open_subgraph vs ng)
+     |> filter all_reachable
    end;
 
-val [s1,s2,s3] = naive_subgraphs g2 |> map Strategy_Theory.Graph.minimise ;
+naive_subgraphs g2 |> map Strategy_Theory.Graph.minimise |> length;
 *}
 
 ML{*
