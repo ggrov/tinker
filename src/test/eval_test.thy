@@ -6,7 +6,7 @@ begin
 -- "setup of technique"
 ML{*
 
- val path = "/u1/staff/gg112/";
+ val path = "/Users/ggrov/";
  structure EData = EvalD_DF;
 *}
 
@@ -98,7 +98,7 @@ Strategy_Theory.Rule.mk (graph_pat,graph_pat);
 
 
 ML{*
-val edata1 = RTechnEval.eval_any edata0 |> Seq.list_of |> hd;
+val edata1 = RTechnEval.eval_any edata0 |> Seq.list_of ;
 Strategy_Dot.write_dot_to_file (path ^ "tactest.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise);
 *}
 

@@ -10,14 +10,14 @@ Go to
 
  http://www.cl.cam.ac.uk/research/hvg/isabelle/download.html
 
-and install Isabelle2011-1
+and install Isabelle2012
 
 Downloading and Installing required Libraries 
 -----------------------------------
 
 go to the installation directory of Isabelle. On a Mac this is
 
-  cd /Applications/Isabelle-2011-1.app/Isabelle/
+  cd /Applications/Isabelle-2012.app/Isabelle/
 
 go to the contrib directory:
 
@@ -36,5 +36,4 @@ get the quantomatic library (requires git)
 Downloading and Installing IsaPlanner
 ----------------------------
 
-  svn checkout https://isaplanner.svn.sourceforge.net/svnroot/isaplanner/trunk/IsaPlanner/IsaPlanner-graph-dev
-
+  svn checkout https://isaplanner.svn.sourceforge.net/svnroot/isaplanner/trunk/Stratlang

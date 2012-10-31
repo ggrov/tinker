@@ -42,9 +42,9 @@ struct
     in (pretty_node graph s)::
        (Pretty.str " -> ")::
        (pretty_node graph t)::
-       (Pretty.str " [label=")::
+       (Pretty.str " [label=\"")::
        (pretty_edge graph nm)::
-       (Pretty.str "];\n")::list
+       (Pretty.str "\"];\n")::list
     end
   in E.NSet.fold_rev f (Graph.get_enames graph) []
   end

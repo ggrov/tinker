@@ -1,7 +1,7 @@
 (* simple test of proof representation *)
 theory Wire                                               
 imports        
-  Prf                                                    
+  Prf                                                     
 uses
   "../wire/term_fo_au.ML"  
   "../wire/term_features.ML"               

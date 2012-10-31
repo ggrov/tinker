@@ -7,7 +7,7 @@ uses
 begin
 
 ML{*
- val path = "/u1/staff/gg112/"
+ val path = "/Users/ggrov/"
 *}
 
 lemma lem1: "! x y. P x \<and> P y --> P x \<and> P y"
@@ -37,140 +37,72 @@ setup {*
 Feature_Ctxt.add ("consts",FeatureEnv.fmatch_const);
 *}
 
-ML{*
-
-*}
-
-(*
-setup {*
-Feature_Ctxt.add ("top-level-const",K (K (K true)));
-*}
-setup {*
-Feature_Ctxt.add ("consts",K (K (K true)));
-*} 
-*)
-
-(* add dummy output to end *)
-ML{*
-local open GraphEnv_DB in
-    fun add_out_wire v g =
-     if E.NSet.is_empty (get_out_edges g v)
-       then
-            g |> Graph.add_vertex boundary_vertex
-              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
-              |> (fn (n,g) => Graph.add_edge (Graph.Directed, DB_EdgeData.W Wire.default_wire) v n g)
-              |> (fn (_,g') => g') 
-       else 
-           g
-end;
-
-fun upd_w_outs g = 
-  fold add_out_wire (V.NSet.list_of (GraphEnv.get_rtechns_of_graph g)) g ;
-*}
-
-
-
+(* parse lemma 1 *)
 ML{*
 val g1 =  ParseTree.parse_file (path ^ "/Stratlang/src/parse/examples/attempt_lem1.yxml")
        |> GraphTransfer.graph_of_goal @{context};
-
-Strategy_Dot.write_dot_to_file ( path ^ "/pp_test1.dot") g1;
+Strategy_Dot.write_dot_to_file ( path ^ "/pp_test1.dot") g1;   
 *}
 
-ML{*
-val [t1,t2] = GraphExtract.get_matching_sub (6,0) g1 |> map (fn (r,_,_) => r) |> map (Strategy_Theory.Rule.get_lhs);
-Strategy_Dot.write_dot_to_file ( path ^ "tmp1.dot") t1;
-Strategy_Dot.write_dot_to_file ( path ^ "tmp2.dot") t2; 
-*}
+(* parse lemma 2 *)
 ML{*
 val g2 =  ParseTree.parse_file (path ^ "/Stratlang/src/parse/examples/attempt_lem2.yxml")
        |> GraphTransfer.graph_of_goal @{context};
 
-Strategy_Dot.write_dot_to_file ( path ^ "/pp_test2.dot") g2;
-*} 
-
-ML{* 
- fun compute_next_graph g =
-   let 
-     val g' = Strategy_Theory.Graph.minimise g
-     val rts = GraphEnv.get_rtechns_of_graph g'
-     val outs = GraphEnv.get_outputs_of_vertex g' #> V.NSet.of_list;
-     fun add v = V.NTab.ins (v,outs v)
-  in
-     (rts,V.NSet.fold add rts V.NTab.empty)
-  end
-
- fun is_reachable_dest vtab seen from to =
-   if V.name_eq (from,to) then true
-   else if V.NSet.contains seen from then false
-   else case V.NTab.lookup vtab from
-         of NONE => false
-        | (SOME vs) => V.NSet.exists (fn v => is_reachable_dest vtab (V.NSet.add from seen) v to) vs;
-
- fun is_reachable_both vtab seen from to =
-   if is_reachable_dest vtab seen from to
-    then true
-    else is_reachable_dest vtab seen to from;
-
- fun is_reachable vtab rtechns from =
-   V.NSet.forall (is_reachable_both vtab V.NSet.empty from) (V.NSet.delete from rtechns);
-
- fun all_reachable g = 
-   let 
-     val (rtechns,vtab) = compute_next_graph g
-   in
-     V.NSet.forall (is_reachable vtab rtechns) rtechns
-   end;
+Strategy_Dot.write_dot_to_file ( path ^ "/temp0.dot") g2;
 *}
 
 ML{*
-all_reachable g2;
-
+GraphEnv.v_to_rtechn;
+GraphEnv.get_rtechns_of_graph g2
+|> V.NSet.list_of
+|> map (GraphEnv.v_to_rtechn g2)
 *}
 
-ML{* 
- fun naive_subgraphs g = 
-   let 
-      val ng = Strategy_Theory.Graph.normalise g
-      val rts = GraphEnv.get_rtechns_of_graph ng
-      val size = V.NSet.cardinality rts
-   in
-     rts
-     |> V.NSet.powerset 
-     |> filter (fn vs => V.NSet.cardinality vs > 1 andalso V.NSet.cardinality vs < size)
-     |> map (fn vs => Strategy_Theory.Graph.get_open_subgraph vs ng)
-     |> filter all_reachable
-   end;
 
-naive_subgraphs g2 |> map Strategy_Theory.Graph.minimise |> length;
-*}
-
-ML{*
-Strategy_Dot.write_dot_to_file ( path ^ "/tmp.dot") s1;
-
-*}
 (* eval graph *)
 ML{*
  structure EData = EvalD_DF;
 val edata0 = RTechnEval.init @{theory} [@{prop "! x. P x --> P x"}] (fn th => (g2,th))
            |> EData.set_tactics (StrName.NTab.of_list [("atac",K (K (atac 1)))]);;
 
-Strategy_Dot.write_dot_to_file ( path ^ "/pp_test2_1.dot") (EData.get_graph edata0 |> Strategy_Theory.Graph.minimise); 
+Strategy_Dot.write_dot_to_file ( path ^ "/temp0.dot") (EData.get_graph edata0 |> Strategy_Theory.Graph.minimise); 
 *}
 
 ML{*
 val edata1 = RTechnEval.eval_any edata0 |> Seq.list_of |> hd;
-Strategy_Dot.write_dot_to_file ( path ^ "/pp_test2_2.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise );
+Strategy_Dot.write_dot_to_file ( path ^ "/temp0.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise );
 *}
 
 ML{*
 val edata2 = RTechnEval.eval_any edata1 |> Seq.list_of |> hd;
-Strategy_Dot.write_dot_to_file ( path ^ "/pp_test2_3.dot") (EData.get_graph edata2 |> Strategy_Theory.Graph.minimise );
+Strategy_Dot.write_dot_to_file ( path ^ "/temp0.dot") (EData.get_graph edata2 |> Strategy_Theory.Graph.minimise );
 *}
 
 ML{*
 val edata3 = RTechnEval.eval_any edata2 |> Seq.list_of |> hd;
-Strategy_Dot.write_dot_to_file ( path ^ "/pp_test2_4.dot") (EData.get_graph edata3 |> Strategy_Theory.Graph.minimise );
+Strategy_Dot.write_dot_to_file ( path ^ "/temp0.dot") (EData.get_graph edata3 |> Strategy_Theory.Graph.minimise );
+*}
+
+(* graph extraction *)
+ML{*
+val [t1,t2] = GraphExtract.get_matching_sub (6,0) g1 |> map (fn (r,_,_) => r) |> map (Strategy_Theory.Rule.get_lhs);
+Strategy_Dot.write_dot_to_file ( path ^ "tmp1.dot") t1;
+Strategy_Dot.write_dot_to_file ( path ^ "tmp2.dot") t2; 
+*}
+ 
+(* eval lemma 2 *)
+ML{*
+ structure EData = EvalD_DF;
+val edata = RTechnEval.init @{theory} [@{prop "! x y. P x \<and> P y --> P x \<and> P y"}] (fn th => (g1,th))
+           |> EData.set_tactics (StrName.NTab.of_list [("atac",K (K (atac 1)))]);;
+
+Strategy_Dot.write_dot_to_file ( path ^ "/temp0.dot") (EData.get_graph edata |> Strategy_Theory.Graph.minimise); 
+*} 
+
+ML{*
+val edata = RTechnEval.eval_any edata |> Seq.list_of |> hd;
+Strategy_Dot.write_dot_to_file ( path ^ "/temp0.dot") (EData.get_graph edata |> Strategy_Theory.Graph.minimise );
 *}
 
 (*
