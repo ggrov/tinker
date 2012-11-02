@@ -1,13 +1,13 @@
 theory pp_interface 
 imports
   "../build/Parse"
-  "../build/Eval"
+  "../build/Eval" 
 uses
-  "../learn/graph_extract.ML"          
+  "../learn/graph_extract.ML"            
 begin
 
 ML{*
- val path = "/Users/ggrov/"
+ val path = "/Users/gudmund/IsaPlanner"
 *}
 
 lemma lem1: "! x y. P x \<and> P y --> P x \<and> P y"
@@ -81,12 +81,23 @@ Strategy_Dot.write_dot_to_file ( path ^ "/temp0.dot") (EData.get_graph edata2 |>
 
 ML{*
 val edata3 = RTechnEval.eval_any edata2 |> Seq.list_of |> hd;
-Strategy_Dot.write_dot_to_file ( path ^ "/temp0.dot") (EData.get_graph edata3 |> Strategy_Theory.Graph.minimise );
+Strategy_Dot.write_dot_to_file ("/Users/gudmund/etemp0.dot") (EData.get_graph edata3 |> Strategy_Theory.Graph.minimise );
 *}
 
 (* graph extraction *)
+
 ML{*
-val [t1,t2] = GraphExtract.get_matching_sub (6,0) g1 |> map (fn (r,_,_) => r) |> map (Strategy_Theory.Rule.get_lhs);
+nth;
+val xs = GraphExtract.get_matching_sub (2,0) g2 |> map (fn (r,_,_) => r) |> map (Strategy_Theory.Rule.get_rhs);
+Strategy_Dot.write_dot_to_file ("/Users/gudmund/etemp0.dot") (nth xs 0);  
+*}
+
+ML{*
+GraphExtract.get_matching_sub (2,0) g1 |> length
+*}
+
+ML{*
+val [t1,t2] = GraphExtract.get_matching_sub (2,0) g1 |> map (fn (r,_,_) => r) |> map (Strategy_Theory.Rule.get_lhs);
 Strategy_Dot.write_dot_to_file ( path ^ "tmp1.dot") t1;
 Strategy_Dot.write_dot_to_file ( path ^ "tmp2.dot") t2; 
 *}
@@ -97,7 +108,7 @@ ML{*
 val edata = RTechnEval.init @{theory} [@{prop "! x y. P x \<and> P y --> P x \<and> P y"}] (fn th => (g1,th))
            |> EData.set_tactics (StrName.NTab.of_list [("atac",K (K (atac 1)))]);;
 
-Strategy_Dot.write_dot_to_file ( path ^ "/temp0.dot") (EData.get_graph edata |> Strategy_Theory.Graph.minimise); 
+Strategy_Dot.write_dot_to_file ("/Users/gudmund/etemp0.dot") (EData.get_graph edata |> Strategy_Theory.Graph.minimise); 
 *} 
 
 ML{*

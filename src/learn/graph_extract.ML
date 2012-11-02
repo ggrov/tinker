@@ -41,6 +41,11 @@ struct
       val ng = Strategy_Theory.Graph.normalise g
       val rts = GraphEnv.get_rtechns_of_graph ng
       val size = V.NSet.cardinality rts
+      fun add_boundary g =
+         V.NSet.fold 
+           Strategy_Theory.Graph.add_to_boundary
+           (GraphEnv.get_halfedges g)
+           g;
    in
      rts
      |> V.NSet.powerset 
@@ -50,6 +55,7 @@ struct
      |> map Strategy_Theory.Graph.minimise
      (* only interested in graphs that are connected *)
      |> filter all_reachable
+     |> map add_boundary
    end;
 
  (* returns the list *)

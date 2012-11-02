@@ -6,7 +6,7 @@
 structure Strategy_Dot =
 struct
   structure Graph = Strategy_Theory.Graph
-  structure DotStyle = Strategy_DotStyle
+  (* structure DotStyle = Strategy_DotStyle *)
  
   fun pretty_node g v =
     case Strategy_OVData.idata_of (Graph.get_vertex_data g v) of

@@ -221,6 +221,10 @@ struct
   fun get_gvars_of_graph g =
     Graph.get_vnames g |> V.NSet.filter (is_gvar g)
 
+  fun get_halfedges g =
+    Graph.get_vnames g |> V.NSet.filter (not o (is_vdata g))
+
+
   (* edges *)
 
   fun edge_dest g e = Graph.get_edge g e |> (snd o snd);

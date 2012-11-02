@@ -4,4 +4,4 @@ structure Strategy_Theory = GraphicalTheory(
   structure EComponentData = Strategy_EdgeComponentData
 );
 
-structure Strategy_Controller = Controller(Strategy_Theory);
+(* structure Strategy_Controller = Controller(Strategy_Theory); *)
