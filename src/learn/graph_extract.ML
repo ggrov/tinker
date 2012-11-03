@@ -36,7 +36,7 @@ struct
      V.NSet.forall (is_reachable vtab rtechns) rtechns
    end;
 
- fun connected_subgraphs min_nodes g = 
+ fun connected_subgraphs (min_nodes,use_min) (max_nodes,use_max) g = 
    let 
       val ng = Strategy_Theory.Graph.normalise g
       val rts = GraphEnv.get_rtechns_of_graph ng
@@ -46,11 +46,17 @@ struct
            Strategy_Theory.Graph.add_to_boundary
            (GraphEnv.get_halfedges g)
            g;
+      fun filter_size vs = 
+         V.NSet.cardinality vs < size
+         andalso
+         (if use_min then V.NSet.cardinality vs >= min_nodes else true)
+         andalso
+         (if use_max then max_nodes >= V.NSet.cardinality vs else true);
    in
      rts
      |> V.NSet.powerset 
      (* not interested in full graph or single nodes *)
-     |> filter (fn vs => V.NSet.cardinality vs >= min_nodes andalso V.NSet.cardinality vs < size)
+     |> filter filter_size
      |> map (fn vs => Strategy_Theory.Graph.get_open_subgraph vs ng)
      |> map Strategy_Theory.Graph.minimise
      (* only interested in graphs that are connected *)
@@ -84,10 +90,16 @@ struct
     |> Strategy_Theory.Rule.mk
     |> disjoint_matches' graph;
 
-  fun get_matching_sub (min_nodes,min_match) g =
-   g |> connected_subgraphs min_nodes
+  (* 
+      args: pairs (int,bool) where in is size and bool highlight if this should be used
+         (min_nodes,use_minm) - minimum number of rtechns
+         (max_match,use_maxm) - maximum number of rtechns
+         (min_match,use_minm) - minimum number of disjoint matches
+  *)
+  fun get_matching_sub (min_nodes,use_minm) (max_match,use_maxm) (min_match,use_minmatch) g =
+   g |> connected_subgraphs (min_nodes,use_minm) (max_match,use_maxm)
      |> map (disjoint_matches g)
-     |> filter (fn (_,_,rs) => length rs >= min_match);
+     |> (fn xs => if use_minmatch then filter (fn (_,_,rs) => length rs >= min_match) xs else xs);
  
 end;
 

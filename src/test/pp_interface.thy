@@ -3,11 +3,11 @@ imports
   "../build/Parse"
   "../build/Eval" 
 uses
-  "../learn/graph_extract.ML"            
+  "../learn/graph_extract.ML"              
 begin
 
 ML{*
- val path = "/Users/gudmund/IsaPlanner"
+ val path = "/Users/ggrov"
 *}
 
 lemma lem1: "! x y. P x \<and> P y --> P x \<and> P y"
@@ -67,7 +67,7 @@ val edata0 = RTechnEval.init @{theory} [@{prop "! x. P x --> P x"}] (fn th => (g
            |> EData.set_tactics (StrName.NTab.of_list [("atac",K (K (atac 1)))]);;
 
 Strategy_Dot.write_dot_to_file ( path ^ "/temp0.dot") (EData.get_graph edata0 |> Strategy_Theory.Graph.minimise); 
-*}
+*} 
 
 ML{*
 val edata1 = RTechnEval.eval_any edata0 |> Seq.list_of |> hd;
@@ -81,20 +81,61 @@ Strategy_Dot.write_dot_to_file ( path ^ "/temp0.dot") (EData.get_graph edata2 |>
 
 ML{*
 val edata3 = RTechnEval.eval_any edata2 |> Seq.list_of |> hd;
-Strategy_Dot.write_dot_to_file ("/Users/gudmund/etemp0.dot") (EData.get_graph edata3 |> Strategy_Theory.Graph.minimise );
+Strategy_Dot.write_dot_to_file ( path ^ "/temp0.dot") (EData.get_graph edata3 |> Strategy_Theory.Graph.minimise );
 *}
 
 (* graph extraction *)
 
 ML{*
 nth;
-val xs = GraphExtract.get_matching_sub (2,0) g2 |> map (fn (r,_,_) => r) |> map (Strategy_Theory.Rule.get_rhs);
-Strategy_Dot.write_dot_to_file ("/Users/gudmund/etemp0.dot") (nth xs 0);  
+val [x1,x2] = GraphExtract.get_matching_sub (2,true) (0,false) (0,false) g2 |> map (fn (r,_,_) => r);
+val xs = GraphExtract.get_matching_sub (2,true) (0,false) (0,false) g1 |> map (fn (r,_,_) => r) |> map (Strategy_Theory.Rule.get_lhs);
+Strategy_Dot.write_dot_to_file ( path ^ "/etemp0.dot") (nth xs 1);  
+*}
+
+(* try to match x2 with g1 *)
+ML{*
+val g1' = Strategy_Theory.Graph.normalise g1;
+val (a,ls) = Strategy_Theory.RulesetRewriter.rule_matches x2 g1';
+Strategy_Dot.write_dot_to_file ( path ^ "/etemp0.dot") (Strategy_Theory.Rule.get_lhs x2);  
+*}
+ML{*
+ls |> Seq.list_of |> length
+*}
+
+(* 
+  fixme: common doesn't work
+*)
+
+(* 5 and 6 should be equal*)
+ML{*
+val g1' = Strategy_Theory.Graph.normalise g1;
+val xs = GraphExtract.get_matching_sub (2,true) (2,true) (0,false) g1' |> map (fn (r,_,_) => r);
+Strategy_Dot.write_dot_to_file ( path ^ "/extract1.dot") (nth xs 5 |> Strategy_Theory.Rule.get_lhs);
 *}
 
 ML{*
-GraphExtract.get_matching_sub (2,0) g1 |> length
+val rule = nth xs 5;
+
 *}
+
+(* first rewrite *)
+ML{*
+val (a,ls) = Strategy_Theory.RulesetRewriter.rule_matches rule g1';
+(* check that they disjoint! *)
+val [m1,m2] = Seq.list_of ls;
+ val g = Strategy_Theory.GraphSubst.do_rewrite m2 (Strategy_Theory.Rule.get_rhs a);
+Strategy_Dot.write_dot_to_file ( path ^ "/newg.dot") (g);
+*}
+(* second rewrite *)
+ML{*
+val g' = Strategy_Theory.Graph.normalise g;
+val (a,ls) = Strategy_Theory.RulesetRewriter.rule_matches rule g';
+val [m1] = Seq.list_of ls;
+val g = Strategy_Theory.GraphSubst.do_rewrite m1 (Strategy_Theory.Rule.get_rhs a);
+Strategy_Dot.write_dot_to_file ( path ^ "/newg.dot") (Strategy_Theory.Graph.minimise g);
+*}
+
 
 ML{*
 val [t1,t2] = GraphExtract.get_matching_sub (2,0) g1 |> map (fn (r,_,_) => r) |> map (Strategy_Theory.Rule.get_lhs);
