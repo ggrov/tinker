@@ -1,13 +1,13 @@
 theory pp_interface 
 imports
   "../build/Parse"
-  "../build/Eval" 
+  "../build/Eval"   
 uses
-  "../learn/graph_extract.ML"              
+  "../learn/graph_extract.ML"                           
 begin
 
 ML{*
- val path = "/Users/ggrov"
+ val path = "/u1/staff/gg112"     
 *}
 
 lemma lem1: "! x y. P x \<and> P y --> P x \<and> P y"
@@ -86,11 +86,102 @@ Strategy_Dot.write_dot_to_file ( path ^ "/temp0.dot") (EData.get_graph edata3 |>
 
 (* graph extraction *)
 
+
 ML{*
-nth;
-val [x1,x2] = GraphExtract.get_matching_sub (2,true) (0,false) (0,false) g2 |> map (fn (r,_,_) => r);
-val xs = GraphExtract.get_matching_sub (2,true) (0,false) (0,false) g1 |> map (fn (r,_,_) => r) |> map (Strategy_Theory.Rule.get_lhs);
+GraphExtract.generalise_best (2,true) (0,false) (2,true) g1;
+*}
+
+ML{*
+
+Int.compare;
+fun opposite_order ((_,_,ms1),(_,_,ms2)) = 
+  case Int.compare (length ms1,length ms2) of
+    LESS => GREATER
+  | GREATER => LESS
+  | x => x;
+
+(sort opposite_order) [("","",[1,2]),("","",[1,2,3])];
+
+sort ;
+val [x1,x2] = GraphExtract.get_matching_sub_rule (2,true) (0,false) (2,true) g1;
+*}
+
+ML{*
+Strategy_Dot.write_dot_to_file ( path ^ "/etemp00.dot") (generalise_max x1 g1 |> snd |> hd)
+
+*}
+(* need to compare the two rules as well *)
+
+
+ML{*
+
+val xs = GraphExtract.get_matching_sub (2,true) (2,false) (1,true) g1;
+
+
+val rule = nth xs 0 |>  (fn (r,_,_) => r) |> (Strategy_Theory.Rule.get_lhs);
+Strategy_Dot.write_dot_to_file ( path ^ "/etemp0.dot") rule
+(*
+ |> map (fn (r,_,_) => r) |> map (Strategy_Theory.Rule.get_lhs);
 Strategy_Dot.write_dot_to_file ( path ^ "/etemp0.dot") (nth xs 1);  
+
+Strategy_Dot.write_dot_to_file ( path ^ "/etemp0.dot") (nth xs 2);  
+*) 
+*}
+
+ML{*
+fun disjoint_matches g m1 m2 = 
+  let 
+    fun has_node g v =  case Strategy_Theory.Graph.lookup_vertex g v of
+                            NONE => false | _ => true;
+    val v1 = m1 
+           |> Strategy_Theory.Match.get_vmap 
+           |> VInjEndo.get_codset
+           |> V.NSet.filter (has_node g) 
+           |> V.NSet.filter (GraphEnv.is_rtechn g)
+    val v2 = m2 
+           |> Strategy_Theory.Match.get_vmap 
+           |> VInjEndo.get_codset
+           |> V.NSet.filter (has_node g) 
+           |> V.NSet.filter (GraphEnv.is_rtechn g)
+  in
+     V.NSet.is_empty (V.NSet.intersect v1 v2)
+  end;
+*}
+
+ML{*
+val (r,ms) = Strategy_Theory.RulesetRewriter.rule_matches rule g1;
+val [m1,m2] = Seq.list_of ms;
+*}
+
+ML{*
+
+*}
+
+ML{*
+m1 |> Strategy_Theory.Match.get_vmap 
+   |> VInjEndo.get_codset 
+   |> V.NSet.filter (has_node g1)  
+   |> V.NSet.filter (GraphEnv.is_rtechn g1)
+*}
+
+ML{*
+disjoint_matches g1 m1 m2;
+*}
+
+ML{*
+fun not_empty [] = false
+ |  not_empty _ = true;
+
+val ms = GraphExtract.get_matching_sub (2,true) (0,false) (0,false) g1  |> filter (fn (r,_,ms) => not_empty ms) 
+*}
+
+ML{*
+
+
+type t = VInjEndo.T;
+VInjEndo.get_codset;
+(* returns targets of match in source graph ~ should be disjoint! *)
+Strategy_Theory.Match.get_vmap test |> VInjEndo.get_codset;
 *}
 
 (* try to match x2 with g1 *)
