@@ -138,23 +138,10 @@ struct
   (* projects rule only *)
   val get_matching_sub_rule =  (map (fn (r,_,_) => r)) oooo get_matching_sub 
 
-
-  (* functions to rewrite and return the hierarchical rule *)
-  val rewrite = EvalAtomic.rewrite;
-
-  fun REPEAT_MAX' rule gs = 
-    let
-      val gs' = maps (rewrite rule) gs
-    in
-     case gs' of
-       [] => gs
-      | gs' => REPEAT_MAX' rule gs'
-    end;
-
   (* FIXME: need to find a way to give the hierarchical box a new name! *)
   fun generalise_max g rule = 
     let 
-     val newgs = REPEAT_MAX' rule [g]
+     val newgs = GraphRewrite.REPEAT_MAX rule g
      val newrule = Strategy_Theory.Rule.mk (Strategy_Theory.Rule.get_rhs rule,Strategy_Theory.Rule.get_lhs rule)
     in 
      (newrule,newgs)

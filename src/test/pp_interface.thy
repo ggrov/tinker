@@ -3,6 +3,7 @@ imports
   "../build/Parse"
   "../build/Eval"   
 uses
+  "../learn/graph_rewrite.ML" 
   "../learn/graph_extract.ML"                           
 begin
 
