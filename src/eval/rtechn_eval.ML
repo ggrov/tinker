@@ -49,7 +49,10 @@ struct
      in
        if (RTechn.is_atomic rt) then eval_atomic edata v
        else if (RTechn.is_merge rt) then eval_merge edata v
-       else if (RTechn.is_hgraph rt) then eval_hgraph edata v
+       else if (RTechn.is_hgraph rt) then
+           (* need an evaluation stack!
+              unfold hgraph |> eval only hgraph |> fold in hgraph *)
+           eval_hgraph edata v
        else if (RTechn.is_or rt) then eval_or edata v
        else if (RTechn.is_try rt) then eval_try edata v
        else raise evaluate_exp (SOME v, "Unknown reasoning technique type")
@@ -59,6 +62,24 @@ struct
      GraphEnv.get_rtechns_of_graph (EData.get_graph edata)
      |> V.NSet.seq_of
      |> Seq.maps (one_step edata);
+
+  
+  (* evaluation ignoring evaluation strategy *)
+
+  fun eval_one edata =
+    let 
+       fun get_first [] = NONE
+        |  get_first (x::xs) = if Option.isSome o Seq.pull x then SOME x else get_first xs;
+    in
+      GraphEnv.get_rtechns_of_graph (EData.get_graph edata)
+      |> V.NSet.list_of
+      |> map (one_step edata)
+      |> get_first
+    end;   
+
+ (* to do:
+     - eval until seq.empty/terminated
+ *)
 
 
 

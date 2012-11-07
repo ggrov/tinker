@@ -8,7 +8,7 @@ uses
 begin
 
 ML{*
- val path = "/u1/staff/gg112"     
+ val path = "/Users/ggrov"     
 *}
 
 lemma lem1: "! x y. P x \<and> P y --> P x \<and> P y"
@@ -108,7 +108,7 @@ val [x1,x2] = GraphExtract.get_matching_sub_rule (2,true) (0,false) (2,true) g1;
 *}
 
 ML{*
-Strategy_Dot.write_dot_to_file ( path ^ "/etemp00.dot") (generalise_max x1 g1 |> snd |> hd)
+Strategy_Dot.write_dot_to_file ( path ^ "/etemp00.dot") (GraphExtract.generalise_max x1 g1 |> snd |> hd)
 
 *}
 (* need to compare the two rules as well *)
