@@ -14,24 +14,32 @@ struct
 
   exception evaluate_exp of V.name option * string;
 
-  fun init (th:theory) trms graphf = 
+  fun init_prf (th:theory) (pnds,prf) graph = 
     let
-       val (g0,th') = graphf th
-       val wset = GraphEnv.get_input_wires g0;
-       val (pnds,prf) = PPlan.init_gls (Proof_Context.init_global th') trms 
+       val wset = GraphEnv.get_input_wires graph;
        val ptab = 
          fold
            (fn pnode => StrName.NTab.ins (PNode.get_name pnode,pnode))
             pnds
            (StrName.NTab.empty);
-       val edata0 = EData.init_of prf g0 ptab [] th';
+       val edata0 = EData.init_of prf graph ptab [] th;
        val ggraphs = pnds 
                    |> map (EvalOutput.lift_pnode_by_wires (EData.get_fmatch edata0) wset)
                    |> map (fn (w,g) => GraphEnv.lift_gnode g w)
-       val g1 = fold GraphComb.then_g ggraphs g0;
+       val g1 = fold GraphComb.then_g ggraphs graph;
     in (* fixme: find all active techniques *)
        edata0 
        |> EData.set_graph g1
+    end;
+
+  fun init_g (th:theory) trms = 
+    init_prf (th:theory) (PPlan.init_gls (Proof_Context.init_global th) trms);
+
+  fun init_f (th:theory) trms graphf = 
+    let
+       val (g0,th') = graphf th
+    in
+      init_g th' trms g0
     end;
   
   fun eval_merge _ v = raise evaluate_exp (SOME v, "Evaluation of merge not yet supported");
@@ -69,14 +77,18 @@ struct
   fun eval_one edata =
     let 
        fun get_first [] = NONE
-        |  get_first (x::xs) = if Option.isSome o Seq.pull x then SOME x else get_first xs;
+        |  get_first (x::xs) = if (Option.isSome o Seq.pull) x then SOME x else get_first xs;
     in
       GraphEnv.get_rtechns_of_graph (EData.get_graph edata)
       |> V.NSet.list_of
       |> map (one_step edata)
       |> get_first
     end;   
-
+  
+  fun eval_full edata = 
+    case eval_one edata of
+      NONE => raise evaluate_exp (NONE,"failed to eval")
+     | SOME v => v
  (* to do:
      - eval until seq.empty/terminated
  *)
