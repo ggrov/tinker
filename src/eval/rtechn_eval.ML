@@ -84,17 +84,29 @@ struct
       |> map (one_step edata)
       |> get_first
     end;   
-  
+
+  fun is_terminated active_rtechns graph =
+    let 
+      val g' = Strategy_Theory.Graph.minimise graph
+      val iedge = Strategy_Theory.Graph.get_in_edges g' #> E.NSet.list_of;
+      val inode = (map (Strategy_Theory.Graph.get_edge_source g')) o iedge;
+      val inodes = maps inode active_rtechns
+      val check = not o (GraphEnv.is_gnode g');
+    in
+     forall check inodes
+    end;
+
+  fun graph_terminated graph = 
+     is_terminated (V.NSet.list_of (GraphEnv.get_rtechns_of_graph graph)) graph;
+
+  val edata_terminated = graph_terminated o EData.get_graph;
+
+  (* maybe give some useful error messages? *)
+  (* could also empose a search strategy... *)
   fun eval_full edata = 
     case eval_one edata of
-      NONE => raise evaluate_exp (NONE,"failed to eval")
-     | SOME v => v
- (* to do:
-     - eval until seq.empty/terminated
- *)
-
-
-
+      NONE => if edata_terminated edata then (Seq.single edata) else Seq.empty
+    | SOME edatas => Seq.maps eval_full edatas;  
 
 end (* struct *)
 
