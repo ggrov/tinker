@@ -132,7 +132,7 @@ struct
 
   fun init_of prf graph gs active th =
     EData {pplan = prf, graph = graph, goals = gs, fmatch = FeatureData.get th,
-           ruleset = Strategy_RS.Ctxt.get th, tactics = StrName.NTab.empty,
+           ruleset = Strategy_RS.Ctxt.get th, tactics = TacticTab.get_all_tactics th,
            active = EV.push_list active EV.empty};
            
   fun ins_tab pnode = StrName.NTab.ins (PNode.get_name pnode,pnode);

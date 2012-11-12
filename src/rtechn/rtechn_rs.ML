@@ -1,3 +1,29 @@
+structure TacticTab =
+struct
+
+ structure Data = Theory_Data(struct 
+    type T = (Thm.thm list -> Proof.context -> tactic) StrName.NTab.T
+    val empty =  StrName.NTab.empty;
+    val extend = I;
+    fun merge (m1,_) = m1; (* or fail? *)
+  end);
+
+ exception undefined_strat_exp of string;
+
+ val get_all_tactics = Data.get;
+
+ fun get_tactic th name =
+    case StrName.NTab.lookup (Data.get th) name of 
+      NONE => raise undefined_strat_exp name
+    | SOME v => v;
+
+ val add_tactic = Data.map o StrName.NTab.ins;
+ val add_tactic_list =  Data.map o (fold StrName.NTab.ins);
+
+end; (* structure *)
+
+
+
 (* RULESETS *)
 
 (* invariants

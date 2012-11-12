@@ -4,6 +4,12 @@ imports
  "../build/Prf"                                                                  
 begin
 
+ML{*
+ val (g,pp) = PPlan.init @{context} @{prop "A ==> B ==> C ==> D"};
+ PPExpThm.export pp g
+
+*}
+
 (*
 structure TrmCtxtData = TrmCtxtDataFUN(IsabelleTrmWrap);
 structure TrmCtxt = TrmCtxtFUN(TrmCtxtData);
@@ -70,7 +76,7 @@ ML{*
  val (gn,prf) = PPlan.init @{context} @{term "(\<And> x. P x) ==> (\<And> x. P x)"};
  (* val ([g1],prf) = PPlan.apply_fixes prf gn; *)
  val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (gn,prf) |> Seq.list_of |> hd;
- PPlan.export_name prf (PNode.get_name gn);
+ PPExpThm.export_name prf (PNode.get_name gn);
 *}
 
 (* FIXME: init *)
@@ -80,7 +86,7 @@ ML{*
  val (gn,prf) = PPlan.init @{context} @{term "(\<And> x. P x ==> P x)"};
  (* val ([g1],prf) = PPlan.apply_fixes prf gn; *)
  val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (gn,prf) |> Seq.list_of |> hd;
- PPlan.export_name prf (PNode.get_name gn);
+ PPExpThm.export_name prf (PNode.get_name gn);
 *}
 
 (* this is fine *)
@@ -88,7 +94,7 @@ ML{*
  val (gn,prf) = PPlan.init @{context} @{term "(\<And> x. P x) ==> \<exists> x. P x"};
  val ([g1],prf) = PPlan.apply_tac (K (rtac @{thm exI} 1)) (gn,prf) |> Seq.list_of |> hd;
  val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
- PPlan.export_name prf (PNode.get_name gn);
+ PPExpThm.export_name prf (PNode.get_name gn);
 *}
 
 ML{*
@@ -101,10 +107,10 @@ PPlan.apply_tac;
 (* problem is when x is bound in the proof.. *)
 ML{*
  val (gn,prf) = PPlan.init @{context} @{term "(\<forall> x. P x) ==> \<forall> x. P x"};
- PPlan.export_name prf (PNode.get_name gn);
+PPExpThm.export_name prf (PNode.get_name gn);
  val ([g1],prf) = PPlan.apply_tac (K (rtac @{thm allI} 1)) (gn,prf) |> Seq.list_of |> hd;
  val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
- val (PPlan.EClosed thm) = PPlan.export_name prf (PNode.get_name gn); 
+ val (PPExpThm.EClosed thm) = PPExpThm.export_name prf (PNode.get_name gn); 
  (Goal.conclude thm)
 *}
 
@@ -123,7 +129,7 @@ ML{*
 (* also fails when no assumptions... *)
 ML{*
  val (gn,prf) = PPlan.init @{context} @{prop "(\<forall> x. (x::nat) \<ge> 0)"};
- PPlan.export_name prf (PNode.get_name gn);
+ PPExpThm.export_name prf (PNode.get_name gn);
  val ([g1],prf) = PPlan.apply_tac (K (rtac @{thm allI} 1)) (gn,prf) |> Seq.list_of |> hd;
  val ([],prf) = PPlan.apply_all_asm_tac (auto_tac) (g1,prf) |> Seq.list_of |> hd;
  (* PPlan.export_name prf (PNode.get_name gn); *)
