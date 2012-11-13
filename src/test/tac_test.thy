@@ -30,10 +30,14 @@ ML{*
             |> RTechn.set_name "rule impI"
             |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.single "impI"))
             |> RTechn.set_io (W.NSet.single Wire.default_wire);
-val cgf = LIFT (GraphEnv.graph_of_rtechn rtechn);
-fun add_impI_graph th = let val (g,th') = cgf th in th' |> EvalTac.add_graph ("impI",g) end;
+val igf = LIFT (GraphEnv.graph_of_rtechn rtechn);
+fun add_impI_graph th = let val (g,th') = igf th in th' |> EvalTac.add_graph ("impI",g) end;
 *}
 setup {* add_impI_graph *}
+
+setup {*
+ (fn th => let val (g,th') = (igf THENG cgf) th in th' |> EvalTac.add_graph ("cimp",g) end)
+*}
 
 (* ignore *)
 declare [[strategy_path = "/ggrov/test"]]
@@ -72,6 +76,11 @@ val ed =     edata0
 *}
 
 (* is the problem init? *)
+
+lemma "B \<longrightarrow> A \<and> C"
+ using [[strategy = "cimp"]]
+   apply proof_strategy   
+   oops
 
 (* should this apply to only first subgoal or all? *)
 lemma "A \<Longrightarrow> (X \<longrightarrow> B \<longrightarrow> C)"

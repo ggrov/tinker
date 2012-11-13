@@ -15,6 +15,7 @@ uses
 begin
 
  -- "method to apply proof strategy"
+ (* to do: add support for arguments, e.g. proof_strategy <strategy name> *)
  method_setup proof_strategy = 
   {* Scan.lift (Scan.succeed (fn ctxt => SIMPLE_METHOD (EvalTac.strategy_then_assm_tac ctxt))) *} 
   "application of active proof strategy"
