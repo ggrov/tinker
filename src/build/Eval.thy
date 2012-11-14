@@ -23,7 +23,7 @@ begin
  -- "adds assume tactic (should reallly be done when creating method)"
  setup {* TacticTab.add_tactic ("atac",K (K (atac 1))) *}
 
- -- "set active path"
+ -- "set active strategy"
  declare [[strategy = "assume"]]
 
  -- "idea is to set path to file to parse proofs from generalisations from"

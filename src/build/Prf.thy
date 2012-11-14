@@ -7,7 +7,7 @@ uses
   "../proof/pnode.ML"                                                                                                                                                           
   "../proof/pplan.ML" 
   "../proof/export_thm.ML"                          
-  "../proof/export_isar.ML"        
+  "../proof/export_isar.ML"          
 begin
 
 end

@@ -7,9 +7,10 @@
 structure PPlan = 
 struct
   (* fixme: maybe best to change to tree rep where nesting is a separate tree? *)
-  datatype PTree = PLeaf of unit
-                 | PHierarchy of PTree * (PTree list) (* body and cont - should maybe be a forrest? *)
+  (* datatype PTree = PLeaf 
+                 | PHierarchy of PTree * (PTree list)
                  | PBranch of PTree list
+  *)
 
   datatype T = Prf of {
     ptab : PNode.T StrName.NTab.T,
@@ -36,6 +37,13 @@ struct
   fun update_root_nms f (Prf prf) = 
        Prf {ptab = #ptab prf, open_nms = #open_nms prf, 
             all_nms = #all_nms prf, root_nms = f (#root_nms prf)};
+
+  fun get_child_names prf node = 
+   prf
+   |> get_ptab
+   |> StrName.NTab.get_nameset
+   |> StrName.NSet.list_of
+   |> filter (fn name => PNode.get_name (StrName.NTab.get (get_ptab prf) name) = PNode.get_name node);
 
   (* fixme: needs more checks? *)
   val set_ptab = update_ptab o K;  

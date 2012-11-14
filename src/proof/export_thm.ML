@@ -2,7 +2,6 @@
      - information about tactics
      - hierarchies 
      - meta-variables
-
 *)
 structure PPExpThm = 
 struct

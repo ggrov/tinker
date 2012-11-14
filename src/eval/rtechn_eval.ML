@@ -42,8 +42,27 @@ struct
       init_g th' trms g0
     end;
   
+  (* termination condition for evaluation *)
+
+  fun is_terminated active_rtechns graph =
+    let 
+      val g' = Strategy_Theory.Graph.minimise graph
+      val iedge = Strategy_Theory.Graph.get_in_edges g' #> E.NSet.list_of;
+      val inode = (map (Strategy_Theory.Graph.get_edge_source g')) o iedge;
+      val inodes = maps inode active_rtechns
+      val check = not o (GraphEnv.is_gnode g');
+    in
+     forall check inodes
+    end;
+
+  fun graph_terminated graph = 
+     is_terminated (V.NSet.list_of (GraphEnv.get_rtechns_of_graph graph)) graph;
+
+  val edata_terminated = graph_terminated o EData.get_graph;
+  
+  (* evaluation *)
+
   fun eval_merge _ v = raise evaluate_exp (SOME v, "Evaluation of merge not yet supported");
-  val eval_atomic = EvalAtomic.eval_atomic;
   fun eval_hgraph _ v = raise evaluate_exp (SOME v, "Evaluation of hierarchies not yet supported");
   fun eval_or _ v = raise evaluate_exp (SOME v, "Evaluation of OR not yet supported");
   fun eval_try _ v = raise evaluate_exp (SOME v, "Evaluation of TRY_ORELSE not yet supported");
@@ -55,7 +74,7 @@ struct
     else 
       let val rt = (GraphEnv.v_to_rtechn (EData.get_graph edata) v)
      in
-       if (RTechn.is_atomic rt) then eval_atomic edata v
+       if (RTechn.is_atomic rt) then EvalAtomic.eval_atomic edata v
        else if (RTechn.is_merge rt) then eval_merge edata v
        else if (RTechn.is_hgraph rt) then
            (* need an evaluation stack!
@@ -74,32 +93,18 @@ struct
   
   (* evaluation ignoring evaluation strategy *)
 
-  fun eval_one edata =
+  fun eval_one_restricted vs edata =
     let 
        fun get_first [] = NONE
         |  get_first (x::xs) = if (Option.isSome o Seq.pull) x then SOME x else get_first xs;
     in
-      GraphEnv.get_rtechns_of_graph (EData.get_graph edata)
-      |> V.NSet.list_of
-      |> map (one_step edata)
-      |> get_first
-    end;   
+      vs |> V.NSet.list_of
+         |> map (one_step edata)
+         |> get_first
+    end;  
 
-  fun is_terminated active_rtechns graph =
-    let 
-      val g' = Strategy_Theory.Graph.minimise graph
-      val iedge = Strategy_Theory.Graph.get_in_edges g' #> E.NSet.list_of;
-      val inode = (map (Strategy_Theory.Graph.get_edge_source g')) o iedge;
-      val inodes = maps inode active_rtechns
-      val check = not o (GraphEnv.is_gnode g');
-    in
-     forall check inodes
-    end;
-
-  fun graph_terminated graph = 
-     is_terminated (V.NSet.list_of (GraphEnv.get_rtechns_of_graph graph)) graph;
-
-  val edata_terminated = graph_terminated o EData.get_graph;
+  fun eval_one edata =
+    eval_one_restricted (GraphEnv.get_rtechns_of_graph (EData.get_graph edata)) edata;
 
   (* maybe give some useful error messages? *)
   (* could also empose a search strategy... *)

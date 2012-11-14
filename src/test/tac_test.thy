@@ -44,40 +44,8 @@ declare [[strategy_path = "/ggrov/test"]]
 
 declare [[strategy = "assume"]]
 
-ML{*
-    val ctxt = @{context};
-    val thm = Goal.init @{cterm "A ==> A"};
-     val gs_prf = mk_goal ctxt thm
-     val th = Proof_Context.theory_of ctxt
-     val graph = get_graph th (Config.get ctxt strategy)
-     val edata0 =  RTechnEval.init_prf th gs_prf graph
-*}
- 
-ML{*
-  
-  val prf = RTechnEval.EData.get_pplan edata0;
-  val (SOME g) = StrName.NTab.lookup (RTechnEval.EData.get_goals edata0) "h";
-  val prf1 = PPlanEnv.apply_tactic_all_asm (g,prf) (K (atac 1)) |> Seq.list_of |> hd |> snd;
-  val (SOME g2) = PPlan.lookup_node prf1 "h";
-  val th1 = PPExpThm.export_name prf1 "h" |> PPExpThm.prj_thm |> Goal.conclude;
-  val th2 = PPExpThm.export_name prf1 "g" |> PPExpThm.prj_thm |> Goal.conclude;
-  rtac th1 1 th2 |> Seq.list_of;
-  th1 RS th2;
-*}
-
-(* doesn't work! -> is it the export function? *)
-ML{*
-RTechnEval.EData.get_pplan edata0
-|> (fn t => PPExpThm.export_name t "g" |> PPExpThm.prj_thm);
-
-val ed =     edata0
-     |> RTechnEval.eval_full
-     |> Seq.list_of |> hd |> RTechnEval.EData.get_pplan
-*}
-
-(* is the problem init? *)
-
-lemma "B \<longrightarrow> A \<and> C"
+(* doing too much! need to be more careful on which assumptions are discharged! *)
+lemma "B \<longrightarrow> A \<and> B"
  using [[strategy = "cimp"]]
    apply proof_strategy   
    oops
@@ -89,22 +57,21 @@ lemma "A \<Longrightarrow> (X \<longrightarrow> B \<longrightarrow> C)"
    apply proof_strategy   
    oops
 
-(* alternative 2 *)
-(* take first construct and try to prove that => then RS*)
+ML{*
+ Parse.string
+ (* want to write 
+   apply (proof_strategy rippling)
+  *)
+*}
 
-
-(* FIXME: this isn't correct! - extra assumptions which are uncorrectly treated as assumption!
-   - maybe the same for assume tac? *)
-
-lemma dummy: "X \<Longrightarrow> Y \<Longrightarrow> X \<and> Y " sorry
-
+(* currently doing to much
+  should *)
 lemma "X ==> Y --> X \<and> Y"
- (* give strategy name too? *)
  apply (rule impI)
  using [[strategy = "conjI"]]
    apply proof_strategy 
    done  
- oops
+
 
 ML{*
 val ctxt = @{context}; 

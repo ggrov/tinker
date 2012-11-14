@@ -30,6 +30,7 @@ get the isaplib library (requires git)
 get the quantomatic library (requires git)
 
   git clone git://github.com/Quantomatic/quantomatic.git
+  cd quantomatic
   git checkout integration
   git pull
 
