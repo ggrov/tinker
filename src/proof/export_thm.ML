@@ -57,6 +57,8 @@ struct
                  |> rev
      in
         gnode |> PNode.get_goal 
+              (* FIXME: need to get rid of each assumption of a given goal
+                     e.g. subgoal (A ==> B ==> sg) will spawn (A ==> B ==> A) ==> (A ==> B ==> B) ==> new subgoals *)
               |> fold (fn (n,sub) => fn cg => (Goal.conclude sub) RSN (n,cg)) thms
               |> export_asm_var (PNode.get_ctxt gnode) (PNode.parent_ctxt gnode)
               |> econs
