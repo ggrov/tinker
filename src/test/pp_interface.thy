@@ -1,14 +1,13 @@
-theory pp_interface 
+theory pp_interface  
 imports
   "../build/Parse"
-  "../build/Eval"   
 uses
   "../learn/graph_rewrite.ML" 
   "../learn/graph_extract.ML"                           
 begin
 
 ML{*
- val path = "/Users/ggrov"     
+ val path = "/u1/staff/gg112/"     
 *}
 
 lemma lem1: "! x y. P x \<and> P y --> P x \<and> P y"
@@ -28,21 +27,86 @@ lemma lem2: "! x. P x --> P x"
  apply assumption
  done
 
-(* fixme change to Feature_Theory *)
-(* fixme: add dynamically within feature lib *)
-
-setup {*
-Feature_Ctxt.add ("top-level-const",FeatureEnv.fmatch_top_level);
-*}
-setup {*
-Feature_Ctxt.add ("consts",FeatureEnv.fmatch_const);
-*}
-
 (* parse lemma 1 *)
 ML{*
 val g1 =  ParseTree.parse_file (path ^ "/Stratlang/src/parse/examples/attempt_lem1.yxml")
        |> GraphTransfer.graph_of_goal @{context};
-Strategy_Dot.write_dot_to_file ( path ^ "/pp_test1.dot") g1;   
+Strategy_Dot.write_dot_to_file true ( path ^ "/pp_test1.dot") g1;   
+*}
+
+ML{*
+ structure EData = EvalD_DF;
+val edata0 = RTechnEval.init_f @{theory} [@{prop "! x y. P x \<and> P y --> P x \<and> P y"}] (fn th => (g1,th))
+           |> EData.set_tactics (StrName.NTab.of_list [("atac",K (K (atac 1)))]);;
+
+Strategy_Dot.write_dot_to_file true ( path ^ "/mmtemp0.dot") (EData.get_graph edata0 |> Strategy_Theory.Graph.minimise); 
+*} 
+
+(* Debugging: execute internally only, i.e. rewrite graph! *)
+ML{*
+val [c1,c2] =
+maps ((EvalAtomic.debug_eval_tactic edata0)) (GraphEnv.get_rtechns_of_graph (EData.get_graph edata0) |> V.NSet.list_of)
+;
+val c1' = snd c1;
+val c2' = snd c2;
+val (gnode,_,rt) = fst c1;
+val wset = RTechn.get_outputs rt;
+val (SOME outs) = RTechn.get_outputs rt |> W.NSet.tryget_singleton;
+val ([pn],pr) = c1';
+val ([pn],pr) = c2';
+val (pnds,prf) = c2';
+*}
+
+ML{*
+EvalAtomic.upd_rule wset edata0 gnode (pnds,prf)
+*}
+
+ML{*
+EvalOutput.upd_by_wire (EData.get_fmatch edata0) gnode pn outs;
+*}
+
+ML{*
+val (SOME (x,xs)) = Seq.maps (EvalAtomic.eval_atomic edata0) (GraphEnv.get_rtechns_of_graph (EData.get_graph edata0) |> V.NSet.seq_of)
+|> Seq.pull;
+*}
+
+ML{*
+Seq.pull xs
+*}
+
+
+(* end: debugging *)
+
+(* Note: fails for top-level symbol!! *)
+ML{*
+val edata1 = RTechnEval.eval_any edata0 |> Seq.list_of |> hd;
+Strategy_Dot.write_dot_to_file true ( path ^ "/mtemp0.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise );
+*}
+
+(* Note: fails for symbols (why?) 
+    -> is this related to assumption?? *)
+ML{*
+val edata1 = RTechnEval.eval_any edata1 |> Seq.list_of |> hd;
+Strategy_Dot.write_dot_to_file true ( path ^ "/mtemp0.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise );
+*}
+ML{*
+val edata1 = RTechnEval.eval_any edata1 |> Seq.list_of |> hd;
+Strategy_Dot.write_dot_to_file false ( path ^ "/mtemp0.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise );
+*}
+ML{*
+val edata1 = RTechnEval.eval_any edata1 |> Seq.list_of |> hd;
+Strategy_Dot.write_dot_to_file true ( path ^ "/mtemp0.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise );
+*}
+(* raises empty: why! -> should just fail because two output fits *)
+ML{*
+RTechnEval.EData.get_goal edata1 "j"
+|> PNode.get_goal
+|> rtac @{thm "HOL.conjI"} 1 
+|> Seq.list_of
+*}
+ML{*
+val edata1 = RTechnEval.eval_any edata1 |> Seq.list_of |> hd;
+Strategy_Dot.write_dot_to_file ( path ^ "/mtemp0.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise );
 *}
 
 (* parse lemma 2 *)

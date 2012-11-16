@@ -1,5 +1,5 @@
 (* simple test of proof representation *)
-theory Eval                                                       
+theory Eval                                                                     
 imports         
   Stratlang                                                         
 uses              
@@ -11,7 +11,7 @@ uses
   "../eval/eval_output.ML" 
   "../eval/eval_atomic.ML"  
   "../eval/rtechn_eval.ML"                          
-  "../eval/eval_tac.ML" 
+  "../eval/eval_tac.ML"   
 begin
 
  -- "method to apply proof strategy"

@@ -8,7 +8,10 @@ structure FeatureData = Theory_Data(
 structure Feature_Ctxt =
 struct
   fun ins_tab (n,f) = StrName.NTab.ins (n,f)
+  fun try_ins_tab (n,f) tab = case StrName.NTab.try_ins (n,f) tab of
+       NONE => tab | SOME tab' => tab';
   val get = StrName.NTab.lookup o FeatureData.get;
+  fun try_add nf = FeatureData.map (ins_tab nf)
   fun add nf = FeatureData.map (ins_tab nf)
   fun add_list f = FeatureData.map (fold ins_tab f);
   fun del fname = FeatureData.map (StrName.NTab.delete fname);
@@ -66,12 +69,19 @@ struct
        else raise feature_typ_exp (f,"wrong feature type with shape");
 
   fun get_features t =
-    (mk_top_level t) 
-       @ (mk_const_goal_feature t) 
+   
+     (mk_top_level t) 
+      @  (mk_const_goal_feature t)
        (* dangling bounds existing.. needs to be turned into variables... *)
        (* @ (simple_shape t) *)
- 
     |> F.NSet.of_list;
+
+ (* add relevant features to context *)
+ val setup =
+   Feature_Ctxt.try_add ("top-level-const",fmatch_top_level)
+   #> Feature_Ctxt.try_add ("consts",fmatch_const)
+   #> Feature_Ctxt.try_add ("shape",fmatch_simple_shape);
+
 
     
  end (* local *)

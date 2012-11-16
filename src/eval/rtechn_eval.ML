@@ -62,6 +62,26 @@ struct
   
   (* evaluation *)
 
+  (* needs to be with the  *)
+  datatype nested_data = NData of
+  {
+    rule = Strategy_Theory.Rule.T,
+    (* maybe this is not required if we carry with us the active set *)
+    rename = V.NSet.renaming, 
+    active = V.NSet.T
+  };
+
+  fun eval_rule edata v rule = rule;
+  (*
+     let 
+         val g' = unfold graph rule
+         -- not sure if I need renaming here!
+         val active = V(g') - V (g)
+         
+  
+  *)
+
+  (* should be trivial *)
   fun eval_merge _ v = raise evaluate_exp (SOME v, "Evaluation of merge not yet supported");
   fun eval_hgraph _ v = raise evaluate_exp (SOME v, "Evaluation of hierarchies not yet supported");
   fun eval_or _ v = raise evaluate_exp (SOME v, "Evaluation of OR not yet supported");

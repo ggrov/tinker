@@ -1,6 +1,6 @@
 theory tac_test 
 imports
-  "../build/Eval"            
+  "../build/Eval"             
 begin
 
 (* add simple rtechn *)
@@ -45,16 +45,16 @@ declare [[strategy_path = "/ggrov/test"]]
 declare [[strategy = "assume"]]
 
 (* doing too much! need to be more careful on which assumptions are discharged! *)
-lemma "B \<longrightarrow> A \<and> B"
+lemma "C \<longrightarrow> A \<and> B"
  using [[strategy = "cimp"]]
    apply proof_strategy   
    oops
 
 (* should this apply to only first subgoal or all? *)
 lemma "A \<Longrightarrow> (X \<longrightarrow> B \<longrightarrow> C)"
- apply (rule impI)
  using [[strategy = "impI"]]
-   apply proof_strategy   
+   apply proof_strategy+
+   apply proof_strategy?   
    oops
 
 ML{*

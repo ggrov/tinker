@@ -71,7 +71,7 @@ struct
          [Pretty.str "|",Pretty.str fd,Pretty.str ":",
           Pretty.block (Pretty.commas (map (Syntax.pretty_term @{context}) trms)),
           Pretty.str "|"]
-   |  pretty (Strings (ss,fd)) = Pretty.block 
+   |  pretty (Strings (ss,fd)) = Pretty.block
         [Pretty.str "|",Pretty.str fd,Pretty.str ":",StrName.NSet.pretty ss,Pretty.str "|"]
    |  pretty (StrCount (_,fd)) = Pretty.block [Pretty.str "StrCount: ", Pretty.str fd]
    |  pretty (Count (_,fd)) = Pretty.block [Pretty.str "Count: ", Pretty.str fd]
