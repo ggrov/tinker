@@ -62,15 +62,6 @@ struct
   
   (* evaluation *)
 
-  (* needs to be with the  *)
-  datatype nested_data = NData of
-  {
-    rule = Strategy_Theory.Rule.T,
-    (* maybe this is not required if we carry with us the active set *)
-    rename = V.NSet.renaming, 
-    active = V.NSet.T
-  };
-
   fun eval_rule edata v rule = rule;
   (*
      let 
