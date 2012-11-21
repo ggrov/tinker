@@ -13,6 +13,7 @@ struct
   structure EData = EvalD_DF;
 
   exception evaluate_exp of V.name option * string;
+  exception graph_exp of string * Strategy_Theory.Graph.T
 
   fun init_prf (th:theory) (pnds,prf) graph = 
     let
@@ -62,16 +63,6 @@ struct
   
   (* evaluation *)
 
-  fun eval_rule edata v rule = rule;
-  (*
-     let 
-         val g' = unfold graph rule
-         -- not sure if I need renaming here!
-         val active = V(g') - V (g)
-         
-  
-  *)
-
   (* should be trivial *)
   fun eval_merge _ v = raise evaluate_exp (SOME v, "Evaluation of merge not yet supported");
   fun eval_hgraph _ v = raise evaluate_exp (SOME v, "Evaluation of hierarchies not yet supported");
@@ -94,8 +85,74 @@ struct
        else if (RTechn.is_or rt) then eval_or edata v
        else if (RTechn.is_try rt) then eval_try edata v
        else raise evaluate_exp (SOME v, "Unknown reasoning technique type")
-     end;
+     end
 
+  (* fixme: not very good for debugging! 
+       make a separate file and split up functions *)
+  and eval_nested_rule edata v rule = 
+    let
+      val inv_rule = Strategy_Theory.Rule.mk 
+                        (Strategy_Theory.Rule.get_lhs rule,
+                         Strategy_Theory.Rule.get_rhs rule);
+      val graph = EData.get_graph edata
+      val lhs_seq = v 
+              |> EvalGraph.mk_match_graph graph
+              |> Seq.of_list
+              |> Seq.maps (EvalGraph.eval_var_mk_rule_aux graph)
+              |> Seq.map GraphEnv.half_edge_to_boundary
+      fun v_gnode g = (case V.NSet.tryget_singleton (GraphEnv.get_goalnodes_of_graph g)
+                    of NONE => raise graph_exp ("graph does not contain exactly 1 goalnode",g)
+                    | SOME v => v)
+      fun v_rtechn g = (case V.NSet.tryget_singleton (GraphEnv.get_rtechns_of_graph g)
+                     of NONE => raise graph_exp ("graph does not contain exactly 1 rtechn",g)
+                     | (SOME v) => v)
+      fun eval_one lhs =
+        let 
+           val gnode = (GraphEnv.v_to_gnode lhs (v_gnode lhs))
+           fun mk_edata g = edata
+                          |> EData.set_graph g
+                          |> EData.set_goals StrName.NTab.empty
+                          |> EData.add_goal (EData.get_goal edata (GNode.get_goal gnode))
+           fun mk_eval_rules edata' = 
+              EvalGraph.rewrite_lazy inv_rule (EData.get_graph edata')
+              |> Seq.map (fn rhs => Strategy_Theory.Rule.mk (lhs,rhs))
+           fun update_old_edata edata' =
+              edata |> EData.set_pplan (EData.get_pplan edata') (* updates proof in context *)
+                    |> EData.del_goal (GNode.get_goal gnode) (* deletes goal from ctxt (now in prf) *)
+                    |> EData.add_goals (EData.get_goals edata' |> StrName.NTab.values)
+           fun update_parent edata' =
+             edata' |> mk_eval_rules
+                    |> Seq.maps (fn r => EvalGraph.rewrite_lazy r graph)
+        in
+          lhs |> EvalGraph.rewrite_lazy rule
+              |> Seq.map mk_edata
+              |> Seq.maps eval_full
+              |> Seq.maps update_parent
+        end
+    in
+      Seq.map eval_one lhs_seq
+    end
+ 
+  and eval_one_restricted vs edata =
+    let 
+       fun get_first [] = NONE
+        |  get_first (x::xs) = if (Option.isSome o Seq.pull) x then SOME x else get_first xs;
+    in
+      vs |> V.NSet.list_of
+         |> map (one_step edata)
+         |> get_first
+    end  
+
+  and eval_one edata =
+    eval_one_restricted (GraphEnv.get_rtechns_of_graph (EData.get_graph edata)) edata
+
+  (* maybe give some useful error messages? *)
+  (* could also empose a search strategy... *)
+  and eval_full edata = 
+    case eval_one edata of
+      NONE => if edata_terminated edata then (Seq.single edata) else Seq.empty
+    | SOME edatas => Seq.maps eval_full edatas;
+ 
   fun eval_any edata =   
      GraphEnv.get_rtechns_of_graph (EData.get_graph edata)
      |> V.NSet.seq_of
@@ -104,25 +161,7 @@ struct
   
   (* evaluation ignoring evaluation strategy *)
 
-  fun eval_one_restricted vs edata =
-    let 
-       fun get_first [] = NONE
-        |  get_first (x::xs) = if (Option.isSome o Seq.pull) x then SOME x else get_first xs;
-    in
-      vs |> V.NSet.list_of
-         |> map (one_step edata)
-         |> get_first
-    end;  
-
-  fun eval_one edata =
-    eval_one_restricted (GraphEnv.get_rtechns_of_graph (EData.get_graph edata)) edata;
-
-  (* maybe give some useful error messages? *)
-  (* could also empose a search strategy... *)
-  fun eval_full edata = 
-    case eval_one edata of
-      NONE => if edata_terminated edata then (Seq.single edata) else Seq.empty
-    | SOME edatas => Seq.maps eval_full edatas;  
+ 
 
 end (* struct *)
 

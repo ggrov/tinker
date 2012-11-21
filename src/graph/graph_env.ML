@@ -224,6 +224,11 @@ struct
   fun get_halfedges g =
     Graph.get_vnames g |> V.NSet.filter (not o (is_vdata g))
 
+  fun half_edge_to_boundary g =
+      V.NSet.fold 
+        Strategy_Theory.Graph.add_to_boundary
+        (get_halfedges (Strategy_Theory.Graph.minimise g))
+        (Strategy_Theory.Graph.minimise g);
 
   (* edges *)
 

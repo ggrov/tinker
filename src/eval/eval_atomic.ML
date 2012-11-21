@@ -8,19 +8,6 @@ struct
   (* should be a functor - df is default *)
   structure EData = EvalD_DF;
 
-  (* actual rewriting *)
-  fun rewrite_lazy rule graph = 
-    let 
-      val graph' = Strategy_Theory.Graph.normalise graph;
-      val (rule',matches) = Strategy_Theory.RulesetRewriter.rule_matches rule graph';
-      fun rewr match = 
-        Strategy_Theory.GraphSubst.do_rewrite match (Strategy_Theory.Rule.get_rhs rule')
-    in
-      Seq.map rewr matches
-    end;
-
-  val rewrite = Seq.list_of oo rewrite_lazy;
-
   (* updates edata *)
   (* ignores hyps and wire *)
   fun upd_rule wset edata gnode (pnds,prf) = 
@@ -75,7 +62,7 @@ struct
 
   fun eval_mk_rule edata lhs =
    let
-      fun apply_subst rws = fold (fn r => maps (rewrite r)) rws [lhs]
+      fun apply_subst rws = fold (fn r => maps (EvalGraph.rewrite r)) rws [lhs]
       fun update (edata',ri,ros) =  (edata',map (fn r => (lhs,r)) (apply_subst (ri::ros)))
       fun update_res_rule ((gnode,w,rtechn),(gs,prf)) = 
               upd_rule (RTechn.get_outputs rtechn) edata gnode (gs,prf)
@@ -91,35 +78,15 @@ struct
       Seq.maps update_all appf_res
    end
 
-  (* finds and instantiates the goal node *)
-  fun eval_var_mk_rule_aux edata graph_pat =
-   let 
-    val graph = EData.get_graph edata
-   (* match - FIXME: must be a better way than creating a dummy rule *)
-    val subst = Strategy_Theory.RulesetRewriter.rule_matches 
-                   (Strategy_Theory.Rule.mk(graph_pat,graph_pat))
-                   graph
-                |> snd
-                |> Seq.map Strategy_Theory.Match.get_match_subst
-    val gvars = GraphEnv.get_gvars_of_graph graph_pat;
-    fun inst sub v g = 
-      (case StrName.NTab.lookup sub (GraphEnv.v_to_gvar g v)
-             of NONE => g
-             | (SOME vdata) => Strategy_Theory.Graph.update_vertex_data 
-                                (K (Strategy_OVData.NVert vdata)) v g)    
-  in
-    subst |> Seq.map (fn sub => V.NSet.fold (inst sub) gvars graph_pat)
-  end 
-
   fun eval_var_mk_rule edata graph_pat =
-   Seq.maps (eval_mk_rule edata) (eval_var_mk_rule_aux edata graph_pat);
+   Seq.maps (eval_mk_rule edata) (EvalGraph.eval_var_mk_rule_aux (EData.get_graph edata) graph_pat);
 
   (* almost the same as above - just used for debugging *)
   fun eval_debug_apply_tactic edata graph_pat =
-   Seq.maps (eval_apply_tactic edata) (eval_var_mk_rule_aux edata graph_pat);
+   Seq.maps (eval_apply_tactic edata) (EvalGraph.eval_var_mk_rule_aux (EData.get_graph edata) graph_pat);
 
    fun eval_rule edata rule = 
-     rewrite_lazy (Strategy_Theory.Rule.mk rule) (EData.get_graph edata)
+     EvalGraph.rewrite_lazy (Strategy_Theory.Rule.mk rule) (EData.get_graph edata)
      |> Seq.map (fn g => EData.set_graph g edata)
 
    fun eval_rules (edata,rules) = Seq.maps (eval_rule edata) (Seq.of_list rules);

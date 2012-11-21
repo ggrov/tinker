@@ -1,6 +1,6 @@
 (* simple test of proof representation *)
 theory Stratlang                                                      
-imports               
+imports                
   Graph                                      
 uses
   "../graph/graph_dot.ML" 

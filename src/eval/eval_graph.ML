@@ -1,6 +1,19 @@
 structure EvalGraph =
 struct
 
+  (* actual rewriting *)
+  fun rewrite_lazy rule graph = 
+    let 
+      val graph' = Strategy_Theory.Graph.normalise graph;
+      val (rule',matches) = Strategy_Theory.RulesetRewriter.rule_matches rule graph';
+      fun rewr match = 
+        Strategy_Theory.GraphSubst.do_rewrite match (Strategy_Theory.Rule.get_rhs rule')
+    in
+      Seq.map rewr matches
+    end;
+
+  val rewrite = Seq.list_of oo rewrite_lazy;
+
   (* consume of input and generation of output nodes *)  
 
   fun delete_input_rule (gnode,w) = 
@@ -46,6 +59,25 @@ struct
     in
       Strategy_Theory.Rule.mk (lhs,rhs)
     end;     
+
+  (* finds and instantiates the goal node *)
+  fun eval_var_mk_rule_aux graph graph_pat =
+   let 
+   (* match - FIXME: must be a better way than creating a dummy rule *)
+    val subst = Strategy_Theory.RulesetRewriter.rule_matches 
+                   (Strategy_Theory.Rule.mk(graph_pat,graph_pat))
+                   graph
+                |> snd
+                |> Seq.map Strategy_Theory.Match.get_match_subst
+    val gvars = GraphEnv.get_gvars_of_graph graph_pat;
+    fun inst sub v g = 
+      (case StrName.NTab.lookup sub (GraphEnv.v_to_gvar g v)
+             of NONE => g
+             | (SOME vdata) => Strategy_Theory.Graph.update_vertex_data 
+                                (K (Strategy_OVData.NVert vdata)) v g)    
+  in
+    subst |> Seq.map (fn sub => V.NSet.fold (inst sub) gvars graph_pat)
+  end 
 
   (* creates a graph to match *)
   fun mk_match_graph graph v =

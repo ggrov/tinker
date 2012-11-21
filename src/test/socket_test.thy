@@ -1,8 +1,30 @@
-theory socket_test 
+theory socket_test  
 imports
-  Main      
+  "../build/Graph"       
 begin
 
+(*
+1. Look at http://www.standardml.org/Basis/posix-file-sys.html#SIG:POSIX_FILE_SYS.mkfifo:VAL for making a UNIX named pipe
+2. Open the pipe using TextIO, and pass it to Protocol_Interface.run_in_textstreams (in core/interface/protocol.ML) - this may need to be in a separate thread
+3. Run the GUI - something like "java quanto.gui.QuantoApp --core-socket=/path/to/fifo" (you can add the --core-socket argument in the debug/run configuration in Eclipse)
+*)
+ML{*
+ val pmode = Posix.FileSys.S.irwxu;
+ Posix.FileSys.mkfifo ("/Users/ggrov/fifdotest",pmode); 
+*}
+
+(*
+ML{*
+TextIO.openIn "/Users/ggrov/fifdotest";
+TextIO.openOut "/Users/ggrov/fifdotest";
+*}
+*)
+
+ML{*
+ProtocolInterface.run_in_textstreams;
+open Future;
+
+*}
 
 ML{*
 INetSock.TCP.socket();
