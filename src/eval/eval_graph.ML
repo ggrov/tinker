@@ -1,3 +1,6 @@
+(*
+   contains functionality linking the proof/tactic with the strategy graph (eval into rewriting)
+*)
 structure EvalGraph =
 struct
 

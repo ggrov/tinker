@@ -1,3 +1,6 @@
+(*
+   contains stuff releated to lifted a pnode to a gnode and add it to a wire
+*)
 structure EvalOutput =
 struct
 

@@ -1,7 +1,7 @@
 (* simple test of proof representation *)
 theory Eval                                                                     
 imports         
-  Stratlang                                                              
+  Stratlang                                                                        
 uses                           
   "../wire/match.ML"                                      
   "../rtechn/rtechn_rs.ML"       
@@ -11,6 +11,7 @@ uses
   "../eval/eval_output.ML"
   "../eval/eval_graph.ML"    
   "../eval/eval_atomic.ML"  
+  "../eval/eval_nested.ML"
   "../eval/rtechn_eval.ML"                          
   "../eval/eval_tac.ML"   
 begin

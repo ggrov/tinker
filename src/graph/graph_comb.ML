@@ -19,8 +19,10 @@ sig
   val TENSOR: ((theory -> graph*theory) * (theory -> graph*theory)) -> theory -> graph * theory
   val OR: ((theory -> graph*theory) * (theory -> graph*theory)) -> theory -> graph * theory
   val TRY_ORELSE: ((theory -> graph*theory) * (theory -> graph*theory)) -> theory -> graph * theory 
-
+  val NEST: string -> (theory -> graph*theory) -> theory -> graph * theory
   val LIFT: graph -> theory -> graph * theory
+  val LIFTRT: RTechn.T -> theory -> graph * theory
+
 end; (* sig *)
 
 structure GraphComb_DB =
@@ -106,6 +108,9 @@ struct
        (tensor_g g1 g2,th2)
     end; 
 
+ val NEST = GraphEnv.nest_graph;
+
+
 (* for simplicity we assume all are non-equal! *)
  (* FIXME: need to check that disjoint output is preserved *)
  fun OR (fg1,fg2) th0 =
@@ -152,6 +157,8 @@ struct
    end
 
   fun LIFT g th = (g,th);
+  
+  val LIFTRT : RTechn.T -> theory -> graph * theory  = LIFT o GraphEnv.graph_of_rtechn;
 
 end; (* end struct *)
 
@@ -166,4 +173,5 @@ val op OR = GraphComb.OR;
 infixr 5 TRY_ORELSE
 val op OR = GraphComb.OR;
 val LIFT = GraphComb.LIFT;
-
+val LIFTRT = GraphComb.LIFTRT;
+val NEST = GraphComb.NEST;

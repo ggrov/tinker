@@ -65,9 +65,6 @@ struct
 
   (* should be trivial *)
   fun eval_merge _ v = raise evaluate_exp (SOME v, "Evaluation of merge not yet supported");
-  fun eval_hgraph _ v = raise evaluate_exp (SOME v, "Evaluation of hierarchies not yet supported");
-  fun eval_or _ v = raise evaluate_exp (SOME v, "Evaluation of OR not yet supported");
-  fun eval_try _ v = raise evaluate_exp (SOME v, "Evaluation of TRY_ORELSE not yet supported");
 
   (* for now we only unfold *)
   fun one_step edata v = 
@@ -78,60 +75,14 @@ struct
      in
        if (RTechn.is_atomic rt) then EvalAtomic.eval_atomic edata v
        else if (RTechn.is_merge rt) then eval_merge edata v
-       else if (RTechn.is_hgraph rt) then
-           (* need an evaluation stack!
-              unfold hgraph |> eval only hgraph |> fold in hgraph *)
-           eval_hgraph edata v
-       else if (RTechn.is_or rt) then eval_or edata v
-       else if (RTechn.is_try rt) then eval_try edata v
+       else if (RTechn.is_hgraph rt) then EvalNested.eval_nested eval_full (SOME (TagName.mk "unfold")) edata v
+       else if (RTechn.is_or rt) then EvalNested.eval_nested eval_full (SOME (TagName.mk "or_unfold")) edata v
+       else if (RTechn.is_try rt) then 
+         case Seq.pull (EvalNested.eval_nested eval_full (SOME (TagName.mk "try")) edata v) of
+            SOME (v,vs) => Seq.cons v vs
+           | NONE => EvalNested.eval_nested eval_full (SOME (TagName.mk "else")) edata v
        else raise evaluate_exp (SOME v, "Unknown reasoning technique type")
      end
-
-  (* fixme: not very good for debugging! 
-       make a separate file and split up functions *)
-  and eval_nested_rule edata v rule = 
-    let
-      val inv_rule = Strategy_Theory.Rule.mk 
-                        (Strategy_Theory.Rule.get_lhs rule,
-                         Strategy_Theory.Rule.get_rhs rule);
-      val graph = EData.get_graph edata
-      val lhs_seq = v 
-              |> EvalGraph.mk_match_graph graph
-              |> Seq.of_list
-              |> Seq.maps (EvalGraph.eval_var_mk_rule_aux graph)
-              |> Seq.map GraphEnv.half_edge_to_boundary
-      fun v_gnode g = (case V.NSet.tryget_singleton (GraphEnv.get_goalnodes_of_graph g)
-                    of NONE => raise graph_exp ("graph does not contain exactly 1 goalnode",g)
-                    | SOME v => v)
-      fun v_rtechn g = (case V.NSet.tryget_singleton (GraphEnv.get_rtechns_of_graph g)
-                     of NONE => raise graph_exp ("graph does not contain exactly 1 rtechn",g)
-                     | (SOME v) => v)
-      fun eval_one lhs =
-        let 
-           val gnode = (GraphEnv.v_to_gnode lhs (v_gnode lhs))
-           fun mk_edata g = edata
-                          |> EData.set_graph g
-                          |> EData.set_goals StrName.NTab.empty
-                          |> EData.add_goal (EData.get_goal edata (GNode.get_goal gnode))
-           fun mk_eval_rules edata' = 
-              EvalGraph.rewrite_lazy inv_rule (EData.get_graph edata')
-              |> Seq.map (fn rhs => Strategy_Theory.Rule.mk (lhs,rhs))
-           fun update_old_edata edata' =
-              edata |> EData.set_pplan (EData.get_pplan edata') (* updates proof in context *)
-                    |> EData.del_goal (GNode.get_goal gnode) (* deletes goal from ctxt (now in prf) *)
-                    |> EData.add_goals (EData.get_goals edata' |> StrName.NTab.values)
-           fun update_parent edata' =
-             edata' |> mk_eval_rules
-                    |> Seq.maps (fn r => EvalGraph.rewrite_lazy r graph)
-        in
-          lhs |> EvalGraph.rewrite_lazy rule
-              |> Seq.map mk_edata
-              |> Seq.maps eval_full
-              |> Seq.maps update_parent
-        end
-    in
-      Seq.map eval_one lhs_seq
-    end
  
   and eval_one_restricted vs edata =
     let 
