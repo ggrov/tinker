@@ -3,8 +3,7 @@ theory Eval
 imports         
   Stratlang                                                                        
 uses                           
-  "../wire/match.ML"                                      
-  "../rtechn/rtechn_rs.ML"       
+  "../wire/match.ML"                                           
   "../eval/basic_eval.ML"               
   "../proof/pplan_env.ML" 
   "../eval/eval_appf.ML"                                  
@@ -22,8 +21,6 @@ begin
   {* Scan.lift (Scan.succeed (fn ctxt => SIMPLE_METHOD (EvalTac.strategy_then_assm_tac ctxt))) *} 
   "application of active proof strategy"
 
- -- "adds assume tactic (should reallly be done when creating method)"
- setup {* TacticTab.add_tactic ("atac",K (K (atac 1))) *}
 
  -- "set active strategy"
  declare [[strategy = "assume"]]

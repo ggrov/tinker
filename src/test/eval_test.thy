@@ -41,6 +41,7 @@ ML{*
             |> RTechn.set_outputs (W.NSet.single Wire.default_wire);
 val gf = LIFT (GraphEnv.graph_of_rtechn artechn);
 
+(* shouldn't need to add atac anymore *)
 val edata0 = RTechnEval.init @{theory} [@{prop "A ==> A"}] gf
            |> EData.set_tactics (StrName.NTab.of_list [("atac",K (K (atac 1)))]);
 Strategy_Dot.write_dot_to_file (path ^ "tactest.dot") (EData.get_graph edata0 |> Strategy_Theory.Graph.minimise);

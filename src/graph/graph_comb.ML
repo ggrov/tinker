@@ -108,8 +108,15 @@ struct
        (tensor_g g1 g2,th2)
     end; 
 
- val NEST = GraphEnv.nest_graph;
-
+   fun NEST name gf th0 =
+     let 
+       val (rg,th1) = gf th0
+       val rh = GraphEnv.collapse_graph RTechn.set_hgraph_appf name rg
+       val rule = Strategy_Theory.Rule.mk (rh,rg);
+       val th' = Strategy_RS.Theory.add_nested rule th1
+     in
+       (rh,th')
+     end;
 
 (* for simplicity we assume all are non-equal! *)
  (* FIXME: need to check that disjoint output is preserved *)

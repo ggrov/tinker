@@ -201,7 +201,7 @@ structure RTechn
 *) 
 
   val id = RTechn {name = "id", inputs = W.NSet.empty, outputs = W.NSet.empty, 
-                   appf = Appf (Tactic (TNoAsm,"id_tac"))};
+                   appf = Appf (Tactic (TNoAsm,"idtac"))};
 
   val merge = RTechn {name = "merge", inputs = W.NSet.empty, outputs = W.NSet.empty, 
                    appf = Merge};
@@ -217,7 +217,7 @@ structure RTechn
          |> set_outputs (W.NSet.single wire)
 
   val fail = id 
-           |> set_atomic_appf (Tactic (TNoAsm,"id_tac"))
+           |> set_atomic_appf (Tactic (TNoAsm,"idtac"))
            |> set_name "fail";
 
 (*  fun ofstep f = id
