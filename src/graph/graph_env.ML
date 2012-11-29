@@ -316,7 +316,7 @@ struct
                NONE   => raise edge_exp ("cannot get single (min) element",NONE) (* shouldn't happen *)
             | (SOME e) => e
 
-  fun insert_and_get_vertex (e,g0) (name,node) =
+  fun insert_and_get_vertex (e,g0) node =
     let val (l,g1) = Graph.add_vertex (Strategy_OVData.NVert node) g0
         val from = edge_src g1 e
         val to = edge_dest g1 e
@@ -523,20 +523,24 @@ struct
          |> (fn (n,g) => Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed, data) source n g)
          |> snd;
 
- fun lift_merge_vertex n wire =
+ fun lift_edgemerge_vertex n edge =
    let 
-      val name = "merge_" ^ (Int.toString n)
-      val rtechn = RTechn.merge_of wire 
+      val name = "merge"
+      val rtechn = RTechn.merge 
                  |> RTechn.set_name name
       val (l,g) = graph_of_rtechn_vertex rtechn
       fun add_inp 0 g = g
        |  add_inp 1 g = g
-       |  add_inp n g = add_inp (n-1) (add_boundary_to (DB_EdgeData.W wire) l g);
+       |  add_inp n g = add_inp (n-1) (add_boundary_to edge l g);
    in
      (l,add_inp n g)
    end;
 
- fun lift_merge n wire = lift_merge_vertex n wire |> snd;
+ fun lift_edgemerge n wire = lift_edgemerge_vertex n wire |> snd;
+
+ fun lift_merge_vertex n wire = lift_edgemerge_vertex n (DB_EdgeData.W wire);
+
+ fun lift_merge n wire = lift_edgemerge n (DB_EdgeData.W wire);
 
  (* lifting of fanout *)
 

@@ -14,6 +14,7 @@ sig
   (* use these *)
   val tensor_g :  graph -> graph -> graph
   val then_g :  graph -> graph -> graph
+  val self_loops : graph -> graph
 
   val THENG: ((theory -> graph*theory) * (theory -> graph*theory)) -> theory -> graph * theory
   val TENSOR: ((theory -> graph*theory) * (theory -> graph*theory)) -> theory -> graph * theory
@@ -63,7 +64,10 @@ struct
      [] => (g,dest_bs)
    | [(dest_name,_,_)] => 
     (Graph.do_plug_and_minimise src_name dest_name g,del_src_name dest_name dest_bs)
-   | xs => raise then_exp (g,src_name,map (fn (v,_,_) => v) xs,"more than one possible plugs");
+   | (dest_name,_,_)::xs => 
+       (warning "more than one possible plugs";
+       (Graph.do_plug_and_minimise src_name dest_name g,del_src_name dest_name dest_bs))
+  (* raise then_exp (g,src_name,map (fn (v,_,_) => v) xs,"more than one possible plugs"); *)
 
  (*  Loop  *)
 (*  fun rtechn_single_selfloop wire vname graph =
@@ -87,7 +91,11 @@ struct
    end;
 
  fun then_g g1 g2 = graph_theng g1 g2 |> snd;
- 
+
+ (* essentially then without all the renaming... *)
+ fun self_loops g =  
+     fst (fold plug_one (GraphEnv.get_boundary_outputs g) (g,GraphEnv.get_boundary_inputs g));
+
  (* add OR, etc -- now in graph_comb at the end *)
 
   (* combinators *)

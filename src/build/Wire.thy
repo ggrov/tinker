@@ -2,7 +2,7 @@
 theory Wire                                                 
 imports        
   Prf                                                     
-uses         
+uses          
   "../wire/term_fo_au.ML"   
   "../wire/term_features.ML"               
   "../wire/feature.ML"                          

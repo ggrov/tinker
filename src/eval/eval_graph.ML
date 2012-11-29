@@ -82,6 +82,20 @@ struct
     subst |> Seq.map (fn sub => V.NSet.fold (inst sub) gvars graph_pat)
   end 
 
+  fun mk_eval_merge_rule_of edge =
+    let 
+      val g = GraphEnv.lift_edgemerge 2 edge;
+      val (bb,g) = Strategy_Theory.Graph.add_bbox_named_like (B.mk "omerge") g;
+      val [(ivb1,(ie1,_),_),(ivb2,_,_)] = GraphEnv.get_boundary_inputs g;
+      (* assume no renaming of vertices *)
+      val (vs,g) = Strategy_Theory.Graph.add_to_bbox bb (V.NSet.single ivb2) g;
+      val [(_,(oe,_),_)] = GraphEnv.get_boundary_outputs g;
+      val lhs = GraphEnv.insert_vertex (ie1,g) (DB_VertexData.GVar "g");
+      val rhs = GraphEnv.insert_vertex (oe,g) (DB_VertexData.GVar "g");
+    in
+      Strategy_Theory.Rule.mk (lhs,rhs)
+    end;
+
   (* creates a graph to match *)
   fun mk_match_graph graph v =
     let 

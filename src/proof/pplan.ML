@@ -38,7 +38,7 @@ struct
        Prf {ptab = #ptab prf, open_nms = #open_nms prf, 
             all_nms = #all_nms prf, root_nms = f (#root_nms prf)};
 
-  fun get_child_names prf node = 
+  fun get_parent_names prf node = 
    prf
    |> get_ptab
    |> StrName.NTab.get_nameset

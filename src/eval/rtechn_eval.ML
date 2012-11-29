@@ -63,8 +63,16 @@ struct
   
   (* evaluation *)
 
-  (* should be trivial *)
-  fun eval_merge _ v = raise evaluate_exp (SOME v, "Evaluation of merge not yet supported");
+  fun eval_merge edata v =
+    let 
+      val graph = EData.get_graph edata
+      val wire = case E.NSet.tryget_singleton (GraphEnv.get_out_edges graph v) of
+                   NONE => raise evaluate_exp (SOME v, "Evaluation of merge: multiple outputs")
+                 | SOME e => GraphEnv.edge_data graph e
+      val rule = EvalGraph.mk_eval_merge_rule_of wire
+    in
+      Seq.map (fn g => EData.set_graph g edata) (EvalGraph.rewrite_lazy rule graph)
+    end;
 
   (* for now we only unfold *)
   fun one_step edata v = 

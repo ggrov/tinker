@@ -45,13 +45,13 @@ struct
 
   fun mk_top_level t = 
     case TF.top_level_str t of 
-       SOME s => [Ref (s,"top-level-const")]
+       SOME s => [Strings (StrName.NSet.single s,"top-level-const")]
      | NONE => [];
 
-  fun fmatch_top_level (Ref (t,"top-level-const")) (_: Proof.context) thm = 
+  fun fmatch_top_level (Strings (str,"top-level-const")) (_: Proof.context) thm = 
          (case TF.top_level_str (Thm.prop_of thm) of
             NONE => false
-          | (SOME v) => (t=v))
+          | (SOME s) => StrName.NSet.contains str s)
    | fmatch_top_level f _ _ = 
       if get_fdata f = "top-level-const"
        then raise feature_typ_exp (f,"consts has to be with Ref")

@@ -1,15 +1,31 @@
 theory eval_test 
 imports
-  "../build/Eval"        
+  "../build/Eval"         
 begin
 
 -- "setup of technique"
 ML{*
 
- val path = "/Users/ggrov/";
+ val path = "/u1/staff/gg112/";
  structure EData = EvalD_DF;
 *}
 
+ML{*
+
+Induct.induct_tac;
+*}
+
+-- "eval of merge"
+ML{*
+ GraphEnv.edge_data;
+
+  val rule = eval_merge_rule_of Wire.default_wire;
+  val g = Strategy_Theory.Rule.get_rhs rule;
+*}
+
+ML{*
+ Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") g;
+*}
 
 (* problem seems to occur when output set is empty!! - weird... *) 
 
