@@ -30,11 +30,13 @@ end; (* structure *)
 
 structure RTechnEnv = 
 struct
-  val idtac = ("idtac",K (K (Seq.single:tactic)))
-  val atac = ("atac",K (K (atac 1)))
+  val idtac = ("idtac",K (K (Seq.single:tactic)));
+  val atac = ("atac",K (K (atac 1)));
+  val notac = ("no_tac",K (K no_tac));
+
 
   val setup = 
-    TacticTab.add_tactic_list [idtac,atac];
+    TacticTab.add_tactic_list [idtac,atac,notac];
 
 end; (* struct *)
 

@@ -11,7 +11,10 @@ struct
     | (SOME fm) => fm feature ctxt thm;
 
   fun bwire_match fmap ctxt bw thm =
-    F.NSet.forall (feature_match fmap ctxt thm) (BWire.get_pos bw);
+    F.NSet.forall (feature_match fmap ctxt thm) (BWire.get_pos bw)
+    andalso 
+    not (F.NSet.exists (feature_match fmap ctxt thm) (BWire.get_neg bw))
+;
 
   (* FIXME: add support for facts and props *)
   fun wire_match fmap ctxt w goalmap gnode =

@@ -1,5 +1,5 @@
 (* simple test of proof representation *)
-theory Wire                                                 
+theory Wire                                                  
 imports        
   Prf                                                     
 uses          

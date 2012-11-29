@@ -491,7 +491,30 @@ struct
      end
 *)
 
+  fun graph_of_node_edges node inedges outedges =  
+     let
+       val (v,g) = Graph.add_vertex (Strategy_OVData.NVert node) Graph.empty 
+       fun in_wire edge g =
+            g |> Graph.add_vertex boundary_vertex
+              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
+              |> (fn (n,g) => Graph.add_edge (Graph.Directed,edge) n v g)
+              |> (fn (_,g') => g')
+       fun out_wire edge g =
+            g |> Graph.add_vertex boundary_vertex
+              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
+              |> (fn (n,g) => Graph.add_edge (Graph.Directed, edge) v n g)
+              |> (fn (_,g') => g')  
+     in 
+       (v, g |> fold in_wire inedges
+             |> fold out_wire outedges)
+     end;
+
   fun graph_of_rtechn_vertex rt =  
+   graph_of_node_edges
+      (DB_VertexData.RT rt) 
+      (map DB_EdgeData.W (W.NSet.list_of (RTechn.get_inputs rt)))
+      (map DB_EdgeData.W (W.NSet.list_of (RTechn.get_outputs rt)))
+(*
      let
        val (v,g) = Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.RT rt)) Graph.empty 
        fun in_wire wire g =
@@ -508,7 +531,9 @@ struct
        (v, g |> W.NSet.fold in_wire (RTechn.get_inputs rt)
              |> W.NSet.fold out_wire (RTechn.get_outputs rt))
      end;
+*)
 
+ val graph_of_node = snd ooo graph_of_node_edges;
  val graph_of_rtechn = snd o graph_of_rtechn_vertex;
 
  fun add_boundary_to data dest graph =
@@ -525,6 +550,17 @@ struct
 
  fun lift_edgemerge_vertex n edge =
    let 
+      fun repeat 0 = []
+       |  repeat n = edge :: repeat (n-1)
+      val rtechn = RTechn.merge 
+                 |> RTechn.set_name "merge"
+   in
+      graph_of_node_edges (DB_VertexData.RT rtechn) (repeat n) [edge]
+   end
+
+(*
+ fun lift_edgemerge_vertex n edge =
+   let 
       val name = "merge"
       val rtechn = RTechn.merge 
                  |> RTechn.set_name name
@@ -535,6 +571,7 @@ struct
    in
      (l,add_inp n g)
    end;
+*)
 
  fun lift_edgemerge n wire = lift_edgemerge_vertex n wire |> snd;
 

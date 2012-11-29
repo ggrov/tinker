@@ -41,6 +41,7 @@ struct
       Strategy_Theory.Rule.mk (lhs,rhs)
     end;  
 
+  (* I don't understand this! *)
   fun output_gnode (wr,rtechn) (w,gnode) = 
     let
       val (v_rt,g0) = Strategy_Theory.Graph.empty

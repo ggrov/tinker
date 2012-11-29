@@ -60,6 +60,9 @@ struct
       (eval_v_rtechn (v_gnode,v_rtechn) (edata,lhs))
    end
 
+  (* fixme - not sure how smart it is to use the the output field - should check graph! *)
+  (* has this been tested on many outputs??? doubt it will work!!!
+      - problem is all input/output nodes are not accounted for!  *)
   fun eval_mk_rule edata lhs =
    let
       fun apply_subst rws = fold (fn r => maps (EvalGraph.rewrite r)) rws [lhs]

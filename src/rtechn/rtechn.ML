@@ -40,6 +40,7 @@ sig
   val set_atomic_appf : atomic -> T -> T 
   val set_hgraph_appf : T -> T
   val set_merge_appf : T -> T
+  val set_identity_appf : T -> T
   val set_or_appf : T -> T
   val set_try_appf : T -> T
 
@@ -47,6 +48,7 @@ sig
 
   val is_atomic : T -> bool
   val is_hgraph : T -> bool
+  val is_identity : T -> bool
   val is_merge : T -> bool
   val is_or : T -> bool
   val is_try : T -> bool
@@ -116,6 +118,7 @@ structure RTechn
  datatype appfn = Appf of atomic
                 | HGraph of EvalData option
                 | Merge
+                | Identity
                 | Or (* of EvalData option *)
                 | Try (* of EvalData option *)
 
@@ -156,6 +159,7 @@ structure RTechn
   val set_atomic_appf = set_appf o Appf;
   val set_hgraph_appf = set_appf (HGraph NONE);
   val set_merge_appf = set_appf Merge;
+  val set_identity_appf = set_appf Identity;
   val set_or_appf = set_appf Or;
   val set_try_appf = set_appf Try;
 
@@ -170,6 +174,9 @@ structure RTechn
   fun is_merge_appfn  Merge = true
    |  is_merge_appfn    _     = false;
 
+  fun is_identity_appfn  Identity = true
+   |  is_identity_appfn    _     = false;
+
   fun is_or_appfn  Or      = true
    |  is_or_appfn    _     = false;
 
@@ -179,6 +186,7 @@ structure RTechn
   val is_atomic = is_atomic_appfn o get_appf;
   val is_hgraph = is_hgraph_appfn o get_appf;
   val is_merge = is_merge_appfn o get_appf;
+  val is_identity = is_identity_appfn o get_appf;
   val is_or = is_or_appfn o get_appf;
   val is_try = is_try_appfn o get_appf;
 
@@ -201,7 +209,7 @@ structure RTechn
 *) 
 
   val id = RTechn {name = "id", inputs = W.NSet.empty, outputs = W.NSet.empty, 
-                   appf = Appf (Tactic (TNoAsm,"idtac"))};
+                   appf = Identity};
 
   val merge = RTechn {name = "merge", inputs = W.NSet.empty, outputs = W.NSet.empty, 
                    appf = Merge};
@@ -217,7 +225,7 @@ structure RTechn
          |> set_outputs (W.NSet.single wire)
 
   val fail = id 
-           |> set_atomic_appf (Tactic (TNoAsm,"idtac"))
+           |> set_atomic_appf (Tactic (TNoAsm,"no_tac"))
            |> set_name "fail";
 
 (*  fun ofstep f = id

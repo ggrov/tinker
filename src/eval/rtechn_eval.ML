@@ -63,6 +63,65 @@ struct
   
   (* evaluation *)
 
+  (* begin eval identity *)
+
+  fun mk_eval_identity_rules edata v =
+   let 
+     fun gnode_of g = (case V.NSet.tryget_singleton (GraphEnv.get_goalnodes_of_graph g)
+                    of NONE => raise graph_exp ("graph does not contain exactly 1 goalnode",g)
+                     | SOME v => v)
+     fun wire_of g gnode = case E.NSet.tryget_singleton (Strategy_Theory.Graph.out_enames g gnode)
+                             of NONE => raise EvalOutput.gnode_exp ("gnode does not have single output")
+                             | SOME e => GraphEnv.e_to_wire g e;
+     fun wgnode g = let val gnode = gnode_of g  in (GraphEnv.v_to_gnode g gnode,wire_of g gnode) end;
+     val lhs_seq = v |> EvalGraph.mk_match_graph (EData.get_graph edata)
+                     |> Seq.of_list
+                     |> Seq.maps (EvalGraph.eval_var_mk_rule_aux (EData.get_graph edata));
+     fun add_output_rule gnode lhs =
+       let
+         val [vrt] = GraphEnv.get_rtechns_of_graph lhs |> V.NSet.list_of
+         val outedges = Strategy_Theory.Graph.out_enames lhs vrt
+                     |> E.NSet.list_of
+         val outwires = outedges
+                     |> map (GraphEnv.edge_data lhs)
+                     |> maps GraphEnv.filter_edge
+                     |> W.NSet.of_list
+         val (SOME pnode) = PPlan.lookup_node (EData.get_pplan edata) (GNode.get_goal gnode)
+         val (matchw,gnode') = EvalOutput.lift_pnode_by_wires (EData.get_fmatch edata) outwires pnode
+         val [match_edge] = filter (fn e => Wire.eq (matchw,GraphEnv.e_to_wire (EData.get_graph edata) e)) outedges
+       in      
+         GraphEnv.insert_vertex (match_edge,lhs) (DB_VertexData.GN gnode)
+       end;
+     fun mk_rule lhs = 
+       let 
+         val (gnode,wire) = wgnode lhs
+         val rule1 = EvalGraph.delete_input_rule (gnode,wire)
+       in      
+         (lhs,rule1,add_output_rule gnode)
+       end;
+    in
+      Seq.map mk_rule lhs_seq
+    end;
+
+  fun mk_eval_identity_rule edata v =
+   let
+    fun apply (lhs,rule1,rhsf) = 
+         lhs
+         |> EvalGraph.rewrite_lazy rule1
+         |> Seq.map rhsf
+         |> Seq.map (fn rhs => Strategy_Theory.Rule.mk (lhs,rhs))
+   in
+    mk_eval_identity_rules edata v
+    |> Seq.maps apply
+   end
+
+  fun eval_identity edata v =
+   mk_eval_identity_rule edata v
+   |> Seq.maps (fn rule => EvalGraph.rewrite_lazy rule (EData.get_graph edata))
+   |> Seq.map (fn g => EData.set_graph g edata);
+
+  (* end eval identity *)
+
   fun eval_merge edata v =
     let 
       val graph = EData.get_graph edata
@@ -83,6 +142,7 @@ struct
      in
        if (RTechn.is_atomic rt) then EvalAtomic.eval_atomic edata v
        else if (RTechn.is_merge rt) then eval_merge edata v
+       else if (RTechn.is_identity rt) then eval_identity edata v
        else if (RTechn.is_hgraph rt) then EvalNested.eval_nested eval_full (SOME (TagName.mk "unfold")) edata v
        else if (RTechn.is_or rt) then EvalNested.eval_nested eval_full (SOME (TagName.mk "or_unfold")) edata v
        else if (RTechn.is_try rt) then 
