@@ -1,10 +1,10 @@
 theory intro  
 imports
-  "../build/Eval"             
+  "../build/Eval"              
 begin
 
 ML{*
-  val path = "/u1/staff/gg112/";
+  val path = "/Users/gudmund/";
 *}
 
 section "Implements an introduction method using graphs"
@@ -64,13 +64,19 @@ val conjI =
 *}
 
 -- "graphs"
+
+(* FIXME: evaluation doesn't work when nesting *)
 ML{*
-val gf = LIFT (GraphEnv.lift_merge 4 Wire.default_wire)
+val gf = NEST "filter_check" (LIFT (GraphEnv.lift_merge 4 Wire.default_wire)
            THENG
-        LIFTRT split1 
+        LIFTRT split1)
            THENG
         (LIFTRT conjI TENSOR LIFTRT impI TENSOR LIFTRT allI);
-
+val gf = LIFT (GraphEnv.lift_merge 4 Wire.default_wire)
+           THENG
+        LIFTRT split1
+           THENG
+        (LIFTRT conjI TENSOR LIFTRT impI TENSOR LIFTRT allI);
 
 val (g,th) = gf @{theory};
 val g = GraphComb.self_loops g;
@@ -78,14 +84,77 @@ val (g',th') = NEST "intros" (LIFT g) th;
 *}
 
 
-
 ML{*
  Strategy_Dot.write_dot_to_file false (path ^ "imptest0.dot") g; 
 *}
 
 ML{*
- val edata0 = RTechnEval.init_g th' [@{prop "A \<and> A"}] g;
+ val edata0 = RTechnEval.init_g th' [@{prop "A \<and> (B \<longrightarrow> (B \<and> C))"}] g;
  Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata0);
+*}
+
+(* fixme: eval-full does not terminate!!!! *)
+
+ML{*
+  val edata =  (RTechnEval.eval_full edata0 |> Seq.list_of |> hd);
+ Strategy_Dot.write_dot_to_file false (path ^ "imptesta.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
+*}
+ML{*
+  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
+ Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
+*}
+
+ML{*
+  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
+ Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
+*}
+
+ML{*
+  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
+ Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
+*}
+
+
+ML{*
+  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
+ Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
+*}
+
+ML{*
+  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
+ Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
+*}
+
+ML{*
+  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
+ Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
+*}
+
+ML{*
+  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
+ Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
+*}
+ML{*
+  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
+ Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
+*}
+
+ML{*
+  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of); 
+ Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
+*}
+
+ML{*
+ val g = RTechnEval.EData.get_graph edata;
+ val [v] = GraphEnv.get_rtechns_of_graph g |> V.NSet.list_of
+         |> filter (RTechn.is_merge o (GraphEnv.v_to_rtechn g));
+ val rule = RTechnEval.eval_merge_rule g v;
+ Strategy_Dot.write_dot_to_file false (path ^ "test2.dot") (Strategy_Theory.Rule.get_rhs rule)
+*}
+
+ML{*
+  val edata = (RTechnEval.eval_any edata |> Seq.pull);
+ Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
 *}
 
 ML{*

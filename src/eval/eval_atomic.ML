@@ -22,7 +22,7 @@ struct
 
   (* updates graph *)
   fun mk_result (gnode,w,rtechn) (edata,outgs) =
-    (edata,EvalGraph.delete_input_rule (gnode,w), map (EvalGraph.output_gnode (w,rtechn)) outgs)
+    (edata,EvalGraph.delete_inputgnode_rule (gnode,w), map (EvalGraph.output_gnode (w,rtechn)) outgs)
 
   (* executes but does not update graph *)
   fun eval_rtechn (gnode,w) rtechn edata =

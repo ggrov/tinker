@@ -5,23 +5,141 @@ begin
 
 -- "setup of technique"
 ML{*
-
- val path = "/u1/staff/gg112/";
+ val path = "/Users/gudmund/";
  structure EData = EvalD_DF;
 *}
 
 ML{*
 
+val gf = LIFT (GraphEnv.lift_merge 3 Wire.default_wire);
+val (g,th) = gf @{theory};
+val g = GraphComb.self_loops g;
+val edata0 = RTechnEval.init_g @{theory} [@{prop "A \<and> A"}] g;
+Strategy_Dot.write_dot_to_file false (path ^ "test2.dot") (RTechnEval.EData.get_graph edata0); 
+*}
+
+
+ML{*
+ val edata = RTechnEval.eval_any edata0 |> Seq.list_of |> hd;
+Strategy_Dot.write_dot_to_file false (path ^ "test2.dot") (RTechnEval.EData.get_graph edata);
+*}
+
+ML{*
+ val edata = RTechnEval.eval_any edata |> Seq.list_of |> hd;
+Strategy_Dot.write_dot_to_file false (path ^ "test2.dot") (RTechnEval.EData.get_graph edata);
+*}
+
+ML{*
+  
+*}
+
+
+
+ML{*
 Induct.induct_tac;
 *}
 
--- "eval of merge"
-ML{*
- GraphEnv.edge_data;
+-- "eval of identity"
 
-  val rule = eval_merge_rule_of Wire.default_wire;
-  val g = Strategy_Theory.Rule.get_rhs rule;
+ML{*
+val test = RTechn.id
+ |> RTechn.set_name "test"
+ |> RTechn.set_inputs (W.NSet.single Wire.default_wire)
+ |> RTechn.set_outputs (W.NSet.single Wire.default_wire);
+
+val gf = LIFTRT test THENG LIFTRT test;
+val edata0 = RTechnEval.init_f @{theory} [@{prop "A \<and> A"}] gf;
+Strategy_Dot.write_dot_to_file false (path ^ "test.dot") (RTechnEval.EData.get_graph edata0);
 *}
+
+ML{*
+val v = GraphEnv.get_rtechns_of_graph (RTechnEval.EData.get_graph edata0) |> V.NSet.list_of |> hd;
+val [rule] = RTechnEval.mk_eval_identity_rule' edata0 v ;
+val lhs = Strategy_Theory.Rule.get_rhs rule;
+Strategy_Dot.write_dot_to_file false (path ^ "test2.dot") (lhs); 
+*}
+
+(* note that we need to get the input wire type *)
+ML{*
+val rule = EvalGraph.delete_inputvar_rule Wire.default_wire;
+Strategy_Dot.write_dot_to_file false (path ^ "test.dot") (Strategy_Theory.Rule.get_lhs rule);
+*}
+ML{*
+val g = EvalGraph.rewrite rule lhs |> hd;
+Strategy_Dot.write_dot_to_file false (path ^ "test.dot") (g);
+*}
+
+(* add output nodes *)
+
+ML{*
+
+
+*}
+
+ML{*
+val g = lhs;
+val v = GraphEnv.get_rtechns_of_graph lhs |> V.NSet.list_of |> hd;
+val vgn = (case V.NSet.tryget_singleton (GraphEnv.get_goalnodes_of_graph g)
+                    of NONE => raise RTechnEval.graph_exp ("graph does not contain exactly 1 goalnode",g)
+                     | SOME v => v);
+val gn = GraphEnv.v_to_gnode g vgn;
+val (SOME pnode) = PPlan.lookup_node (RTechnEval.EData.get_pplan edata0) (GNode.get_goal gn) ;
+*}
+
+ML{*
+     val gnode' = gn
+                |> GNode.set_prev (SOME gn)
+                |> GNode.set_goal (PNode.get_name pnode)
+*}
+
+ML{*
+     GraphEnv.Graph.out_enames g v
+     |> E.NSet.list_of
+*}
+ML{*
+EvalOutput.upd_by_wire (RTechnEval.EData.get_fmatch edata0) gnode' pnode Wire.default_wire;
+*}
+ML{*
+val [newg] = add_outputs v gn [pnode] edata0 g;
+Strategy_Dot.write_dot_to_file false (path ^ "test.dot") (g);
+*}
+
+ML{*
+ RTechnEval.eval_any edata0 |> Seq.list_of
+*}
+
+ML{*
+ val imp = "HOL.implies";
+ val conj = "HOL.conj";
+ val all = "HOL.All";
+
+ fun mk_wire name is_pos feature =
+   Wire.default_wire
+   |> Wire.set_name (SStrName.mk name)
+   |> Wire.set_goal 
+      (BWire.default_wire |> (if is_pos then BWire.set_pos (F.NSet.single feature) 
+                                         else BWire.set_neg (F.NSet.single feature)));
+
+ val comb_feature = Feature.Strings (StrName.NSet.of_list [imp,conj,all],"top-level-const");
+ val imp_feature = Feature.Strings (StrName.NSet.single imp,"top-level-const");
+ val conj_feature = Feature.Strings (StrName.NSet.single conj,"top-level-const");
+ val all_feature = Feature.Strings (StrName.NSet.single all,"top-level-const"); 
+
+ val comb_wire = mk_wire "neg_comb" false comb_feature;
+ val imp_wire = mk_wire "imp" true imp_feature;
+ val conj_wire = mk_wire "conj" true conj_feature;
+ val all_wire = mk_wire "all" true all_feature;
+*}
+
+-- "the reasoning techniques"
+ML{*
+val split1 = 
+ RTechn.id
+ |> RTechn.set_name "split1"
+ |> RTechn.set_inputs (W.NSet.single Wire.default_wire)
+ |> RTechn.set_outputs (W.NSet.of_list [comb_wire,imp_wire,conj_wire,all_wire]);
+*}
+
 
 ML{*
  Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") g;

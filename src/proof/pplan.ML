@@ -23,7 +23,7 @@ struct
   fun get_all_nms (Prf prf) = #all_nms prf;
   fun get_root_nms (Prf prf) = #root_nms prf;  
 
-  val lookup_node = StrName.NTab.lookup o get_ptab;
+  val lookup_node = StrName.NTab.lookup o get_ptab; 
 
   fun update_ptab f (Prf prf) = 
        Prf {ptab = f (#ptab prf), open_nms = #open_nms prf, 

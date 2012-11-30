@@ -65,73 +65,75 @@ struct
 
   (* begin eval identity *)
 
-  fun mk_eval_identity_rules edata v =
-   let 
-     fun gnode_of g = (case V.NSet.tryget_singleton (GraphEnv.get_goalnodes_of_graph g)
-                    of NONE => raise graph_exp ("graph does not contain exactly 1 goalnode",g)
+  fun mk_eval_identity_lhs edata v = 
+     v |> EvalGraph.mk_match_graph (EData.get_graph edata)
+       |> Seq.of_list
+       |> Seq.maps (EvalGraph.eval_var_mk_rule_aux (EData.get_graph edata))
+       |> Seq.list_of;
+
+  fun mk_eval_identity_delete_input lhs = 
+    let 
+      val gn_v = (case V.NSet.tryget_singleton (GraphEnv.get_goalnodes_of_graph lhs)
+                    of NONE => raise graph_exp ("graph does not contain exactly 1 goalnode",lhs)
                      | SOME v => v)
-     fun wire_of g gnode = case E.NSet.tryget_singleton (Strategy_Theory.Graph.out_enames g gnode)
-                             of NONE => raise EvalOutput.gnode_exp ("gnode does not have single output")
-                             | SOME e => GraphEnv.e_to_wire g e;
-     fun wgnode g = let val gnode = gnode_of g  in (GraphEnv.v_to_gnode g gnode,wire_of g gnode) end;
-     val lhs_seq = v |> EvalGraph.mk_match_graph (EData.get_graph edata)
-                     |> Seq.of_list
-                     |> Seq.maps (EvalGraph.eval_var_mk_rule_aux (EData.get_graph edata));
-     fun add_output_rule gnode lhs =
-       let
-         val [vrt] = GraphEnv.get_rtechns_of_graph lhs |> V.NSet.list_of
-         val outedges = Strategy_Theory.Graph.out_enames lhs vrt
-                     |> E.NSet.list_of
-         val outwires = outedges
-                     |> map (GraphEnv.edge_data lhs)
-                     |> maps GraphEnv.filter_edge
-                     |> W.NSet.of_list
-         val (SOME pnode) = PPlan.lookup_node (EData.get_pplan edata) (GNode.get_goal gnode)
-         val (matchw,gnode') = EvalOutput.lift_pnode_by_wires (EData.get_fmatch edata) outwires pnode
-         val [match_edge] = filter (fn e => Wire.eq (matchw,GraphEnv.e_to_wire (EData.get_graph edata) e)) outedges
-       in      
-         GraphEnv.insert_vertex (match_edge,lhs) (DB_VertexData.GN gnode)
-       end;
-     fun mk_rule lhs = 
-       let 
-         val (gnode,wire) = wgnode lhs
-         val rule1 = EvalGraph.delete_input_rule (gnode,wire)
-       in      
-         (lhs,rule1,add_output_rule gnode)
-       end;
+      val wire = case E.NSet.tryget_singleton (Strategy_Theory.Graph.out_enames lhs gn_v)
+                    of NONE => raise EvalOutput.gnode_exp ("gnode does not have single output")
+                    | SOME e => GraphEnv.e_to_wire lhs e;
+     in
+       (GraphEnv.v_to_gnode lhs gn_v,EvalGraph.delete_inputvar_rule wire)
+     end;
+
+  fun mk_eval_identity_add_outputs edata gnode graph =
+   let
+     val pnode = case StrName.NTab.lookup (EData.get_goals edata) (GNode.get_goal gnode) of
+                    NONE => raise EvalOutput.gnode_exp ("Goal " ^ GNode.get_goal gnode ^ " not present in pplan")
+                  | (SOME pn) => pn
+   in 
+     EvalGraph.add_outputs gnode [pnode] edata graph
+   end;
+
+  fun mk_eval_identity_rhs edata lhs =
+    let 
+       val (gnode,del_rule) = mk_eval_identity_delete_input lhs
     in
-      Seq.map mk_rule lhs_seq
+      EvalGraph.rewrite del_rule lhs
+      |> maps (mk_eval_identity_add_outputs edata gnode)
     end;
 
   fun mk_eval_identity_rule edata v =
-   let
-    fun apply (lhs,rule1,rhsf) = 
-         lhs
-         |> EvalGraph.rewrite_lazy rule1
-         |> Seq.map rhsf
-         |> Seq.map (fn rhs => Strategy_Theory.Rule.mk (lhs,rhs))
-   in
-    mk_eval_identity_rules edata v
-    |> Seq.maps apply
-   end
+   mk_eval_identity_lhs edata v
+   |> maps (fn lhs => 
+             map (fn rhs => Strategy_Theory.Rule.mk 
+                              (Strategy_Theory.Graph.minimise lhs,
+                               Strategy_Theory.Graph.minimise rhs)) 
+                 (mk_eval_identity_rhs edata lhs));
 
   fun eval_identity edata v =
    mk_eval_identity_rule edata v
+   |> Seq.of_list
    |> Seq.maps (fn rule => EvalGraph.rewrite_lazy rule (EData.get_graph edata))
    |> Seq.map (fn g => EData.set_graph g edata);
 
   (* end eval identity *)
 
-  fun eval_merge edata v =
+  fun eval_merge_rule graph v = 
     let 
-      val graph = EData.get_graph edata
       val wire = case E.NSet.tryget_singleton (GraphEnv.get_out_edges graph v) of
                    NONE => raise evaluate_exp (SOME v, "Evaluation of merge: multiple outputs")
                  | SOME e => GraphEnv.edge_data graph e
-      val rule = EvalGraph.mk_eval_merge_rule_of wire
+      val size = E.NSet.cardinality (Strategy_Theory.Graph.in_enames graph v)
     in
-      Seq.map (fn g => EData.set_graph g edata) (EvalGraph.rewrite_lazy rule graph)
+      EvalGraph.mk_eval_merge_rule_of_size wire size
+      (* uses !-box but gives an error: EvalGraph.mk_eval_merge_rule_of wire *)
     end;
+
+  fun eval_merge edata v =
+      EData.get_graph edata
+      |> (fn g => EvalGraph.rewrite_lazy (eval_merge_rule g v) g)
+      (* this is a hack: problem is one match per "non-goal edge" - for now just pick one
+          but should check substitution done! *)
+      |> (fn s => case Seq.pull s of (SOME (v,_)) => Seq.single v | NONE => Seq.empty)
+      |> Seq.map (fn g => EData.set_graph g edata) 
 
   (* for now we only unfold *)
   fun one_step edata v = 

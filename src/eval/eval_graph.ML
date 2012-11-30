@@ -4,6 +4,8 @@
 structure EvalGraph =
 struct
 
+  structure EData = EvalD_DF;
+
   (* actual rewriting *)
   fun rewrite_lazy rule graph = 
     let 
@@ -17,9 +19,50 @@ struct
 
   val rewrite = Seq.list_of oo rewrite_lazy;
 
+   (* begin simple output gnode *)
+
+  fun try_add_one_output_gnode gnode pnode edata graph edge = 
+    let 
+      val wire = case GraphEnv.edge_data graph edge of
+                    (DB_EdgeData.W wire) => wire
+                  | _ => raise EvalOutput.gnode_exp ("edge not a valid wire");
+      val maybe_gnode = EvalOutput.upd_by_wire (EData.get_fmatch edata) gnode pnode wire
+    in
+      case maybe_gnode of
+         NONE => []
+       | (SOME (_,gn)) => [GraphEnv.insert_vertex (edge,graph) (DB_VertexData.GN gn)]
+    end;
+
+  fun add_one_output_gnode v_rt gnode pnode edata graph = 
+   let 
+     val gnode' = gnode
+                |> GNode.set_prev (SOME gnode)
+                |> GNode.set_goal (PNode.get_name pnode)
+   in
+     GraphEnv.Graph.out_enames graph v_rt
+     |> E.NSet.list_of
+     |> maps (try_add_one_output_gnode gnode' pnode edata graph)
+   end;
+
+  fun add_outputs gnode pnds edata graph = 
+    let
+      val v_rt = (case V.NSet.tryget_singleton (GraphEnv.get_rtechns_of_graph graph)
+                    of NONE => raise EvalOutput.gnode_exp ("graph does not have exactly one rtechn")
+                     | SOME v => v)
+      fun add_one' pnode g = add_one_output_gnode v_rt gnode pnode edata g
+      fun add_one pnode g = case add_one' pnode g of
+                            [] => raise EvalOutput.gnode_exp ("nothing matches node: " ^ PNode.get_name pnode)
+                          | [x] => [x]
+                          | xs => (warning "many outputs matches for node .."; xs)
+    in
+      fold (fn pn => maps (add_one pn)) pnds [graph]
+    end;
+
+   (* end simple output gnode *)
+
   (* consume of input and generation of output nodes *)  
 
-  fun delete_input_rule (gnode,w) = 
+  fun mk_delete_input_rule w node = 
     let
       val (inp,g0) = Strategy_Theory.Graph.empty
                    |> Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert
@@ -31,7 +74,7 @@ struct
              |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) inp outp
              |> snd
       val (v,g2) = g1
-                 |> Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.GN gnode)) 
+                 |> Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert node) 
       val lhs = g2 
               |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) inp v
               |> snd
@@ -40,6 +83,11 @@ struct
     in
       Strategy_Theory.Rule.mk (lhs,rhs)
     end;  
+
+  fun delete_inputvar_rule w = mk_delete_input_rule w (DB_VertexData.GVar "g");
+
+  fun delete_inputgnode_rule (gnode,w) = mk_delete_input_rule w (DB_VertexData.GN gnode);
+
 
   (* I don't understand this! *)
   fun output_gnode (wr,rtechn) (w,gnode) = 
@@ -82,6 +130,21 @@ struct
   in
     subst |> Seq.map (fn sub => V.NSet.fold (inst sub) gvars graph_pat)
   end 
+
+  fun mk_eval_merge_rule_of_size edge n =
+    let 
+      val (v,g) = GraphEnv.lift_edgemerge_vertex n edge
+      val in_edge = Strategy_Theory.Graph.in_enames g v  
+                  |> E.NSet.get_local_bot
+                  |> the (* should always succeed *)
+      val out_edge = Strategy_Theory.Graph.out_enames g v
+                  |> E.NSet.get_local_bot
+                  |> the (* should always succeed *)
+      val lhs = GraphEnv.insert_vertex (in_edge,g) (DB_VertexData.GVar "g");
+      val rhs = GraphEnv.insert_vertex (out_edge,g) (DB_VertexData.GVar "g");
+    in
+      Strategy_Theory.Rule.mk (lhs,rhs)
+    end;
 
   fun mk_eval_merge_rule_of edge =
     let 
