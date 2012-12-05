@@ -10,6 +10,8 @@ struct
 
   (* updates edata *)
   (* ignores hyps and wire *)
+
+  (* DELETE!! *)
   fun upd_rule wset edata gnode (pnds,prf) = 
     let
      val edata' = edata
@@ -20,7 +22,7 @@ struct
       (edata',map (EvalOutput.upd_by_wires (EData.get_fmatch edata) gnode wset) pnds)
    end
 
-  (* updates graph *)
+  (* DELETE!! *)  (* updates graph *)
   fun mk_result (gnode,w,rtechn) (edata,outgs) =
     (edata,EvalGraph.delete_inputgnode_rule (gnode,w), map (EvalGraph.output_gnode (w,rtechn)) outgs)
 
@@ -60,10 +62,39 @@ struct
       (eval_v_rtechn (v_gnode,v_rtechn) (edata,lhs))
    end
 
-  (* fixme - not sure how smart it is to use the the output field - should check graph! *)
-  (* has this been tested on many outputs??? doubt it will work!!!
-      - problem is all input/output nodes are not accounted for!  *)
+
+  (* create rule to delete input rule:
+       input (Gnode * wire) *)
+  val mk_delete_input_rule = EvalGraph.delete_inputgnode_rule;
+
+  (* function to make output nodes *)
+  fun mk_move_output_graphfn edata gnode pnds  = 
+      EvalGraph.add_outputs gnode pnds edata;
+
+  fun update_edata_app edata prf gnode pnds =
+      edata |> EData.set_pplan prf (* updates proof in context *)
+            |> EData.del_goal (GNode.get_goal gnode) (* deletes goal from ctxt (now in prf) *)
+            |> EData.add_goals pnds;
+
+  fun mk_rule_one_branch edata lhs ((gnode,wire,_),(pnds,prf)) =
+    let
+       val edata' = update_edata_app edata prf gnode pnds;
+       val del_rule = mk_delete_input_rule (gnode,wire);     
+       val add_outf = mk_move_output_graphfn edata' gnode pnds;
+       val lhs' = EvalGraph.rewrite del_rule lhs
+    in
+      lhs |> EvalGraph.rewrite del_rule
+          |> maps add_outf
+          |> map (fn rhs => (edata',(lhs,rhs)))
+          |> Seq.of_list
+    end;
+
   fun eval_mk_rule edata lhs =
+    eval_apply_tactic edata lhs
+    |> Seq.maps (mk_rule_one_branch edata lhs)
+
+  (* DELETE!! *)
+  fun eval_mk_rule_old edata lhs =
    let
       fun apply_subst rws = fold (fn r => maps (EvalGraph.rewrite r)) rws [lhs]
       fun update (edata',ri,ros) =  (edata',map (fn r => (lhs,r)) (apply_subst (ri::ros)))
@@ -82,21 +113,21 @@ struct
    end
 
   fun eval_var_mk_rule edata graph_pat =
-   Seq.maps (eval_mk_rule edata) (EvalGraph.eval_var_mk_rule_aux (EData.get_graph edata) graph_pat);
+   Seq.maps (eval_mk_rule edata) (EvalGraph.eval_match_and_instantiate_rhs (EData.get_graph edata) graph_pat);
 
   (* almost the same as above - just used for debugging *)
   fun eval_debug_apply_tactic edata graph_pat =
-   Seq.maps (eval_apply_tactic edata) (EvalGraph.eval_var_mk_rule_aux (EData.get_graph edata) graph_pat);
+   Seq.maps (eval_apply_tactic edata) (EvalGraph.eval_match_and_instantiate_rhs (EData.get_graph edata) graph_pat);
 
-   fun eval_rule edata rule = 
+   fun eval_rule (edata,rule) = 
      EvalGraph.rewrite_lazy (Strategy_Theory.Rule.mk rule) (EData.get_graph edata)
      |> Seq.map (fn g => EData.set_graph g edata)
 
-   fun eval_rules (edata,rules) = Seq.maps (eval_rule edata) (Seq.of_list rules);
+   (* fun eval_rules (edata,rules) = Seq.maps (eval_rule edata) (Seq.of_list rules); *)
 
    fun eval_graph edata lhs =
      eval_var_mk_rule edata lhs
-     |> Seq.maps eval_rules;    
+     |> Seq.maps eval_rule;    
 
   (* makes match graphs and evaluates *)
   fun eval_atomic edata v = 

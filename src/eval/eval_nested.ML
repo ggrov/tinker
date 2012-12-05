@@ -10,7 +10,7 @@ struct
   fun lhs_seq graph v = 
     v |> EvalGraph.mk_match_graph graph
       |> Seq.of_list
-      |> Seq.maps (EvalGraph.eval_var_mk_rule_aux graph)
+      |> Seq.maps (EvalGraph.eval_match_and_instantiate_rhs graph)
       |> Seq.map GraphEnv.half_edge_to_boundary
 
   fun v_gnode g = (case V.NSet.tryget_singleton (GraphEnv.get_goalnodes_of_graph g)

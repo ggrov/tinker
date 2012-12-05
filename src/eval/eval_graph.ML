@@ -113,7 +113,8 @@ struct
     end;     
 
   (* finds and instantiates the goal node *)
-  fun eval_var_mk_rule_aux graph graph_pat =
+  (* was  eval_var_mk_rule_aux *)
+  fun eval_match_and_instantiate_rhs graph graph_pat =
    let 
    (* match - FIXME: must be a better way than creating a dummy rule *)
     val subst = Strategy_Theory.RulesetRewriter.rule_matches 

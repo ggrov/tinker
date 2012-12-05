@@ -68,7 +68,7 @@ struct
   fun mk_eval_identity_lhs edata v = 
      v |> EvalGraph.mk_match_graph (EData.get_graph edata)
        |> Seq.of_list
-       |> Seq.maps (EvalGraph.eval_var_mk_rule_aux (EData.get_graph edata))
+       |> Seq.maps (EvalGraph.eval_match_and_instantiate_rhs (EData.get_graph edata))
        |> Seq.list_of;
 
   fun mk_eval_identity_delete_input lhs = 

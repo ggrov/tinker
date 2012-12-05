@@ -5,7 +5,7 @@ struct
    structure Wire = BWire;
 
    (* goal can also just be in the facts set?? *)
-  datatype T = Goal of {facts : GFact.NSet.T BW.NTab.T, (* map from BWire to a set of assumption *)
+  datatype T = Goal of {facts : StrName.NSet.T BW.NTab.T, (* map from BWire to a set of assumption *)
                         goal : PNode.gname, (* or actually the gnode *)
                         prev : T option}
 
@@ -68,9 +68,14 @@ struct
     set_facts (combine_facts' goal1 goal2) goal1
 
   (* fixme add remaining *)
-   fun pretty goal = Pretty.block
-     [Pretty.str "Goal goal: ",
-      Pretty.str (get_goal goal)]
+
+   fun pretty_hyp (bwire,gs) = 
+    Pretty.block [BWire.pretty bwire,Pretty.str " : ",StrName.NSet.pretty gs];
+
+   fun pretty goal = 
+     ((map pretty_hyp (BW.NTab.list_of (get_facts goal)))
+     @ [Pretty.str "|---", Pretty.str (get_goal goal)])
+     |> Pretty.chunks;
 
   (* Note: ignores wire since I think this should be removed *)
   fun ord (g1,g2) = 

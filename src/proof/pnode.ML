@@ -159,8 +159,7 @@ struct
       [ StrName.NSet.list_of (get_lassms node)
         |> map (pretty_hyp node)
         |> (fn l => l @ [Pretty.str "|---------"])
-        |> Pretty.fbreaks 
-        |> Pretty.block
+        |> Pretty.chunks
       ];
    
   fun pretty_sequent node =
@@ -178,8 +177,7 @@ struct
 
   fun pretty node = 
     ((pretty_fixes node) @ (pretty_sequent node) @ [pretty_result node])
-    |> Pretty.fbreaks
-    |> Pretty.block;  
+    |> Pretty.chunks;  
 
 end
 
