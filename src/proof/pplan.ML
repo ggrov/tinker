@@ -198,7 +198,8 @@ struct
    let 
      val gnode = gnode_of prf gnode goal
    in 
-     (gnode, insert_open_nd gnode prf)
+     (* last application:  also keep open node in pplan - remove if not *)
+     (gnode, prf |> insert_open_nd gnode |> update_ptab_nd gnode)
    end;   
 
  fun apply_prf prf0 gnode thm = 
@@ -240,6 +241,7 @@ struct
                    |> PNode.set_result (SOME [PNode.get_name gnode'])
      val prf' = prf
               |> insert_open_nd gnode'
+              |> update_ptab_nd gnode' (* also keep open node in pplan - remove if not *)
               |> remove_open_nd newgnode
               |> update_ptab_nd newgnode
      in
@@ -265,5 +267,23 @@ struct
     (PNode.get_goal gnode
     |> (((Method.insert_tac (PNode.get_all_assms gnode) 1)) THEN  (t (PNode.get_ctxt gnode)))
     |> Seq.map (apply_prf prf gnode)));
+
+  fun pretty_children pplan node =
+    case PNode.get_result node of 
+       NONE => []
+     | (SOME children) => map (pretty_node pplan) children 
+  and pretty_node pplan node =
+   case lookup_node pplan node of
+     NONE => Pretty.str "error"
+     | (SOME nd) => Pretty.enclose "{" "}" 
+                        (Pretty.fbreaks (PNode.pretty nd :: pretty_children pplan nd))      
+
+  fun pretty pplan =
+    StrName.NSet.list_of (get_root_nms pplan)
+    |> map (pretty_node pplan)
+    |> Pretty.fbreaks
+    |> Pretty.block;
+
+  val print = Pretty.writeln o pretty
 
 end

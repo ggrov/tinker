@@ -21,7 +21,7 @@ struct
   datatype desc_typ =
     (* name and configs: (type,args) pair *) 
     DTac of string * ((string * string list) list)
-  | DRule 
+  | DRule of string
   | DErule 
   | DFrule 
   | DUnknown of string
@@ -59,6 +59,7 @@ struct
   fun get_desc (Goal rep) = #desc rep;
 
   val get_all_assms = StrName.NTab.values o get_assms;
+  val get_hyp = StrName.NTab.get o get_assms;
 
   fun update_name f (Goal rep) = Goal
    {name = f (#name rep), ctxt = #ctxt rep, assms = #assms rep, lassms = #lassms rep,
@@ -121,6 +122,64 @@ struct
 
   fun assms_of (R _) = StrName.NTab.empty
    |  assms_of (G (Goal rep)) = (#assms rep);
+
+  (* 
+     checks if context has been extended
+     -> what about forward proof?
+   *)
+  fun empty_list [] = true
+   |  empty_list _ = false
+
+  fun check_ctxt_extended node =
+    StrName.NSet.is_empty (get_lassms node) andalso
+    empty_list (get_fixes node)
+  
+  (* no brackets around! *)
+ 
+  fun pretty_fixes node =
+    if empty_list (get_fixes node)
+     then []
+     else [Pretty.block ((Pretty.str "fixes: "):: Pretty.commas (map Pretty.str (get_fixes node)))];
+
+  fun pretty_goal (ctxt:Proof.context) gname thm = 
+   Pretty.block 
+    [Pretty.str gname,
+     Pretty.str ":", 
+     Syntax.pretty_term ctxt (Thm.concl_of thm)];
+
+  fun pretty_hyp node gname =
+   Pretty.block 
+    [Pretty.str gname,
+     Pretty.str ":", 
+     Display.pretty_thm (get_ctxt node) (StrName.NTab.get (get_assms node) gname)];
+
+  fun pretty_hyps node =   
+    if StrName.NSet.is_empty (get_lassms node) then []
+    else
+      [ StrName.NSet.list_of (get_lassms node)
+        |> map (pretty_hyp node)
+        |> (fn l => l @ [Pretty.str "|---------"])
+        |> Pretty.fbreaks 
+        |> Pretty.block
+      ];
+   
+  fun pretty_sequent node =
+    (pretty_hyps node)
+    @
+    [pretty_goal (get_ctxt node) (get_name node) (get_goal node)]
+
+  fun pretty_result node = 
+    case get_result node of 
+      NONE => Pretty.str "[ ?gap ]"
+    | (SOME []) => Pretty.str "[ by ??? ]"
+    | (SOME res) => 
+        Pretty.enclose "[" "]" 
+           ([Pretty.str " to : "] @ (Pretty.commas (map Pretty.str res)) @ [Pretty.str " by ??? "]);
+
+  fun pretty node = 
+    ((pretty_fixes node) @ (pretty_sequent node) @ [pretty_result node])
+    |> Pretty.fbreaks
+    |> Pretty.block;  
 
 end
 

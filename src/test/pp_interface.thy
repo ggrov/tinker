@@ -93,6 +93,11 @@ ML{*
 val edata1 = RTechnEval.eval_any edata1 |> Seq.list_of |> hd;
 Strategy_Dot.write_dot_to_file false ( path ^ "/mtemp0.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise );
 *}
+
+
+
+
+
 ML{*
 val edata1 = RTechnEval.eval_any edata1 |> Seq.list_of |> hd;
 Strategy_Dot.write_dot_to_file true ( path ^ "/mtemp0.dot") (EData.get_graph edata1 |> Strategy_Theory.Graph.minimise );

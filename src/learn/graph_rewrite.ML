@@ -2,7 +2,7 @@ structure GraphRewrite =
 struct
 
   (* functions to rewrite and return the hierarchical rule *)
-  val rewrite = EvalAtomic.rewrite;
+  val rewrite = EvalGraph.rewrite;
 
   fun REPEAT_MAX' rule gs = 
     let

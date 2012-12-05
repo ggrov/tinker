@@ -135,6 +135,9 @@ ML{*
 *}
 
 ML{*
+PPlan.print (RTechnEval.EData.get_pplan edata)
+*}
+ML{*
   val [edata] = RTechnEval.eval_any edata |> Seq.list_of; 
   Strategy_Dot.write_dot_to_file false (path ^ "simplex.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
 *}

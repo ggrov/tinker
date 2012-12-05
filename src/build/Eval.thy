@@ -1,5 +1,5 @@
 (* simple test of proof representation *)
-theory Eval                                                                                                                                          
+theory Eval                                                                                                                                            
 imports         
   Stratlang                                                                        
 uses                           

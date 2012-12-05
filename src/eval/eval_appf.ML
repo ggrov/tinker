@@ -29,11 +29,17 @@ struct
     fun thm_seq edata gnode thm_nms =
      Seq.of_list (thm_list edata gnode thm_nms);
 
+    fun assms_seq edata gnode fact_nms =
+      fact_nms 
+      |> StrName.NSet.list_of 
+      |> map (PNode.get_hyp (EData.get_goal edata (GNode.get_goal gnode)))
+      |> Seq.of_list;
+
    fun thm_seq_of_bwire_nm edata gnode bwire_nm = 
      (case GNode.lookup_facts_by_name (SStrName.mk bwire_nm) gnode
          of NONE => GFact.NSet.empty
                  | (SOME ns) => ns)
-      |> thm_seq edata gnode
+      |> assms_seq edata gnode
 
   (*
    FIXME: function to substitute in asm - must be a simpler way

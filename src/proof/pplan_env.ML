@@ -17,7 +17,9 @@ struct
              snd_thms)
        fst_thms
        [];
-   (* TODO: fixme - not sure this is really frule! *)   
+   (* TODO: fixme - not sure this is really frule! *)  
+
+  (* note: fst_thms: facts snd_thms: rules *) 
   fun apply_frule (gnode,prf) fst_thms snd_thms = 
         apply_frule' (gnode,prf)  (combine_thms fst_thms snd_thms);
 

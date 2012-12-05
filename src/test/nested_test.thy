@@ -37,6 +37,10 @@ ML{*
 *}
 
 ML{*
+PPlan.print (RTechnEval.EData.get_pplan edata1)
+*}
+
+ML{*
 val [res] = RTechnEval.eval_full edata1 |> Seq.list_of;
  Strategy_Dot.write_dot_to_file false (path ^ "nested1.dot") (RTechnEval.EData.get_graph res);
 val [g]=  EvalNested.apply_inv_rule rule  (RTechnEval.EData.get_graph res |> Strategy_Theory.Graph.normalise) |> Seq.list_of;
