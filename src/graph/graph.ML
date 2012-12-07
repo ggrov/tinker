@@ -6,7 +6,7 @@ structure Strategy_GraphParam_DB
   structure VData = Strategy_VertexData;
   structure EData = Strategy_EdgeData;
 
-  (* fixme: allows substitution in edge and vertex *)
+  (* fixme: change to allow substitution in edge and vertex *)
   type subst = DB_VertexData.subst;
   val empty_subst = DB_VertexData.empty_subst;
   fun compose_subst s1 s2 = DB_VertexData.compose_subst (s1,s2);
@@ -28,7 +28,7 @@ structure Strategy_GraphParam_DB
   val pretty_subst = DB_VertexData.pretty_subst;
   val print_subst = Pretty.writeln o pretty_subst; 
 
-  (* FIXME: substitutions for variables in vertex/edge data  
+  (* 
   type subst = VData.subst * EData.subst;
   val empty_subst = (VData.empty_subst,EData.empty_subst);
   fun compose_subst (vu1,eu1) (vu2,eu2) = 
@@ -58,7 +58,7 @@ structure Strategy_GraphParam_DB
   fun pretty_subst (vu,eu) = 
     Pretty.block [VData.pretty_subst vu,EData.pretty_subst eu];
   val print_subst = Pretty.writeln o pretty_subst;
-*)
+ *)
 
 
   structure NoInternalData = NoInternalDataGraphParam(

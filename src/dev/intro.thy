@@ -4,7 +4,7 @@ imports
 begin
 
 ML{*
-  val path = "/Users/gudmund/";
+  val path = "/u1/staff/gg112/";
 *}
 
 section "Implements an introduction method using graphs"
@@ -93,102 +93,10 @@ ML{*
  Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata0);
 *}
 
-(* fixme: eval-full does not terminate!!!! *)
 
 ML{*
   val edata =  (RTechnEval.eval_full edata0 |> Seq.list_of |> hd);
  Strategy_Dot.write_dot_to_file false (path ^ "imptesta.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
-*}
-ML{*
-  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
- Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
-*}
-
-ML{*
-  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
- Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
-*}
-
-ML{*
-  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
- Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
-*}
-
-
-ML{*
-  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
- Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
-*}
-
-ML{*
-  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
- Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
-*}
-
-ML{*
-  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
- Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
-*}
-
-ML{*
-  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
- Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
-*}
-ML{*
-  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of);
- Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
-*}
-
-ML{*
-  val edata = hd (RTechnEval.eval_any edata |> Seq.list_of); 
- Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
-*}
-
-ML{*
- val g = RTechnEval.EData.get_graph edata;
- val [v] = GraphEnv.get_rtechns_of_graph g |> V.NSet.list_of
-         |> filter (RTechn.is_merge o (GraphEnv.v_to_rtechn g));
- val rule = RTechnEval.eval_merge_rule g v;
- Strategy_Dot.write_dot_to_file false (path ^ "test2.dot") (Strategy_Theory.Rule.get_rhs rule)
-*}
-
-ML{*
-  val edata = (RTechnEval.eval_any edata |> Seq.pull);
- Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
-*}
-
-ML{*
-
-val [gnode] = GraphEnv.get_goalnodes_of_graph (RTechnEval.EData.get_graph edata0) 
-              |> V.NSet.list_of
-              |> map (GraphEnv.v_to_gnode (RTechnEval.EData.get_graph edata0));
-val (SOME pnode) = PPlan.lookup_node (RTechnEval.EData.get_pplan edata0) "g";
-val check = EvalOutput.upd_by_wire (RTechnEval.EData.get_fmatch edata0) gnode pnode;
-
-val v_rt = GraphEnv.get_rtechns_of_graph (RTechnEval.EData.get_graph edata0) |> V.NSet.list_of |> hd;
-val rt = GraphEnv.v_to_rtechn (RTechnEval.EData.get_graph edata0) v_rt;
-check comb_wire;
-check imp_wire;
-check conj_wire;
-check all_wire;
-*}
-ML{*
- val rule =  EvalGraph.output_gnode (comb_wire,rt) (comb_wire,gnode);
- val lhs = Strategy_Theory.Rule.get_rhs rule;
- Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (lhs);
-*}
-
-
-ML{*
-  val edata = hd (RTechnEval.eval_any edata0 |> Seq.list_of);
- Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
-*}
-
-
-
-ML{*
-  val edata = (RTechnEval.eval_any edata |> Seq.list_of);
- Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
 *}
 
 

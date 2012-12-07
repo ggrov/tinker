@@ -34,7 +34,7 @@ get the quantomatic library (requires git)
   git checkout integration
   git pull
 
-Downloading and Installing IsaPlanner
+Downloading and Installing the Strategly language
 ----------------------------
 
   svn checkout https://isaplanner.svn.sourceforge.net/svnroot/isaplanner/trunk/Stratlang
