@@ -5,6 +5,55 @@ imports
 begin
 
 ML{*
+Induct.induct_tac  @{context};
+Induct_Tacs.induct_tac @{context} [] 1;
+*}
+
+ML{*
+val t = @{term "(x::nat) > 0"};
+val ty = @{typ "nat"};
+fun tt (Type(v,_)) = v;
+tt ty;
+Term.dest_Free;
+Term.strip_all_vars;
+
+Datatype.get_info @{theory} "Nat.nat";
+*}
+
+ML{*
+ fun free_of (Free f) = [f]
+  |  free_of (Abs (_,_,t)) = free_of t
+  |  free_of (t1 $ t2) = (free_of t1) @ (free_of t2)
+  |  free_of _ = [];
+
+fun ind_things t = (Term.strip_all_vars t) @ free_of t;
+
+ fun datatype_chk ctxt(Type(tn,_))  = 
+       Basics.is_some (Datatype.get_info (Proof_Context.theory_of ctxt) tn)
+     | datatype_chk _ _ = false;
+
+fun ind_vars ctxt t = filter ((datatype_chk ctxt) o snd) (ind_things t)
+               |> map ((fn x => [[x]]) o SOME o fst);
+
+
+fun ind_tac ctxt thm = 
+   thm
+   |> prems_of
+   |> maps (ind_vars ctxt)
+   |> Seq.of_list
+   |> Seq.maps (fn var => Induct_Tacs.induct_tac ctxt var 1 thm);
+
+val t = @{term "(x::nat) > (y::nat)"};
+;
+
+*}
+
+lemma "(x::nat) > (y::nat)"
+ apply (tactic {* ind_tac @{context} *})
+ back
+ back
+
+ML{*
  val (g,pp) = PPlan.init @{context} @{prop "A ==> B ==> C ==> D"};
  PPExpThm.export pp g
 
