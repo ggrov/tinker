@@ -8,6 +8,21 @@ struct
 
   (* Proof state *)
   type fixes = string list;
+  (* to do: add features,
+      syntax:
+         type: e.g. g_feature
+         name: string e.g. top_level
+         args list: e.g. <arg>forall</arg><arg>exists</arg>
+       (note: disjunction is pushed into feature)
+       <feature type=g_feature name=has_symbol>
+         <arg>forall</arg>
+         <arg>exists</arg>
+       </feature>  
+       <negfeature type=g_feature name=has_symbol>
+         <arg>and</arg>
+         <arg>or</arg>
+       </negfeature>  
+      *)
   type PS = fixes * (string * term_ref) list * term_ref; (* need to know about "used" assumptions etc. *)
   (* thm - can either be hyp or global thm *)
   datatype thm_name = Thm of string | Hyp of string;

@@ -7,7 +7,7 @@ uses
 begin
 
 ML{*
- val path = "/u1/staff/gg112/"     
+ val path = "/Users/ggrov/"     
 *}
 
 lemma lem1: "! x y. P x \<and> P y --> P x \<and> P y"
@@ -31,7 +31,17 @@ lemma lem2: "! x. P x --> P x"
 ML{*
 val g1 =  ParseTree.parse_file (path ^ "/Stratlang/src/parse/examples/attempt_lem1.yxml")
        |> GraphTransfer.graph_of_goal @{context};
-Strategy_Dot.write_dot_to_file true ( path ^ "/pp_test1.dot") g1;   
+Strategy_Dot.write_dot_to_file false ( path ^ "/ai4fmtalk.dot") g1;    
+*}
+
+ML{*
+val g = GraphExtract.generalise_best (2,true) (0,false) (2,true) g1 |> snd |> hd
+      |> Strategy_Theory.Graph.minimise;
+*}
+
+ML{*
+Strategy_Dot.write_dot_to_file true ( path ^ "/ai4fmtalk2.dot") g
+
 *}
 
 ML{*
