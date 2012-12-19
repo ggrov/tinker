@@ -93,13 +93,13 @@ Thy_Load.get_master_path ();
 thm allI
 
 ML{*
- Strategy_Dot.write_dot_to_file false (path ^ "imptest0.dot") g;  
+ Strategy_Dot.write_dot_to_file false (path ^ "imptest0.dot") g; 
 *}
 
 ML{*
  val edata0 = RTechnEval.init_g th' [@{prop "A \<and> (B \<longrightarrow> (B \<and> C))"}] g;
  Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata0);
-*}  
+*}
 
 
 ML{*

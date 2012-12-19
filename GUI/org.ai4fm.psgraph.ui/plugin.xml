@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="PPlan"
+            id="org.ai4fm.psgraph.ui">
+      </category>
+      <view
+            name="PPlan "
+            icon="icons/sample.gif"
+            category="org.ai4fm.psgraph.ui"
+            class="org.ai4fm.psgraph.ui.views.PPlanView"
+            id="org.ai4fm.psgraph.ui.views.PPlanView">
+      </view>
+      <view
+            category="org.ai4fm.psgraph.ui"
+            class="org.ai4fm.psgraph.ui.views.GraphView"
+            icon="icons/sample.gif"
+            id="org.ai4fm.psgraph.ui.GraphView"
+            name="Graph"
+            restorable="true">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <view
+               ratio="0.5"
+               relative="org.eclipse.ui.views.ProblemView"
+               relationship="right"
+               id="org.ai4fm.psgraph.ui.views.PPlanView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
+
+</plugin>

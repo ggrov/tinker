@@ -51,7 +51,7 @@ struct
    | Using of thm_name list * meth
    | Unknown of string;
    (* from a b c have g:"p x" becomes Have ([Thm "a", Thm "b", Hyp "c"],"g",StrTerm "p x") *)
-   (* | Have of thm_name list * string * term_ref *)
+   | Have of thm_name list * string * term_ref
  
   (* user provided annotations [will need a richer datatype] *)
   type why = string * meth
@@ -60,8 +60,6 @@ struct
     | Proof of why * PG list
     | Failure of {failures : PT list, valid : PT option} (* assume failed is ordered *)
   and PG = Goal of {state : PS, cont : PT};
-
- datatype Theory = Th of PG StrName.NTab.T;
 
   (* encoding and decoding of xml representation *)
   exception decode_exp of string * XML.tree;
@@ -217,14 +215,6 @@ struct
         Goal {state = decode_ps state_tree,cont = decode_pt cont_tree}
    | decode_pg tree = raise decode_exp ("cannot decode proof goal",tree);
 
- fun decode_lemma (XML.Elem (("Lemma",[("name",s)]),[m])) = (s,decode_pg m);
-
- fun decode_theory (XML.Elem (("Theory",_),),lemmas) = 
-   lemmas
-   |> map decode_lemma 
-   |> StrName.NTab.of_list
-   |> Th;
-
  fun parse_file filename = 
    let
      val is = TextIO.openIn filename
@@ -233,15 +223,8 @@ struct
    in
      inp |> YXML.parse_body 
          |> hd (* not sure what's in the rest of the list *)
-         |> decode_pg (* should be decode_theory *)
+         |> decode_pg
    end;
-
-  fun path th = Path.implode (Thy_Load.master_directory th) ^ "/";
-  fun fname' th = (Context.theory_name th) ^ ".pp";
-  fun filename th = (path th) ^ (fname' th);
-
-  val parse_theory = parse_file o filename;
-
 
 end;
 
