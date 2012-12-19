@@ -49,8 +49,10 @@ ML{*
 val edata0 = RTechnEval.init_f @{theory} [@{prop "! x y. P x \<and> P y --> P x \<and> P y"}] (fn th => (g1,th))
            |> EData.set_tactics (StrName.NTab.of_list [("atac",K (K (atac 1)))]);;
 
-Strategy_Dot.write_dot_to_file true ( path ^ "/mmtemp0.dot") (EData.get_graph edata0 |> Strategy_Theory.Graph.minimise); 
+Strategy_Dot.write_dot_to_file true ( "findme.dot") (EData.get_graph edata0 |> Strategy_Theory.Graph.minimise); 
 *} 
+
+
 
 (* Debugging: execute internally only, i.e. rewrite graph! *)
 ML{*

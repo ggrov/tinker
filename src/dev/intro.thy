@@ -4,7 +4,7 @@ imports
 begin
 
 ML{*
-  val path = "/u1/staff/gg112/";
+  val path = "/Users/ggrov/";
 *}
 
 section "Implements an introduction method using graphs"
@@ -83,6 +83,14 @@ val g = GraphComb.self_loops g;
 val (g',th') = NEST "intros" (LIFT g) th;
 *}
 
+ML{*
+
+Thy_Load.get_master_path ();
+
+*}
+
+
+thm allI
 
 ML{*
  Strategy_Dot.write_dot_to_file false (path ^ "imptest0.dot") g; 
@@ -99,6 +107,18 @@ ML{*
  Strategy_Dot.write_dot_to_file false (path ^ "imptesta.dot") (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise);
 *}
 
+ML{*
+RTechnEval.EData.print edata
+*}
+
+ML{*
+Goal.init @{cprop "x=x"};
+*} 
+schematic_lemma d: "?P"
+ apply auto
+ done
+
+thm d
 
 end;
 

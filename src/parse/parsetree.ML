@@ -50,6 +50,8 @@ struct
    | Tactic of atac
    | Using of thm_name list * meth
    | Unknown of string;
+   (* from a b c have g:"p x" becomes Have ([Thm "a", Thm "b", Hyp "c"],"g",StrTerm "p x") *)
+   | Have of thm_name list * string * term_ref
  
   (* user provided annotations [will need a richer datatype] *)
   type why = string * meth
