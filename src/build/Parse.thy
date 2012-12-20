@@ -4,7 +4,7 @@ imports
   Eval                                      
 uses
   "../parse/parsetree.ML"
-  "../parse/graph_transfer.ML"                                                                        
+  "../parse/graph_transfer.ML"                                                                         
 begin
 
 end

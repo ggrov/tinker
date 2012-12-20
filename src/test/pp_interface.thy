@@ -7,6 +7,11 @@ uses
 begin
 
 ML{*
+
+  filename @{theory};
+*}
+
+ML{*
  val path = "/Users/ggrov/"     
 *}
 
