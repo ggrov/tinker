@@ -115,12 +115,14 @@ public final class GraphView extends ViewPart {
 
 	private void fillLocalPullDown(IMenuManager manager) {
 		manager.add(nextAction);
-		// manager.add(new Separator());
+		manager.add(new Separator());
+		manager.add(backAction);
 	}
 
 	
 	private void fillLocalToolBar(IToolBarManager manager) {
 		manager.add(nextAction);
+		manager.add(backAction);
 		// manager.add(action2);
 	}	
 	
@@ -134,6 +136,16 @@ public final class GraphView extends ViewPart {
 		nextAction.setToolTipText("Apply next step");
 		nextAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
 			getImageDescriptor(ISharedImages.IMG_TOOL_FORWARD));
+
+		backAction = new Action() {
+			public void run() {
+				updateGraph("x -> y");
+			}
+		};
+		backAction.setText("Back");
+		backAction.setToolTipText("Backtrack previous step");
+		backAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
+			getImageDescriptor(ISharedImages.IMG_TOOL_UNDO));		
 		
 	}
 	
