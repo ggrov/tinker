@@ -114,29 +114,23 @@ public final class GraphView extends ViewPart {
 	}
 
 	private void fillLocalPullDown(IMenuManager manager) {
-		manager.add(nextAction);
-		manager.add(new Separator());
 		manager.add(backAction);
+		manager.add(new Separator());
+		manager.add(exitAction);
+		manager.add(new Separator());
+		manager.add(nextAction);
 	}
 
 	
 	private void fillLocalToolBar(IToolBarManager manager) {
-		manager.add(nextAction);
 		manager.add(backAction);
+		manager.add(exitAction);
+		manager.add(nextAction);
 		// manager.add(action2);
 	}	
 	
 	private void makeActions() {
-		nextAction = new Action() {
-			public void run() {
-				updateGraph("x -> y");
-			}
-		};
-		nextAction.setText("Next");
-		nextAction.setToolTipText("Apply next step");
-		nextAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
-			getImageDescriptor(ISharedImages.IMG_TOOL_FORWARD));
-
+		
 		backAction = new Action() {
 			public void run() {
 				updateGraph("x -> y");
@@ -145,8 +139,27 @@ public final class GraphView extends ViewPart {
 		backAction.setText("Back");
 		backAction.setToolTipText("Backtrack previous step");
 		backAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
-			getImageDescriptor(ISharedImages.IMG_TOOL_UNDO));		
+			getImageDescriptor(ISharedImages.IMG_TOOL_UNDO));	
 		
+		exitAction = new Action() {
+			public void run() {
+				updateGraph("x -> y");
+			}
+		};
+		exitAction.setText("Exit");
+		exitAction.setToolTipText("Terminate proof process");
+		exitAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
+			getImageDescriptor(ISharedImages.IMG_ELCL_STOP));	
+		
+		nextAction = new Action() {
+			public void run() {
+				updateGraph("x -> y");
+			}
+		};
+		nextAction.setText("Next");
+		nextAction.setToolTipText("Apply next step");
+		nextAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
+			getImageDescriptor(ISharedImages.IMG_TOOL_FORWARD));	
 	}
 	
 	
