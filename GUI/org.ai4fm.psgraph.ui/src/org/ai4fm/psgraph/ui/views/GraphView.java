@@ -9,6 +9,7 @@
 
 package org.ai4fm.psgraph.ui.views;
 
+import org.ai4fm.psgraph.ui.Communication;
 import org.ai4fm.psgraph.ui.PSGraphUIPlugin;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -26,6 +27,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -64,6 +66,9 @@ public final class GraphView extends ViewPart {
 	private Composite composite;
 	private Graph graph;
 	
+	// communication
+	private Communication com;
+	
 	// buttons
 	private Action nextAction;
 	private Action backAction;
@@ -88,7 +93,7 @@ public final class GraphView extends ViewPart {
 	 * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-	public void createPartControl(final Composite parent) {
+	public void createPartControl(final Composite parent){
 		composite = new Composite(parent, SWT.NULL);
 		GridLayout layout = new GridLayout();
 		composite.setLayout(layout);
@@ -101,6 +106,7 @@ public final class GraphView extends ViewPart {
 		
 		makeActions();
 		contributeToActionBars();
+		com = new Communication(composite); 
 	}
 
 	public Graph getGraph() {
@@ -134,6 +140,8 @@ public final class GraphView extends ViewPart {
 		backAction = new Action() {
 			public void run() {
 				updateGraph("x -> y");
+				com.connect();
+				com.sendCmd(2);
 			}
 		};
 		backAction.setText("Back");
@@ -143,7 +151,7 @@ public final class GraphView extends ViewPart {
 		
 		exitAction = new Action() {
 			public void run() {
-				updateGraph("x -> y");
+				updateGraph(com.getGraph());
 			}
 		};
 		exitAction.setText("Exit");
@@ -153,7 +161,16 @@ public final class GraphView extends ViewPart {
 		
 		nextAction = new Action() {
 			public void run() {
+				// com.start(); // maybe a separate thread?
 				updateGraph("x -> y");
+				com.errorMessage("No communication","no active graph");
+
+				/* MessageBox dialog = 
+						new MessageBox(composite.getShell(), SWT.ICON_ERROR | SWT.OK);
+				dialog.setText("No communciation");
+				dialog.setMessage("No active graph");
+				dialog.open(); */
+
 			}
 		};
 		nextAction.setText("Next");
