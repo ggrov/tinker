@@ -140,8 +140,9 @@ public final class GraphView extends ViewPart {
 		backAction = new Action() {
 			public void run() {
 				updateGraph("x -> y");
-				com.connect();
-				com.sendCmd(2);
+				if (!com.isConnected())
+					com.connect();
+				com.onlySendCmd(com.CMD_NEXT);
 			}
 		};
 		backAction.setText("Back");
@@ -151,7 +152,7 @@ public final class GraphView extends ViewPart {
 		
 		exitAction = new Action() {
 			public void run() {
-				updateGraph(com.getGraph());
+				com.disconnect();
 			}
 		};
 		exitAction.setText("Exit");

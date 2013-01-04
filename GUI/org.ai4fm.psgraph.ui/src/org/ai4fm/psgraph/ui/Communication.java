@@ -21,11 +21,11 @@ public class Communication {
 	private BufferedReader in;
 	private PrintWriter out;
 	
-	private int CMD_EXIT = 0; // terminate
-	private int CMD_NEXT = 1; // next step
-	private int CMD_BACK = 2; // backtrack
-	private int CMD_PPLAN = 3; // get pplan
-	private int CMD_GRAPH = 4; // get graph
+	public final int CMD_EXIT = 0; // terminate
+	public final int CMD_NEXT = 1; // next step
+	public final int CMD_BACK = 2; // backtrack
+	public final int CMD_PPLAN = 3; // get pplan
+	public final int CMD_GRAPH = 4; // get graph
 	
 	private String pplan;
 	private String graph;
@@ -39,6 +39,10 @@ public class Communication {
 		errormsg = "";
 		this.composite = composite;
 		connected = false;
+	}
+	
+	public boolean isConnected(){
+		return connected;
 	}
 	
 	public String getGraph(){
@@ -86,6 +90,14 @@ public class Communication {
 			// nothing to do
 		}
 		connected = false;
+	}
+
+	// FIXME: throw more useful exceptions
+	public void onlySendCmd(int cmd){
+		if (!connected)
+			return ;
+		out.println(cmd);
+
 	}
 	
 	// FIXME: throw more useful exceptions

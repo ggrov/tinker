@@ -1,9 +1,15 @@
 theory socket_test  
 imports
-  "../build/Graph"       
-begin
+  "../build/Eval"    
+uses
+  "../interface/gui_socket.ML"            
+begin  
 
--- "socket to interface"
+ML{*
+GUI_Socket.run ();         
+*}
+(*
+-- "socket to interface" 
 
 ML{*
 Byte.stringToBytes #> (fn msg => Word8VectorSlice.slice (msg,1,NONE));
@@ -39,7 +45,7 @@ fun main() =
     end;
 
 *}
-
+*)
 ML{*
 val msg = "hello world from tcpserver\n";
 val buf = {buf = Byte.stringToBytes msg, i = 0, sz = NONE};
