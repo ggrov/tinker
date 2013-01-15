@@ -1,6 +1,7 @@
 package org.ai4fm.psgraph.ui.views;
 
 
+import org.ai4fm.psgraph.ui.Communication;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.part.*;
@@ -89,7 +90,8 @@ public class PPlanView extends ViewPart {
 	 */
 	public void createPartControl(Composite parent) {
 		viewer = new Text(parent, SWT.BORDER | SWT.MULTI);
-		viewer.setText("No PPlan loaded");
+		viewer.setText("");
+		Communication.pplanviewer = viewer;
 
 		// Create the help context id for the viewer's control
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer, "org.ai4fm.psgraph.ui.viewer");

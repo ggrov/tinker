@@ -1,6 +1,8 @@
 theory intro  
 imports
   "../build/Eval"              
+uses
+  "../interface/socket.ML"           
 begin
 
 ML{*
@@ -101,6 +103,12 @@ ML{*
  Strategy_Dot.write_dot_to_file false (path ^ "imptest.dot") (RTechnEval.EData.get_graph edata0);
 *}  
 
+ML{*
+GUISocket.get_dot_str edata0;
+*}
+ML{*
+val edata1 = GUISocket.run edata0;           
+*}
 
 ML{*
   val edata =  (RTechnEval.eval_full edata0 |> Seq.list_of |> hd);

@@ -76,7 +76,8 @@ public final class GraphView extends ViewPart {
 	private Action searchAction;
 
 	private String dotString = "";
-	private String init = "digraph G { "+
+	private String init = "";
+			/*digraph G { "+
 "Vc [style=filled,fillcolor=gray,shape=box,width=0,height=0,fontcolor=white];"+
 "Ve [style=filled,fillcolor=white,fontcolor=black,shape=box,label=\"rule: HOL.impI\"];"+
 "Vp [style=filled,fillcolor=white,fontcolor=black,shape=box,label=\"rule: HOL.allI\"];"+
@@ -84,7 +85,10 @@ public final class GraphView extends ViewPart {
 "Vp -> Ve [label=\"default_wire\"];"+
 "Ve -> Vq [label=\"default_wire\"];"+
 "Vc -> Vp [label=\"default_wire\"];"+
-"}"; //$NON-NLS-1$
+"}"; 
+*/
+//$NON-NLS-1$
+
 
 
 	/**
@@ -139,10 +143,13 @@ public final class GraphView extends ViewPart {
 		
 		backAction = new Action() {
 			public void run() {
-				updateGraph("x -> y");
 				if (!com.isConnected())
 					com.connect();
-				com.onlySendCmd(com.CMD_NEXT);
+				if (com.isConnected() && com.sendBack()){
+					com.sendPPlan();
+					com.sendGraph();
+					updateGraph(com.getGraph());
+				}
 			}
 		};
 		backAction.setText("Back");
@@ -162,15 +169,13 @@ public final class GraphView extends ViewPart {
 		
 		nextAction = new Action() {
 			public void run() {
-				// com.start(); // maybe a separate thread?
-				updateGraph("x -> y");
-				com.errorMessage("No communication","no active graph");
-
-				/* MessageBox dialog = 
-						new MessageBox(composite.getShell(), SWT.ICON_ERROR | SWT.OK);
-				dialog.setText("No communciation");
-				dialog.setMessage("No active graph");
-				dialog.open(); */
+				if (!com.isConnected())
+					com.connect();
+				if (com.isConnected() && com.sendNext()){
+					com.sendPPlan();
+					com.sendGraph();
+					updateGraph(com.getGraph());
+				}
 
 			}
 		};

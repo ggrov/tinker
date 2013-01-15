@@ -56,8 +56,25 @@ struct
      |> Seq.maps (ALLGOALS (fn n => TRY (atac n)))
      |> Seq.maps (fn res => rtac res 1 thm)
   end;
+
+ fun interactive_strategy_tac' ctxt thm =
+   let
+     val gs_prf = mk_goal ctxt thm
+     val th = Proof_Context.theory_of ctxt
+     val graph = get_graph th (Config.get ctxt strategy)
+     val edata0 =  RTechnEval.init_prf th gs_prf graph
+   in
+     edata0
+     |> GUISocket.run
+     |> RTechnEval.EData.get_pplan
+     |> (fn t => PPExpThm.export_name t "g" |> PPExpThm.prj_thm)
+     |> Seq.single
+  end;
  
   fun strategy_then_assm_tac ctxt =
     (strategy_tac' ctxt) THEN ALLGOALS (fn n => TRY (atac n));
-    
+
+  fun interactive_strategy_then_assm_tac ctxt =
+    (interactive_strategy_tac' ctxt) THEN ALLGOALS (fn n => TRY (atac n));
+        
 end (* structure *)
