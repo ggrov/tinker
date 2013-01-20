@@ -119,7 +119,7 @@ struct
  (* turns given filename into a string graph *)
  val parse = Json.read_file #> StringVE_IO.InputGraphJSON.input #> fst;
 
-fun register_graph fname th = 
+ fun parse_and_translate fname th = 
   let 
     (* remove file type and full path *)
     val gname = String.tokens (fn c => c = #".") fname 
@@ -130,9 +130,26 @@ fun register_graph fname th =
               |> List.last;
     val string_graph = parse fname;
     val strat_graph = to_strategy_graph th string_graph;
-    val th' = EvalTac.add_graph (gname,strat_graph) th
   in
-    warning (gname ^ " registered"); th'
+    (gname,strat_graph)
+  end;
+
+ fun register_graph fname th0 = 
+  let 
+    (* remove file type and full path *)
+    val (gname,strat_graph) = parse_and_translate fname th0
+    val th' = EvalTac.add_graph (gname,strat_graph) th0
+  in
+    tracing (gname ^ " registered"); th'
+  end;
+
+ fun register_nested fname th0 = 
+  let 
+    (* remove file type and full path *)
+    val (gname,strat_graph) = parse_and_translate fname th0
+    val (g',th') = NEST gname (fn th => (strat_graph,th)) th0;
+  in
+    tracing ("Nested technique: " ^ gname ^ " registered"); th'
   end;
 
 end

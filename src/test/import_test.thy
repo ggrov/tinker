@@ -1,5 +1,5 @@
 theory import_test
-imports "../Build/Parse"  
+imports "../Build/Parse"   
 begin
 
 ML{*
@@ -63,7 +63,11 @@ val strg = StringTransfer.parse "/Users/ggrov/intro.qgraph";
 val stratg = StringTransfer.to_strategy_graph @{theory} strg;
 *}
 
+(* add graph *)
 setup {* StringTransfer.register_graph "/Users/ggrov/intro.qgraph" *}
+(* add graph tactic *)
+setup {* StringTransfer.register_nested "/Users/ggrov/intro.qgraph" *}
+
 
 declare [[strategy = "intro"]]
 

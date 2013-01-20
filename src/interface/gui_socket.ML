@@ -79,12 +79,12 @@ fun make_streams sock =
       (in_strm, out_strm) 
     end;
 
-  fun print_cmd 0 = writeln "exit"
-   |  print_cmd 1 = writeln "next"
-   |  print_cmd 2 = writeln "back"
-   |  print_cmd 3 = writeln "pplan"
-   |  print_cmd 4 = writeln "graph"
-   |  print_cmd n = writeln ("Invalid option: " ^ (Int.toString n))
+  fun print_cmd 0 = tracing "exit"
+   |  print_cmd 1 = tracing "next"
+   |  print_cmd 2 = tracing "back"
+   |  print_cmd 3 = tracing "pplan"
+   |  print_cmd 4 = tracing "graph"
+   |  print_cmd n = tracing ("Invalid option: " ^ (Int.toString n))
 
   exception guisocket_exp of string;
 
@@ -108,7 +108,7 @@ fun make_streams sock =
      val passive_sock = init_server_socket (SOME "localhost") 4444;
      val (sock, _)= Socket.accept passive_sock;
      val (sin, sout) = make_streams sock;
-     fun send' msg = (BinIO.output (sout, Byte.stringToBytes msg); BinIO.flushOut sout; writeln "message written...");
+     fun send' msg = (BinIO.output (sout, Byte.stringToBytes msg); BinIO.flushOut sout; tracing "message written...");
      fun send msg = send' (msg ^ "\n ENDMSG\n") 
      fun receive () = (BinIO.input sin) 
                      |> Byte.bytesToString 
@@ -132,13 +132,13 @@ fun make_streams sock =
                  | _ => (send "OK"; loop rest))
           |  apply_cmd 3 = (send (get_pplan_str edata); loop edatas) (* pplan *)
           |  apply_cmd 4 = (send (get_dot_str edata); loop edatas) (* graph *)
-          |  apply_cmd _ = (writeln "error option"; close (); raise guisocket_exp ("not valid cmd option"))  
+          |  apply_cmd _ = (tracing "error option"; close (); raise guisocket_exp ("not valid cmd option"))  
          val receive = receive();
        in
           (print_cmd receive; apply_cmd receive)
        end
    in
-      loop [edata0] handle e => (writeln "exception "; close(); raise e)
+      loop [edata0] handle e => (tracing "exception "; close(); raise e)
    end
 
  fun run edata = run' edata;

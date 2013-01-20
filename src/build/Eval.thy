@@ -12,7 +12,7 @@ uses
   "../eval/eval_graph.ML"    
   "../eval/eval_atomic.ML"  
   "../eval/eval_nested.ML"
-  "../eval/rtechn_eval.ML" 
+  "../eval/rtechn_eval.ML"  
   "../interface/gui_socket.ML" 
   "../eval/eval_tac.ML"     
 begin
