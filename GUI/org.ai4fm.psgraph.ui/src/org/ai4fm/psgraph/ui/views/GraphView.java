@@ -143,8 +143,10 @@ public final class GraphView extends ViewPart {
 		
 		backAction = new Action() {
 			public void run() {
-				if (!com.isConnected())
-					com.connect();
+				if (!com.isConnected()){
+					com.errorMessage("Not connected", "You need to connect to Isabelle first");
+					return;
+				}
 				if (com.isConnected() && com.sendBack()){
 					com.sendPPlan();
 					com.sendGraph();
@@ -155,23 +157,44 @@ public final class GraphView extends ViewPart {
 		backAction.setText("Back");
 		backAction.setToolTipText("Backtrack previous step");
 		backAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
-			getImageDescriptor(ISharedImages.IMG_TOOL_UNDO));	
+			getImageDescriptor(ISharedImages.IMG_TOOL_BACK));	
 		
 		exitAction = new Action() {
 			public void run() {
-				com.disconnect();
+				if(com.isConnected()){
+					com.disconnect();
+					updateGraph("");
+					com.setPPlan("");
+					this.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
+							getImageDescriptor(ISharedImages.IMG_ELCL_SYNCED));
+					this.setText("Connect");
+					this.setToolTipText("Connect to Isabelle");
+				}
+				else{
+					com.connect();
+					if(com.isConnected()){
+						com.sendPPlan();
+						com.sendGraph();
+						updateGraph(com.getGraph());
+						this.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
+							getImageDescriptor(ISharedImages.IMG_ELCL_STOP));
+						this.setText("Stop");
+						this.setToolTipText("Terminate proof process and disconnect");
+					}
+				}
 			}
 		};
-		exitAction.setText("Exit");
-		exitAction.setToolTipText("Terminate proof process");
+		exitAction.setText("Connect");
+		exitAction.setToolTipText("Connect to Isabelle");
 		exitAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
-			getImageDescriptor(ISharedImages.IMG_ELCL_STOP));	
+			getImageDescriptor(ISharedImages.IMG_ELCL_SYNCED));	
 		
 		nextAction = new Action() {
 			public void run() {
-				if (!com.isConnected())
-					com.connect();
-				if (com.isConnected() && com.sendNext()){
+				if (!com.isConnected()){
+					com.errorMessage("Not connected", "You need to connect to Isabelle first");
+					return;
+				}if (com.isConnected() && com.sendNext()){
 					com.sendPPlan();
 					com.sendGraph();
 					updateGraph(com.getGraph());

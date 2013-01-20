@@ -219,7 +219,7 @@ struct
 
  fun decode_lemma (XML.Elem (("Lemma",[("name",s)]),[m])) = (s,decode_pg m);
 
- fun decode_theory (XML.Elem (("Theory",_),),lemmas) = 
+ fun decode_theory (XML.Elem (("Theory",_),_),lemmas) = 
    lemmas
    |> map decode_lemma 
    |> StrName.NTab.of_list

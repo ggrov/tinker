@@ -1,8 +1,8 @@
 (* simple test of proof representation *)
 theory Eval                                                                                                                                                            
-imports         
+imports          
   Stratlang                                                                         
-uses                           
+uses                            
   "../wire/match.ML"                                             
   "../eval/basic_eval.ML"                
   "../eval/eval_data.ML" 
@@ -13,7 +13,7 @@ uses
   "../eval/eval_atomic.ML"  
   "../eval/eval_nested.ML"
   "../eval/rtechn_eval.ML" 
-  "../interface/socket.ML" 
+  "../interface/gui_socket.ML" 
   "../eval/eval_tac.ML"     
 begin
 

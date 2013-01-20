@@ -1,76 +1,150 @@
 (* for communication with a GUI *)
-structure GUI_Socket =
+structure GUISocket =
 struct
+
+val connected = Synchronized.var "connected" false;
+
+fun try_connect true = (false,true)
+ |  try_connect false = (true,true);
+
+exception guisocket_exp of string;
+
+
+(* copied from Isabelle repo: Socket_Util *)
+
+fun init_server_socket opt_host port =
+  let
+    val sock = INetSock.TCP.socket ();
+    val addr =
+      (case opt_host of
+         NONE => INetSock.any port
+       | SOME host =>
+           NetHostDB.getByName host
+           |> the
+           |> NetHostDB.addr
+           |> rpair port
+           |> INetSock.toAddr
+           handle Option => raise Fail ("Cannot resolve hostname: " ^ host));
+    val _ = Socket.bind (sock, addr);
+    val _ = Socket.listen (sock, 5);
+  in sock end;
+
+fun make_streams sock =
+  let
+    val (haddr, port) = INetSock.fromAddr (Socket.Ctl.getSockName sock);
+    val sock_name =
+      implode [ NetHostDB.toString haddr, ":", string_of_int port ];
+    val rd =
+      BinPrimIO.RD {
+        name = sock_name,
+        chunkSize = Socket.Ctl.getRCVBUF sock,
+        readVec = SOME (fn sz => Socket.recvVec (sock, sz)),
+        readArr = SOME (fn buffer => Socket.recvArr (sock, buffer)),
+        readVecNB = NONE,
+        readArrNB = NONE,
+        block = NONE,
+        canInput = NONE,
+        avail = fn () => NONE,
+        getPos = NONE,
+        setPos = NONE,
+        endPos = NONE,
+        verifyPos = NONE,
+        close = fn () => Socket.close sock,
+        ioDesc = NONE
+      };
+    val wr =
+      BinPrimIO.WR {
+        name = sock_name,
+        chunkSize = Socket.Ctl.getSNDBUF sock,
+        writeVec = SOME (fn buffer => Socket.sendVec (sock, buffer)),
+        writeArr = SOME (fn buffer => Socket.sendArr (sock, buffer)),
+        writeVecNB = NONE,
+        writeArrNB = NONE,
+        block = NONE,
+        canOutput = NONE,
+        getPos = NONE,
+        setPos = NONE,
+        endPos = NONE,
+        verifyPos = NONE,
+        close = fn () => Socket.close sock,
+        ioDesc = NONE
+      };
+    val in_strm =
+      BinIO.mkInstream (
+        BinIO.StreamIO.mkInstream (rd, Word8Vector.fromList []));
+    val out_strm =
+      BinIO.mkOutstream (
+        BinIO.StreamIO.mkOutstream (wr, IO.BLOCK_BUF));
+    in 
+      (in_strm, out_strm) 
+    end;
+
+  fun print_cmd 0 = writeln "exit"
+   |  print_cmd 1 = writeln "next"
+   |  print_cmd 2 = writeln "back"
+   |  print_cmd 3 = writeln "pplan"
+   |  print_cmd 4 = writeln "graph"
+   |  print_cmd n = writeln ("Invalid option: " ^ (Int.toString n))
 
   exception guisocket_exp of string;
 
-  datatype cmd = CMD_EXIT | CMD_NEXT | CMD_BACK | CMD_PPLAN | CMD_GRAPH 
-               | CMD_INVALID (* error case *); 
-  val PORT = 4444;
-  
-  fun get_cmd 0 = CMD_EXIT
-   |  get_cmd 1 = CMD_NEXT
-   |  get_cmd 2 = CMD_BACK
-   |  get_cmd 3 = CMD_PPLAN
-   |  get_cmd 4 = CMD_GRAPH
-   |  get_cmd _ = CMD_INVALID;
+  fun get_cmd s = 
+     (case Int.fromString s of
+        NONE => raise guisocket_exp ("not valid command: " ^ s)
+      | SOME n => n)
 
-  fun mkServerSocket () =
-    let
-      val server = INetSock.TCP.socket();
-      val _ = Socket.bind(server, INetSock.any PORT);
-      val _ = Socket.Ctl.setREUSEADDR(server,true);
-      val saddr = INetSock.fromAddr(Socket.Ctl.getSockName server);
-      val _ = Socket.listen(server,128);
-  in 
-     server 
-  end;
+  fun get_dot_str edata =
+     Print_Mode.setmp [] (fn () => 
+      Strategy_Dot.output false (RTechnEval.EData.get_graph edata |> Strategy_Theory.Graph.minimise)) 
+      ();
 
-  val connect = Socket.accept #> fst;
+  fun get_pplan_str edata =
+     Print_Mode.setmp [] (fn () => 
+      edata |> RTechnEval.EData.get_pplan |> PPlan.pretty |> Pretty.string_of)
+      ();
 
-  fun close_socket socket = Socket.close(socket);
+  fun run' edata0 =
+   let
+     val passive_sock = init_server_socket (SOME "localhost") 4444;
+     val (sock, _)= Socket.accept passive_sock;
+     val (sin, sout) = make_streams sock;
+     fun send' msg = (BinIO.output (sout, Byte.stringToBytes msg); BinIO.flushOut sout; writeln "message written...");
+     fun send msg = send' (msg ^ "\n ENDMSG\n") 
+     fun receive () = (BinIO.input sin) 
+                     |> Byte.bytesToString 
+                     |> get_cmd;
+     fun close () = 
+           ( BinIO.closeOut sout handle e => warning ("cannot close");
+             BinIO.closeIn sin handle e => warning ("cannot close");
+             Socket.close sock handle e => warning ("cannot close");
+             Socket.close passive_sock handle _ => warning ("error closing");
+             Synchronized.change connected (K false));
+     fun loop (edatas as (edata :: rest)) =
+       let
+         fun apply_cmd 0 = (close (); edata)
+          |  apply_cmd 1 = (* next *)
+              (case RTechnEval.eval_any edata |> Seq.list_of of
+                 [] => (send "FAIL : not possible to make step";loop edatas)
+               | xs => (send "OK"; loop (xs @ rest))) (* keep rest? keep last? *)
+          |  apply_cmd 2 =  (* back *)
+               ( case rest of 
+                   [] => (send "FAIL : no more data"; loop edatas)
+                 | _ => (send "OK"; loop rest))
+          |  apply_cmd 3 = (send (get_pplan_str edata); loop edatas) (* pplan *)
+          |  apply_cmd 4 = (send (get_dot_str edata); loop edatas) (* graph *)
+          |  apply_cmd _ = (writeln "error option"; close (); raise guisocket_exp ("not valid cmd option"))  
+         val receive = receive();
+       in
+          (print_cmd receive; apply_cmd receive)
+       end
+   in
+      loop [edata0] handle e => (writeln "exception "; close(); raise e)
+   end
 
-  val mk_message = 
-    Byte.stringToBytes 
-    #> (fn vec => Word8VectorSlice.slice (vec,1,NONE));
-
-  fun send_msg sock msg = 
-    Socket.sendVec(sock, mk_message msg) |> ignore;
-
-  fun send_ack sock = (); 
-     (* send_msg sock " ACK";*)
-
-  fun send_graph edata socket = send_msg socket "this is the graph";
-
-  fun send_pplan edata socket = send_msg socket "this is the pplan";
-
-  fun edata_next edata = edata;
-
-  fun edata_back edata = edata;
-
-  fun mainLoop edata active_socket =
-    let
-      val _ = writeln "wating for input...";
-      val s = Byte.bytesToString(Socket.recvVec(active_socket,80));
-      val _ = writeln s; (* print to output *)
-      val cmd = (case Int.fromString s of
-                NONE => raise guisocket_exp ("not valid command: " ^ s)
-              | SOME n => get_cmd n)
-      fun apply_cmd CMD_EXIT = (writeln "exit chosen"; close_socket(active_socket); edata)
-       |  apply_cmd CMD_NEXT = (writeln "next chosen"; send_ack active_socket; mainLoop (edata_next edata) active_socket)
-       |  apply_cmd CMD_BACK = (writeln "back chosen"; send_ack active_socket; mainLoop (edata_back edata) active_socket) 
-       |  apply_cmd CMD_PPLAN = (writeln "get pplan chosen"; send_pplan edata active_socket; mainLoop edata active_socket)
-       |  apply_cmd CMD_GRAPH = (writeln "get graph chosen"; send_graph edata active_socket; mainLoop edata active_socket) 
-       |  apply_cmd CMD_INVALID = (writeln "invalid choice"; close_socket(active_socket); edata)
-    in
-      apply_cmd cmd
-    end;
-
-  fun run edata = 
-     let
-       val socket = mkServerSocket () |> connect
-     in
-       mainLoop edata socket handle _ => (writeln "terminated with error"; Socket.close socket)
-     end;
-
+ fun run edata = run' edata;
+(*
+   if Synchronized.change_result connected try_connect
+    then run' edata
+    else raise guisocket_exp "already connected to GUI";
+*)
 end;

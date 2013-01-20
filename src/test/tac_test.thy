@@ -47,7 +47,7 @@ declare [[strategy = "assume"]]
 (* doing too much! need to be more careful on which assumptions are discharged! *)
 lemma "C \<longrightarrow> A \<and> B"
  using [[strategy = "cimp"]]
-   apply interactive_proof_strategy   
+   apply interactive_proof_strategy    
    oops
 
 (* should this apply to only first subgoal or all? *)

@@ -1,8 +1,6 @@
 theory intro  
 imports
-  "../build/Eval"              
-uses
-  "../interface/socket.ML"           
+  "../build/Eval"                        
 begin
 
 ML{*
@@ -91,6 +89,11 @@ Thy_Load.get_master_path ();
 
 *}
 
+setup {* EvalTac.add_graph ("intro",g) *}
+declare [[strategy = "intro"]]
+
+lemma "A \<and> (B \<longrightarrow> (B \<and> C))"
+ apply interactive_proof_strategy            
 
 thm allI
 

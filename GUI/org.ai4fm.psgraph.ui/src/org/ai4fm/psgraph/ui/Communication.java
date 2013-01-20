@@ -68,7 +68,7 @@ public class Communication {
 			in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			out	= new PrintWriter(client.getOutputStream(),true);
 			connected = true;
-			errorMessage("Connection made","Connected to Isabelle");
+			// errorMessage("Connection made","Connected to Isabelle");
 		}catch(IOException e){
 			connected = false;
 			errorMessage("Connection error","Cannot connect to Isabelle");
@@ -183,6 +183,11 @@ public class Communication {
 		pplan = ret;
 		pplanviewer.setText(pplan);
 		return true;
+	}
+	
+	public void setPPlan(String str){
+		pplan = str;
+		pplanviewer.setText(pplan);
 	}
 	
 	public void errorMessage(String title, String message){
