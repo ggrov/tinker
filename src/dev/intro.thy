@@ -83,19 +83,14 @@ val g = GraphComb.self_loops g;
 val (g',th') = NEST "intros" (LIFT g) th;
 *}
 
-ML{*
-
-Thy_Load.get_master_path ();
-
-*}
-
 setup {* EvalTac.add_graph ("intro",g) *}
 declare [[strategy = "intro"]]
 
 lemma "A \<and> (B \<longrightarrow> (B \<and> C))"
  apply interactive_proof_strategy            
 
-thm allI
+
+
 
 ML{*
  Strategy_Dot.write_dot_to_file false (path ^ "imptest0.dot") g;  
