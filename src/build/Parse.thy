@@ -8,6 +8,10 @@ uses
   "../parse/string_transfer.ML"           
 begin
 
+text "add merge and identify as default"
+setup {* StringTransfer.add_rtechn ("merge",RTechn.merge) 
+       #> StringTransfer.add_rtechn ("id",RTechn.id)  *}
+
 end
 
 
