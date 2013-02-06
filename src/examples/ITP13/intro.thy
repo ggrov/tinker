@@ -7,7 +7,7 @@ begin
 
 text "set path to current directory [used to parse in drawn graphs]"
 ML{*
-  val path = "<path to installation>/psgraph/src/examples/ITP13/";
+  val path = "/Users/ggrov/psgraph/src/examples/ITP13/";
 *}
 
 text "An auxiliary function to make the goal type"
