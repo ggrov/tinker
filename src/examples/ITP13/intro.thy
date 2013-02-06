@@ -5,7 +5,7 @@ imports
   "../../build/Parse"                        
 begin
 
-text "set path to current directory"
+text "set path to current directory [used to parse in drawn graphs]"
 ML{*
   val path = "/Users/ggrov/psgraph/src/examples/ITP13/";
 *}
@@ -78,6 +78,9 @@ text "parse drawn graph"
 setup {* StringTransfer.register_graph (path ^ "intro_version1.qgraph") *}  
 
 text "running the strategy"
+
+text "I order to run the interactive verions, you'll need to change the 
+  proof_strategy method into interactive_proof_strategy"
 
 declare [[strategy=intro_version1]] 
 

@@ -1,8 +1,5 @@
--------------------------------------------------------------------------
-  IsaPlanner INSTALL 
-  Gudmund Grov
--------------------------------------------------------------------------
-
+**** INSTALL *****
+-----------------------------------
 Downloading and Installing Isabelle
 -----------------------------------
 
@@ -12,6 +9,7 @@ Go to
 
 and install Isabelle2012
 
+------------------------------------
 Downloading and Installing required Libraries 
 -----------------------------------
 
@@ -23,18 +21,68 @@ go to the contrib directory:
 
   cd contrib 
 
-get the isaplib library (requires git)
+Then get the isaplib library (requires git)
 
   git clone git://github.com/Quantomatic/isaplib.git
 
-get the quantomatic library (requires git)
+we have tested this for the 16a15e3a3026054462d44ec752875adea4ccb018 commit, so to be sure that it is working
+you should get this particular commit:    
+  cd isaplib
+  git checkout 16a15e3a3026054462d44ec752875adea4ccb018
 
+Next, get the quantomatic library (requires git)
+
+  cd .. (* you should be the in contrib directory now *)
   git clone git://github.com/Quantomatic/quantomatic.git
   cd quantomatic
-  git checkout integration
+  git checkout scala-frontend
   git pull
 
-Downloading and Installing the Strategly language
+we have tested this for the fa1a92f3f6ead510a01267250e6541cd8d8dceee commit, so to be sure that it is working
+you should get this particular commit:    
+  git checkout fa1a92f3f6ead510a01267250e6541cd8d8dceee
+ 
+----------------------------
+Downloading and Installing the Proof Strategy language
 ----------------------------
 
-  svn checkout https://isaplanner.svn.sourceforge.net/svnroot/isaplanner/trunk/Stratlang
+  git clone https://github.com/ggrov/psgraph.git
+  
+we have tested this for the XX commit, so to be sure that it is working
+you should get this particular commit:    
+  
+  ....
+
+
+**** USAGE *****
+
+- To draw graphs go to the installation directory of Quantomatic (in contrib)
+    cd scala
+    sbt run
+    select the  [3] quanto.gui.GraphEditor option
+
+- To execution a graph (e.g. the intro tactic from ITP'13)
+    - got into the psgraph/src/examples/ITP13 directory
+    - load the file intro.thy [you need to set the path there]
+
+- Interactive GUI (requires knowledge of Eclipse)    
+    - start Eclipse 
+    - add the org.ai4fm.psgraph.ui project in the GUI directory of 
+      psgraph (the proof strategy language)
+    - this requires the zest library which you'll need to install
+        http://wiki.eclipse.org/Zest#Zest_2.x
+      however, it is more than likely that you'll need the nightly build:
+        https://hudson.eclipse.org/hudson/job/gef-zest-nightly/lastSuccessfulBuild/artifact/targetPlatform/
+    - The Ecplipe plug-in includes two views: Graph and PPlan both in the PPlan directory
+       when selecting a view
+    - Make both fo these visible
+    - USING THE GUI
+       - When applying the interactive_proof_strategy method in Isabelle a socket
+         is set up.
+       - To connect to it in the GUI press the `connect to Isabelle' (middle) button in
+         the Graph view
+       - This will load a Graph -- and the current proof is shows in the PPlan view
+       - use the arrows to navigate, and press the (middle) terminate button
+         to exit this view
+
+
