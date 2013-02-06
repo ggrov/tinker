@@ -48,8 +48,9 @@ Downloading and Installing the Proof Strategy language
 
   git clone https://github.com/ggrov/psgraph.git
   
-we have tested this for the XX commit, so to be sure that it is working
+we have tested this for the 7772f1dac1f6341260b4b66181af7e1fd59552bc commit, so to be sure that it is working
 you should get this particular commit:    
+  git checkout 7772f1dac1f6341260b4b66181af7e1fd59552bc
   
   ....
 
