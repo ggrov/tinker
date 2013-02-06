@@ -50,28 +50,34 @@ to a project (detail below on how to run it)
 Usage
 =====
 
-- To draw graphs go to the installation directory of Quantomatic (in contrib)
+Graph Drawing Tool
+------------------
+
+To draw graphs go to the installation directory of Quantomatic (in contrib) and run:
+    
     cd scala
     sbt run
-    select the  [3] quanto.gui.GraphEditor option
+    # select the option for quanto.gui.GraphEditor
 
-- To execution a graph (e.g. the intro tactic from ITP'13)
-    - got into the psgraph/src/examples/ITP13 directory
-    - load the file intro.thy [you need to set the path there]
+To execute a graph (e.g. the intro tactic from ITP'13), go into the psgraph/src/examples/ITP13 directory and load the file intro.thy (you need to set the path there).
 
-- Interactive GUI     
-    - In Eclipse, right click on the org.ai4fm.psgraph.ui project, select Run As -> Run Configurations...
-      and run it as an Eclipse Application (you have to make sure that `all workspace and enabled plugins'
-      is selected in the plug-ins tab to ensure that the Eclipse/Isabelle plug-in is launched).
-    - Make sure that the PPlan and Graph views are visible (in the PPlan) directory), as well as the Prover
-      Output view in the Isabelle directory. 
-    - You can start Isabelle from the External Tool button, selection the `External Tool Configuration..' option.
-      Select Isabelle, give the path to the installation, select HOL as logic and run it 
-       (which should cause Isabelle to start)
-    - Using the GUI
-       - to enter the interactive proof command, apply the interactive_proof_strategy method
-       - To connect to it in the GUI press the `connect to Isabelle' (middle) button in
-         the Graph view
-       - This will load a Graph -- and the current proof is shows in the PPlan view
-       - use the arrows to navigate, and press the (middle) terminate button
-         to exit this view
+Interactive GUI
+---------------
+
+To get the interactive GUI running in Eclipse/Isabelle, follow these steps.
+
+1. In Eclipse, right click on the org.ai4fm.psgraph.ui project, select Run As -> Run Configurations...
+and run it as an Eclipse Application (you have to make sure that `all workspace and enabled plugins'
+is selected in the plug-ins tab to ensure that the Eclipse/Isabelle plug-in is launched).
+
+2. Make sure that the PPlan and Graph views are visible (in the PPlan) directory), as well as the Prover
+Output view in the Isabelle directory.
+
+3. Start Isabelle by clicking the External Tool button and selecting the `External Tool Configuration..'. Select Isabelle, give the path to the installation, select HOL as logic and run it (which should cause Isabelle to start).
+
+
+To enter the interactive proof command, apply the interactive_proof_strategy
+method. To connect to it in the GUI press the `connect to Isabelle' (middle)
+button in the Graph view. This will load a Graph and the current proof is
+shown in the PPlan view. Use the arrows to navigate, and press the (middle)
+terminate button to exit this view.
