@@ -5,11 +5,7 @@ Installation
 Downloading and Installing Isabelle
 -----------------------------------
 
-Go to 
-
- http://www.cl.cam.ac.uk/research/hvg/isabelle/download.html
-
-and install Isabelle2012
+This code is designed to run on Isabelle2012. Get it [here](http://www.cl.cam.ac.uk/research/hvg/isabelle/download.html).
 
 
 Downloading and Installing required Libraries 
@@ -23,16 +19,12 @@ go to the contrib directory:
 
     cd contrib 
 
-Then get the isaplib library (requires git)
+Grab the isaplib and quantomatic libraries with:
 
-    git clone git://github.com/Quantomatic/isaplib.git
+    git clone -b ps-graphs git://github.com/Quantomatic/isaplib.git
+    git clone -b ps-graphs git://github.com/Quantomatic/quantomatic.git
 
-Next, get the quantomatic library (requires git)
-
-    git clone git://github.com/Quantomatic/quantomatic.git
-    cd quantomatic
-    git checkout scala-frontend
-    git pull
+If you wish to use the graph drawing GUI, you'll need the Scala Build Tool ([SBT](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html)).
 
 
 Downloading and Installing the Proof Strategy language
