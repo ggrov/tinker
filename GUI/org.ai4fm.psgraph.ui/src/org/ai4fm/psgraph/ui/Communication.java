@@ -5,6 +5,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
+import quanto.gui.GraphEditPanel;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -34,6 +36,7 @@ public class Communication {
 	private String errormsg;
 	
 	public static Text pplanviewer;
+	public static GraphEditPanel jsongraph;
 	private Composite composite;
 	
 	public Communication(Composite composite){

@@ -23,6 +23,14 @@
             name="Graph"
             restorable="true">
       </view>
+      <view
+            category="org.ai4fm.psgraph.ui"
+            class="org.ai4fm.psgraph.ui.views.DrawView"
+            icon="icons/sample.gif"
+            id="org.ai4fm.psgraph.ui.Draw"
+            name="Draw"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
