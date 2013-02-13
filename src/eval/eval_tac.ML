@@ -26,7 +26,7 @@ struct
     val goal = PNode.mk_goal ("g") ctxt ctxt thm;
     val prf = PPlan.init_prf |> PPlan.add_root goal 
   in
-    PPlan.apply_prf prf goal thm
+    PPlan.apply_init_prf prf goal thm
   end;
 
  fun strategy_tac' ctxt thm =

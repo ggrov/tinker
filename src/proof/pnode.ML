@@ -19,12 +19,14 @@ struct
      by frule     of     
   *)
   datatype desc_typ =
-    (* name and configs: (type,args) pair *) 
-    DTac of string * ((string * string list) list)
-  | DRule of string
-  | DErule 
-  | DFrule 
-  | DUnknown of string
+    DTac of string * ((string * string list) list) (* tac name + configs: (type,args) pair *) 
+  | DRule of string (* rule used *)
+  | DErule of string (* rule used *)
+  | DFrule of string * string (* assumption name + rule used *)
+  | DSubst of string (* rule used *)
+  | DSubstAsm of string * string (* assumption name + rule name used *)
+
+  datatype step = BCK | FWD | OPEN
 
   datatype desc = Desc of {
     desc_typ : desc_typ,
@@ -46,7 +48,24 @@ struct
    (* G should really just be name and context? *)
    pnode = G of T | R of Proof.context;
 
-  type gtab = T StrName.NTab.T;
+  (* update record for tactic information *)
+
+  fun get_desc_typ (Desc desc) = #desc_typ desc;
+  fun get_desc_thms (Desc desc) = #desc_thms desc;
+  fun get_desc_facts (Desc desc) = #desc_facts desc;
+
+  fun update_desc_typ f (Desc desc) = 
+    Desc {desc_typ =  f (#desc_typ desc), desc_thms = #desc_thms desc, desc_facts = #desc_facts desc}
+  fun update_desc_thms f (Desc desc) = 
+    Desc {desc_typ =  #desc_typ desc, desc_thms = f (#desc_thms desc), desc_facts = #desc_facts desc}
+  fun update_desc_facts f (Desc desc) = 
+    Desc {desc_typ =  #desc_typ desc, desc_thms = #desc_thms desc, desc_facts = f (#desc_facts desc)}
+
+  val set_desc_typ = update_desc_typ o K;
+  val set_desc_thms = update_desc_thms o K;
+  val set_desc_facts = update_desc_facts o K;
+
+  (* information for proof node *)
 
   fun get_name (Goal rep) = #name rep;
   fun get_ctxt (Goal rep) = #ctxt rep;
@@ -57,6 +76,7 @@ struct
   fun get_result (Goal rep) = #result rep;
   fun get_prev (Goal rep) = #prev rep;
   fun get_desc (Goal rep) = #desc rep;
+
 
   val get_all_assms = StrName.NTab.values o get_assms;
   val get_hyp = StrName.NTab.get o get_assms;
@@ -115,6 +135,10 @@ struct
 
   val set_goal_prev = set_prev o G;
 
+  val set_some_desc = update_desc o K o SOME;
+  fun set_desc_only_typ typ = 
+     set_some_desc (Desc {desc_typ = typ, desc_thms = [], desc_facts = []});
+
   fun ctxt (R ctxt) = ctxt
    |  ctxt (G (Goal rep)) = #ctxt rep;
 
@@ -133,7 +157,18 @@ struct
   fun check_ctxt_extended node =
     StrName.NSet.is_empty (get_lassms node) andalso
     empty_list (get_fixes node)
-  
+
+  (* working with tactic type *)
+ 
+  fun get_step pnode = 
+     case get_desc pnode of 
+       NONE => OPEN
+     | (SOME d) => 
+         (case get_desc_typ d of
+              (DFrule _) => FWD
+            | (DSubstAsm _) => FWD
+            | _ => BCK);
+
   (* no brackets around! *)
  
   fun pretty_fixes node =

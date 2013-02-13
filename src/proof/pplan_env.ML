@@ -1,7 +1,8 @@
 structure PPlanEnv = 
 struct
 
-  fun apply_rule (gnode,prf) thm = PPlan.apply_tac (K (rtac thm 1)) (gnode,prf)
+  fun apply_rule (gnode,prf) name thm = 
+    PPlan.apply_tac (K (rtac thm 1)) (PNode.DRule name) (gnode,prf)
 
    (* TODO: fixme - not sure this is really frule! *)
   fun apply_frule' (gnode,prf) new_thms = 
@@ -23,17 +24,18 @@ struct
   fun apply_frule (gnode,prf) fst_thms snd_thms = 
         apply_frule' (gnode,prf)  (combine_thms fst_thms snd_thms);
 
-  fun apply_erule (gnode,prf) thm = PPlan.apply_tac (K (etac thm 1)) (gnode,prf)
+  fun apply_erule (gnode,prf) name thm = PPlan.apply_tac (K (etac thm 1)) (PNode.DErule name) (gnode,prf)
 
-  fun apply_subst (gnode,prf) thms = 
-    PPlan.apply_tac (fn ctxt => EqSubst.eqsubst_tac ctxt [0] thms 1) (gnode,prf);
+  (* fixme *)
+  fun apply_subst (gnode,prf) name thms = 
+    PPlan.apply_tac (fn ctxt => EqSubst.eqsubst_tac ctxt [0] thms 1)  (PNode.DSubst name) (gnode,prf);
 
   (* why K combinator - shouldn't this be removed from the graph *)
-  fun apply_tactic (gnode,prf) tac = PPlan.apply_tac (K tac) (gnode,prf) 
+  fun apply_tactic (gnode,prf) name tac = PPlan.apply_tac (K tac) (PNode.DTac (name,[])) (gnode,prf) 
 
-  fun apply_ctxt_tactic (gnode,prf) tac = PPlan.apply_tac tac (gnode,prf) 
+  fun apply_ctxt_tactic (gnode,prf) name tac = PPlan.apply_tac tac  (PNode.DTac (name,[])) (gnode,prf) 
     
-  fun apply_tactic_all_asm (gnode,prf) tac = PPlan.apply_all_asm_tac tac (gnode,prf);
+  fun apply_tactic_all_asm (gnode,prf) name tac = PPlan.apply_all_asm_tac tac (PNode.DTac (name,[])) (gnode,prf);
 
 end (* struct *)
 

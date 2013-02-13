@@ -69,7 +69,7 @@ struct
          val pplan = EData.get_pplan edata
          val tac = StrName.NTab.get (EData.get_tactics edata) tac_name
        in 
-         PPlanEnv.apply_tactic (pnode,pplan) (tac [] (PNode.get_ctxt pnode))
+         PPlanEnv.apply_tactic (pnode,pplan) tac_name (tac [] (PNode.get_ctxt pnode))
        end
    |  apply_tactic edata gnode tac_name RTechn.TAllAsm = 
        let 
@@ -77,7 +77,7 @@ struct
          val pplan = EData.get_pplan edata
          val tac = StrName.NTab.get (EData.get_tactics edata) tac_name
        in 
-         PPlanEnv.apply_tactic_all_asm (pnode,pplan) (tac [])
+         PPlanEnv.apply_tactic_all_asm (pnode,pplan) tac_name (tac [])
        end
    |  apply_tactic edata gnode tac_name (RTechn.TClass bwire_nms) =
        let 
@@ -97,14 +97,16 @@ struct
          pnode
          |> PNode.get_ctxt
          |> tac facts
-         |> PPlanEnv.apply_tactic (pnode, EData.get_pplan edata) 
+         |> PPlanEnv.apply_tactic (pnode, EData.get_pplan edata) tac_name
        end;
 
 
   (* Fixme: update so that proof captures rules *)
   fun apply_appf edata gnode (RTechn.Rule thm_nms) =
      thm_seq edata gnode thm_nms
-     |> Seq.maps (PPlanEnv.apply_rule (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata))
+     |> Seq.maps (fn thm => PPlanEnv.apply_rule (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata)
+                                                (Thm.derivation_name thm)
+                                                 thm)
 (*
    |  apply_appf edata gnode (RTechn.ERule (bwire_nm,thm_nms)) =
          let
@@ -130,7 +132,7 @@ struct
         end
    |  apply_appf edata gnode (RTechn.Subst thm_nms) = 
        thm_list edata gnode thm_nms
-       |> PPlanEnv.apply_subst (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata)
+       |> PPlanEnv.apply_subst (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata) "subst(FIXME)"
       (* should I capture failure here or should we just let it fail? *)
    |  apply_appf edata gnode (RTechn.SubstAsm (bwire_nm,thm_nms)) =  (* why not a wire? *)
         let
@@ -140,7 +142,7 @@ struct
            Seq.maps (fn fact =>
              Seq.maps (fn eq =>
                  PPlanEnv.apply_ctxt_tactic
-                  (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata)
+                  (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata) "subst-asm (FIXME: shouldn't be tac"
                   (subst_fact_tac fact eq)) 
                 thm_eqs) 
              thms

@@ -202,7 +202,28 @@ struct
      (gnode, prf |> insert_open_nd gnode |> update_ptab_nd gnode)
    end;   
 
- fun apply_prf prf0 gnode thm = 
+ fun apply_prf prf0 ttyp gnode thm = 
+   let 
+     val newgnode = PNode.set_goal thm gnode (*  set with new thm *)
+                  |> PNode.set_desc_only_typ ttyp 
+     fun app t (gs,prf) = 
+       let 
+         val (g,prf') = add_open prf gnode t
+       in 
+         (g::gs,prf') 
+       end;
+     val (subgoals,prf') = fold app (Thm.prems_of thm) ([],prf0);
+     val new_names = fold (fn n => fn nms => (PNode.get_name n)::nms) subgoals []
+     val newgnode = PNode.set_result (SOME new_names) newgnode (* add names *)
+     (* must map new prev to all new nodes *)
+     val prf'' = prf'
+               |> remove_open_nd newgnode
+               |> update_ptab_nd newgnode
+   in
+     (subgoals,prf'')
+   end;
+
+ fun apply_init_prf prf0  gnode thm = 
    let 
      val newgnode = PNode.set_goal thm gnode (*  set with new thm *)
      fun app t (gs,prf) = 
@@ -258,15 +279,15 @@ struct
    then true
    else raise application_exp ("goal not open",gnode);
 
-  fun apply_tac t (gnode,prf) =
+  fun apply_tac t tname (gnode,prf) =
    (check_app (gnode,prf);
-   (t (PNode.get_ctxt gnode) (PNode.get_goal gnode) |> Seq.map (apply_prf prf gnode)));
+   (t (PNode.get_ctxt gnode) (PNode.get_goal gnode) |> Seq.map (apply_prf prf tname gnode)));
 
-  fun apply_all_asm_tac t (gnode,prf) = 
+  fun apply_all_asm_tac t ttyp (gnode,prf) = 
    (check_app (gnode,prf);
     (PNode.get_goal gnode
     |> (((Method.insert_tac (PNode.get_all_assms gnode) 1)) THEN  (t (PNode.get_ctxt gnode)))
-    |> Seq.map (apply_prf prf gnode)));
+    |> Seq.map (apply_prf prf ttyp gnode)));
 
   fun pretty_children pplan node =
     case PNode.get_result node of 
