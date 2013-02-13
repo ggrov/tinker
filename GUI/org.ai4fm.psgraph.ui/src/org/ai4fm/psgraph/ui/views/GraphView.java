@@ -143,6 +143,8 @@ public final class GraphView extends ViewPart {
 		
 		backAction = new Action() {
 			public void run() {
+				// remove just to test redraw of graph
+				com.dummySetGraph();
 				if (!com.isConnected()){
 					com.errorMessage("Not connected", "You need to connect to Isabelle first");
 					return;

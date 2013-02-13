@@ -5,7 +5,11 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
+import quanto.data.Graph;
+import quanto.data.Theory;
 import quanto.gui.GraphEditPanel;
+import quanto.layout.DotLayout;
+import quanto.layout.GraphLayout;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -36,8 +40,11 @@ public class Communication {
 	private String errormsg;
 	
 	public static Text pplanviewer;
-	public static GraphEditPanel jsongraph;
 	private Composite composite;
+	
+	// for json stuff
+	public static GraphEditPanel jsongraph;
+	public static Theory stringVETheory;
 	
 	public Communication(Composite composite){
 		pplan = "";
@@ -61,6 +68,23 @@ public class Communication {
 	
 	public String getError(){
 		return errormsg;
+	}
+	
+	public void dummySetGraph(){
+		String graphJson =
+				  "{\"dir_edges\":{\"e0\":{\"src\":\"v0\",\"tgt\":\"v2\"},\"e1\":" +
+				  "{\"src\":\"v2\",\"tgt\":\"v1\"}},\"wire_vertices\":{\"v2\":{" +
+				  "\"annotation\":{\"coord\":[-0.26,1.35]}}},\"node_vertices\":{" +
+				  "\"v0\":{\"data\":{\"type\":\"string\",\"value\":\"testtest\"}," +
+				  "\"annotation\":{\"coord\":[-1.1,1.99]}},\"v1\":{\"data\":{\"type\"" +
+				  ":\"string\",\"value\":\"bar\"},\"annotation\":{\"coord\":[0.58,0.69]}}}}";
+		
+		Graph g = Graph.fromJson(graphJson, stringVETheory);
+		
+		// optional: layout with graphviz
+		GraphLayout dot = new DotLayout();
+		g = dot.layout(g);
+		jsongraph.setGraph(g);
 	}
 	
 	// should we do nothing if connected?

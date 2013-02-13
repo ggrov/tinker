@@ -49,6 +49,7 @@ public class DrawView extends ViewPart {
 		
 		GraphEditPanel p = new GraphEditPanel(stringVETheory, /* readOnly = */ true);
 		Communication.jsongraph = p;
+		Communication.stringVETheory = stringVETheory;
 		p.setGraph(g);
 		frame.add(p.peer());
 	}

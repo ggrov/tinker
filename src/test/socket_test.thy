@@ -3,7 +3,8 @@ imports Main
 (*
 uses "../interface/gui_socket.ML"             
 *)
-begin        
+begin  
+  
 
 ML{*
 val connected = Synchronized.var "connected" false;
