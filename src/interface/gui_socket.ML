@@ -34,11 +34,11 @@ fun make_streams sock =
     val (haddr, port) = INetSock.fromAddr (Socket.Ctl.getSockName sock);
     val sock_name =
       implode [ NetHostDB.toString haddr, ":", string_of_int port ];
-    val rd =
+    val rd = (* TextPrimIO *)
       BinPrimIO.RD {
         name = sock_name,
         chunkSize = Socket.Ctl.getRCVBUF sock,
-        readVec = SOME (fn sz => Socket.recvVec (sock, sz)),
+        readVec = SOME (fn sz => Socket.recvVec (sock, sz)), (* convert *)
         readArr = SOME (fn buffer => Socket.recvArr (sock, buffer)),
         readVecNB = NONE,
         readArrNB = NONE,
@@ -52,11 +52,11 @@ fun make_streams sock =
         close = fn () => Socket.close sock,
         ioDesc = NONE
       };
-    val wr =
+    val wr = (* TextPrimIO *)
       BinPrimIO.WR {
         name = sock_name,
         chunkSize = Socket.Ctl.getSNDBUF sock,
-        writeVec = SOME (fn buffer => Socket.sendVec (sock, buffer)),
+        writeVec = SOME (fn buffer => Socket.sendVec (sock, buffer)), (* decode *)
         writeArr = SOME (fn buffer => Socket.sendArr (sock, buffer)),
         writeVecNB = NONE,
         writeArrNB = NONE,
@@ -70,7 +70,7 @@ fun make_streams sock =
         ioDesc = NONE
       };
     val in_strm =
-      BinIO.mkInstream (
+      BinIO.mkInstream ( (* "" *)
         BinIO.StreamIO.mkInstream (rd, Word8Vector.fromList []));
     val out_strm =
       BinIO.mkOutstream (
