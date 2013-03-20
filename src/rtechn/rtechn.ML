@@ -97,12 +97,9 @@ structure RTechn
 
  type search_data = unit * unit * string list
 
- (* must be serialisable! *)
- datatype EvalData = EData of {
-    eval_push : string -> string list -> string list,
-    searchf : (search_data -> bool) -> (search_data -> search_data Seq.seq) -> search_data -> search_data Seq.seq,
-    timeout : Time.time
-    } 
+ (* idea: we just look up a string with the relevant info. 
+    TO DO: add more information  *)
+ datatype EvalData = EData of string
 
  datatype tac_assms = TNoAsm | TAllAsm | TClass of StrName.NSet.T
 

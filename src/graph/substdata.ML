@@ -8,10 +8,10 @@ structure GraphSubstData
                  | RVar of string (* variable of rtechn *)
                  | GVar of string (* variable of goalnode *)
 
-  datatype edata = W of Wire.T
+  datatype edata = GT of GoalTyp.T
                  | EVar of string (* variable of goalnode *)
 
-  datatype data = EData edata | VData vdata
+  datatype data = EData of edata | VData of vdata
 
   (* ordering for vertex data *)
   fun vdata_ord (RVar v1,RVar v2) = String.compare (v1,v2)
