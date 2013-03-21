@@ -1,16 +1,26 @@
 TO DO:
 
-1) fix quantomatic/isabelle loading for Isabelle 2013
+2) move socket stuff into isaplib [easy] [GG]
 
-2) move socket stuff into isaplib
+3) update rtechn [make it independent of wires] [easy] [discuss Friday]
+     - fix HGraph data [later]
+     - fix typed_rtechn.ML and make morphism to rtechn.ML
+     - complete rtechn_json.ML
 
-3) update rtechn [make it independent of wires]
-     - remove IO
-     - fix HGraph data
-     - make separate typed_rtechn.ML with IO fields, and morphisms between them
-     - make JSON representation -- see example from quanto theories
+4) goal types -> rename from wires [clear] [GG has started]
+     -> make it fit with CICM paper
+     -> suggest the following files (all files of Wire should go [but reuse as much as possible]
+        - class.ml -> to hold class properties
+        - link.ml -> to hold link properties
+        - goaltyp.ml -> to hold a goal type
+        we may need some helper structures
+     - make json representation
 
-4) rtechn_env -> how can we store such data in proof power?
+6) generalise goal type with functors [hard] [YL to start]
+    -> make a gtrm structure 
+    -> functorise goaltyp over this structure (should then be independent of TP system)
+
+6) rtechn_env -> how can we store such data in proof power? [hard]
      -> is it supported in isaplib?
      -> develop a notion of theory or context independent of isabelle?
      -> we can store this as part of the graph!
@@ -19,35 +29,35 @@ TO DO:
      -> generalise tactics: make a atomic.ml structure which has to be instantiated
         for each theorem prover!
 
-5) goal types -> rename to wires
-     -> make it fit with CICM paper
-     -> suggest the following files (all files of Wire should go [but reuse as much as possible]
-        - class.ml -> to hold class properties
-        - link.ml -> to hold link properties
-        - goaltyp.ml -> to hold a goal type
-        we may need some helper structures
-
-6) generalise goal type with functors
-    -> make a gtrm structure 
-    -> functorise goaltyp over this structure (should then be independent of TP system)
-
-7) goalnode 
+7) goalnode  [hard]
      -> change to use list of goals in a goal node
      -> need to generalise this indpendent of isabelle 
      -> maybe leave this for now, as it requires eval stuff and proof representation to
         be done first -> e.g. just use a string
+     - make Json representation
 
-8) graphs
+8) graphs [medium]
    -> we need to support variables in both edge and vertices, so same subst env has to be held
    -> turn a graph into it's json representation
    -> change to use list of goals in goal node as in ITP paper
-
-9) graph combinators
+ 
+9) graph combinators [easy]
     -> should be straightforward for a given graph
 
-10) eval data
+10) eval data [hard]
     -> how much of this can be reused?
     -> can the same thing be used for e.g. proof power (and do we want it too?)
 
-11) make a theory functor
+11) make a theory functor [easy]
      -> combines all the above to create a uniform interface
+
+12) instantiate Isabelle for generic [easy]
+
+13) instantiate proof power for generic [easy]
+
+14] link with GUI [easy] [YL to start]
+
+COMPLETED:
+
+1) fix quantomatic/isabelle loading for Isabelle 2013 [easy] [GG]
+

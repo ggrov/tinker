@@ -7,9 +7,9 @@ structure Strategy_GraphParam_DB
   structure EData = Strategy_EdgeData;
 
   (* fixme: change to allow substitution in edge and vertex *)
-  type subst = DB_VertexData.subst;
-  val empty_subst = DB_VertexData.empty_subst;
-  fun compose_subst s1 s2 = DB_VertexData.compose_subst (s1,s2);
+  type subst = GraphSubstData.subst;
+  val empty_subst = GraphSubstData.empty_subst;
+  fun compose_subst s1 s2 = GraphSubstData.compose_subst (s1,s2);
   fun try_match_vertex d1 d2 subst = DB_VertexData.match_data (d1,d2) subst;
   fun try_match_edge e1 e2 subst = DB_EdgeData.match_data (e1,e2) subst;
   exception match_exp of unit;

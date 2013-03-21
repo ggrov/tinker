@@ -1,116 +1,79 @@
 structure DB_VertexData
 = struct
+  
+  structure GSD = GraphSubstData;
 
-  datatype GNList = GList of GNode.T list
-                  | GApp of Wire.T * (PNode.T list) 
-
-  fun eval_gnlist (GList gl) = (GList gl)
-   |  eval_gnlist (GApp (w,pn)) =  (GList []);
-
-  datatype data = RT of RTechn.T
-                 | GN of GNode.T
-                 (* | GNList of GNode.T list *)
-                 | RVar of string (* variable of rtechn *)
-                 | GVar of string (* variable of goalnode *)
-
-  (* ordering is used for building tables, sorting, etc *)
-  fun data_ord (RVar v1,RVar v2) = String.compare (v1,v2)
-    | data_ord (RVar v1,RVar v2) = String.compare (v1,v2)
-    | data_ord (RVar _,_) = LESS
-    | data_ord (GVar _,_) = LESS
-    | data_ord (GN _, RT _) = LESS
-    | data_ord (RT _, GN _) = GREATER
-    | data_ord (GN g1, GN g2) = GNode.ord (g1,g2)
-    | data_ord (RT r1, RT r2) = RTechn.ord (r1,r2);
-
-  (* equality check (should agree with order):
-     data_eq(x,y) <=> data_ord (x,y) = EQUAL *)
-  fun data_eq (xy as (x, y)) = 
-      (case data_ord xy of EQUAL => true
-          | _ => false);
+  type data = GSD.vdata;
+  val data_ord = GSD.vdata_ord;
+  val data_eq = GSD.vdata_eq;
  
-  fun pretty_data (RT rt) = RTechn.pretty rt
-   |  pretty_data (GN gn) = GNode.pretty gn
-   |  pretty_data (RVar s) = Pretty.str ("?R_" ^ s)
-   |  pretty_data (GVar s) = Pretty.str ("?G_" ^ s);
+  val pretty_data = GSD.pretty_vdata;
+  val print_data = GSD.print_vdata;
 
-  val print_data = Pretty.writeln o pretty_data;
-  
-  fun pretty_node (RT rt) = RTechn.pretty_name rt
-   |  pretty_node (GN gn) = GNode.pretty gn
-   |  pretty_node (RVar s) = Pretty.str ("?R_" ^ s)
-   |  pretty_node (GVar s) = Pretty.str ("?G_" ^ s);
+  type subst = GSD.subst;
+  val empty_subst = GSD.empty_subst;
+  val compose_subst = GSD.compose_subst;
 
-  (* assume that RVar and GVar sets are disjoint! *)
-  type subst = data StrName.NTab.T;
-
-  val empty_subst = StrName.NTab.empty;
-  
-  (* u2 overrides u1 *)
-  fun compose_subst (u1,u2) = (StrName.NTab.merge_joint data_eq u1 u2);
-
-  (* shouldn't really be variable on rhs. Matching gets a bit
-     complicated due to the two different types of variables *)
-  fun match_data (RVar v1,RVar v2) subst =
-      (case StrName.NTab.lookup subst v1 of 
-            NONE => SOME (StrName.NTab.ins (v1,RVar v2) subst) (* bind vi if not bound - infinite loop?? *)
-          | SOME (RVar v3) => if v2=v3 then SOME subst else NONE (* already bound to v2 *)
-          | SOME (RT r1) => match_data (RT r1,RVar v2) subst (* bound to RT, check if v2 bound to it *)
+  (* inv: esubst' = esubst *)
+  fun match_data (GSD.TVar v1,GSD.TVar v2) (vsubst,esubst) =
+      (case StrName.NTab.lookup vsubst v1 of 
+            NONE => SOME (StrName.NTab.ins (v1,GSD.TVar v2) vsubst,esubst) (* bind vi if not bound - infinite loop?? *)
+          | SOME (GSD.TVar v3) => if v2=v3 then SOME (vsubst,esubst) else NONE (* already bound to v2 *)
+          | SOME (GSD.RT r1) => match_data (GSD.RT r1,GSD.TVar v2) (vsubst,esubst) (* bound to RT, check if v2 bound to it *)
           | SOME _ => NONE)
-    | match_data (RVar v,RT rt) subst = 
-        (case StrName.NTab.lookup subst v of
-            NONE => SOME (StrName.NTab.ins (v,RT rt) subst) (* bind vi if not bound *)
-          | SOME (RT rt') => if RTechn.eq (rt,rt') then SOME subst else NONE 
-          | SOME (RVar v') => match_data (RVar v',RT rt) subst
+    | match_data (GSD.TVar v,GSD.RT rt) (vsubst,esubst) = 
+        (case StrName.NTab.lookup vsubst v of
+            NONE => SOME (StrName.NTab.ins (v,GSD.RT rt) vsubst,esubst) (* bind vi if not bound *)
+          | SOME (GSD.RT rt') => if RTechn.eq (rt,rt') then SOME (vsubst,esubst) else NONE 
+          | SOME (GSD.TVar v') => match_data (GSD.TVar v',GSD.RT rt) (vsubst,esubst)
           | SOME _ => NONE)
-   | match_data (GVar v1,GVar v2) subst = 
-      (case StrName.NTab.lookup subst v1 of
-            NONE => SOME (StrName.NTab.ins (v1,GVar v2) subst) (* bind vi if not bound - infinite loop?? *)
-          | SOME (GVar v3) => if v2=v3 then SOME subst else NONE (* already bound to v2 *)
-          | SOME (GN g1) => match_data (GN g1,GVar v2) subst (* bound to RT, check if v2 bound to it *)
+   | match_data (GSD.GVar v1,GSD.GVar v2) (vsubst,esubst) = 
+      (case StrName.NTab.lookup vsubst v1 of
+            NONE => SOME (StrName.NTab.ins (v1,GSD.GVar v2) vsubst,esubst) (* bind vi if not bound - infinite loop?? *)
+          | SOME (GSD.GVar v3) => if v2=v3 then SOME (vsubst,esubst) else NONE (* already bound to v2 *)
+          | SOME (GSD.GN g1) => match_data (GSD.GN g1,GSD.GVar v2) (vsubst,esubst) (* bound to RT, check if v2 bound to it *)
           | SOME _ => NONE)
-    | match_data (GVar v,GN gn) subst = 
-        (case StrName.NTab.lookup subst v of
-            NONE => SOME (StrName.NTab.ins (v,GN gn) subst) (* bind vi if not bound *)
-          | SOME (GN gn') => if GNode.eq (gn,gn') then SOME subst else NONE 
-          | SOME (GVar v') => match_data (GVar v',GN gn) subst
+    | match_data (GSD.GVar v,GSD.GN gn) (vsubst,esubst) = 
+        (case StrName.NTab.lookup vsubst v of
+            NONE => SOME (StrName.NTab.ins (v,GSD.GN gn) vsubst,esubst) (* bind vi if not bound *)
+          | SOME (GSD.GN gn') => if gn = gn' then SOME (vsubst,esubst) else NONE 
+          | SOME (GSD.GVar v') => match_data (GSD.GVar v',GSD.GN gn) (vsubst,esubst)
           | SOME _ => NONE)
-    | match_data (GN g1, GN g2) subst = 
-         if GNode.eq (g1,g2) then SOME subst else NONE
-    | match_data (RT r1, RT r2) subst = 
+    | match_data (GSD.GN g1, GSD.GN g2) subst = 
+         if g1 = g2 then SOME subst else NONE
+    | match_data (GSD.RT r1, GSD.RT r2) subst = 
          if RTechn.eq (r1,r2) then SOME subst else NONE
-    | match_data (RT rt,RVar v) subst = NONE
-    | match_data (GN gn,GVar v) subst = NONE
+    | match_data (GSD.RT rt,GSD.TVar v) subst = NONE
+    | match_data (GSD.GN gn,GSD.GVar v) subst = NONE
     | match_data (_,_) _ = NONE
 
   (* FIXME: unification: if x matches y, and y matches x (with the same subst) *) 
   fun unify_data xy subst = if data_eq xy then SOME subst else NONE;
 
   (* there is not data in a vertex, subst is just the id on the data *)
-  fun subst_in_data subst (RT rt) = (RT rt)
-   |  subst_in_data subst (GN gn) = (GN gn)
-   |  subst_in_data subst (RVar v) = 
+  fun subst_in_data (subst,_) (GSD.RT rt) = (GSD.RT rt)
+   |  subst_in_data (subst,_) (GSD.GN gn) = (GSD.GN gn)
+   |  subst_in_data (subst,_) (GSD.TVar v) = 
         (case StrName.NTab.lookup subst v of
-          NONE => (RVar v) (* or should it fail? *)
+          NONE => (GSD.TVar v) (* or should it fail? *)
         | (SOME d) => d)
-   |  subst_in_data subst (GVar v) =
+   |  subst_in_data (subst,_) (GSD.GVar v) =
         (case StrName.NTab.lookup subst v of
-          NONE => (RVar v)
+          NONE => (GSD.TVar v)
         | (SOME d) => d);
   
   (* pretty printing for subst *)
-  fun pretty_subst subst =
-    Pretty.block [Pretty.str "vertex subst: ",StrName.NTab.pretty pretty_data subst];
-  val print_subst = Pretty.writeln o pretty_subst;  
+  val pretty_subst = GSD.pretty_subst;
+  val print_subst = GSD.print_subst; 
 
-  val default_data = RVar "v";
+  val default_data = GSD.TVar "v";
   
   structure Sharing = struct type data = data; type subst = subst; end;  
 end;
 
 structure Strategy_VertexData : UNIFIABLE_DATA = DB_VertexData;
 
-(*  *)
+(* I think this is now replaced by JSON STUFF *)
 structure Strategy_VertexComponentData_Param
 : ELEMENT_COMPONENT_DATA_PARAM where type data = Strategy_VertexData.data
 = struct 
@@ -119,27 +82,28 @@ structure Strategy_VertexComponentData_Param
   exception unexpected_data_exp;
 
   structure VD = DB_VertexData
+  structure GSD = GraphSubstData;
 
-  fun type_of (VD.RT _) = "RT"
-    | type_of (VD.GN _) = "GN"
-    | type_of (VD.RVar _) = "RVar"
-    | type_of (VD.GVar _) = "GVar";
+  fun type_of (GSD.RT _) = "RT"
+    | type_of (GSD.GN _) = "GN"
+    | type_of (GSD.TVar _) = "TVar"
+    | type_of (GSD.GVar _) = "GVar";
 
   fun cdata_of d = 
-    ComponentData.String (Pretty.string_of (DB_VertexData.pretty_node d));
+    ComponentData.String (Pretty.string_of (DB_VertexData.pretty_data d));
   
   (* New nodes are by default RTechnNodes *)
-  fun default_data "RT" = VD.RT (RTechn.id)
-    | default_data "GN" = VD.GN (GNode.default_gnode)
-    | default_data "RVar" = VD.RVar "v"
-    | default_data "GVar" = VD.GVar "v"
+  fun default_data "RT" = GSD.RT (RTechn.id)
+    | default_data "GN" = GSD.GN ([])
+    | default_data "TVar" = GSD.TVar "v"
+    | default_data "GVar" = GSD.GVar "v"
     | default_data s = raise unknown_type_exp s;
 
 
-  fun update upd (VD.RT rt) = VD.RT rt
-    | update upd (VD.GN gn) = VD.GN gn
-    | update upd (VD.RVar v)   = VD.RVar v
-    | update upd (VD.GVar v)   = VD.GVar v;   
+  fun update upd (GSD.RT rt) = GSD.RT rt
+    | update upd (GSD.GN gn) = GSD.GN gn
+    | update upd (GSD.TVar v)   = GSD.TVar v
+    | update upd (GSD.GVar v)   = GSD.GVar v;   
 
 end;
 
