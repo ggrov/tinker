@@ -20,19 +20,19 @@
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
 
 val psgraphDir = OS.FileSys.getDir();
-
+val psgraphSrc = psgraphDir ^ "/../../../../";
 
 OS.FileSys.chDir psgraphDir;
 (* Include quantomatic and isaplib *)
 OS.FileSys.chDir (psgraphDir ^ "/../quantomatic/core/");
 use "ROOT.ML";
-OS.FileSys.chDir psgraphDir;
+OS.FileSys.chDir psgraphSrc;
 
 (*Descripe dependent files*)
 PolyML.Project.depend_on_files
   [
    (*psgraphDir ^ "/../isaplib/ROOT.ML", for isaplib, for structure Project*)
-   psgraphDir ^ "/../quantomatic/core/ROOT.ML", 
+   psgraphSrc ^ "/../quantomatic/core/ROOT.ML", 
    psgraphDir ^ "/ROOT.ML" (*psgraph*)
   ];
  
@@ -64,4 +64,9 @@ else
   PolyML.Project.save_project_child_state "heaps/psgraph_child.heap");
   
 PolyML.Project.Log.log 2 "done.";
+
+OS.FileSys.chDir psgraphDir;
+
+
+
 
