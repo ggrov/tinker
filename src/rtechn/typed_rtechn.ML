@@ -1,20 +1,19 @@
 (* Reasoning technique independent of graph  *)
 
-signature RTECHN = 
+signature TYPED_RTECHN = 
 sig
+  structure rtechn : RTECHN
+
   type T
+  type tac_assms
+  sharing type tac_assms = rtechn.tac_assms
 
-  datatype tac_assms = TNoAsm | TAllAsm | TClass of StrName.NSet.T
-
-  datatype atomic =
-      Rule of StrName.NSet.T (* rules used - what about with wire? *)
-    | ERule of StrName.name * StrName.NSet.T (* wire + rules used *)
-    | FRule of StrName.name * StrName.NSet.T (* wire + rules used *)
-    | Subst of StrName.NSet.T (* separate rule vs bwire? *)
-    | SubstAsm of StrName.name * StrName.NSet.T (* bwre and rules - sep. rule vs bwire *)
-    | Tactic of tac_assms * string (* bwire as fact + name of tactic *)
+  type atomic 
+  sharing type atomic = rtechn.atomic
 
   type appfn 
+  sharing type appfn = rtechn.appfn
+
   type wire = W.name;
   type wset = W.NSet.T;
 
@@ -88,9 +87,15 @@ end;
 
 
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-structure RTechn 
- : RTECHN 
+structure TypRTechn 
+ : TYPED_RTECHN 
 = struct
+
+  structure rtechn = RTechn; 
+
+  type appfn = rtechn.appfn;
+  type tac_assms = rtechn.tac_assms;
+  type atomic = rtechn.atomic;
 
   type wire = W.name;
   type wset = W.NSet.T;
@@ -99,98 +104,69 @@ structure RTechn
 
  (* idea: we just look up a string with the relevant info. 
     TO DO: add more information  *)
- datatype EvalData = EData of string
-
- datatype tac_assms = TNoAsm | TAllAsm | TClass of StrName.NSet.T
-
- datatype atomic =
-    Rule of StrName.NSet.T (* rules used - what about with wire? *)
-  | ERule of StrName.name * StrName.NSet.T (* wire + rules used *)
-  | FRule of StrName.name * StrName.NSet.T (* wire + rules used *)
-  | Subst of StrName.NSet.T (* separate rule vs bwire? *)
-  | SubstAsm of StrName.name * StrName.NSet.T (* bwre and rules - sep. rule vs bwire *)
-  | Tactic of tac_assms * string (* bwires as facts + name of stactic *)
-
- (* must be serialisable! *)
- datatype appfn = Appf of atomic
-                | HGraph of EvalData option
-                | Merge
-                | Identity
-                | Or (* of EvalData option *)
-                | Try (* of EvalData option *)
+  datatype EvalData = EData of string
 
  (* must be serialisable *)
- datatype T =
-   RTechn of {
-  		name : string,
+  datatype T =
+   TypRTechn of {
+  		rt     : rtechn.T,
   		inputs : wset,
-  		outputs: wset,
-  		appf: appfn}
+  		outputs: wset}
  
-  (* what about global properties like instantiations of meta-vars? *)
-  type appf = T -> tactic -> PNode.T -> (PNode.T * PNode.T list) Seq.seq
-
   exception rtechn_exp of string * T;
   exception goal_lacks_type_exp of PNode.T;
   exception wrong_wire_type_exp of (PNode.T * W.name);
 
-  fun get_name (RTechn rep) = #name rep;
-  fun get_inputs (RTechn rep) = #inputs rep;
-  fun get_outputs (RTechn rep) = #outputs rep;
-  fun get_appf (RTechn rep) = #appf rep;
+  (*morphism of rtechn*)
+  fun rtechn_of (TypRTechn rep) =  (#rt rep);
+  val get_name = rtechn.get_name o rtechn_of;
+  val get_appf = rtechn.get_appf o rtechn_of;
 
-  fun update_name f (RTechn rep) = 
-      RTechn { name = f (#name rep), inputs = #inputs rep, outputs = #outputs rep, appf = #appf rep};
-  fun update_inputs f (RTechn rep) = 
-      RTechn { name = #name rep, inputs = f(#inputs rep), outputs = #outputs rep, appf = #appf rep};
-  fun update_outputs f (RTechn rep) = 
-      RTechn { name = #name rep, inputs = #inputs rep, outputs = f(#outputs rep), appf = #appf rep};
-  fun update_appf f (RTechn rep) = 
-      RTechn { name = #name rep, inputs = #inputs rep, outputs = #outputs rep, appf = f(#appf rep)};
+  fun get_inputs (TypRTechn rep) = #inputs rep;
+  fun get_outputs (TypRTechn rep) = #outputs rep;
+  
 
+  fun update_rtechn f (trep as TypRTechn rep) = 
+      TypRTechn { rt = f (rtechn_of trep), 
+                  inputs = #inputs rep, outputs = #outputs rep };
+  fun update_name f (trep as TypRTechn rep) = 
+      TypRTechn { rt = rtechn.update_name f  (rtechn_of trep), 
+                  inputs = #inputs rep, outputs = #outputs rep };
+  fun update_appf f (trep as TypRTechn rep) = 
+      TypRTechn { rt = rtechn.update_appf f (rtechn_of trep), 
+                  inputs = #inputs rep, outputs = #outputs rep };
+
+  fun update_inputs f (TypRTechn rep) = 
+      TypRTechn { rt = #rt rep, inputs = f(#inputs rep), outputs = #outputs rep };
+  fun update_outputs f (TypRTechn rep) = 
+      TypRTechn { rt = #rt rep, inputs = #inputs rep, outputs = f(#outputs rep) };
+
+  val set_rtechn = update_rtechn o K;
   val set_name = update_name o K; 
   val set_inputs = update_inputs o K; 
   val set_outputs = update_outputs o K; 
   val set_appf = update_appf o K; 
 
-  val set_atomic_appf = set_appf o Appf;
-  val set_hgraph_appf = set_appf (HGraph NONE);
-  val set_merge_appf = set_appf Merge;
-  val set_identity_appf = set_appf Identity;
-  val set_or_appf = set_appf Or;
-  val set_try_appf = set_appf Try;
+(*TODO: any sharing facility to avoid refering to definition of datatype in rtechn ? Or better idea ?*)
+  fun set_atomic_appf atom trep = rtechn.set_atomic_appf atom (rtechn_of trep) |> (fn x => set_rtechn x trep);
+(*TODO: yet to complete*)  
+  fun set_hgraph_appf trep = rtechn.set_hgraph_appf (rtechn_of trep) |> (fn x => set_rtechn x trep);
+  fun set_merge_appf trep = rtechn.set_merge_appf (rtechn_of trep) |> (fn x => set_rtechn x trep);
+  fun set_identity_appf trep = rtechn.set_identity_appf (rtechn_of trep) |> (fn x => set_rtechn x trep);
+  fun set_or_appf  trep = rtechn.set_or_appf (rtechn_of trep) |> (fn x => set_rtechn x trep);
+  fun set_try_appf trep = rtechn.set_try_appf (rtechn_of trep) |> (fn x => set_rtechn x trep);
 
   fun set_io ws = set_inputs ws #> set_outputs ws;
-  
-  fun is_atomic_appfn (Appf _) = true
-   |  is_atomic_appfn    _     = false;
 
-  fun is_hgraph_appfn  (HGraph _) = true
-   |  is_hgraph_appfn    _     = false;
+  val is_atomic = rtechn.is_atomic o rtechn_of;
+  val is_hgraph =  rtechn.is_hgraph o rtechn_of;
+  val is_merge =  rtechn.is_merge o rtechn_of;
+  val is_identity =  rtechn.is_identity o rtechn_of;
+  val is_or =  rtechn.is_or o rtechn_of;
+  val is_try =  rtechn.is_try o rtechn_of;
 
-  fun is_merge_appfn  Merge = true
-   |  is_merge_appfn    _     = false;
+  val get_atomic = rtechn.get_atomic o rtechn_of;
 
-  fun is_identity_appfn  Identity = true
-   |  is_identity_appfn    _     = false;
-
-  fun is_or_appfn  Or      = true
-   |  is_or_appfn    _     = false;
-
-  fun is_try_appfn Try      = true
-   |  is_try_appfn    _     = false;
-
-  val is_atomic = is_atomic_appfn o get_appf;
-  val is_hgraph = is_hgraph_appfn o get_appf;
-  val is_merge = is_merge_appfn o get_appf;
-  val is_identity = is_identity_appfn o get_appf;
-  val is_or = is_or_appfn o get_appf;
-  val is_try = is_try_appfn o get_appf;
-
-  fun get_atomic rt = 
-    case get_appf rt 
-    of (Appf atom) => SOME atom
-    | _ => NONE;
 
   (* We should really check this w.r.t hgraph graphs since they have to be invariant *)
   val union_inputs = update_inputs o W.NSet.union_merge o get_inputs;
@@ -205,11 +181,9 @@ structure RTechn
                     |> Seq.single
 *) 
 
-  val id = RTechn {name = "id", inputs = W.NSet.empty, outputs = W.NSet.empty, 
-                   appf = Identity};
+  val id = TypRTechn {rt = rtechn.id, inputs = W.NSet.empty, outputs = W.NSet.empty };
 
-  val merge = RTechn {name = "merge", inputs = W.NSet.empty, outputs = W.NSet.empty, 
-                   appf = Merge};
+  val merge = TypRTechn {rt = rtechn.merge, inputs = W.NSet.empty, outputs = W.NSet.empty };
 
   fun id_str str = id |> set_name str;
 
@@ -222,8 +196,7 @@ structure RTechn
          |> set_outputs (W.NSet.single wire)
 
   val fail = id 
-           |> set_atomic_appf (Tactic (TNoAsm,"no_tac"))
-           |> set_name "fail";
+           |> set_rtechn rtechn.fail
 
 (*  fun ofstep f = id
     |> set_name "ofstep"

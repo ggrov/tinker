@@ -4,8 +4,8 @@ TO DO:
 
 3) update rtechn [make it independent of wires] [easy] [discuss Friday]
      - fix HGraph data [later]
-     - fix typed_rtechn.ML and make morphism to rtechn.ML
      - complete rtechn_json.ML
+     - complete appfn, ord and eq [medium]
 
 4) goal types -> rename from wires [clear] [GG has started]
      -> make it fit with CICM paper
@@ -60,4 +60,6 @@ TO DO:
 COMPLETED:
 
 1) fix quantomatic/isabelle loading for Isabelle 2013 [easy] [GG]
+3) update rtechn [make it independent of wires] [easy]
+     - fix typed_rtechn.ML and make morphism to rtechn.ML [LYH] [To be reviewed]
 
