@@ -4,8 +4,10 @@ signature RTECHN =
 sig
   type T
   exception rtechn_exp of string * T;
+
+  datatype EvalData = EData of string
   datatype tac_assms = TNoAsm | TAllAsm | TClass of StrName.NSet.T
-  type appfn 
+
   datatype atomic =
       Rule of StrName.NSet.T (* rules used - what about with wire? *)
     | ERule of StrName.name * StrName.NSet.T (* wire + rules used *)
@@ -13,6 +15,13 @@ sig
     | Subst of StrName.NSet.T (* separate rule vs bwire? *)
     | SubstAsm of StrName.name * StrName.NSet.T (* bwre and rules - sep. rule vs bwire *)
     | Tactic of tac_assms * string (* bwire as fact + name of tactic *)
+
+  datatype appfn = Appf of atomic
+                | HGraph of EvalData option
+                | Merge
+                | Identity
+                | Or (* of EvalData option *)
+                | Try (* of EvalData option *)
 
   val get_name : T -> string
   val get_appf : T -> appfn
