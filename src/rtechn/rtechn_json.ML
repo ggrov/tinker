@@ -2,63 +2,38 @@
 
 signature RTECHN_JSON = 
 sig
-  type T
   val rtechn_to_json : RTechn.T -> Json.json
   val rtechn_from_json : Json.json -> RTechn.T
 end;
 
 
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-structure RTechnJSON : RTECHN_JSON 
+structure RTechnJSON (* : RTECHN_JSON *)
 = struct
 
-  (*TODO: make them as sharing types to gurantee consistency*)
-  datatype EvalData = EData of string
-
-  datatype tac_assms = TNoAsm | TAllAsm | TClass of StrName.NSet.T
-
-  datatype atomic =
-     Rule of StrName.NSet.T (* rules used - what about with wire? *)
-   | ERule of StrName.name * StrName.NSet.T (* wire + rules used *)
-   | FRule of StrName.name * StrName.NSet.T (* wire + rules used *)
-   | Subst of StrName.NSet.T (* separate rule vs bwire? *)
-   | SubstAsm of StrName.name * StrName.NSet.T (* bwre and rules - sep. rule vs bwire *)
-   | Tactic of tac_assms * string (* bwires as facts + name of stactic *)
-
-  datatype appfn = Appf of atomic
-                 | HGraph of EvalData option
-                 | Merge
-                 | Identity
-                 | Or (* of EvalData option *)
-                 | Try (* of EvalData option *)
-
-  datatype T =
-    RTechn of {
-   		name : string,
-  	 	appf : appfn}
-
 (* Json representation (revised by LYH):
-  {
-    type : string,  
-    {
-      name : string, 
-      appf : {
-              type : (Appf | HGraph | Merge | Identity | Or | Try)],
-              (
-                {
-                  Appf : {
-                           type : (Rule | ERule | FRUle | Subst | SubstAsm | Tactic),
-                           args : [list of arg]
-                         } 
-                }
-                | {HGraph: null | string }
-                | {Merge: null}
-                | {Identity: null}
-                | {Or: null}
-                | {Try : null}
-              )
-            }
-   }
+
+  tac_assm := 
+   { name : string,
+     args : null | [string]
+
+  atomic := 
+    { type : string (Rule | ERule | FRUle | Subst | SubstAsm | Tactic)
+      class : string | null
+      rules : [string] | null
+      tac_detail : null | tac_assm
+    }
+
+  appf := {
+    type : string/enum (Appf | HGraph | Merge | Identity | Or | Try),
+    atomic : atomic | null
+  }
+
+  rtechn := {
+    name : string
+    appf : appf
+  }
+
 *)
 local open RTechn Json in
 (*
@@ -178,7 +153,9 @@ local open RTechn Json in
       val (String str) = hd strl;
       val appf_obj = hd (tl recordlist)
     in
-      RTechn {name = str, appf = (appfn_from_json appf_obj)} (*TODO: fail to construct, need discussion*)
+      RTechn.id
+      |> RTechn.set_name str
+      |> RTechn.set_appf (appfn_from_json appf_obj)
     end
     | rtechn_from_json _ = raise EXP_PARSING_JSON "Not a Json array type."
 

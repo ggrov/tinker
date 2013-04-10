@@ -12,7 +12,7 @@ end;
 structure Class = 
 struct 
 
-  (* fixme: could be term dependnent *)
+  (* fixme: could be term dependent *)
   type position = int list
 
   datatype element_data = 

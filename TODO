@@ -16,7 +16,7 @@ TO DO:
         we may need some helper structures
      - make json representation
 
-6) generalise goal type with functors [hard] [YL to start]
+5) generalise goal type with functors [hard] [YL to start]
     -> make a gtrm structure 
     -> functorise goaltyp over this structure (should then be independent of TP system)
 
