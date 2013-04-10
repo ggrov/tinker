@@ -2,17 +2,14 @@
 
 signature TYPED_RTECHN = 
 sig
-  structure rtechn : RTECHN
+
 
   type T
   type tac_assms
-  sharing type tac_assms = rtechn.tac_assms
 
   type atomic 
-  sharing type atomic = rtechn.atomic
 
   type appfn 
-  sharing type appfn = rtechn.appfn
 
   type wire = W.name;
   type wset = W.NSet.T;
@@ -87,11 +84,9 @@ end;
 
 
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-structure TypRTechn 
+functor TypRTechn_FUN (rtechn : RTECHN) 
  : TYPED_RTECHN 
 = struct
-
-  structure rtechn = RTechn; 
 
   type appfn = rtechn.appfn;
   type tac_assms = rtechn.tac_assms;
@@ -231,4 +226,4 @@ structure TypRTechn
 
 end; (* struct *)
 
-
+structure TypRTechn = TypRTechn_FUN (RTechn);
