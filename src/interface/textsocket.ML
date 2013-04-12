@@ -5,6 +5,11 @@ sig
   val write : T -> string -> unit (* write to stream *)
   val read : T -> string (* read from stream *)
   val close : T -> unit (* close stream *)
+
+  val get_instream : T -> TextIO.instream
+  val get_outstream : T -> TextIO.outstream
+  val get_socket : T -> Socket.active INetSock.stream_sock
+ 
 end (* signature *)
 
 structure TextSocket : TEXT_SOCKET =
@@ -16,6 +21,19 @@ struct
    sin : TextIO.instream,
    sout : TextIO.outstream
  }
+
+  fun get_instream (SockData rep) = #sin rep;
+  fun get_outstream (SockData rep) = #sout rep;
+  fun get_socket (SockData rep) = #sock rep;
+
+(*
+FIXME:
+For array, I can get "unlift":
+ CharArraySlice.vector #> Byte.stringToBytes; 
+but need to convert vector back to array and
+then
+  Word8ArraySlice.full;
+*)
 
  fun make_streams sock =
   let
