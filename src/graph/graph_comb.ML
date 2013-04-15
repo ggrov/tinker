@@ -2,6 +2,8 @@
 signature GRAPH_COMB = 
 sig
 
+  (* which one are independent of graph? *)
+
   type graph = Strategy_Theory.Graph.T
 
   exception then_exp of graph * V.name * V.name list * string;

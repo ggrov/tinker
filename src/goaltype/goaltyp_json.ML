@@ -1,21 +1,17 @@
 (* json conversion for a goal typ  *)
-structure GTJson = 
+signature GOAL_TYPE_JSON =
+sig 
+  val to_json : GoalTyp.T -> Json.json 
+  val from_json : Json.json -> GoalTyp.T 
+  val link_to_json : Link.T -> Json.json
+  val link_from_json : Json.json -> Link.T
+  val class_to_json : Class.T -> Json.json
+  val class_from_json : Json.json -> Class.T 
+
+end
+
+structure GTJson : GOAL_TYPE_JSON = 
 struct 
-
-  datatype T = GoalTyp of 
-   { name : G.name,
-     link : Link.T,
-     facts : Class.T list, (* fixme: turn this into a set *)
-     goal : Class.T }
-
-
-  fun class_to_json class = 
-  
-  fun class_from_json json =
-
-  fun link_to_json link =
-  
-  fun link_from_json link = 
 
   (* json format 
        { name : string
@@ -24,9 +20,19 @@ struct
          goal : class_json obj 
   *)
 
-  fun to_json gt = 
+  (* TODO: implement this properly *)
+
+  fun class_to_json class = Json.of_string "class";
   
-  fun from_json json = 
+  fun class_from_json json = Class.top;
+
+  fun link_to_json link = Json.of_string "link";
+  
+  fun link_from_json json = Link.top;
+
+  fun to_json gt = Json.of_string "goaltyp";
+  
+  fun from_json json = GoalTyp.top;
 
 
 

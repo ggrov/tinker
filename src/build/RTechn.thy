@@ -1,16 +1,13 @@
 (* simple test of proof representation *)
 theory RTechn                                                  
 imports          
-  Wire                                     
+ "~~/contrib/isaplib/isabelle/isaplib/isaplib"                              
 uses
-  "../rtechn/rtechn.ML"                                     
+  "../rtechn/rtechn.ML" 
+  "../rtechn/rtechn_json.ML"                                    
   "../rtechn/rtechn_env.ML"      
 begin
-  (* due to XML usage by Quanto - is this still necessary? *)
-  ML{*
-    structure IsaXML = XML
-  *}
-  setup {* RTechnEnv.setup *}
+
 end
 
 

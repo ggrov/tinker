@@ -1,7 +1,7 @@
 (* simple test of proof representation *)
 theory Graph                                               
 imports        
-  RTechn
+  RTechn               
   GoalTyp                                       
   "~~/contrib/quantomatic/core/isabelle/QuantoCore"                                             
 uses
