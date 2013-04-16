@@ -38,13 +38,13 @@ structure DB_EdgeData
   structure Sharing = struct type data = data; type subst = subst; end;  
 end;
 
-structure Strategy_EdgeData : UNIFIABLE_DATA = DB_EdgeData;
+structure PS_EdgeData : UNIFIABLE_DATA = DB_EdgeData;
 
 (*  *)
-structure Strategy_EdgeComponentData_Param
-: ELEMENT_COMPONENT_DATA_PARAM where type data = Strategy_EdgeData.data
+structure PS_EdgeComponentData_Param
+: ELEMENT_COMPONENT_DATA_PARAM where type data = PS_EdgeData.data
 = struct 
-  type data = Strategy_EdgeData.data;
+  type data = PS_EdgeData.data;
   exception unknown_type_exp of string;
   exception unexpected_data_exp;
 

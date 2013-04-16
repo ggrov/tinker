@@ -1,10 +1,10 @@
-structure Strategy_GraphParam_DB
+structure PS_GraphParam_DB
 = struct
   val pretty_theory_name = Pretty.str "strategy_language";
 
   (* Vertices with string data and prefix-substring matching *)
-  structure VData = Strategy_VertexData;
-  structure EData = Strategy_EdgeData;
+  structure VData = PS_VertexData;
+  structure EData = PS_EdgeData;
 
   (* fixme: change to allow substitution in edge and vertex *)
   type subst = GraphSubstData.subst;
@@ -75,19 +75,19 @@ structure Strategy_GraphParam_DB
   end;
 end;
 
-structure Strategy_GraphParam : GRAPH_PARAM = Strategy_GraphParam_DB;
+structure PS_GraphParam : GRAPH_PARAM = PS_GraphParam_DB;
 
-structure Strategy_OVData = OVertexData(Strategy_GraphParam.VData);
-structure Strategy_OGraphParam = OGraphParam(
-  structure Param = Strategy_GraphParam 
-        and OVData = Strategy_OVData);
+structure PS_OVData = OVertexData(PS_GraphParam.VData);
+structure PS_OGraphParam = OGraphParam(
+  structure Param = PS_GraphParam 
+        and OVData = PS_OVData);
 
-structure Strategy_OVertexComponentData_Param = OVertexComponentData_Param(
-  structure VertexDataParam = Strategy_VertexComponentData_Param
-  structure OVData = Strategy_OVData);
+structure PS_OVertexComponentData_Param = OVertexComponentData_Param(
+  structure VertexDataParam = PS_VertexComponentData_Param
+  structure OVData = PS_OVData);
 
-structure Strategy_OVertexComponentData = 
-  ElementComponentData(Strategy_OVertexComponentData_Param);
+structure PS_OVertexComponentData = 
+  ElementComponentData(PS_OVertexComponentData_Param);
 
-structure Strategy_EdgeComponentData = 
-  ElementComponentData(Strategy_EdgeComponentData_Param);
+structure PS_EdgeComponentData = 
+  ElementComponentData(PS_EdgeComponentData_Param);
