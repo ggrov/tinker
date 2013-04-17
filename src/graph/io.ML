@@ -1,7 +1,7 @@
-structure Strategy_ComponentDataIO : GRAPH_COMPONENT_DATA_IO
+structure PS_ComponentDataIO : GRAPH_COMPONENT_DATA_IO
 = struct
-  type vdata = Strategy_VertexData.data;
-  type edata = Strategy_EdgeData.data;
+  type vdata = PS_VertexData.data;
+  type edata = PS_EdgeData.data;
 
   (* vertex data
       { type : RT | GN | TVar | GVar
@@ -90,9 +90,9 @@ end;
 
 (* OLD STUFF *)
 
-structure Strategy_DotStyle (* : DOT_STYLE *) =
+structure PS_DotStyle (* : DOT_STYLE *) =
 struct
-  structure Graph = Strategy_Theory.Graph
+  structure Graph = PS_Theory.Graph
   fun style_for_ivertex_data x = "[style=filled,fillcolor=white,fontcolor=black,shape=circle]"
 end;
 

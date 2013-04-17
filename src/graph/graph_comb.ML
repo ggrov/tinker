@@ -2,41 +2,87 @@
 signature GRAPH_COMB = 
 sig
 
-  (* which one are independent of graph? *)
-
-  type graph = Strategy_Theory.Graph.T
+  type graph = PS_Theory.Graph.T
 
   exception then_exp of graph * V.name * V.name list * string;
 
   val graph_theng :  graph -> graph -> 
-    ((Strategy_Theory.Graph.VertexCRnm.renaming * Strategy_Theory.Graph.EdgeCRnm.renaming) * graph)
+    ((PS_Theory.Graph.VertexCRnm.renaming * PS_Theory.Graph.EdgeCRnm.renaming) * graph)
   val graph_tensor :  graph -> graph -> 
-    (Strategy_Theory.Graph.VertexCRnm.renaming * Strategy_Theory.Graph.EdgeCRnm.renaming) * graph
+    (PS_Theory.Graph.VertexCRnm.renaming * PS_Theory.Graph.EdgeCRnm.renaming) * graph
 
   (* use these *)
   val tensor_g :  graph -> graph -> graph
   val then_g :  graph -> graph -> graph
   val self_loops : graph -> graph
 
-  val THENG: ((theory -> graph*theory) * (theory -> graph*theory)) -> theory -> graph * theory
-  val TENSOR: ((theory -> graph*theory) * (theory -> graph*theory)) -> theory -> graph * theory
-  val OR: ((theory -> graph*theory) * (theory -> graph*theory)) -> theory -> graph * theory
-  val TRY_ORELSE: ((theory -> graph*theory) * (theory -> graph*theory)) -> theory -> graph * theory 
-  val NEST: string -> (theory -> graph*theory) -> theory -> graph * theory
-  val LIFT: graph -> theory -> graph * theory
-  val LIFTRT: RTechn.T -> theory -> graph * theory
-
 end; (* sig *)
 
-structure GraphComb_DB =
+structure GraphComb =
 struct
 
-  type graph = Strategy_Theory.Graph.T
-
+  type graph = PS_Theory.Graph.T
   exception then_exp of graph * V.name * V.name list * string;
-
-  structure GT = Strategy_Theory;
+  structure GT = PS_Theory;
   structure Graph = GT.Graph;
+
+  fun get_boundary_inputs g = 
+    let val bvertexes = Graph.get_boundary g (* Vertex.NSet.T *)
+        fun dest_name bv e = let val ((_,ed),(_,v)) = Graph.get_edge g e in (bv,(e,ed),v) end
+        fun mk_pairs v = Graph.out_enames g v 
+                  |> E.NSet.list_of
+                  |> map (fn e => dest_name v e)
+    in  
+      V.NSet.fold
+        (fn v => fn xs => xs @ (mk_pairs v))
+        bvertexes
+        []
+    end;
+
+  fun get_boundary_outputs g = 
+    let val bvertexes = Graph.get_boundary g (* Vertex.NSet.T *)
+        fun src_name bv e =  let val ((_,ed),(v,_)) = Graph.get_edge g e in (v,(e,ed),bv) end
+        fun mk_pairs v = Graph.in_enames g v 
+                  |> E.NSet.list_of
+                  |> map (fn e => src_name v e)
+    in  
+      V.NSet.fold
+        (fn v => fn xs => xs @ (mk_pairs v))
+        bvertexes
+        []
+    end;
+
+  (* collapsing of graph into a vertex *)
+  fun collapse_graph_vertex rt_typ name g =
+   let 
+     val ins =  get_boundary_inputs g
+     val outs =  get_boundary_outputs g
+     val boundary = PS_Theory.Graph.get_boundary g
+     val edges = PS_Theory.Graph.get_edges g |> E.NTab.get_nameset
+     val vertices = PS_Theory.Graph.get_vertices g |> V.NTab.get_nameset
+     val vertices_to_del = V.NSet.subtract vertices boundary;
+     fun delete_edges g = E.NSet.fold (PS_Theory.Graph.delete_edge) edges g
+     fun delete_vertices g = V.NSet.fold (PS_Theory.Graph.delete_vertex) vertices_to_del g
+     (* the reasoning technique *)
+     val rtechn = RTechn.id 
+                |> rt_typ
+                |> RTechn.set_name name
+     (* new graph *)
+     val simple_graph = g |> delete_edges |> delete_vertices
+     val (v,g') = PS_Theory.Graph.add_vertex 
+                    (PS_OVData.NVert (GraphSubstData.RT rtechn)) 
+                    simple_graph
+     fun insert_in_edge (bv,(en,ed),_) g = 
+           PS_Theory.Graph.add_edge (PS_Theory.Graph.Directed, ed) bv v g |> snd
+     fun insert_out_edge (_,(en,ed),bv) g = 
+           PS_Theory.Graph.add_edge (PS_Theory.Graph.Directed, ed) v bv g |> snd
+     val g'' = g' |> fold insert_in_edge ins |> fold insert_out_edge outs
+   in 
+     (v,g'')
+   end;
+
+   fun collapse_graph rt_typ name g  = collapse_graph_vertex rt_typ name g 
+                                     |> snd; 
 
  (* tensor *)
  fun graph_tensor g1 g2 =
@@ -84,8 +130,8 @@ struct
       | SOME n => n;
     fun check_rnm_tuple rnm (v1,e,v2) = (check_rnm rnm v1,e,check_rnm rnm v2)
     val ((rnv,rne),g) = graph_tensor g1 g2
-    val src_out = GraphEnv.get_boundary_outputs g1 
-    val dest_in = map (check_rnm_tuple rnv) (GraphEnv.get_boundary_inputs g2)
+    val src_out = get_boundary_outputs g1 
+    val dest_in = map (check_rnm_tuple rnv) (get_boundary_inputs g2)
     val g' = fold plug_one src_out (g,dest_in) 
            |> fst
    in
@@ -96,99 +142,6 @@ struct
 
  (* essentially then without all the renaming... *)
  fun self_loops g =  
-     fst (fold plug_one (GraphEnv.get_boundary_outputs g) (g,GraphEnv.get_boundary_inputs g));
+     fst (fold plug_one (get_boundary_outputs g) (g,get_boundary_inputs g));
 
- (* add OR, etc -- now in graph_comb at the end *)
-
-  (* combinators *)
-  fun THENG (f1,f2) th =
-    let 
-      val (g1,th1) = f1 th
-      val (g2,th2) = f2 th1
-    in
-      (then_g g1 g2,th2)
-    end; 
-
- (* fixme: may want to join input and output *)
-  fun TENSOR (f1,f2) th =
-    let 
-      val (g1,th1) = f1 th
-      val (g2,th2) = f2 th1
-    in
-       (tensor_g g1 g2,th2)
-    end; 
-
-   fun NEST name gf th0 =
-     let 
-       val (rg,th1) = gf th0
-       val rh = GraphEnv.collapse_graph RTechn.set_hgraph_appf name rg
-       val rule = Strategy_Theory.Rule.mk (rh,rg);
-       val th' = Strategy_RS.Theory.add_nested rule th1
-     in
-       (rh,th')
-     end;
-
-(* for simplicity we assume all are non-equal! *)
- (* FIXME: need to check that disjoint output is preserved *)
- fun OR (fg1,fg2) th0 =
-   let 
-     val (g1,th1) = fg1 th0
-     val (g2,th2) = fg2 th1 
-     val (g1',g2') = (g1,g2) (* fix_io g1 g2 th2  *) 
-     val (v1,rh1) = GraphEnv.collapse_graph_vertex RTechn.set_or_appf "or" g1' 
-     (* fixme: should be same rtechn -> need new version of collapse! *)
-     val (v2,rh2) = GraphEnv.collapse_graph_vertex RTechn.set_or_appf "or" g2' 
-     val rh2' = Strategy_Theory.Graph.update_vertex_data
-                 (K (Strategy_Theory.Graph.get_vertex_data rh1 v1))
-                  v2
-                 rh2;
-     val rule1 = Strategy_Theory.Rule.mk (rh1,g1');
-     val rule2 = Strategy_Theory.Rule.mk (rh2',g2');
-     val th' = Strategy_RS.Theory.add_or rule1 rule2 th2
-   in
-     if GraphEnv.check_disj_boundary g1' andalso GraphEnv.check_disj_boundary g2'
-      then (rh1,th')
-      else raise GraphEnv.combine_exp "new graphs does not have disjoint IO" 
-   end
-
- (* FIXME: same issues as OR graph *)
- fun TRY_ORELSE (fg1,fg2) th0 =
-   let 
-     val (g1,th1) = fg1 th0
-     val (g2,th2) = fg2 th1     
-     val (g1',g2') = (g1,g2) (* fix_io g1 g2 th2  *) 
-     val (v1,rh1) = GraphEnv.collapse_graph_vertex RTechn.set_or_appf "try-orelse" g1' 
-     (* fixme: should be same rtechn -> need new version of collapse! *)
-     val (v2,rh2) = GraphEnv.collapse_graph_vertex RTechn.set_or_appf "try-orelse" g2' 
-     val rh2' = Strategy_Theory.Graph.update_vertex_data
-                 (K (Strategy_Theory.Graph.get_vertex_data rh1 v1))
-                  v2
-                 rh2;
-     val rule1 = Strategy_Theory.Rule.mk (rh1,g1');
-     val rule2 = Strategy_Theory.Rule.mk (rh2',g2');
-     val th' = Strategy_RS.Theory.add_try rule1 rule2 th2
-   in
-     if GraphEnv.check_disj_boundary g1' andalso GraphEnv.check_disj_boundary g2'
-      then (rh1,th')
-      else raise GraphEnv.combine_exp "new graphs does not have disjoint IO" 
-   end
-
-  fun LIFT g th = (g,th);
-  
-  val LIFTRT : RTechn.T -> theory -> graph * theory  = LIFT o GraphEnv.graph_of_rtechn;
-
-end; (* end struct *)
-
-structure GraphComb : GRAPH_COMB  = GraphComb_DB 
-
-infixr 6 THENG;
-val op THENG = GraphComb.THENG;
-infixr 6 TENSOR;
-val op TENSOR = GraphComb.TENSOR;
-infixr 5 OR;
-val op OR = GraphComb.OR;
-infixr 5 TRY_ORELSE
-val op OR = GraphComb.OR;
-val LIFT = GraphComb.LIFT;
-val LIFTRT = GraphComb.LIFTRT;
-val NEST = GraphComb.NEST;
+end (* struct *)

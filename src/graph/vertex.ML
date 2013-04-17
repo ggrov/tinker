@@ -71,13 +71,13 @@ structure DB_VertexData
   structure Sharing = struct type data = data; type subst = subst; end;  
 end;
 
-structure Strategy_VertexData : UNIFIABLE_DATA = DB_VertexData;
+structure PS_VertexData : UNIFIABLE_DATA = DB_VertexData;
 
 (* I think this is now replaced by JSON STUFF *)
-structure Strategy_VertexComponentData_Param
-: ELEMENT_COMPONENT_DATA_PARAM where type data = Strategy_VertexData.data
+structure PS_VertexComponentData_Param
+: ELEMENT_COMPONENT_DATA_PARAM where type data = PS_VertexData.data
 = struct 
-  type data = Strategy_VertexData.data;
+  type data = PS_VertexData.data;
   exception unknown_type_exp of string;
   exception unexpected_data_exp;
 

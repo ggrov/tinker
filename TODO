@@ -1,6 +1,11 @@
 TO DO:
 
-2) move socket stuff into isaplib [easy] [GG]
+1) graph combinators [easy] -- G started -- see psgraph_comb.ML
+    -> should be straightforward for a given graph
+    -> try to generalise for all graphs certain operators
+
+2) move socket stuff into isaplib [GG]
+    -> still need to be tested and array stuff checked.
 
 3) update rtechn [make it independent of wires] [easy] [discuss Friday]
      - fix HGraph data [later]
@@ -40,21 +45,19 @@ TO DO:
    -> turn a graph into it's json representation
    -> change to use list of goals in goal node as in ITP paper
  
-9) graph combinators [easy]
-    -> should be straightforward for a given graph
 
-10) eval data [hard]
+9) eval data [hard]
     -> how much of this can be reused?
     -> can the same thing be used for e.g. proof power (and do we want it too?)
 
-11) make a theory functor [easy]
+10) make a theory functor [easy]
      -> combines all the above to create a uniform interface
 
-12) instantiate Isabelle for generic [easy]
+11) instantiate Isabelle for generic [easy]
 
-13) instantiate proof power for generic [easy]
+12) instantiate proof power for generic [easy]
 
-14] link with GUI [easy] [YL to start]
+13) link with GUI [easy] [YL to start]
 
 COMPLETED:
 
