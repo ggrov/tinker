@@ -11,24 +11,25 @@ sig
 
   type appfn 
 
-  type wire = W.name;
-  type wset = W.NSet.T;
+  type wire = StrName.name;
+  type wset = StrName.NSet.T;
 
   exception rtechn_exp of string * T;
+  (*
   exception goal_lacks_type_exp of PNode.T;
   exception wrong_wire_type_exp of (PNode.T * wire);
-
-  val get_name : T -> string
+  *)
+  val get_name : T -> StrName.name
   val get_inputs : T -> wset
   val get_outputs : T -> wset
   val get_appf : T -> appfn
 
-  val update_name : (string -> string) -> T -> T 
+  val update_name : (StrName.name -> StrName.name) -> T -> T 
   val update_inputs : (wset -> wset) -> T -> T (* should only work for atomic? *)
   val update_outputs : (wset -> wset) -> T -> T 
   val update_appf : (appfn -> appfn) -> T -> T
 
-  val set_name : string -> T -> T 
+  val set_name : StrName.name -> T -> T 
   val set_inputs : wset -> T -> T 
   val set_outputs :  wset -> T -> T 
   val set_appf : appfn -> T -> T
@@ -60,7 +61,7 @@ sig
   val merge_of : wire -> T
   val merge : T
 
-  val id_str : string -> T
+  val id_str : StrName.name -> T
   val fail : T (* returns empty seq *)
   (* val ofstep : (RState.T -> RState.T) -> T *) (* technique of single function *)
 
@@ -92,8 +93,8 @@ functor TypRTechn_FUN (rtechn : RTECHN)
   type tac_assms = rtechn.tac_assms;
   type atomic = rtechn.atomic;
 
-  type wire = W.name;
-  type wset = W.NSet.T;
+  type wire = StrName.name;
+  type wset = StrName.NSet.T;
 
  type search_data = unit * unit * string list
 
@@ -109,9 +110,10 @@ functor TypRTechn_FUN (rtechn : RTECHN)
   		outputs: wset}
  
   exception rtechn_exp of string * T;
+(*
   exception goal_lacks_type_exp of PNode.T;
   exception wrong_wire_type_exp of (PNode.T * W.name);
-
+*)
   (*morphism of rtechn*)
   fun rtechn_of (TypRTechn rep) =  (#rt rep);
   val get_name = rtechn.get_name o rtechn_of;
@@ -164,9 +166,9 @@ functor TypRTechn_FUN (rtechn : RTECHN)
 
 
   (* We should really check this w.r.t hgraph graphs since they have to be invariant *)
-  val union_inputs = update_inputs o W.NSet.union_merge o get_inputs;
+  val union_inputs = update_inputs o StrName.NSet.union_merge o get_inputs;
 
-  val union_outputs = update_outputs o W.NSet.union_merge o get_outputs;
+  val union_outputs = update_outputs o StrName.NSet.union_merge o get_outputs;
   fun union_io r1 = (union_inputs r1) o (union_outputs r1)
 
 (*
@@ -176,19 +178,19 @@ functor TypRTechn_FUN (rtechn : RTECHN)
                     |> Seq.single
 *) 
 
-  val id = TypRTechn {rt = rtechn.id, inputs = W.NSet.empty, outputs = W.NSet.empty };
+  val id = TypRTechn {rt = rtechn.id, inputs = StrName.NSet.empty, outputs = StrName.NSet.empty };
 
-  val merge = TypRTechn {rt = rtechn.merge, inputs = W.NSet.empty, outputs = W.NSet.empty };
+  val merge = TypRTechn {rt = rtechn.merge, inputs = StrName.NSet.empty, outputs = StrName.NSet.empty };
 
   fun id_str str = id |> set_name str;
 
   fun id_of wire = 
-   id |> set_inputs (W.NSet.single wire)
-      |> set_outputs (W.NSet.single wire)
+   id |> set_inputs (StrName.NSet.single wire)
+      |> set_outputs (StrName.NSet.single wire)
 
   fun merge_of wire = 
-   merge |> set_inputs (W.NSet.single wire)
-         |> set_outputs (W.NSet.single wire)
+   merge |> set_inputs (StrName.NSet.single wire)
+         |> set_outputs (StrName.NSet.single wire)
 
   val fail = id 
            |> set_rtechn rtechn.fail
@@ -207,7 +209,7 @@ functor TypRTechn_FUN (rtechn : RTECHN)
    case String.compare (get_name rt1,get_name rt2) of
     EQUAL => EQUAL 
         (* this may be the problem with matching an empty output!!! - just do name (for now)
-             prod_ord W.NSet.ord W.NSet.ord ((get_inputs rt1,get_inputs rt2),(get_outputs rt1,get_outputs rt1)) *)
+             prod_ord StrName.NSet.ord StrName.NSet.ord ((get_inputs rt1,get_inputs rt2),(get_outputs rt1,get_outputs rt1)) *)
     | x => x
 
   fun eq (rt1,rt2) = (ord (rt1,rt2) = EQUAL)
@@ -216,9 +218,9 @@ functor TypRTechn_FUN (rtechn : RTECHN)
                     [Pretty.chunks 
                        [Pretty.str "Name: ", Pretty.str (get_name rt)],
                      Pretty.chunks
-                       [Pretty.str "Inputs: ", W.NSet.pretty (get_inputs rt)],
+                       [Pretty.str "Inputs: ", StrName.NSet.pretty (get_inputs rt)],
                      Pretty.chunks
-                       [Pretty.str "Outputs: ", W.NSet.pretty (get_outputs rt)]];
+                       [Pretty.str "Outputs: ", StrName.NSet.pretty (get_outputs rt)]];
   
   fun pretty_name rt = Pretty.str (get_name rt);
 

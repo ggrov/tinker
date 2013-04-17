@@ -14,7 +14,7 @@ sig
     | FRule of StrName.name * StrName.NSet.T (* wire + rules used *)
     | Subst of StrName.NSet.T (* separate rule vs bwire? *)
     | SubstAsm of StrName.name * StrName.NSet.T (* bwre and rules - sep. rule vs bwire *)
-    | Tactic of tac_assms * string (* bwire as fact + name of tactic *)
+    | Tactic of tac_assms * StrName.name (* bwire as fact + name of tactic *)
 
   datatype appfn = Appf of atomic
                 | HGraph of EvalData option
@@ -23,13 +23,13 @@ sig
                 | Or (* of EvalData option *)
                 | Try (* of EvalData option *)
 
-  val get_name : T -> string
+  val get_name : T -> StrName.name
   val get_appf : T -> appfn
 
-  val update_name : (string -> string) -> T -> T 
+  val update_name : (StrName.name -> StrName.name) -> T -> T 
   val update_appf : (appfn -> appfn) -> T -> T
 
-  val set_name : string -> T -> T 
+  val set_name : StrName.name -> T -> T 
   val set_appf : appfn -> T -> T
 
   val set_atomic_appf : atomic -> T -> T 
@@ -50,7 +50,7 @@ sig
 
   val id : T 
   val merge : T
-  val id_str : string -> T
+  val id_str : StrName.name -> T
   val fail : T 
 
   (* equality *)
@@ -82,7 +82,7 @@ structure RTechn
   | FRule of StrName.name * StrName.NSet.T (* wire + rules used *)
   | Subst of StrName.NSet.T (* separate rule vs bwire? *)
   | SubstAsm of StrName.name * StrName.NSet.T (* bwre and rules - sep. rule vs bwire *)
-  | Tactic of tac_assms * string (* bwires as facts + name of stactic *)
+  | Tactic of tac_assms * StrName.name (* bwires as facts + name of stactic *)
 
  datatype appfn = Appf of atomic
                 | HGraph of EvalData option
@@ -93,7 +93,7 @@ structure RTechn
 
  datatype T =
    RTechn of {
-  		name : string,
+  		name : StrName.name,
   		appf: appfn}
  
   exception rtechn_exp of string * T;
