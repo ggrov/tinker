@@ -21,7 +21,7 @@ sig
                 | Merge
                 | Identity
                 | Or (* of EvalData option *)
-                | Try (* of EvalData option *)
+                | OrElse (* of EvalData option *)
 
   val get_name : T -> StrName.name
   val get_appf : T -> appfn
@@ -37,14 +37,14 @@ sig
   val set_merge_appf : T -> T
   val set_identity_appf : T -> T
   val set_or_appf : T -> T
-  val set_try_appf : T -> T
+  val set_orelse_appf : T -> T
 
   val is_atomic : T -> bool
   val is_hgraph : T -> bool
   val is_identity : T -> bool
   val is_merge : T -> bool
   val is_or : T -> bool
-  val is_try : T -> bool
+  val is_orelse : T -> bool
 
   val get_atomic : T -> atomic option
 
@@ -89,7 +89,7 @@ structure RTechn
                 | Merge
                 | Identity
                 | Or (* of EvalData option *)
-                | Try (* of EvalData option *)
+                | OrElse (* of EvalData option *)
 
  datatype T =
    RTechn of {
@@ -114,7 +114,7 @@ structure RTechn
   val set_merge_appf = set_appf Merge;
   val set_identity_appf = set_appf Identity;
   val set_or_appf = set_appf Or;
-  val set_try_appf = set_appf Try;
+  val set_orelse_appf = set_appf OrElse;
 
   fun is_atomic_appfn (Appf _) = true
    |  is_atomic_appfn    _     = false;
@@ -131,15 +131,15 @@ structure RTechn
   fun is_or_appfn  Or      = true
    |  is_or_appfn    _     = false;
 
-  fun is_try_appfn Try      = true
-   |  is_try_appfn    _     = false;
+  fun is_orelse_appfn OrElse   = true
+   |  is_orelse_appfn    _     = false;
 
   val is_atomic = is_atomic_appfn o get_appf;
   val is_hgraph = is_hgraph_appfn o get_appf;
   val is_merge = is_merge_appfn o get_appf;
   val is_identity = is_identity_appfn o get_appf;
   val is_or = is_or_appfn o get_appf;
-  val is_try = is_try_appfn o get_appf;
+  val is_orelse = is_orelse_appfn o get_appf;
 
   fun get_atomic rt = 
     case get_appf rt 

@@ -144,4 +144,33 @@ struct
  fun self_loops g =  
      fst (fold plug_one (get_boundary_outputs g) (g,get_boundary_inputs g));
 
+
+  (* graph of a reasoning technique *)
+
+  fun graph_of_node_edges node inedges outedges =  
+     let
+       val (v,g) = Graph.add_vertex (PS_OVData.NVert node) Graph.empty 
+       fun in_wire edge g =
+            g |> Graph.add_vertex PS_OVData.WVert
+              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
+              |> (fn (n,g) => Graph.add_edge (Graph.Directed,edge) n v g)
+              |> (fn (_,g') => g')
+       fun out_wire edge g =
+            g |> Graph.add_vertex PS_OVData.WVert
+              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
+              |> (fn (n,g) => Graph.add_edge (Graph.Directed, edge) v n g)
+              |> (fn (_,g') => g')  
+     in 
+       (v, g |> fold in_wire inedges
+             |> fold out_wire outedges)
+     end;
+
+  fun graph_of_rtechn_vertex rt ins outs =  
+   graph_of_node_edges
+      (GraphSubstData.RT rt) 
+      (map GraphSubstData.GT ins)
+      (map GraphSubstData.GT outs)
+
+  fun graph_of_rtechn rt ins outs =   graph_of_rtechn_vertex rt ins outs |> snd;
+
 end (* struct *)

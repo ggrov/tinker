@@ -1,30 +1,74 @@
 (* contains the data structure for a proof strategy graph *)
 signature PS_GRAPH =
 sig
-  type psgraph
-  val mk_psgraph : PS_Theory.Graph.T -> psgraph
+  type T
+  val mk_psgraph : PS_Theory.Graph.T -> T
 end
 
 structure PSGraph =
 struct
-   type rule = PS_Theory.Rule.T
 
    (* no longer uses underlying storage of data in isabelle? *)
-   datatype psgraph = PSGraph of {
+   datatype T = PSGraph of {
         graph : PS_Theory.Graph.T,
-        g_tacs : rule StrName.NTab.T, (* only name of parent *)
-        or_tacs : (rule list) StrName.NTab.T,
-        orelse_tacs : (rule * rule) StrName.NTab.T, (* (try,orelse) *)
+        g_tacs : PS_Theory.Graph.T StrName.NTab.T, (* only name of parent *)
+        or_tacs : (PS_Theory.Graph.T list) StrName.NTab.T,
+        orelse_tacs : (PS_Theory.Graph.T * PS_Theory.Graph.T) StrName.NTab.T, (* (try,orelse) *)
         (* fixme: should depend on underlying theorem prover *)
         atomics : (Thm.thm list -> Proof.context -> tactic) StrName.NTab.T
     }
 
-   fun mk_psgraph graph =
+   fun update_graph f (PSGraph rep) = PSGraph
+     {graph = f (#graph rep), g_tacs = #g_tacs rep, or_tacs = #or_tacs rep, 
+      orelse_tacs = #orelse_tacs rep, atomics = #atomics rep};
+   fun update_g_tacs f (PSGraph rep) = PSGraph
+     {graph = #graph rep, g_tacs = f (#g_tacs rep), or_tacs = #or_tacs rep, 
+      orelse_tacs = #orelse_tacs rep, atomics = #atomics rep};
+   fun update_or_tacs f (PSGraph rep) = PSGraph
+     {graph = #graph rep, g_tacs = #g_tacs rep, or_tacs = f (#or_tacs rep), 
+      orelse_tacs = #orelse_tacs rep, atomics = #atomics rep};
+   fun update_orelse_tacs f (PSGraph rep) = PSGraph
+     {graph = #graph rep, g_tacs = #g_tacs rep, or_tacs = #or_tacs rep, 
+      orelse_tacs = f (#orelse_tacs rep), atomics = #atomics rep};
+   fun update_atomics f (PSGraph rep) = PSGraph
+     {graph = #graph rep, g_tacs = #g_tacs rep, or_tacs = #or_tacs rep, 
+      orelse_tacs = #orelse_tacs rep, atomics = f (#atomics rep)};
+
+   fun get_graph (PSGraph rep) = #graph rep;
+   fun get_g_tacs (PSGraph rep) = #g_tacs rep;
+   fun get_or_tacs (PSGraph rep) = #or_tacs rep;
+   fun get_orelse_tacs (PSGraph rep) = #orelse_tacs rep;
+   fun get_atomics (PSGraph rep) = #atomics rep;
+
+   val set_graph = update_graph o K;
+   val set_g_tacs = update_g_tacs o K;
+   val set_or_tacs = update_or_tacs o K;
+   val set_orelse_tacs = update_orelse_tacs o K;
+   val set_atomics = update_atomics o K;
+
+   fun of_graph graph =
      PSGraph { graph = graph,
                g_tacs = StrName.NTab.empty,
                or_tacs = StrName.NTab.empty,
                orelse_tacs = StrName.NTab.empty,
                atomics = StrName.NTab.empty };
+
+   val empty = of_graph PS_Theory.Graph.empty;
+
+   fun all_names ps = 
+     let
+       val gtacn = StrName.NTab.get_nameset (get_g_tacs ps)
+       val gorn = StrName.NTab.get_nameset (get_or_tacs ps)
+       val goren = StrName.NTab.get_nameset (get_orelse_tacs ps)
+       val gatn = StrName.NTab.get_nameset (get_atomics ps)
+     in
+       gtacn 
+       |> StrName.NSet.union_merge gorn
+       |> StrName.NSet.union_merge goren
+       |> StrName.NSet.union_merge gatn
+     end;
+
+   fun fresh_name ps = StrName.NSet.new (all_names ps);
 
    fun combine ps1 ps2 = ps1; (* fixme *)
 
