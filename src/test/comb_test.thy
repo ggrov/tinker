@@ -12,12 +12,18 @@ ML{*
 *}
 
 ML{*
+ RTechnJSON.rtechn_to_json RTechn.id
+  |> Json.pretty
+  |> Pretty.writeln;
+*}
+
+ML{*
   val ps = psfg3 PSGraph.empty;
   val g = PSGraph.get_graph ps;
 *}
 
 ML{*
- g
+ PS_GraphicalTheoryIO.OutputGraphJSON.output g;
 *}
 
 

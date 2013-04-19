@@ -5,7 +5,7 @@ imports
 uses
   "../rtechn_names.ML"   
   "../goaltype/class.ML"                                     
-  "../goaltype/link.ML"  
+  "../goaltype/link.ML"    
   "../goaltype/goaltyp.ML"       
   "../goaltype/goaltyp_json.ML"              
 begin

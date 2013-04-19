@@ -85,17 +85,8 @@ structure PS_ComponentDataIO : GRAPH_COMPONENT_DATA_IO
   end;
 end;
 
+structure PS_GraphicalTheoryIO = GraphicalTheoryIO(
+  structure Theory = PS_Theory
+  structure GraphComponentDataIO = PS_ComponentDataIO
+);
 
-
-
-(* OLD STUFF *)
-
-structure PS_DotStyle (* : DOT_STYLE *) =
-struct
-  structure Graph = PS_Theory.Graph
-  fun style_for_ivertex_data x = "[style=filled,fillcolor=white,fontcolor=black,shape=circle]"
-end;
-
-(*
-structure Strategy_OutputGraphDot = OutputGraphDot(structure DotStyle = Strategy_DotStyle)
-*)

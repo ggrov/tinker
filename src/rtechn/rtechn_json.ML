@@ -24,14 +24,9 @@ structure RTechnJSON (* : RTECHN_JSON *)
       tac_detail : null | tac_assm
     }
 
-  appfn := {
-    type : string (Appf | HGraph | Merge | Identity | Or | Try),
-    atomic : atomic | null
-  }
-
   rtechn := {
     name : string
-    appf : appfn
+    appf : string (HGraph | Merge | Identity | Or | Try) | atomic
   }
 
 *)
@@ -114,6 +109,7 @@ local open RTechn Json in
 
 (* TODO: not yet complete *)
   fun appfn_to_json (Appf atomic) = mk_object [("type", String "Appf"), ("atomic", atomic_to_json atomic)]
+  | appfn_to_json Identify = mk_object [("type",String "Identity")]
   | appfn_to_json _ = raise EXP_PARSING_JSON "Not yet supported type in appfn"
 
  

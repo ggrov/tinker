@@ -30,7 +30,7 @@ struct
   
   fun link_from_json json = Link.top;
 
-  fun to_json gt = Json.of_string "goaltyp";
+  fun to_json gt = Json.Null;
   
   fun from_json json = GoalTyp.top;
 
