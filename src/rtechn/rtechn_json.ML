@@ -23,7 +23,7 @@ structure RTechnJSON (* : RTECHN_JSON *)
       rules : [string] | null
       tac_detail : null | tac_assm
     }
-
+  
   rtechn := {
     name : string
     appf : string (HGraph | Merge | Identity | Or | Try) | atomic
@@ -109,7 +109,11 @@ local open RTechn Json in
 
 (* TODO: not yet complete *)
   fun appfn_to_json (Appf atomic) = mk_object [("type", String "Appf"), ("atomic", atomic_to_json atomic)]
-  | appfn_to_json Identify = mk_object [("type",String "Identity")]
+  | appfn_to_json (HGraph _) = mk_object [("type", String "HGraph")]
+  | appfn_to_json Identify = mk_object [("type", String "Identity")]
+  | appfn_to_json Merge = mk_object [("type", String "Merge")]
+  | appfn_to_json Or = mk_object [("type", String "Or")]
+ (* | appfn_to_json Try = mk_object [("type", String "Try")]*)
   | appfn_to_json _ = raise EXP_PARSING_JSON "Not yet supported type in appfn"
 
  
@@ -117,17 +121,17 @@ local open RTechn Json in
     let 
       val (String typStr) = get jobj "type";
       val atomic = get jobj "atomic";
-      val typList = [("Appf", (1 : int)), ("HGraph0",2), ("HGraph1",3), ("Merge", 4), ("Identity", 5), ("Or", 6), ("Try", 7)]
+      val typList = [("Appf", (1 : int)), ("HGraph",2), ("HGraph1",3), ("Merge", 4), ("Identity", 5), ("Or", 6), ("Try", 7)]
     in
       get_el_from_list typStr typList 
       |> snd
       |> (fn x => case x of 1 => Appf (atomic_from_json atomic)
-                          (*| 2 => HGraph NONE
-                          | 3 => HGraph NONE
+                          (*| 3 => HGraph NONE*)
+                          | 2 => HGraph NONE
                           | 4 => Merge
                           | 5 => Identity
                           | 6 => Or
-                          | 7 => Try*)
+                          (*| 7 => Try*)
                           | _ => raise EXP_PARSING_JSON "Not yet supported type in appfn"
           )
     end
@@ -136,7 +140,7 @@ local open RTechn Json in
   fun rtechn_to_json rtechn = 
     let 
       val name_obj = mk_object [("type", String "string"), ("arg", String (get_name rtechn))];
-      val appf_obj = mk_object [("type", String "appfn"), ("appfn", appfn_to_json (get_appf rtechn))]
+      val appf_obj =  appfn_to_json (get_appf rtechn)
     in
       mk_object [("name", String (get_name rtechn)), ("appf", appf_obj)]
     end
