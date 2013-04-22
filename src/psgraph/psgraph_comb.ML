@@ -1,6 +1,7 @@
 signature PSGRAPH_COMB =
 sig
-  type psgraphfn = PSGraph.T -> PSGraph.T
+  type psgraphfn = 
+.T
  
   val THENG: psgraphfn * psgraphfn -> psgraphfn
   val TENSOR: psgraphfn * psgraphfn -> psgraphfn

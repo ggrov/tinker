@@ -18,6 +18,7 @@ sig
   
   val id : T
   val bottom : T
+  val top : T
   
 
   val get_data : StrName.name -> T -> data
@@ -33,15 +34,15 @@ sig
   val data_inter : (data * data) -> data 
  
   val ord : T * T -> order option (* partial order, curently it is only dummy *)
-  val union : T * T -> T
-  val inter : T * T -> T
+  val union : T * T -> T (* GG comment: not sure if this is possible - what is the union of two shapes? *)
+  val inter : T * T -> T (* GG comment: same as above *)
 end;
 
 
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
 
 (* TODO: generalise, by creating a term structure and a functor over this *)
-functor Class_FUN (GT: G_TERM) : CLASS = 
+functor ClassFun (GT: G_TERM) : CLASS = 
 struct
   type general_term = GT.term
   type position =  GT.position
@@ -95,7 +96,8 @@ struct
 
 (* most general \<top> ,  val top = ;*)
 (* empty class \<bottom> *)
-  val bottom =  StrName.NTab.empty; 
+  val bottom =  StrName.NTab.empty; (* is this correct? doesn't this always succed? *)
+  val top =  StrName.NTab.empty; 
   val id = bottom;
 
 (*********************************************************
@@ -161,4 +163,4 @@ struct
 
 end; (* struct *)
 
-structure Class = Class_FUN (General_Term);
+structure Class = ClassFun (General_Term);

@@ -4,9 +4,14 @@ imports
  "../build/Graph"                                                                  
 begin
 
-
 ML{*
-  val psfg1 = LIFT ([GoalTyp.top],[GoalTyp.top]) (RTechn.id)
+;
+ val impI = RTechn.id
+           |> RTechn.set_name "impI"
+           |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.single "HOL.impI"))
+*}
+ML{*
+  val psfg1 = LIFT ([GoalTyp.top],[GoalTyp.top]) (impI)
   val psfg2 = LIFT ([GoalTyp.top],[GoalTyp.top]) (RTechn.id)
   val psfg3 = psfg1 THENG psfg2;
 *}
@@ -23,8 +28,14 @@ ML{*
 *}
 
 ML{*
- PS_GraphicalTheoryIO.OutputGraphJSON.output g;
+ 
+ PS_GraphicalTheoryIO.OutputGraphJSON.output g
+  |> Json.pretty
+  |> Pretty.writeln;
 *}
+
+
+
 
 
 end
