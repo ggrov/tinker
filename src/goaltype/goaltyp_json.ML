@@ -3,8 +3,10 @@ signature GOAL_TYPE_JSON =
 sig 
   val to_json : GoalTyp.T -> Json.json 
   val from_json : Json.json -> GoalTyp.T 
+
   val link_to_json : Link.T -> Json.json
   val link_from_json : Json.json -> Link.T
+
   val class_to_json : Class.T -> Json.json
   val class_from_json : Json.json -> Class.T 
 

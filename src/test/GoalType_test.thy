@@ -1,9 +1,17 @@
-theory GoalType_test           
-imports      
-  Main   
-  "../build/RTechn"
-uses "../goaltype/type_set.ML" "../goaltype/general_term.ML" "../goaltype/class.ML" 
+theory GoalType_test             
+imports                    
+  Main  
+  "../build/RTechn"   
+uses  "../rtechn_names.ML"
+      "../goaltype/type_set.ML" 
+      "../goaltype/general_term.ML" 
+      "../goaltype/goaltyp_data.ML"
+      "../goaltype/class.ML"
+      "../goaltype/link.ML"
+      "../goaltype/goaltyp.ML"
 begin
+
+text{* Test for Class*}
 ML{*
 (*test for type set*)
 structure int_set_type : TYPE_SET = 
@@ -12,7 +20,7 @@ type T = int
 val compare = fn (x,y) =>  SOME(Int.compare(x,y))
 end;
 
-structure int_set = NaiveSet_FUN (int_set_type);
+structure int_set = NaiveSetFun (int_set_type);
 
 val s1 = int_set.id |> int_set.insert 1 |> int_set.insert 2;
 val s2 = int_set.id |> int_set.insert 3 |> int_set.insert 4;
@@ -25,22 +33,31 @@ val s3 = int_set.id |> int_set.insert 1 |> int_set.insert 2;
 val s4 = int_set.id |> int_set.insert 2 |> int_set.insert 4;
 int_set.union(s3,s4);
 int_set.inter(s3,s4);
-
 *}
 ML{*
 
-val f0 = Class.set_data "sequence int" [[(Class.Int 3),(Class.Int 5),(Class.Int 1)], [(Class.Int 1),(Class.Int 2),(Class.Int 3)]] Class.id ;
+val f0 = Class.set_data (GT_Name.mk "sequence int") [[(GTData.Int 3),(GTData.Int 5),(GTData.Int 1)], [(GTData.Int 1),(GTData.Int 2),(GTData.Int 3)]] Class.top ;
 
-val f1 = Class.set_data "sequence int" [[(Class.Int 3),(Class.Int 5),(Class.Int 1)],[(Class.Int 4),(Class.Int 2),(Class.Int 3)]] Class.id ;
+val f1 = Class.set_data (GT_Name.mk "sequence int") [[(GTData.Int 3),(GTData.Int 5),(GTData.Int 1)],[(GTData.Int 4),(GTData.Int 2),(GTData.Int 3)]] Class.top ;
 
-Class.union (f0,f1);
-Class.inter (f0,f1);
+DB_Class.union (f0,f1);
+DB_Class.inter (f0,f1);
 
-val f0 = Class.set_data "sequence int" [[(Class.Int 3),(Class.Int 5),(Class.Int 1)], [(Class.Int 1),(Class.Int 2),(Class.Int 3)]] Class.id ;
+val f0 = Class.set_data (GT_Name.mk "sequence int") [[(GTData.Int 3),(GTData.Int 5),(GTData.Int 1)], [(GTData.Int 1),(GTData.Int 2),(GTData.Int 3)]] Class.top ;
 
-val f1 = Class.set_data "sequence int" [[(Class.Int 3),(Class.Int 6),(Class.Int 1)],[(Class.Int 4),(Class.Int 2),(Class.Int 3)]] Class.id ;
-val f1 =  Class.set_data "dummy  int" [[Class.Int 8]] f1; 
-Class.union (f0,f1);
-Class.inter (f0,f1)
+val f1 = Class.set_data (GT_Name.mk "sequence int") [[(GTData.Int 3),(GTData.Int 6),(GTData.Int 1)],[(GTData.Int 4),(GTData.Int 2),(GTData.Int 3)]] Class.top;
+val f2 =  Class.set_data (GT_Name.mk "dummy  int") [[GTData.Int 8]] f1; 
+DB_Class.union (f0,f1);
+DB_Class.inter (f0,f1);
+DB_Class.inter (f0,f2);
 *}
+
+ML{*
+GTData.from_single_list [(GTData.Int 3),(GTData.Int 5),(GTData.Int 1)];
+val data = GTData.from_list [[(GTData.Int 3),(GTData.Int 5),(GTData.Int 1)], [(GTData.Int 1),(GTData.Int 2),(GTData.Int 3)]];
+val list_data = GTData.to_list data
+*}
+
+
+text{* Test for link*}
 end

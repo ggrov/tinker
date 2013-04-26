@@ -4,13 +4,13 @@ sig
   val compare : T * T -> order option
 end
 
-functor NaiveSet_FUN (t : TYPE_SET) = 
+functor NaiveSetFun (t : TYPE_SET) = 
 struct
   type T = t.T  
   type set = T list
   
   val compare = t.compare
-  val id = []
+  val (id : set) = []
   fun is_empty s = case s of [] => true | _ => false
   fun member e s = List.filter (fn x => case compare (e,x) of (SOME EQUAL) => true | _ => false) s 
                    |> List.length |> (fn x => if x > 0 then true else false)
@@ -26,4 +26,9 @@ struct
 
   fun size (m :: a) = (1 : int) + size(remove m a) 
     | size [] = 0
+
+  (* use union to remove redundences *)
+  fun to_list (data : set) = union (id, data)
+  fun from_list (l : T list) = union (id, l)
+  val from_single_list = fn x => from_list [x] 
 end
