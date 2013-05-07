@@ -4,7 +4,7 @@ structure GraphSubstData
 
   (* TO DO: allow variables inside a rtechn? *)
   datatype vdata = RT of RTechn.T
-                 | GN of string list (* fixme: should be goalnode *)
+                 | GN of GNode.T list (* fixme: should be goalnode *)
                  | TVar of string (* variable of rtechn *)
                  | GVar of string (* variable of goalnode *)
 
@@ -42,7 +42,7 @@ structure GraphSubstData
   (* pretty printing *)
 
   fun pretty_vdata (RT rt) = RTechn.pretty rt
-   |  pretty_vdata (GN gn) = Pretty.block (Pretty.commas (map Pretty.str gn))
+   |  pretty_vdata (GN gn) = Pretty.block (Pretty.commas (map GNode.pretty gn))
    |  pretty_vdata (TVar s) = Pretty.str ("?T_" ^ s)
    |  pretty_vdata (GVar s) = Pretty.str ("?G_" ^ s);
   val print_vdata = Pretty.writeln o pretty_vdata;

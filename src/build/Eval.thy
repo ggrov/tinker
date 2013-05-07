@@ -1,12 +1,22 @@
 (* simple test of proof representation *)
-theory Eval                                                                                                                                                            
+theory Eval                                                                                                                                                               
 imports          
-  Stratlang                                                                         
-uses                            
+  Graph  
+  Prf                                                                        
+uses      
+
+  "../goaltype/goaltyp_match.ML"  
+  "../eval/eval_data.ML"  
+  "../proof/pplan_env.ML"  
+
+  "../eval/eval_appf.ML" 
+ 
+(*                      
   "../wire/match.ML"                                                   
   "../eval/basic_eval.ML"                
   "../eval/eval_data.ML" 
-  "../proof/pplan_env.ML"  
+  "../proof/pplan_env.ML"
+  
   "../eval/eval_appf.ML"                                  
   "../eval/eval_output.ML"
   "../eval/eval_graph.ML"    
@@ -14,7 +24,8 @@ uses
   "../eval/eval_nested.ML"
   "../eval/rtechn_eval.ML"  
   "../interface/gui_socket.ML" 
-  "../eval/eval_tac.ML"     
+  "../eval/eval_tac.ML"  
+*)   
 begin
 
  -- "method to apply proof strategy"

@@ -1,10 +1,11 @@
 (* simple test of proof representation *)
-theory Graph                                               
+theory Graph                                                       
 imports        
   RTechn                          
   GoalTyp                                         
   "~~/contrib/quantomatic/core/isabelle/QuantoCore"                                                        
 uses
+  "../goaltype/gnode.ML" (*fixme: should this be functorised over? *)
   "../graph/substdata.ML"          
   "../graph/vertex.ML"                            
   "../graph/edge.ML"  

@@ -18,7 +18,7 @@ structure PS_ComponentDataIO : GRAPH_COMPONENT_DATA_IO
         (case get jobj "type" of
             (String "RT") => GraphSubstData.RT (RTechnJSON.rtechn_from_json (get jobj "data"))
           | (String "GN") => let 
-                               fun prj (String n) = n
+                               fun prj (String n) = GNode.mk_goal_no_facts n
                                val (Array arr) = get jobj "data"
                              in
                                GraphSubstData.GN (map prj arr)
@@ -35,7 +35,7 @@ structure PS_ComponentDataIO : GRAPH_COMPONENT_DATA_IO
     type data = vdata;
     fun output (GraphSubstData.RT rt) =
           Json.mk_object [("type", Json.String "RT"), ("data", RTechnJSON.rtechn_to_json rt)]
-      | output (GraphSubstData.GN gnds) = Json.Array (map Json.String gnds)
+      | output (GraphSubstData.GN gnds) = Json.Array (map (Json.String o GNode.get_goal) gnds)
       | output (GraphSubstData.TVar tv) =
           Json.mk_object [("type", Json.String "TVar"), ("data", Json.String tv)]
       | output (GraphSubstData.GVar gv) =

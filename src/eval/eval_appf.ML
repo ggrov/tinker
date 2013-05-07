@@ -4,9 +4,6 @@
 structure EvalAppf =
 struct
 
-  (* should be a functor - df is default *)
-  structure EData = EvalD_DF;
-
   exception eval_appf_exp of string;
 
    (* actual application of proof technique *)
@@ -36,7 +33,7 @@ struct
       |> Seq.of_list;
 
    fun thm_seq_of_bwire_nm edata gnode bwire_nm = 
-     (case GNode.lookup_facts_by_name (SStrName.mk bwire_nm) gnode
+     (case GNode.lookup_facts (SStrName.mk bwire_nm) gnode
          of NONE => GFact.NSet.empty
                  | (SOME ns) => ns)
       |> assms_seq edata gnode
@@ -82,7 +79,7 @@ struct
    |  apply_tactic edata gnode tac_name (RTechn.TClass bwire_nms) =
        let 
          val pnode = EData.get_goal edata (GNode.get_goal gnode);
-         fun lookup_fact fname = case GNode.lookup_facts_by_name (SStrName.mk fname) gnode
+         fun lookup_fact fname = case GNode.lookup_facts (SStrName.mk fname) gnode
                                   of NONE => GFact.NSet.empty
                                    | (SOME ns) => ns
          val fnames =

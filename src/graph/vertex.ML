@@ -14,6 +14,11 @@ structure DB_VertexData
   val empty_subst = GSD.empty_subst;
   val compose_subst = GSD.compose_subst;
 
+
+  fun glist_eq (g1::gs1,g2::gs2) = GNode.eq(g1,g2) andalso glist_eq(gs1,gs2)
+   | glist_eq ([],[]) = true
+   | glist_eq (_,_) = false;
+
   (* inv: esubst' = esubst *)
   fun match_data (GSD.TVar v1,GSD.TVar v2) (vsubst,esubst) =
       (case StrName.NTab.lookup vsubst v1 of 
@@ -36,11 +41,11 @@ structure DB_VertexData
     | match_data (GSD.GVar v,GSD.GN gn) (vsubst,esubst) = 
         (case StrName.NTab.lookup vsubst v of
             NONE => SOME (StrName.NTab.ins (v,GSD.GN gn) vsubst,esubst) (* bind vi if not bound *)
-          | SOME (GSD.GN gn') => if gn = gn' then SOME (vsubst,esubst) else NONE 
+          | SOME (GSD.GN gn') => if glist_eq(gn,gn') then SOME (vsubst,esubst) else NONE 
           | SOME (GSD.GVar v') => match_data (GSD.GVar v',GSD.GN gn) (vsubst,esubst)
           | SOME _ => NONE)
     | match_data (GSD.GN g1, GSD.GN g2) subst = 
-         if g1 = g2 then SOME subst else NONE
+         if glist_eq(g1,g2) then SOME subst else NONE
     | match_data (GSD.RT r1, GSD.RT r2) subst = 
          if RTechn.eq (r1,r2) then SOME subst else NONE
     | match_data (GSD.RT rt,GSD.TVar v) subst = NONE
