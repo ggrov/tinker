@@ -1,6 +1,6 @@
 theory JsonIO_test
 imports "../build/RTechn"   
-uses "../rtechn/rtechn_json.ML"     
+uses "../../../rtechn/rtechn_json.ML"     
 begin
 ML{*
 open RTechnJSON;

@@ -3,9 +3,9 @@ theory Parse
 imports           
   Eval                                                        
 uses 
-  "../parse/parsetree.ML"
-  "../parse/graph_transfer.ML"
-  "../parse/string_transfer.ML"           
+  "../../../parse/parsetree.ML"
+  "../../../parse/graph_transfer.ML"
+  "../../../parse/string_transfer.ML"           
 begin
 
 text "add merge and identify as default"
