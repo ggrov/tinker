@@ -3,6 +3,7 @@ signature PS_GRAPH =
 sig
   type T
   val mk_psgraph : PS_Theory.Graph.T -> T
+  val of_graph : PS_Theory.Graph.T -> T
 end
 
 structure PSGraph =
@@ -46,7 +47,7 @@ struct
    val set_orelse_tacs = update_orelse_tacs o K;
    val set_atomics = update_atomics o K;
 
-   fun of_graph graph =
+   fun of_graph graph = (*TODO : LYH of_graph or of_rtechn*)
      PSGraph { graph = graph,
                g_tacs = StrName.NTab.empty,
                or_tacs = StrName.NTab.empty,

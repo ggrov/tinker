@@ -1,8 +1,31 @@
 (* simple test of proof representation *)
 theory Prf_test                                                
 imports               
- "../build/Prf"                                                                  
+ "../build/Prf"                                                                 
 begin
+
+ML{*
+val a = (1 : int);
+val b= (1: int);
+a = b;
+
+val p1 = [1,2,3]
+val p2 = [1,2,3,4];
+IsaTerm.match_pos (p1,p2);
+
+val p1 = [1,2,3]
+val p2 = [4,5,6];
+IsaTerm.match_pos (p1,p2);
+
+val p1 = [1,2,3]
+val p2 = [1,2,4];
+IsaTerm.match_pos (p1,p2);
+
+val p1 = [1,2,3]
+val p2 = [1,2,3];
+IsaTerm.match_pos (p1,p2);
+*}
+
 
 ML{*
 Induct.induct_tac  @{context};

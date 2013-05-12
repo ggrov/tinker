@@ -6,7 +6,7 @@ uses
   "../../../rtechn_names.ML"
   "../../../rtechn/rtechn.ML" 
   "../../../rtechn/rtechn_json.ML"                                       
-  "../../../rtechn/rtechn_env.ML"      
+  (*"../../../rtechn/rtechn_env.ML"*)      
 begin
 
 end
