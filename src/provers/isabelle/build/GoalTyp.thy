@@ -10,6 +10,7 @@ uses
   "../../../goaltype/link.ML"
  "../../../goaltype/goaltyp.ML"    
  "../../../goaltype/goaltyp_json.ML" 
+ "../../../goaltype/gnode.ML"
 (*
  "../isaPrf.ML"
  "../init.ML"

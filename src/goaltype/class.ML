@@ -17,8 +17,8 @@ sig
   val rename : C.name -> T -> T  
   
 
-  val match_item : GTData.gPrf.context -> (GTData.data list list * GTData.data list list) -> bool
-  val eq : GTData.gPrf.context -> (T * T) -> bool
+  val match_item : GTData.GPrf.context -> (GTData.data list list * GTData.data list list) -> bool
+  val eq : GTData.GPrf.context -> (T * T) -> bool
 end;
 
 

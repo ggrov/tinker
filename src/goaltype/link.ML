@@ -4,18 +4,18 @@ sig
   type lkey = L.name * (C.name * C.name) 
   type T
   
-  structure class : CLASS
+  structure Class : CLASS
   val top : T
-  val get_item : lkey -> T -> (class.GTData.data list list) option
-  val set_item: lkey -> (class.GTData.data list list) -> T -> T
+  val get_item : lkey -> T -> (Class.GTData.data list list) option
+  val set_item: lkey -> (Class.GTData.data list list) -> T -> T
   val del_item : lkey -> T -> T
   val get_keys : T -> lkey list
 
   val get_name: T -> L.name
   val rename : L.name -> T -> T  
   
-  val match_item : class.GTData.gPrf.context -> (class.GTData.data list list * class.GTData.data list list) -> bool
-  val eq : class.GTData.gPrf.context -> (T * T) -> bool
+  val match_item : Class.GTData.GPrf.context -> (Class.GTData.data list list * Class.GTData.data list list) -> bool
+  val eq : Class.GTData.GPrf.context -> (T * T) -> bool
 
 end;
 
@@ -25,7 +25,7 @@ end;
   (* to do: generalise, by creating a term structure and a functor over this *)
 functor LinkFun (Cls : CLASS) : LINK = 
 struct 
-  structure class  = Cls
+  structure Class  = Cls
 
   type lkey = L.name * (C.name * C.name)
   
@@ -41,7 +41,7 @@ struct
 
   structure linkTbl =  Table(LKey);
 
-  type T =  (L.name * (class.GTData.data list list) linkTbl.table);
+  type T =  (L.name * (Class.GTData.data list list) linkTbl.table);
 
   val top = (L.mk "Top", linkTbl.empty)
 
@@ -56,7 +56,7 @@ struct
   val get_name = fst
   fun rename gname (_, link) = (gname, link) 
   
-  val match_item = class.match_item
+  val match_item = Class.match_item
 
   fun eq ctxt ((_,a), (_,b)) = if linkTbl.forall (fn (k, xb) => 
                                           (case (linkTbl.lookup a k) of SOME xa => match_item ctxt (xa,xb)

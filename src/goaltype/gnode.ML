@@ -1,28 +1,16 @@
 signature GNODE = 
 sig
-  type context
-  type prf
-  type class
-  type goaltyp
-
+  structure GoalTyp : GOAL_TYP
+  type T
 end
 
-functor GNode (structure Proof : GPRF
-               structure GoalTyp : GOAL_TYP
-               sharing type GoalTyp.context = Proof.context
-               sharing type Proof.term = GoalTyp.class.gt_data.term) : GNODE = 
+functor GNodeFun (GTyp: GOAL_TYP) : GNODE = 
 struct
-  structure prf = Proof
-  structure goaltyp = GoalTyp
 
-  type context = prf.context
-  type prf = prf.T
-  type class = goaltyp.class.T
-  type goaltyp = goaltyp.T
+  structure GoalTyp = GTyp
 
   datatype T = Goal of {facts : StrName.NSet.T C.NTab.T, (* map from class to a set of assumption *)
                         goal : string, (* the name of the goal node *)
-                        proof: prf
                         parent : T option}
 
   fun get_goal (Goal rep) = #goal rep;

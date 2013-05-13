@@ -4,18 +4,18 @@ signature GOAL_TYP =
 sig
 
   type T
-  structure link : LINK
+  structure Link : LINK
    
   val top : T
   val get_name : T -> G.name
-  val get_link : T -> link.T
-  val get_facts: T -> link.class.T list
-  val get_gclass : T -> link.class.T
+  val get_link : T -> Link.T
+  val get_facts: T -> Link.Class.T list
+  val get_gclass : T -> Link.Class.T
 
   val set_name : G.name -> T -> T
-  val set_link : link.T -> T -> T
-  val set_facts : link.class.T list -> T -> T
-  val set_gclass: link.class.T -> T -> T
+  val set_link : Link.T -> T -> T
+  val set_facts : Link.Class.T list -> T -> T
+  val set_gclass: Link.Class.T -> T -> T
 
   val ord : (T * T) -> order
   val eq : (T * T) -> bool
@@ -25,15 +25,15 @@ end;
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
 
   (* to do: generalise, by creating a term structure and a functor over this *)
-functor GoalTypFun (structure Link : LINK) : GOAL_TYP = 
+functor GoalTypFun (structure Lnk : LINK) : GOAL_TYP = 
 struct 
-  structure link = Link;
+  structure Link = Lnk;
 
   datatype T = GoalTyp of 
    { name : G.name,
-     link : link.T,
-     facts : link.class.T list,
-     goal : link.class.T} 
+     link : Link.T,
+     facts : Link.Class.T list,
+     goal : Link.Class.T} 
 
   fun get_name (GoalTyp rep) = #name rep;
   fun get_link (GoalTyp rep) = #link rep;
@@ -49,7 +49,7 @@ struct
   fun ord(gt1,gt2) = G.name_ord (get_name gt1,get_name gt2);
   fun eq(gt1,gt2) = (ord(gt1,gt2) = EQUAL);
 
-  val top = GoalTyp {name = G.mk "top", link = link.top, facts = [link.class.top], goal = link.class.top};
+  val top = GoalTyp {name = G.mk "top", link = Link.top, facts = [Link.Class.top], goal = Link.Class.top};
 
 end; (* struct *)
 
