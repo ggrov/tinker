@@ -4,7 +4,8 @@ sig
   type typ
   type term 
   type thm
-  type context 
+  type context
+  type tactic 
 
   exception gterm_exp
   

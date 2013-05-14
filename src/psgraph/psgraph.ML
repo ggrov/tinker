@@ -1,13 +1,20 @@
 (* contains the data structure for a proof strategy graph *)
 signature PS_GRAPH =
 sig
+  structure PSTheory : PS_THEORY 
   type T
-  val mk_psgraph : PS_Theory.Graph.T -> T
-  val of_graph : PS_Theory.Graph.T -> T
+  val empty : T
+  val of_graph : PSTheory.PS_Theory.Graph.T -> T
 end
 
-structure PSGraph =
+functor PSGraphFun(PSTheory : PS_THEORY) : PS_GRAPH =
 struct
+
+   structure PSTheory = PSTheory;
+   structure PS_Theory = PSTheory.PS_Theory;
+   
+   (* may need to try to avoid this nesting ... *)
+   type tactic = PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Link.Class.GTData.GPrf.tactic
 
    (* no longer uses underlying storage of data in isabelle? *)
    datatype T = PSGraph of {
@@ -16,7 +23,7 @@ struct
         or_tacs : (PS_Theory.Graph.T list) StrName.NTab.T,
         orelse_tacs : (PS_Theory.Graph.T * PS_Theory.Graph.T) StrName.NTab.T, (* (try,orelse) *)
         (* fixme: should depend on underlying theorem prover *)
-        atomics : (Thm.thm list -> Proof.context -> tactic) StrName.NTab.T
+        atomics : tactic StrName.NTab.T
     }
 
    fun update_graph f (PSGraph rep) = PSGraph

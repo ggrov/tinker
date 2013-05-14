@@ -5,6 +5,7 @@ struct
   type term = Term.term  
   type thm = Thm.thm
   type context = Proof.context
+  type tactic = context -> tactic
   
   exception gterm_exp
 

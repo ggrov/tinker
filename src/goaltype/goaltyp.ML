@@ -25,9 +25,9 @@ end;
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
 
   (* to do: generalise, by creating a term structure and a functor over this *)
-functor GoalTypFun (structure Lnk : LINK) : GOAL_TYP = 
+functor GoalTypFun (Link : LINK) : GOAL_TYP = 
 struct 
-  structure Link = Lnk;
+  structure Link = Link;
 
   datatype T = GoalTyp of 
    { name : G.name,

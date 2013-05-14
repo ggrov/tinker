@@ -1,3 +1,4 @@
+
 structure PS_ComponentDataIO : GRAPH_COMPONENT_DATA_IO
 = struct
   type vdata = PS_VertexData.data;

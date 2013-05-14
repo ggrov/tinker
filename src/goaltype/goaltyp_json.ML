@@ -13,7 +13,7 @@ sig
 
 end
 
-functor GTJson (GTyp: GOAL_TYP) : GOAL_TYPE_JSON = 
+functor GTJsonFun (GTyp: GOAL_TYP) : GOAL_TYPE_JSON = 
 struct 
 
   (* json format 

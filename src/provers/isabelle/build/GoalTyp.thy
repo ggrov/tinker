@@ -1,7 +1,7 @@
 (* simple test of proof representation *)
 theory GoalTyp                                       
 imports                
- "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                          
+ "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                           
 uses
   "../../../rtechn_names.ML"   
   "../../../proof/GPrf.ML"
@@ -10,7 +10,7 @@ uses
   "../../../goaltype/link.ML"
  "../../../goaltype/goaltyp.ML"    
  "../../../goaltype/goaltyp_json.ML" 
- "../../../goaltype/gnode.ML"
+ "../../../goaltype/gnode.ML"    
 (*
  "../isaPrf.ML"
  "../init.ML"

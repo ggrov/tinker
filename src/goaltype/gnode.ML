@@ -4,10 +4,12 @@ sig
   type T
 end
 
-functor GNodeFun (GTyp: GOAL_TYP) : GNODE = 
+(* goal type not needed anywhere *)
+(* functor GNodeFun (GTyp: GOAL_TYP) : GNODE = *)
+structure GNode =
 struct
 
-  structure GoalTyp = GTyp
+(*  structure GoalTyp = GTyp *)
 
   datatype T = Goal of {facts : StrName.NSet.T C.NTab.T, (* map from class to a set of assumption *)
                         goal : string, (* the name of the goal node *)

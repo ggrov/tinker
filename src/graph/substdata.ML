@@ -1,6 +1,40 @@
+signature GRAPH_SUBST_DATA =
+sig
+  structure GoalTyp : GOAL_TYP
+
+  (* TO DO: allow variables inside a rtechn? *)
+  datatype vdata = RT of RTechn.T
+                 | GN of GNode.T list (* fixme: should be goalnode *)
+                 | TVar of string (* variable of rtechn *)
+                 | GVar of string (* variable of goalnode *)
+
+  (* TO DO: allow variables inside a goaltype? *)
+  datatype edata = GT of GoalTyp.T
+                 | EVar of string (* variable of goalnode *)
+
+  type subst = vdata StrName.NTab.T * edata StrName.NTab.T
+ 
+  val vdata_eq : vdata * vdata -> bool
+  val vdata_ord : vdata * vdata -> order
+  val edata_eq : edata * edata -> bool
+  val edata_ord : edata * edata -> order
+
+  val empty_subst : subst
+  val compose_subst : subst * subst -> subst
+  
+  val pretty_vdata : vdata -> Pretty.T
+  val pretty_edata : edata -> Pretty.T
+  val pretty_subst : subst -> Pretty.T
+  val print_vdata : vdata -> unit
+  val print_edata : edata -> unit
+  val print_subst : subst -> unit
+end
+
 (* combine data to allow substitutions on both vertex and edge *)
-structure GraphSubstData
+functor GraphSubstDataFun (GoalTyp : GOAL_TYP) : GRAPH_SUBST_DATA
 = struct
+  
+  structure GoalTyp = GoalTyp;
 
   (* TO DO: allow variables inside a rtechn? *)
   datatype vdata = RT of RTechn.T
