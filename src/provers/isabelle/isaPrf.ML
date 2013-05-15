@@ -24,7 +24,10 @@ struct
 
   val trm_of_thm = Thm.prop_of;
 
-  (*val pretty_trm = Syntax.pretty_term;*)
   val trm_of_string = Syntax.parse_term;
-  val pretty_trm = Syntax.pretty_term
+  val string_of_trm = Syntax.string_of_term;
+  val pretty_trm = Syntax.pretty_term;
+
+  fun intlist_of_pos pos = pos
+  fun pos_of_intlist il = il
 end

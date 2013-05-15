@@ -7,22 +7,9 @@ TO DO:
 2) move socket stuff into isaplib [GG]
     -> still need to be tested and array stuff checked.
 
-3) update rtechn [make it independent of wires] [easy] [discuss Friday]
+3) update rtechn [make it independent of wires] [medium]
      - fix HGraph data [later]
      - complete appfn, ord and eq [medium]
-
-4) goal types -> rename from wires [clear] [GG has started]
-     -> make it fit with CICM paper
-     -> suggest the following files (all files of Wire should go [but reuse as much as possible]
-        - class.ml -> to hold class properties
-        - link.ml -> to hold link properties
-        - goaltyp.ml -> to hold a goal type
-        we may need some helper structures
-     - make json representation
-
-5) generalise goal type with functors [hard] [YL to start]
-    -> make a gtrm structure 
-    -> functorise goaltyp over this structure (should then be independent of TP system)
 
 6) rtechn_env -> how can we store such data in proof power? [hard]
      -> is it supported in isaplib?
@@ -62,7 +49,21 @@ TO DO:
 COMPLETED:
 
 1) fix quantomatic/isabelle loading for Isabelle 2013 [easy] [GG]
+
+
 3) update rtechn [make it independent of wires] [easy]
-     - fix typed_rtechn.ML and make morphism to rtechn.ML [LYH]
-     - complete rtechn_json.ML[LYH]
+     - fix typed_rtechn.ML and make morphism to rtechn.ML [YL]
+     - complete rtechn_json.ML[YL]
+
+4) goal types -> rename from wires [clear] [GG started]
+     -> make it fit with CICM paper [YL & GG]
+     -> suggest the following files
+        - class.ml -> to hold class properties [YL & GG]
+        - link.ml -> to hold link properties [YL & GG]
+        - goaltyp.ml -> to hold a goal type [YL & GG]
+     - make json representation [YL & GG]
+
+5) generalise goal type with functors [hard] [YL to start]
+    -> make a gtrm structure [YL]
+    -> functorise goaltyp over this structure (should then be independent of TP system) [YL]
 
