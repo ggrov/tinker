@@ -1,13 +1,15 @@
 (* to hold class features  *)
 
-signature GOALTYP = 
+signature GOAL_TYPE = 
 sig
-  type T
-  val top : T
-  val get_name : T -> GT_Name.name
-  val get_link : T -> Link.T
-  val get_facts_classes : T -> Class.classTab
-  val get_goal_class: T -> (GT_Name.name * Class.T)
+  type goaltyp
+  type goal
+
+  val top : goaltyp
+  val get_name : goaltyp -> GT_Name.name
+  val get_link : goaltyp -> Link.T
+  val get_facts_classes : goaltyp -> Class.classTab
+  val get_goal_class: goaltyp -> (GT_Name.name * Class.T)
 
   val set_name : GT_Name.name -> T -> T
   val set_link : Link.T -> T -> T
