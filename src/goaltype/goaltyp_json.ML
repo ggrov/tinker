@@ -83,7 +83,7 @@ struct
     | data_from_json _ _ = raise EXP_PARSING_JSON "Not a Json object type."
 
 
-  fun data_ll_to_json ctxt dll 
+  fun data_ll_to_json ctxt dll =
   let 
     fun list_to_json dl = map (fn x => data_to_json ctxt x) dl |> Json.Array
   in
