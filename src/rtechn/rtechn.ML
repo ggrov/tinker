@@ -6,15 +6,15 @@ sig
   exception rtechn_exp of string * T;
 
   datatype EvalData = EData of string
-  datatype tac_assms = TNoAsm | TAllAsm | TClass of StrName.NSet.T
+  datatype tac_assms = TNoAsm | TAllAsm | TClass of RT.NSet.T
 
   datatype atomic =
-      Rule of StrName.NSet.T (* rules used - what about with wire? *)
-    | ERule of StrName.name * StrName.NSet.T (* wire + rules used *)
-    | FRule of StrName.name * StrName.NSet.T (* wire + rules used *)
-    | Subst of StrName.NSet.T (* separate rule vs bwire? *)
-    | SubstAsm of StrName.name * StrName.NSet.T (* bwre and rules - sep. rule vs bwire *)
-    | Tactic of tac_assms * StrName.name (* bwire as fact + name of tactic *)
+      Rule of RT.NSet.T (* rules used - what about with wire? *)
+    | ERule of RT.name * RT.NSet.T (* wire + rules used *)
+    | FRule of RT.name * RT.NSet.T (* wire + rules used *)
+    | Subst of RT.NSet.T (* separate rule vs bwire? *)
+    | SubstAsm of RT.name * RT.NSet.T (* bwre and rules - sep. rule vs bwire *)
+    | Tactic of tac_assms * RT.name (* bwire as fact + name of tactic *)
 
   datatype appfn = Appf of atomic
                 | HGraph of EvalData option
@@ -23,13 +23,13 @@ sig
                 | Or (* of EvalData option *)
                 | OrElse (* of EvalData option *)
 
-  val get_name : T -> StrName.name
+  val get_name : T -> RT.name
   val get_appf : T -> appfn
 
-  val update_name : (StrName.name -> StrName.name) -> T -> T 
+  val update_name : (RT.name -> RT.name) -> T -> T 
   val update_appf : (appfn -> appfn) -> T -> T
 
-  val set_name : StrName.name -> T -> T 
+  val set_name : RT.name -> T -> T 
   val set_appf : appfn -> T -> T
 
   val set_atomic_appf : atomic -> T -> T 
@@ -50,7 +50,7 @@ sig
 
   val id : T 
   val merge : T
-  val id_str : StrName.name -> T
+  val id_str : RT.name -> T
   val fail : T 
 
   (* equality *)
@@ -74,15 +74,15 @@ structure RTechn
     TO DO: add more information  *)
  datatype EvalData = EData of string
 
- datatype tac_assms = TNoAsm | TAllAsm | TClass of StrName.NSet.T
+ datatype tac_assms = TNoAsm | TAllAsm | TClass of RT.NSet.T
 
  datatype atomic =
-    Rule of StrName.NSet.T (* rules used - what about with wire? *)
-  | ERule of StrName.name * StrName.NSet.T (* wire + rules used *)
-  | FRule of StrName.name * StrName.NSet.T (* wire + rules used *)
-  | Subst of StrName.NSet.T (* separate rule vs bwire? *)
-  | SubstAsm of StrName.name * StrName.NSet.T (* bwre and rules - sep. rule vs bwire *)
-  | Tactic of tac_assms * StrName.name (* bwires as facts + name of stactic *)
+    Rule of RT.NSet.T (* rules used - what about with wire? *)
+  | ERule of RT.name * RT.NSet.T (* wire + rules used *)
+  | FRule of RT.name * RT.NSet.T (* wire + rules used *)
+  | Subst of RT.NSet.T (* separate rule vs bwire? *)
+  | SubstAsm of RT.name * RT.NSet.T (* bwre and rules - sep. rule vs bwire *)
+  | Tactic of tac_assms * RT.name (* bwires as facts + name of stactic *)
 
  datatype appfn = Appf of atomic
                 | HGraph of EvalData option
@@ -93,7 +93,7 @@ structure RTechn
 
  datatype T =
    RTechn of {
-  		name : StrName.name,
+  		name : RT.name,
   		appf: appfn}
  
   exception rtechn_exp of string * T;
@@ -147,19 +147,19 @@ structure RTechn
     | _ => NONE;
 
 
-  val id = RTechn {name = "id", appf = Identity};
+  val id = RTechn {name = RT.mk "id", appf = Identity};
 
-  val merge = RTechn {name = "merge", appf = Merge};
+  val merge = RTechn {name = RT.mk "merge", appf = Merge};
 
   fun id_str str = id |> set_name str;
 
   val fail = id 
-           |> set_atomic_appf (Tactic (TNoAsm,"no_tac"))
-           |> set_name "fail";
+           |> set_atomic_appf (Tactic (TNoAsm,RT.mk "no_tac"))
+           |> set_name (RT.mk "fail");
 
   (* to do: base this on appf function instead *)
   fun ord (rt1,rt2) = 
-   case String.compare (get_name rt1,get_name rt2) of
+   case RT.name_ord (get_name rt1,get_name rt2) of
     EQUAL => EQUAL 
         (* this may be the problem with matching an empty output!!! - just do name (for now)
              prod_ord W.NSet.ord W.NSet.ord ((get_inputs rt1,get_inputs rt2),(get_outputs rt1,get_outputs rt1)) *)
@@ -167,12 +167,14 @@ structure RTechn
 
   fun eq (rt1,rt2) = (ord (rt1,rt2) = EQUAL)
 
+  fun pretty_name rt = RT.pretty_name (get_name rt);
+
   (* to do: do this in terms of appf as well *)
   fun pretty rt = Pretty.block 
                     [Pretty.chunks 
-                       [Pretty.str "Name: ", Pretty.str (get_name rt)]];
+                       [Pretty.str "Name: ", pretty_name rt]];
   
-  fun pretty_name rt = Pretty.str (get_name rt);
+
 
   val print = Pretty.writeln o pretty;
 

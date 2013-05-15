@@ -5,11 +5,11 @@ imports
   Prf                                                                        
 uses      
 
-  "../goaltype/goaltyp_match.ML"  
-  "../eval/eval_data.ML"  
-  "../proof/pplan_env.ML"  
+  "../../../goaltype/goaltyp_match.ML"  
+  "../../../eval/eval_data.ML"  
+  "../../../proof/pplan_env.ML"  
 
-  "../eval/eval_appf.ML" 
+  "../../../eval/eval_appf.ML" 
  
 (*                      
   "../wire/match.ML"                                                   

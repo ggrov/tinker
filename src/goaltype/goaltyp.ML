@@ -1,20 +1,21 @@
 (* to hold class features  *)
 
-signature GOAL_TYPE = 
+signature GOAL_TYP = 
 sig
-  type goaltyp
-  type goal
 
-  val top : goaltyp
-  val get_name : goaltyp -> GT_Name.name
-  val get_link : goaltyp -> Link.T
-  val get_facts_classes : goaltyp -> Class.classTab
-  val get_goal_class: goaltyp -> (GT_Name.name * Class.T)
+  type T
+  structure Link : LINK
+   
+  val top : T
+  val get_name : T -> G.name
+  val get_link : T -> Link.T
+  val get_facts: T -> Link.Class.T list
+  val get_gclass : T -> Link.Class.T
 
-  val set_name : GT_Name.name -> T -> T
+  val set_name : G.name -> T -> T
   val set_link : Link.T -> T -> T
-  val set_facts_classes : Class.classTab -> T -> T
-  val set_goal_class: (GT_Name.name * Class.T) -> T -> T
+  val set_facts : Link.Class.T list -> T -> T
+  val set_gclass: Link.Class.T -> T -> T
 
   val ord : (T * T) -> order
   val eq : (T * T) -> bool
@@ -24,30 +25,31 @@ end;
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
 
   (* to do: generalise, by creating a term structure and a functor over this *)
-structure DB_GoalTyp = 
+functor GoalTypFun (Link : LINK) : GOAL_TYP = 
 struct 
+  structure Link = Link;
+
   datatype T = GoalTyp of 
-   { name : GT_Name.name,
+   { name : G.name,
      link : Link.T,
-     facts : Class.classTab,
-     goal : (GT_Name.name * Class.T) } (* Notice that the name here should not be used in classTba*)
+     facts : Link.Class.T list,
+     goal : Link.Class.T} 
 
   fun get_name (GoalTyp rep) = #name rep;
   fun get_link (GoalTyp rep) = #link rep;
-  fun get_facts_classes (GoalTyp rep) = #facts rep;
-  fun get_goal_class (GoalTyp rep) = #goal rep;
+  fun get_facts (GoalTyp rep) = #facts rep;
+  fun get_gclass (GoalTyp rep) = #goal rep;
 
   fun set_name n (GoalTyp rep) = GoalTyp {name = n, link = (#link rep), facts = (#facts rep), goal = (#goal rep)}
   fun set_link l (GoalTyp rep) = GoalTyp {name = (#name rep), link = l, facts = (#facts rep), goal = (#goal rep)}
-  fun set_facts_classes fc (GoalTyp rep) = GoalTyp {name = (#name rep), link = (#link rep), facts = fc, goal = (#goal rep)}
-  fun set_goal_class gc (GoalTyp rep) = GoalTyp {name = (#name rep), link = (#link rep), facts = (#facts rep), goal = gc}
+  fun set_facts fc (GoalTyp rep) = GoalTyp {name = (#name rep), link = (#link rep), facts = fc, goal = (#goal rep)}
+  fun set_gclass gc (GoalTyp rep) = GoalTyp {name = (#name rep), link = (#link rep), facts = (#facts rep), goal = gc}
 
 
-  fun ord(gt1,gt2) = GT_Name.name_ord(get_name gt1,get_name gt2);
+  fun ord(gt1,gt2) = G.name_ord (get_name gt1,get_name gt2);
   fun eq(gt1,gt2) = (ord(gt1,gt2) = EQUAL);
 
-  val top = GoalTyp { name = GT_Name.mk "top", link = Link.top, facts = Class.empty_classtab, goal = (GT_Name.mk "default" , Class.top)};
+  val top = GoalTyp {name = G.mk "top", link = Link.top, facts = [Link.Class.top], goal = Link.Class.top};
 
 end; (* struct *)
 
-structure GoalTyp : GOALTYP = DB_GoalTyp;

@@ -2,14 +2,34 @@ theory GoalType_test
 imports                    
   Main  
   "../build/RTechn"   
-uses  "../rtechn_names.ML"
-      "../goaltype/type_set.ML" 
-      "../goaltype/general_term.ML" 
-      "../goaltype/goaltyp_data.ML"
-      "../goaltype/class.ML"
-      "../goaltype/link.ML"
-      "../goaltype/goaltyp.ML"
+uses  "../../../rtechn_names.ML"
+      "../../../goaltype/type_set.ML" 
+      "../../../goaltype/general_term.ML" 
+      "../../../goaltype/goaltyp_data.ML"
+      "../../../goaltype/class.ML"
+      "../../../goaltype/link.ML"
+      "../../../goaltype/goaltyp.ML"
 begin
+ML{*
+(*
+  fun feature_to_json f = x;
+  fun feature_from_json json = 1;
+  fun data_to_json 
+  fun data_from_json json = 1;
+
+  fun class_to_json class = Json.of_string "class";
+  
+  fun class_from_json json = Class.top;
+
+  fun link_to_json link = Json.of_string "link";
+  
+  fun link_from_json json = Link.top;
+
+  fun to_json gt = Json.Null;
+  
+  fun from_json json = GoalTyp.top;
+*)
+*}
 
 text{* Test for Class*}
 ML{*

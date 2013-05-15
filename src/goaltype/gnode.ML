@@ -1,8 +1,18 @@
-structure GNode = 
+signature GNODE = 
+sig
+  structure GoalTyp : GOAL_TYP
+  type T
+end
 
+(* goal type not needed anywhere *)
+(* functor GNodeFun (GTyp: GOAL_TYP) : GNODE = *)
+structure GNode =
 struct
+
+(*  structure GoalTyp = GTyp *)
+
   datatype T = Goal of {facts : StrName.NSet.T C.NTab.T, (* map from class to a set of assumption *)
-                        goal : string, (* the name of the goal node? or more information? *)
+                        goal : string, (* the name of the goal node *)
                         parent : T option}
 
   fun get_goal (Goal rep) = #goal rep;

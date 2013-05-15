@@ -2,109 +2,77 @@
 
 signature CLASS = 
 sig
-  type data
+
   type T
 
+  structure GTData : GT_DATA
   val top : T
   
-  val get_data : GT_Name.name -> T -> data
-  val rename_data : GT_Name.name -> GT_Name.name -> T -> T option 
-  val set_data: GT_Name.name -> data -> T -> T
-  val del_data : GT_Name.name -> T -> T
+  val get_item : F.name -> T -> (GTData.data list list) option
+  val set_item: F.name -> (GTData.data list list) -> T -> T
+  val del_item : F.name -> T -> T
+  val get_keys : T -> F.name list
 
-  val ord : T * T -> order option (* partial order, curently it is only dummy *)
-
-  (* shape is the basic unit*)
-  type classTab
-  val empty_classtab : classTab
-  val update_class :  (GT_Name.name * T) -> classTab -> classTab
-  val remove_class : GT_Name.name -> classTab -> classTab
-  (*old name -> new name...None if name crushes*)
-  val rename_class : GT_Name.name -> GT_Name.name -> classTab -> classTab option 
-  val get_class_by_name : classTab -> GT_Name.name -> T
-
-  val list_of_class_name : classTab -> GT_Name.name list
-  val if_name_fresh : classTab -> GT_Name.name -> bool
+  val get_name: T -> C.name
+  val rename : C.name -> T -> T  
   
 
+  val match_item : GTData.GPrf.context -> (GTData.data list list * GTData.data list list) -> bool
+  val eq : GTData.GPrf.context -> (T * T) -> bool
 end;
 
 
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
 
 (* TODO: generalise, by creating a term structure and a functor over this *)
-structure DB_Class = 
+functor ClassFun (GTD : GT_DATA) : CLASS = 
 struct
+
+  structure GTData = GTD
+
+  type T = (C.name * (GTData.data list list) F.NTab.T);
+  val top = (C.mk "Top",  F.NTab.empty)
+
+
+  exception CLASS_EXP of F.name * T
+  fun get_item gname (_, class) =  F.NTab.lookup class gname
+  fun set_item gname item (g, class) = (g, (F.NTab.update (gname, item) class))
+  fun del_item gname (g, class) = (g, F.NTab.delete gname class)
   
-  fun dummy_compare (_,_) = NONE
-  type data = GTData.data
-  type T = data GT_Name.NTab.T;
+  fun get_keys (_, class) = F.NTab.keys class
 
-  type classTab = T GT_Name.NTab.T;
+  val get_name = fst
+  fun rename gname (_, class) = (gname, class) 
 
-  val top =  GT_Name.NTab.empty; 
-  val id = GT_Name.NTab.empty;
-
-
-(*********************************************************
-*   Functions for 'name --> data'
-**********************************************************)
-  exception class_feature_exp of GT_Name.name * data GT_Name.NTab.T 
-  fun get_data name_str class = case GT_Name.NTab.lookup class name_str
-                                        of NONE => raise class_feature_exp (name_str, class)
-                                        | SOME x => x
-  fun set_data name_str d class = GT_Name.NTab.update (name_str, d)  class
-  fun del_data name_str class = GT_Name.NTab.delete name_str class
-  val rename_data = GT_Name.NTab.try_rename1
-
-(*do we really need to compare feature set set ?*)
-  val ord  = dummy_compare
-
-  fun union ((a : T), (b : T)) = 
+  fun match_item ctxt ((a : GTData.data list list),b) =
     let 
-      val la = GT_Name.NTab.keys a; 
-      fun merge (name : GT_Name.name) (n : T) = 
-        let 
-          val item_n = GT_Name.NTab.lookup n name;
-          val item_a = GT_Name.NTab.get a name
-        in 
-          case item_n of (SOME d) => GT_Name.NTab.update (name, GTData.data_union (d, item_a)) n
-             | _ => GT_Name.NTab.ins (name, item_a) n
-        end
+      fun zip [] [] = []
+        | zip (x :: xs) (y :: ys) = (x,y) :: (zip xs ys);
+      fun match_flist ctxt ((l1 : GTData.data list),l2) = 
+        (if (List.length l1 = List.length l2)
+        then
+           not (List.exists (fn (x,y) => if GTData.match_data ctxt (x,y) then false else true) (zip l1 l2))
+        else false);
+      fun member e s = List.filter (fn x => match_flist ctxt (e,x)) s |> List.length |> (fn x => (x > 0))
+      fun insert e s = (if member e s then s else e :: s)
+      fun remove e (m :: s) = (if match_flist ctxt (e,m) then remove e s else [m] @ (remove e s))
+        | remove _ [] = []
+      fun union (a, s) = fold insert s a
+      fun inter (a, (m::b)) = if member m a then [m] @ (inter (a, b)) else inter (a, b)
+        | inter (_, []) = []
+      fun size (m :: a) = (1 : int) + size(remove m a) 
+        | size [] = 0
     in
-      fold merge la b
+      size (union (a,b)) = size (inter (a,b))
     end
 
-  fun inter ((a : T), (b : T)) = 
-    let 
-      val la = GT_Name.NTab.keys a; 
-      fun merge_set (name : GT_Name.name) (n : T) = 
-        let 
-          val item_n = GT_Name.NTab.lookup n name;
-          val item_a = GT_Name.NTab.get a name
-        in 
-          case item_n of (SOME d) => ( 
-            let val int_ret =  GTData.data_inter (d, item_a) in 
-              (if GTData.is_empty int_ret then GT_Name.NTab.delete name n
-               else GT_Name.NTab.update (name, int_ret) n)
-              end)
-             | _ => n
-         end
-    in
-      fold merge_set la b
-    end
-  
-
-  val empty_classtab = GT_Name.NTab.empty;
-  val update_class  =  GT_Name.NTab.update;
-  val remove_class = GT_Name.NTab.delete;
-  val get_class_by_name = GT_Name.NTab.get;
-  val list_of_class_name = GT_Name.NTab.keys
-  fun if_name_fresh name tbl= GT_Name.NTab.contains name tbl |> not
-  val rename_class =   GT_Name.NTab.try_rename1
-
-
+  fun eq ctxt ((_,a), (_,b)) = if F.NTab.forall (fn (name, xb) => 
+                                          (case (F.NTab.lookup a name) of SOME xa => match_item ctxt (xa,xb)
+                                             | _ => false))
+                                       b then (F.NTab.forall (fn (name, xa) => 
+                                                             (case (F.NTab.lookup b name) of SOME xb => match_item ctxt (xa,xb)
+                                                              | _ => false))
+                                                          a)
+                                              else false
 end; (* struct *)
-
-structure Class: CLASS = DB_Class;
 

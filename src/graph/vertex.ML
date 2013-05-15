@@ -1,6 +1,14 @@
-structure DB_VertexData
+signature PS_VERTEX =
+sig
+  include UNIFIABLE_DATA;
+  structure GraphSubstData : GRAPH_SUBST_DATA
+  structure VComponentData_Param : ELEMENT_COMPONENT_DATA_PARAM 
+   sharing type data = GraphSubstData.vdata
+end
+
+functor PSVertexDataFun(GraphSubstData : GRAPH_SUBST_DATA) : PS_VERTEX
 = struct
-  
+  structure GraphSubstData = GraphSubstData;
   structure GSD = GraphSubstData;
 
   type data = GSD.vdata;
@@ -74,43 +82,34 @@ structure DB_VertexData
   val default_data = GSD.TVar "v";
   
   structure Sharing = struct type data = data; type subst = subst; end;  
-end;
 
-structure PS_VertexData : UNIFIABLE_DATA = DB_VertexData;
+  structure VComponentData_Param 
+    : ELEMENT_COMPONENT_DATA_PARAM where type data = GSD.vdata
+  = struct
 
-(* I think this is now replaced by JSON STUFF *)
-structure PS_VertexComponentData_Param
-: ELEMENT_COMPONENT_DATA_PARAM where type data = PS_VertexData.data
-= struct 
-  type data = PS_VertexData.data;
-  exception unknown_type_exp of string;
-  exception unexpected_data_exp;
+     type data = GSD.vdata;
+     exception unknown_type_exp of string;
+     exception unexpected_data_exp;
 
-  structure VD = DB_VertexData
-  structure GSD = GraphSubstData;
+     fun type_of (GSD.RT _) = "RT"
+      | type_of (GSD.GN _) = "GN"
+      | type_of (GSD.TVar _) = "TVar"
+      | type_of (GSD.GVar _) = "GVar";
 
-  fun type_of (GSD.RT _) = "RT"
-    | type_of (GSD.GN _) = "GN"
-    | type_of (GSD.TVar _) = "TVar"
-    | type_of (GSD.GVar _) = "GVar";
-
-  fun cdata_of d = 
-    ComponentData.String (Pretty.string_of (DB_VertexData.pretty_data d));
+     fun cdata_of d = 
+       ComponentData.String (Pretty.string_of (pretty_data d));
   
-  (* New nodes are by default RTechnNodes *)
-  fun default_data "RT" = GSD.RT (RTechn.id)
-    | default_data "GN" = GSD.GN ([])
-    | default_data "TVar" = GSD.TVar "v"
-    | default_data "GVar" = GSD.GVar "v"
-    | default_data s = raise unknown_type_exp s;
+     fun default_data "RT" = GSD.RT (RTechn.id)
+       | default_data "GN" = GSD.GN ([])
+       | default_data "TVar" = GSD.TVar "v"
+       | default_data "GVar" = GSD.GVar "v"
+       | default_data s = raise unknown_type_exp s;
 
+    fun update upd (GSD.RT rt) = GSD.RT rt
+       | update upd (GSD.GN gn) = GSD.GN gn
+       | update upd (GSD.TVar v)   = GSD.TVar v
+       | update upd (GSD.GVar v)   = GSD.GVar v;   
 
-  fun update upd (GSD.RT rt) = GSD.RT rt
-    | update upd (GSD.GN gn) = GSD.GN gn
-    | update upd (GSD.TVar v)   = GSD.TVar v
-    | update upd (GSD.GVar v)   = GSD.GVar v;   
-
-end;
-
-
+   end (* struct VComponentData_Param *)
+end; (* functor *)
 

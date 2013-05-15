@@ -1,7 +1,19 @@
-signature PSGRAPH_COMB =
+signature PS_COMB =
 sig
-  type psgraphfn
- 
+  structure PSGraph : PS_GRAPH
+
+  type psgraphfn = PSGraph.T -> PSGraph.T
+  type goaltyp = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T 
+
+ (* working with graph part of a psgraph *)
+  val collapse_graph : 
+     PSGraph.PSTheory.PS_Theory.Graph.T 
+     ->  PSGraph.PSTheory.PS_Theory.Graph.T
+  val collapse_graph_vertex : 
+     PSGraph.PSTheory.PS_Theory.Graph.T 
+     -> V.name * PSGraph.PSTheory.PS_Theory.Graph.T
+
+
   val THENG: psgraphfn * psgraphfn -> psgraphfn
   val TENSOR: psgraphfn * psgraphfn -> psgraphfn
   val OR: psgraphfn * psgraphfn -> psgraphfn
@@ -9,14 +21,80 @@ sig
   val NEST': string -> psgraphfn -> PSGraph.T -> string * PSGraph.T
   val NEST:string -> psgraphfn -> psgraphfn
   
-  val LIFT' : GoalTyp.T list * GoalTyp.T list -> RTechn.T -> PSGraph.T
-  val LIFT : GoalTyp.T list * GoalTyp.T list -> RTechn.T -> psgraphfn
+  val LIFT' : goaltyp list * goaltyp list -> RTechn.T -> PSGraph.T
+  val LIFT : goaltyp list * goaltyp list -> RTechn.T -> psgraphfn
 end
 
-structure PSComb : PSGRAPH_COMB =
+functor PSCombFun(PSGraph : PS_GRAPH) : PS_COMB =
 struct
+  structure PSGraph = PSGraph
+  structure PS_Theory = PSGraph.PSTheory.PS_Theory;
+  structure Comb = PSGraph.PSTheory.PS_Comb;
 
   type psgraphfn = PSGraph.T -> PSGraph.T
+  type goaltyp = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T 
+
+  (* collapsing of graph into a vertex *)
+  fun collapse_graph_vertex rt_typ name g =
+   let 
+     val ins =  Comb.boundary_inputs g
+     val outs =  Comb.boundary_outputs g
+     val boundary = PS_Theory.Graph.get_boundary g
+     val edges = PS_Theory.Graph.get_edges g |> E.NTab.get_nameset
+     val vertices = PS_Theory.Graph.get_vertices g |> V.NTab.get_nameset
+     val vertices_to_del = V.NSet.subtract vertices boundary;
+     fun delete_edges g = E.NSet.fold (PS_Theory.Graph.delete_edge) edges g
+     fun delete_vertices g = V.NSet.fold (PS_Theory.Graph.delete_vertex) vertices_to_del g
+     (* the reasoning technique *)
+     val rtechn = RTechn.id 
+                |> rt_typ
+                |> RTechn.set_name name
+     (* new graph *)
+     val simple_graph = g |> delete_edges |> delete_vertices
+     val (v,g') = PS_Theory.Graph.add_vertex 
+                    (PS_Theory.Graph.OVData.NVert (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.RT rtechn)) 
+                    simple_graph
+     fun insert_in_edge (bv,(en,ed),_) g = 
+           PS_Theory.Graph.add_edge (PS_Theory.Graph.Directed, ed) bv v g |> snd
+     fun insert_out_edge (_,(en,ed),bv) g = 
+           PS_Theory.Graph.add_edge (PS_Theory.Graph.Directed, ed) v bv g |> snd
+     val g'' = g' |> fold insert_in_edge ins |> fold insert_out_edge outs
+   in 
+     (v,g'')
+   end;
+
+   fun collapse_graph rt_typ name g  = collapse_graph_vertex rt_typ name g 
+                                     |> snd; 
+
+
+  (* graph of a reasoning technique *)
+
+  fun graph_of_node_edges node inedges outedges =  
+     let
+       val (v,g) = Graph.add_vertex (PS_OVData.NVert node) Graph.empty 
+       fun in_wire edge g =
+            g |> Graph.add_vertex PS_OVData.WVert
+              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
+              |> (fn (n,g) => Graph.add_edge (Graph.Directed,edge) n v g)
+              |> (fn (_,g') => g')
+       fun out_wire edge g =
+            g |> Graph.add_vertex PS_OVData.WVert
+              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
+              |> (fn (n,g) => Graph.add_edge (Graph.Directed, edge) v n g)
+              |> (fn (_,g') => g')  
+     in 
+       (v, g |> fold in_wire inedges
+             |> fold out_wire outedges)
+     end;
+
+  fun graph_of_rtechn_vertex rt ins outs =  
+   graph_of_node_edges
+      (GraphSubstData.RT rt) 
+      (map GraphSubstData.GT ins)
+      (map GraphSubstData.GT outs)
+
+  fun graph_of_rtechn rt ins outs =   graph_of_rtechn_vertex rt ins outs |> snd;
+
 
   fun THENG (psf1,psf2) ps =
    let 
