@@ -4,20 +4,24 @@ sig
   structure PS_GraphParam : PS_GRAPH_PARAM
   structure PS_Theory : GRAPHICAL_THEORY
   structure PS_Comb : GRAPH_COMB
-   sharing type PS_Comb.Graph.T = PS_Theory.Graph.T
+  sharing type PS_Comb.Graph.T = PS_Theory.Graph.T
+  sharing type PS_GraphParam.GraphSubstData.vdata = PS_Theory.Graph.OVData.IData.data
+  sharing PS_Comb.Graph.EData = PS_Theory.Graph.SharingBasicGraph.Param.EData
 
   (* structure PS_TheoryIO :*)
 end (* signature *)
 
 functor PSTheoryFun(GoalTyp : GOAL_TYP) : PS_THEORY =
 struct
+(*  PS_Theory.Graph.OVData.IData.data is PS_GraphParam.VData *)
   structure PS_GraphParam = PSGraphParamFun(GoalTyp);
+
   structure PS_VertexComponentData_Param 
       = PS_GraphParam.PSVertexData.VComponentData_Param;
   structure PS_EdgeComponentData_Param 
       = PS_GraphParam.PSEdgeData.EComponentData_Param;
 
-  structure PS_OVData = OVertexData(PS_GraphParam.VData);
+  structure PS_OVData = OVertexData(PS_GraphParam.VData);(* OVData *)
   structure PS_OGraphParam = OGraphParam(
     structure Param = PS_GraphParam 
           and OVData = PS_OVData);
@@ -34,7 +38,7 @@ struct
 
   (* Graphical theory *)
   structure PS_Theory = GraphicalTheory(
-    structure OParam = PS_OGraphParam
+    structure OParam = PS_OGraphParam (*OVData is in here*)
     structure VComponentData = PS_OVertexComponentData
     structure EComponentData = PS_EdgeComponentData
   );
