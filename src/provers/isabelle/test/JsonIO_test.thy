@@ -63,13 +63,13 @@ GTJson.data_to_json @{context} d3 |> GTJson.data_from_json @{context} ;
 ML{*
   fun data_ll_to_json ctxt dll =
   let 
-    fun list_to_json dl = map (fn x => GTJson.data_to_json ctxt x) dl |> Json.Array
+    fun list_to_json dl = map (fn x => GTJson.data_to_json x) dl |> Json.Array
   in
     map list_to_json dll |> Json.Array
   end
     
-  fun data_ll_from_json ctxt  (Json.Array j) = map (fn (Json.Array x) => map (GTJson.data_from_json ctxt) x) j
-  | data_ll_from_json _ _ = raise EXP_PARSING_JSON "Not a Json array type."
+  fun data_ll_from_json  (Json.Array j) = map (fn (Json.Array x) => map (GTJson.data_from_json) x) j
+  | data_ll_from_json _ = raise EXP_PARSING_JSON "Not a Json array type."
 
   val d1 = GTData.Int 0;
   val d2 = GTData.Position [1,2,3];
