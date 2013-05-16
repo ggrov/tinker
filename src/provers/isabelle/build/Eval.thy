@@ -6,8 +6,8 @@ imports
 uses      
   "../../atomic.ML" 
   "../../../eval/eval_data.ML"       
-
-  "../../../eval/eval_appf.ML" 
+  "../../../eval/eval_appf.ML"       
+         
 
   "../../../goaltype/goaltyp_match.ML"   
 

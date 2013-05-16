@@ -34,7 +34,38 @@ struct
       THEN
       (etac fact 1);
 
+apply_rule in isabelle
 
+(fn thm => PPlanEnv.apply_rule (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata)
+                                                (Thm.derivation_name thm)
+                                                 thm)
+
+apply_frule in isabelle
+
+         let
+          val snd_thms = thm_list edata gnode thm_nms
+          val fst_thms = thm_seq_of_bwire_nm edata gnode bwire_nm |> Seq.list_of
+        in
+           PPlanEnv.apply_frule
+              (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata) 
+              fst_thms 
+              snd_thms
+           |> Seq.single
+        end
+
+apply subst_asm in isabelle
+       let
+          val thm_eqs = thm_seq edata gnode thm_nms
+          val thms = thm_seq_of_bwire_nm edata gnode bwire_nm
+        in
+           Seq.maps (fn fact =>
+             Seq.maps (fn eq =>
+                 PPlanEnv.apply_ctxt_tactic
+                  (EData.get_goal edata (GNode.get_goal gnode), EData.get_pplan edata) "subst-asm (FIXME: shouldn't be tac"
+                  (subst_fact_tac fact eq)) 
+                thm_eqs) 
+             thms
+        end
 
          PPlanEnv.apply_tactic (pnode,pplan) tac_name (tac [] (PNode.get_ctxt pnode))
 end

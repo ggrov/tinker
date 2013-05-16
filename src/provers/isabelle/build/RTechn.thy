@@ -1,7 +1,7 @@
 (* simple test of proof representation *)
 theory RTechn                                                  
 imports          
- "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                
+ "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                    
 uses
   "../../../rtechn_names.ML"
   "../../../rtechn/rtechn.ML" 

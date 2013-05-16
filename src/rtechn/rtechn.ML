@@ -10,7 +10,7 @@ sig
 
   datatype atomic =
       Rule of StrName.NSet.T (* rules used - what about with wire? *)
-    | ERule of C.name * StrName.NSet.T (* class + rules used *)
+    | ERule of StrName.NSet.T (* rules used *)
     | FRule of C.name * StrName.NSet.T (* wire + rules used *)
     | Subst of StrName.NSet.T (* separate rule vs bwire? *)
     | SubstAsm of C.name * StrName.NSet.T (* class and names of rules (change to class?) *)
@@ -78,7 +78,7 @@ structure RTechn
 
   datatype atomic =
       Rule of StrName.NSet.T (* rules used - what about with wire? *)
-    | ERule of C.name * StrName.NSet.T (* class + rules used *)
+    | ERule of StrName.NSet.T (* class + rules used *)
     | FRule of C.name * StrName.NSet.T (* wire + rules used *)
     | Subst of StrName.NSet.T (* separate rule vs bwire? *)
     | SubstAsm of C.name * StrName.NSet.T (* class and names of rules (change to class?) *)

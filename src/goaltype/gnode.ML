@@ -30,7 +30,8 @@ struct
   fun set_parent name = set_parent' (SOME name);
   val set_parent_none = set_parent' NONE;
 
-  fun lookup_facts fact gnode = C.NTab.get (get_facts gnode) fact;
+  fun lookup_fact_names fact gnode = C.NTab.lookup (get_facts gnode) fact;
+  fun get_fact_names fact gnode = C.NTab.get (get_facts gnode) fact;
 
   fun delete_fact fact = 
     update_facts (C.NTab.delete fact);

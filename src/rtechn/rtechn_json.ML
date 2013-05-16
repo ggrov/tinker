@@ -82,7 +82,7 @@ local open RTechn Json in
     | tac_assms_from_json _ = raise EXP_PARSING_JSON "Not a Json object type."
 
   fun atomic_to_json (Rule rules) = mk_object [("atomic_type", String "Rule"), ("rules",  STRN_NSet_to_json rules)]
-  | atomic_to_json (ERule (class, rules)) = mk_object [("atomic_type", String "ERule"),  ("rules",  STRN_NSet_to_json rules), ("class", String(C.string_of_name class))]
+  | atomic_to_json (ERule rules) = mk_object [("atomic_type", String "ERule"), ("rules",  STRN_NSet_to_json rules)]
   | atomic_to_json (FRule (class, rules)) = mk_object [("atomic_type", String "FRule"), ("rules",  STRN_NSet_to_json rules), ("class", String (C.string_of_name class))]
   | atomic_to_json (Subst rules) = mk_object [("atomic_type", String "Subst"), ("rules",  STRN_NSet_to_json rules)]
   | atomic_to_json (SubstAsm (class, rules)) = mk_object [("atomic_type", String "SubstAsm"),("rules",  STRN_NSet_to_json rules), ("class", String (C.string_of_name class))]
@@ -96,7 +96,7 @@ local open RTechn Json in
       get_el_from_list typStr typList 
       |> snd
       |> (fn x => case x of 1 => Rule (StrN_NSet_from_json (get jobj "rules"))
-                           | 2 => let val (String str) = (get jobj "class") in ERule (C.mk str,(StrN_NSet_from_json (get jobj "rules"))) end
+                           | 2 => ERule (StrN_NSet_from_json (get jobj "rules"))
                            | 3 => let val (String str) = (get jobj "class") in FRule (C.mk str,(StrN_NSet_from_json (get jobj "rules"))) end
                            | 4 => Subst (StrN_NSet_from_json (get jobj "rules"))
                            | 5 => let val (String str) = (get jobj "class") in SubstAsm (C.mk str,(StrN_NSet_from_json (get jobj "rules"))) end
