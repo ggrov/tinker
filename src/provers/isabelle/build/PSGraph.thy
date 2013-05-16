@@ -8,7 +8,7 @@ uses
   (* "../graph/graph_util.ML" *)
 
   "../../../psgraph/psgraph.ML"  
-  "../../../psgraph/psgraph_comb.ML"             
+  "../../../psgraph/psgraph_comb.ML"                                 
 
 begin
 

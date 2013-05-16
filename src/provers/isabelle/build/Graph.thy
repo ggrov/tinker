@@ -1,5 +1,5 @@
 (* simple test of proof representation *)
-theory Graph                                                                         
+theory Graph                                                                          
 imports         
   RTechn                          
   GoalTyp                                         

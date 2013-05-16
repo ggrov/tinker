@@ -6,6 +6,7 @@ sig
   structure PS_Comb : GRAPH_COMB
   sharing type PS_Comb.Graph.T = PS_Theory.Graph.T
   sharing type PS_GraphParam.GraphSubstData.vdata = PS_Theory.Graph.OVData.IData.data
+  sharing type PS_GraphParam.GraphSubstData.edata = PS_Theory.Graph.SharingBasicGraph.Param.EData.data
   sharing PS_Comb.Graph.EData = PS_Theory.Graph.SharingBasicGraph.Param.EData
 
   (* structure PS_TheoryIO :*)

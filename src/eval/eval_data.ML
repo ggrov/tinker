@@ -1,44 +1,87 @@
-structure EData =
+signature EVAL_DATA =
+sig 
+  (* add sharing constraints *)
+  structure Atomic : ATOMIC
+  structure PSGraph : PS_GRAPH
+  sharing type Atomic.tactic = PSGraph.tactic
+
+  type T
+  
+  (* get methods *) 
+  val get_pplan : T -> Atomic.pplan
+  val get_psgraph : T -> PSGraph.T
+  val get_goals : T -> Atomic.pnode StrName.NTab.T
+  val get_active : T -> V.name list
+
+  (* more get methods *)
+  val lookup_goal : T -> string -> Atomic.pnode option
+  val get_goal : T -> string -> Atomic.pnode
+  val lookup_tactic : T -> string -> Atomic.tactic option
+  val get_tactic : T -> string -> Atomic.tactic
+
+  (* set methods *)
+  val set_pplan : Atomic.pplan -> T -> T
+  val set_psgraph : PSGraph.T -> T -> T
+  val set_goals : Atomic.pnode StrName.NTab.T -> T -> T
+  val set_active : V.name list -> T -> T
+
+  (* update methods *)
+  val update_pplan : (Atomic.pplan -> Atomic.pplan) -> T -> T
+  val update_psgraph : (PSGraph.T -> PSGraph.T) -> T -> T
+  val update_goals : (Atomic.pnode StrName.NTab.T -> Atomic.pnode StrName.NTab.T)  -> T -> T
+  val update_active : (V.name list -> V.name list) -> T -> T
+
+end (* signature *)
+
+
+functor EData(structure Atomic : ATOMIC
+              structure PSGraph : PS_GRAPH
+              sharing type Atomic.tactic = PSGraph.tactic) : EVAL_DATA =
 struct
 
-  (* also ruleset *)
+  structure Atomic = Atomic;
+  structure PSGraph = PSGraph;
+
+  (* do we need a stack of graphs for nested evaluation? *)
   datatype T = EData of { 
-      pplan : PPlan.T,
-      graph : PSGraph.T, (* psgraph *)
-      goals : PNode.T StrName.NTab.T,
+      pplan : Atomic.pplan,
+      psgraph : PSGraph.T, (* psgraph *)
+      goals : Atomic.pnode StrName.NTab.T,
       active : V.name list
   }
 
   fun get_pplan (EData rep) = #pplan rep;
-  fun get_graph (EData rep) = #graph rep;
+  fun get_psgraph (EData rep) = #psgraph rep;
   fun get_goals (EData rep) = #goals rep;
   fun get_active (EData rep) = #active rep;
 
   fun update_pplan f (EData rep) =
-    EData {pplan = f (#pplan rep), graph = #graph rep, goals = #goals rep, active = #active rep};
-  fun update_graph f (EData rep) =
-    EData {pplan = #pplan rep, graph = f (#graph rep), goals = #goals rep,active = #active rep};
+    EData {pplan = f (#pplan rep), psgraph = #psgraph rep, goals = #goals rep, active = #active rep};
+  fun update_psgraph f (EData rep) =
+    EData {pplan = #pplan rep, psgraph = f (#psgraph rep), goals = #goals rep,active = #active rep};
   fun update_goals f (EData rep) =
-    EData {pplan = #pplan rep, graph = #graph rep, goals = f (#goals rep),active = #active rep};
+    EData {pplan = #pplan rep, psgraph = #psgraph rep, goals = f (#goals rep),active = #active rep};
   fun update_active f (EData rep) =
-    EData {pplan = #pplan rep, graph = #graph rep, goals = #goals rep, active = f (#active rep)};
+    EData {pplan = #pplan rep, psgraph = #psgraph rep, goals = #goals rep, active = f (#active rep)};
 
   val set_pplan = update_pplan o K;
-  val set_graph = update_graph o K;
+  val set_psgraph = update_psgraph o K;
   val set_goals = update_goals o K;
   val set_active = update_active o K;
 
   fun init_of prf graph gs active  =
-    EData {pplan = prf, graph = graph, goals = gs, active = active};
+    EData {pplan = prf, psgraph = graph, goals = gs, active = active};
            
-  fun ins_tab pnode = StrName.NTab.ins (PNode.get_name pnode,pnode);
+  fun ins_tab pnode = StrName.NTab.ins (Atomic.get_pnode_name pnode,pnode);
   val lookup_goal = StrName.NTab.lookup o get_goals;
   val get_goal = StrName.NTab.get o get_goals;
   fun add_goal pnode = update_goals (ins_tab pnode)
   fun add_goals pnods = update_goals (fold ins_tab pnods);
   fun del_goal pname = update_goals (StrName.NTab.delete pname);
 
-  val get_tactics = get_graph #> PSGraph.get_atomics;
+  val get_tactics = get_psgraph #> PSGraph.get_atomics;
+  val lookup_tactic = get_tactics #> StrName.NTab.lookup
+  val get_tactic = get_tactics #> StrName.NTab.get
 
 (*
   fun pretty_goals edata nameset =
@@ -58,6 +101,6 @@ struct
 
   val print = Pretty.writeln o pretty;
 *)
-end; (* structure *)
+end; (* functor *)
 
 

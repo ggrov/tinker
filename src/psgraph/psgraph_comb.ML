@@ -7,11 +7,15 @@ sig
 
  (* working with graph part of a psgraph *)
   val collapse_graph : 
-     PSGraph.PSTheory.PS_Theory.Graph.T 
-     ->  PSGraph.PSTheory.PS_Theory.Graph.T
+     (RTechn.T -> RTechn.T) (* type of rtechn *)
+     -> SStrName.src (* name of rtechn *)
+     -> PSGraph.PSTheory.PS_Theory.Graph.T (* old graph *)
+     ->  PSGraph.PSTheory.PS_Theory.Graph.T (* new graph *)
   val collapse_graph_vertex : 
-     PSGraph.PSTheory.PS_Theory.Graph.T 
-     -> V.name * PSGraph.PSTheory.PS_Theory.Graph.T
+     (RTechn.T -> RTechn.T) (* type of rtechn *)
+     -> SStrName.src (* name of rtechn *)
+     -> PSGraph.PSTheory.PS_Theory.Graph.T (* old graph *)
+     -> V.name * PSGraph.PSTheory.PS_Theory.Graph.T (* new graph with vertex name *)
 
 
   val THENG: psgraphfn * psgraphfn -> psgraphfn
@@ -30,6 +34,9 @@ struct
   structure PSGraph = PSGraph
   structure PS_Theory = PSGraph.PSTheory.PS_Theory;
   structure Comb = PSGraph.PSTheory.PS_Comb;
+  structure Graph =  PSGraph.PSTheory.PS_Theory.Graph;
+  structure GraphSubstData = PSGraph.PSTheory.PS_GraphParam.GraphSubstData;
+  structure GraphComb = PSGraph.PSTheory.PS_Comb;
 
   type psgraphfn = PSGraph.T -> PSGraph.T
   type goaltyp = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T 
@@ -48,7 +55,7 @@ struct
      (* the reasoning technique *)
      val rtechn = RTechn.id 
                 |> rt_typ
-                |> RTechn.set_name name
+                |> RTechn.set_name (RT.mk name)
      (* new graph *)
      val simple_graph = g |> delete_edges |> delete_vertices
      val (v,g') = PS_Theory.Graph.add_vertex 
@@ -71,14 +78,14 @@ struct
 
   fun graph_of_node_edges node inedges outedges =  
      let
-       val (v,g) = Graph.add_vertex (PS_OVData.NVert node) Graph.empty 
+       val (v,g) = Graph.add_vertex (Graph.OVData.NVert node) Graph.empty 
        fun in_wire edge g =
-            g |> Graph.add_vertex PS_OVData.WVert
+            g |> Graph.add_vertex Graph.OVData.WVert
               |> (fn (n,g) => (n,Graph.add_to_boundary n g))
               |> (fn (n,g) => Graph.add_edge (Graph.Directed,edge) n v g)
               |> (fn (_,g') => g')
        fun out_wire edge g =
-            g |> Graph.add_vertex PS_OVData.WVert
+            g |> Graph.add_vertex Graph.OVData.WVert
               |> (fn (n,g) => (n,Graph.add_to_boundary n g))
               |> (fn (n,g) => Graph.add_edge (Graph.Directed, edge) v n g)
               |> (fn (_,g') => g')  
@@ -102,7 +109,7 @@ struct
      val g1 = PSGraph.get_graph ps1
      val ps2 = psf2 ps1
      val g2 = PSGraph.get_graph ps2
-     val g' = GraphComb.then_g g1 g2
+     val g' = GraphComb.THEN g1 g2
   in
     ps2 |> PSGraph.set_graph g'
   end;
@@ -113,7 +120,7 @@ struct
      val g1 = PSGraph.get_graph ps1
      val ps2 = psf2 ps1
      val g2 = PSGraph.get_graph ps2
-     val g' = GraphComb.tensor_g g1 g2
+     val g' = GraphComb.TENSOR g1 g2
   in
     ps2 |> PSGraph.set_graph g'
   end;
@@ -123,7 +130,7 @@ struct
       val ps' = psf ps
       val g = PSGraph.get_graph ps'
       val name' = PSGraph.fresh_name ps' name
-      val g' = GraphComb.collapse_graph (RTechn.set_appf (RTechn.HGraph NONE)) name' g
+      val g' = collapse_graph (RTechn.set_appf (RTechn.HGraph NONE)) name' g
       val ps'' = ps' |> PSGraph.set_graph g'
                      |> PSGraph.update_g_tacs (StrName.NTab.ins (name',g))
     in
@@ -141,7 +148,7 @@ struct
      val ps2 = psf2 ps1
      val g2 = PSGraph.get_graph ps2
      val name' = PSGraph.fresh_name ps2 "orr"
-     val g' = GraphComb.collapse_graph (RTechn.set_appf RTechn.Or) name' g1
+     val g' = collapse_graph (RTechn.set_appf RTechn.Or) name' g1
   in
     ps2 |> PSGraph.set_graph g'
         |> PSGraph.update_or_tacs (StrName.NTab.ins (name',[g1,g2]))
@@ -154,20 +161,22 @@ struct
      val ps2 = psf2 ps1
      val g2 = PSGraph.get_graph ps2
      val name' = PSGraph.fresh_name ps2 "orelse"
-     val g' = GraphComb.collapse_graph (RTechn.set_appf RTechn.OrElse) name' g1
+     val g' = collapse_graph (RTechn.set_appf RTechn.OrElse) name' g1
   in
     ps2 |> PSGraph.set_graph g'
         |> PSGraph.update_orelse_tacs (StrName.NTab.ins (name',(g1,g2)))
   end; 
 
   fun LIFT (ins,outs) rt ps = 
-    ps |> PSGraph.set_graph (GraphComb.graph_of_rtechn rt  ins outs);
+    ps |> PSGraph.set_graph (graph_of_rtechn rt  ins outs);
 
   fun LIFT' (ins,outs) rt = 
-     PSGraph.of_graph (GraphComb.graph_of_rtechn rt ins outs);
+     PSGraph.of_graph (graph_of_rtechn rt ins outs);
 
 end; (* end struct *)
 
+(* TO DO: this has to be done for each structore of the functor *)
+(*
 infixr 6 THENG;
 val op THENG = PSComb.THENG;
 infixr 6 TENSOR;
@@ -180,3 +189,4 @@ val LIFT = PSComb.LIFT;
 val LIFT' = PSComb.LIFT';
 val NEST = PSComb.NEST;
 val NEST' = PSComb.NEST';
+*)

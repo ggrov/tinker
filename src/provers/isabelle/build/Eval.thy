@@ -1,15 +1,20 @@
 (* simple test of proof representation *)
 theory Eval                                                                                                                                                               
 imports          
-  Graph  
-  Prf                                                                        
+  PSGraph  
+  (* Prf *)                                                                        
 uses      
-
-  "../../../goaltype/goaltyp_match.ML"  
-  "../../../eval/eval_data.ML"  
-  "../../../proof/pplan_env.ML"  
+  "../../atomic.ML" 
+  "../../../eval/eval_data.ML"       
 
   "../../../eval/eval_appf.ML" 
+
+  "../../../goaltype/goaltyp_match.ML"   
+
+(*
+  "../../../proof/pplan_env.ML"  
+*)
+
  
 (*                      
   "../wire/match.ML"                                                   

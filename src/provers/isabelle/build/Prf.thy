@@ -6,7 +6,7 @@ imports
  "~~/contrib/isaplib/isabelle/isaplib/isaplib"   
 *)                                                                                 
 uses 
-  "../../../proof/GPRF.ML"  
+  "../../../proof/GPrf.ML"  
   "../isaPrf.ML"
   "../init.ML"     
 begin

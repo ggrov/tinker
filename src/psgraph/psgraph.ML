@@ -3,8 +3,42 @@ signature PS_GRAPH =
 sig
   structure PSTheory : PS_THEORY 
   type T
+  type tactic = PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Link.Class.GTData.GPrf.tactic
+
   val empty : T
   val of_graph : PSTheory.PS_Theory.Graph.T -> T
+
+  (* get methods *)
+  val get_graph : T -> PSTheory.PS_Theory.Graph.T
+  val get_g_tacs : T -> PSTheory.PS_Theory.Graph.T StrName.NTab.T
+  val get_or_tacs : T -> (PSTheory.PS_Theory.Graph.T list) StrName.NTab.T
+  val get_orelse_tacs : T -> (PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T
+  val get_atomics : T -> tactic StrName.NTab.T
+
+  (* set methods *)
+  val set_graph : PSTheory.PS_Theory.Graph.T -> T -> T 
+  val set_g_tacs : PSTheory.PS_Theory.Graph.T StrName.NTab.T -> T -> T 
+  val set_or_tacs : (PSTheory.PS_Theory.Graph.T list) StrName.NTab.T -> T -> T 
+  val set_orelse_tacs : (PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T -> T -> T 
+  val set_atomics : tactic StrName.NTab.T -> T -> T 
+
+  (* update methods *)
+  val update_graph : (PSTheory.PS_Theory.Graph.T -> PSTheory.PS_Theory.Graph.T) -> T -> T 
+  val update_g_tacs : 
+       (PSTheory.PS_Theory.Graph.T StrName.NTab.T -> PSTheory.PS_Theory.Graph.T StrName.NTab.T)
+        -> T -> T 
+  val update_or_tacs : 
+       ((PSTheory.PS_Theory.Graph.T list) StrName.NTab.T -> (PSTheory.PS_Theory.Graph.T list) StrName.NTab.T)
+       -> T -> T 
+  val update_orelse_tacs : 
+       ((PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T 
+       -> (PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T) 
+       -> T -> T 
+  val update_atomics : (tactic StrName.NTab.T -> tactic StrName.NTab.T) -> T -> T 
+
+  (* fresh name generation *)
+  val fresh_name : T -> StrName.name -> StrName.name
+
 end
 
 functor PSGraphFun(PSTheory : PS_THEORY) : PS_GRAPH =

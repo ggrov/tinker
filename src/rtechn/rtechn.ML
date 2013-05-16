@@ -6,15 +6,15 @@ sig
   exception rtechn_exp of string * T;
 
   datatype EvalData = EData of string
-  datatype tac_assms = TNoAsm | TAllAsm | TClass of RT.NSet.T
+  datatype tac_assms = TNoAsm | TAllAsm | TClass of C.NSet.T
 
   datatype atomic =
-      Rule of RT.NSet.T (* rules used - what about with wire? *)
-    | ERule of RT.name * RT.NSet.T (* wire + rules used *)
-    | FRule of RT.name * RT.NSet.T (* wire + rules used *)
-    | Subst of RT.NSet.T (* separate rule vs bwire? *)
-    | SubstAsm of RT.name * RT.NSet.T (* bwre and rules - sep. rule vs bwire *)
-    | Tactic of tac_assms * RT.name (* bwire as fact + name of tactic *)
+      Rule of StrName.NSet.T (* rules used - what about with wire? *)
+    | ERule of C.name * StrName.NSet.T (* class + rules used *)
+    | FRule of C.name * StrName.NSet.T (* wire + rules used *)
+    | Subst of StrName.NSet.T (* separate rule vs bwire? *)
+    | SubstAsm of C.name * StrName.NSet.T (* class and names of rules (change to class?) *)
+    | Tactic of tac_assms * string (* tactic assumptions + name of tactic *)
 
   datatype appfn = Appf of atomic
                 | HGraph of EvalData option
@@ -76,13 +76,13 @@ structure RTechn
 
  datatype tac_assms = TNoAsm | TAllAsm | TClass of RT.NSet.T
 
- datatype atomic =
-    Rule of RT.NSet.T (* rules used - what about with wire? *)
-  | ERule of RT.name * RT.NSet.T (* wire + rules used *)
-  | FRule of RT.name * RT.NSet.T (* wire + rules used *)
-  | Subst of RT.NSet.T (* separate rule vs bwire? *)
-  | SubstAsm of RT.name * RT.NSet.T (* bwre and rules - sep. rule vs bwire *)
-  | Tactic of tac_assms * RT.name (* bwires as facts + name of stactic *)
+  datatype atomic =
+      Rule of StrName.NSet.T (* rules used - what about with wire? *)
+    | ERule of C.name * StrName.NSet.T (* class + rules used *)
+    | FRule of C.name * StrName.NSet.T (* wire + rules used *)
+    | Subst of StrName.NSet.T (* separate rule vs bwire? *)
+    | SubstAsm of C.name * StrName.NSet.T (* class and names of rules (change to class?) *)
+    | Tactic of tac_assms * string (* tactic assumptions + name of tactic *)
 
  datatype appfn = Appf of atomic
                 | HGraph of EvalData option
@@ -154,7 +154,7 @@ structure RTechn
   fun id_str str = id |> set_name str;
 
   val fail = id 
-           |> set_atomic_appf (Tactic (TNoAsm,RT.mk "no_tac"))
+           |> set_atomic_appf (Tactic (TNoAsm,"no_tac"))
            |> set_name (RT.mk "fail");
 
   (* to do: base this on appf function instead *)
