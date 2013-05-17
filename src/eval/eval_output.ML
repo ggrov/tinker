@@ -1,38 +1,7 @@
-signature EVAL_OUT =
-sig
-  structure GoalTyp : GOAL_TYP
-  structure Atomic : ATOMIC
-
-  val lift : GoalTyp.T -> GNode.T -> Atomic.pplan -> Atomic.pnode -> GNode.T option
-
-  (* invariant result = partition goal_typs pplan pnds 
-       all res in result: length res  = length goal_typs (and they pairwise match)
-                          
-       outer list is all the possible options -> should be a singleton list if orthogonal
-       length (result) > 0
-  *)
-  val partition : GoalType.T list -> Atomic.pplan -> Atomic.pnode list -> GNode.T list list list
-
-end
 
 structure EvalOutput =
 struct
 
-  fun lift goal_typ gnode pnode  =  NONE
-
-  fun lift_to_list  gnode pnode goal_typ = 
-    case lift goal_typ gnode pnode of
-      NONE -> []
-     | SOME g -> [g]
-
-  fun partition_first goal_types gnode pnode = map (lift_to_list gnode pnode) goal_types;
-
-  (* need some filtering of empty here *)
-  fun partition_one [] gnode pnode [] = []
-  fun partition_one (gt::gts) gnode pnode (r::res) = 
-     (lift_to_list gnode pnode gt @ r) :: partition_one gts gnode pnode res
-
-  fun partition []
 
   exception gnode_exp of string
 

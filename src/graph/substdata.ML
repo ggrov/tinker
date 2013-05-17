@@ -2,9 +2,11 @@ signature GRAPH_SUBST_DATA =
 sig
   structure GoalTyp : GOAL_TYP
 
+  datatype gnode = GNode.T | GVar of string
+
   (* TO DO: allow variables inside a rtechn? *)
   datatype vdata = RT of RTechn.T
-                 | GN of GNode.T list (* fixme: should be goalnode *)
+                 | GN of gnode list (* fixme: should be goalnode *)
                  | TVar of string (* variable of rtechn *)
                  | GVar of string (* variable of goalnode *)
 

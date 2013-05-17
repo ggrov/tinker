@@ -1,23 +1,105 @@
-(*
-   contains functionality linking the proof/tactic with the strategy graph (eval into rewriting)
-*)
-structure EvalGraph =
+signature EVAL_GRAPH =
+sig
+  structure GoalTyp : GOAL_TYP
+  structure Atomic : ATOMIC
+  (* should go somewhere else *)
+  val lift : GoalTyp.T -> GNode.T -> Atomic.pplan -> Atomic.pnode -> GNode.T option
+
+
+  exception partition_exp of Atomic.pnode
+
+  (* return value : outer list - each branch: singleton 
+                    middle list - one branch same length as goaltype input list
+                    inner list - matching goal nodes for given goaltype
+    invariant result = partition goal_typs pplan pnds 
+       all res in result: length res  = length goal_typs (and they pairwise match)
+                          
+       outer list is all the possible options -> should be a singleton list if orthogonal
+       length (result) > 0
+  *)
+  val partition : GoalType.T list -> Atomic.pplan -> Atomic.pnode list -> GNode.T list list list
+   (* raises partition_exp *)
+end
+
+functor EvalGraphFun(EData : EVAL_DATA) =
 struct
+  structure EData = EData;
+  structure Theory = EData.PSGraph;
+  structure PSTheory = EData.PSGraph.PSTheory
+  structure Graph = EData.PSGraph.PSTheory.Graph;
+  structure GData = PSTheory.PS_GraphParam.GraphSubstData;
 
-  structure EData = EvalD_DF;
+  (* move into separate/different file? *) 
+  structure Util =
+  struct
+      (* actual rewriting *)
+    fun rewrite_lazy rule graph = 
+      let 
+        val graph' = Graph.normalise graph;
+        val (rule',matches) = Theory.RulesetRewriter.rule_matches rule graph';
+        fun rewr match = 
+          Theory.GraphSubst.do_rewrite match (Theory.Rule.get_rhs rule')
+      in
+        Seq.map rewr matches
+      end;
+    val rewrite = Seq.list_of oo rewrite_lazy;
 
-  (* actual rewriting *)
-  fun rewrite_lazy rule graph = 
-    let 
-      val graph' = Strategy_Theory.Graph.normalise graph;
-      val (rule',matches) = Strategy_Theory.RulesetRewriter.rule_matches rule graph';
-      fun rewr match = 
-        Strategy_Theory.GraphSubst.do_rewrite match (Strategy_Theory.Rule.get_rhs rule')
-    in
-      Seq.map rewr matches
-    end;
+    fun edge_dest g e = Graph.get_edge g e |> (snd o snd);
+    fun edge_src g e = Graph.get_edge g e |> (fst o snd);
+    fun edge_data g e = Graph.get_edge g e |> fst |> snd;
 
-  val rewrite = Seq.list_of oo rewrite_lazy;
+    fun insert_node_on_edge node edge graph0 =
+      let val (l,graph') = Graph.add_vertex (Graph.OVData.NVert node) graph0
+          val from = edge_src graph' edge
+          val to = edge_dest graph' edge
+          val edata = edge_data graph' edge
+      in
+        graph' |> Graph.delete_edge edge 
+               |> Graph.doadd_edge (Graph.Directed,edata) from l
+               |> Graph.doadd_edge (Graph.Directed,edata) l to
+      end;
+
+    (* assumes: 1/1 - so just replace by wire node *)
+    val del_gnode = Graph.update_vertex_data (K Graph.OVData.WVert);
+
+  end (* structure Util *)
+  
+  fun lift goal_typ gnode pnode  =  NONE
+
+  exception partition_exp of Atomic.pnode
+
+  (* need some filtering of empty here *)
+  fun partition_one' [] _ _ _ [] = [] (* fails to lift for this branch *)
+  fun partition_one' (gt::gts) gnode pnode bres (r::ares) = 
+    case lift gt gnode pnode of
+      (* fails to lift *)
+      NONE => partition_one' gts gnode pnode (bres@[r]) ares
+      (* succeeds, and check for further successes *)
+    | (SOME g') =>
+        (* adds the succeded to the current result *)
+        (bres @ [g'::r] @ ares) ::
+        (* goes through and see if more succeeds (thus branching) *)
+         partition_one' gts gnode pnode (bres@[r]) ares;
+
+  (* raises exception if one proof nodes fails *)
+  fun partition_one goal_typs gnode pnode res =
+    case partition_one' goal_typs gnode pnode res [] of
+       [] => raise partition_exp pnode
+     | xs => xs
+  
+  (* partition all possible inputs *)
+  fun partition []     _       _     = []
+   |  partition pnds gnode goal_typs =
+        [map (fn _ => []) goal_typs] (* empty list to start *)
+        |> fold (fn pnd => map (partition_one goal_typs gnode pnd)) pnds
+
+  val partition_to_gnodes = map GData.GN;
+
+  (* add output nodes *) 
+  
+
+
+
 
    (* begin simple output gnode *)
 
@@ -164,8 +246,10 @@ struct
   (* creates a graph to match *)
   fun mk_match_graph graph v =
     let 
-     val ins = Strategy_Theory.Graph.in_enames graph v  
-     val outs = Strategy_Theory.Graph.out_enames graph v
+     val ins = Graph.in_enames graph v  
+     val outs = Graph.out_enames graph v
+
+
      val get_wire = GraphEnv.e_to_wire graph
      val rtechn = GraphEnv.v_to_rtechn graph v
      (* graph with rtechn *)
