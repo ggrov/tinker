@@ -10,6 +10,7 @@ struct
   structure EGraph = EvalGraphFun(EData);
   structure EAtom = EvalAtomicFun(EData);
 
+  
 
 
 

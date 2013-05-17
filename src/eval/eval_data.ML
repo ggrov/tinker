@@ -6,12 +6,16 @@ sig
   sharing type Atomic.tactic = PSGraph.tactic
 
   type T
+  type active
   
   (* get methods *) 
   val get_pplan : T -> Atomic.pplan
-  val get_psgraph : T -> PSGraph.T
   val get_goals : T -> Atomic.pnode StrName.NTab.T
-  val get_active : T -> V.name list
+  val get_active : T -> active
+
+  val get_active_psgraph : T -> PSGraph.T
+  val get_active_vertices : T -> V.name list
+  val get_active_parent : T -> active option
 
   (* more get methods *)
   val lookup_goal : T -> string -> Atomic.pnode option
@@ -21,15 +25,26 @@ sig
 
   (* set methods *)
   val set_pplan : Atomic.pplan -> T -> T
-  val set_psgraph : PSGraph.T -> T -> T
   val set_goals : Atomic.pnode StrName.NTab.T -> T -> T
-  val set_active : V.name list -> T -> T
+  val set_active : active -> T -> T
+
+  val set_active_psgraph : PSGraph.T -> T -> T
+  val set_active_vertices : V.name list -> T -> T
+  val set_option_active_parent :  active option -> T -> T
+  val set_active_parent : active -> T -> T
 
   (* update methods *)
   val update_pplan : (Atomic.pplan -> Atomic.pplan) -> T -> T
-  val update_psgraph : (PSGraph.T -> PSGraph.T) -> T -> T
   val update_goals : (Atomic.pnode StrName.NTab.T -> Atomic.pnode StrName.NTab.T)  -> T -> T
-  val update_active : (V.name list -> V.name list) -> T -> T
+  val update_active : (active -> active) -> T -> T
+
+  val update_active_psgraph : (PSGraph.T -> PSGraph.T) -> T -> T
+  val update_active_vertices : (V.name list -> V.name list) -> T -> T
+  val update_active_parent : (active option -> active option) -> T -> T
+
+  (* push and pop methods for parent? *)
+  val pop_active : T -> T (* identify if it fails *)
+  val push_active :  PSGraph.T -> V.name list -> T -> T
 
 end (* signature *)
 
@@ -42,7 +57,7 @@ struct
   structure Atomic = Atomic;
   structure PSGraph = PSGraph;
 
-  datatype active = AGraph of {
+  datatype active = Active of {
      psgraph : PSGraph.T,
      vertices : V.name list,
      parent : active option
@@ -51,32 +66,54 @@ struct
   (* do we need a stack of graphs for nested evaluation? *)
   datatype T = EData of { 
       pplan : Atomic.pplan,
-      psgraph : PSGraph.T, (* psgraph *)
       goals : Atomic.pnode StrName.NTab.T,
-      active : V.name list
+      active : active
   }
 
   fun get_pplan (EData rep) = #pplan rep;
-  fun get_psgraph (EData rep) = #psgraph rep;
   fun get_goals (EData rep) = #goals rep;
   fun get_active (EData rep) = #active rep;
 
   fun update_pplan f (EData rep) =
-    EData {pplan = f (#pplan rep), psgraph = #psgraph rep, goals = #goals rep, active = #active rep};
-  fun update_psgraph f (EData rep) =
-    EData {pplan = #pplan rep, psgraph = f (#psgraph rep), goals = #goals rep,active = #active rep};
+    EData {pplan = f (#pplan rep), goals = #goals rep, active = #active rep};
   fun update_goals f (EData rep) =
-    EData {pplan = #pplan rep, psgraph = #psgraph rep, goals = f (#goals rep),active = #active rep};
+    EData {pplan = #pplan rep, goals = f (#goals rep),active = #active rep};
   fun update_active f (EData rep) =
-    EData {pplan = #pplan rep, psgraph = #psgraph rep, goals = #goals rep, active = f (#active rep)};
+    EData {pplan = #pplan rep, goals = #goals rep, active = f (#active rep)};
 
   val set_pplan = update_pplan o K;
-  val set_psgraph = update_psgraph o K;
   val set_goals = update_goals o K;
   val set_active = update_active o K;
 
-  fun init_of prf graph gs active  =
-    EData {pplan = prf, psgraph = graph, goals = gs, active = active};
+  fun get_active_psgraph' (Active rep) = #psgraph rep;
+  fun get_active_vertices' (Active rep) = #vertices rep;
+  fun get_active_parent' (Active rep) = #parent rep;
+
+  val get_active_psgraph = get_active_psgraph' o get_active;
+  val get_active_vertices = get_active_vertices' o get_active;
+  val get_active_parent = get_active_parent' o get_active;
+
+  fun update_active_psgraph' f (Active rep) =
+    Active {psgraph = f (#psgraph rep), vertices = #vertices rep, parent = #parent rep};
+  fun update_active_vertices' f (Active rep) =
+    Active {psgraph = #psgraph rep, vertices = f (#vertices rep), parent = #parent rep};
+  fun update_active_parent' f (Active rep) =
+    Active {psgraph = #psgraph rep, vertices = #vertices rep, parent = f (#parent rep)};
+
+  val update_active_psgraph =  update_active o update_active_psgraph';
+  val update_active_vertices =  update_active o update_active_vertices';
+  val update_active_parent =  update_active o update_active_parent';
+
+  val set_active_psgraph = update_active_psgraph o K;
+  val set_active_vertices = update_active_vertices o K;
+  val set_option_active_parent = update_active_parent o K;
+  val set_active_parent = set_option_active_parent o SOME;
+
+  fun init_active_of graph vs =
+     Active {psgraph = graph, vertices = vs, parent = NONE}
+
+  fun init_of prf graph gs vs  =
+    EData {pplan = prf, goals = gs, active = init_active_of graph vs};
            
   fun ins_tab pnode = StrName.NTab.ins (Atomic.get_pnode_name pnode,pnode);
   val lookup_goal = StrName.NTab.lookup o get_goals;
@@ -85,9 +122,22 @@ struct
   fun add_goals pnods = update_goals (fold ins_tab pnods);
   fun del_goal pname = update_goals (StrName.NTab.delete pname);
 
-  val get_tactics = get_psgraph #> PSGraph.get_atomics;
+  val get_tactics = get_active_psgraph #> PSGraph.get_atomics;
   val lookup_tactic = get_tactics #> StrName.NTab.lookup
   val get_tactic = get_tactics #> StrName.NTab.get
+
+
+  fun pop_active edata = 
+     case get_active_parent edata of 
+        NONE => edata
+       | SOME p => set_active p edata
+
+  fun push_active graph vnms edata = 
+    set_active     
+      (Active {psgraph = graph, vertices = vnms, parent = SOME (get_active edata)})
+      edata;
+      
+
 
 (*
   fun pretty_goals edata nameset =

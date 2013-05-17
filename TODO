@@ -4,8 +4,8 @@ TO DO:
     -> started generalised into ATOMIC.ML signature (combined with prf?)
     -> have done eval_data and eval_appf
    TO DO:
-    - write partition/lift function as in ITP paper
-    - eval_atomic for an atomic tactic (update for list of goal rep)
+    - figure out how to distribute the code between working on graph 
+       and independent of graph   
     - combine output and nested into a single functor for updating the 
       graph eval_graph.ML
       - may require more matching into somewhere, and unifying prf/atomic/goaltype

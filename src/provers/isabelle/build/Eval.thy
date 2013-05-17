@@ -1,12 +1,13 @@
 (* simple test of proof representation *)
-theory Eval                                                                                                                                                               
+theory Eval                                                                                                                                                                               
 imports          
   PSGraph  
   (* Prf *)                                                                        
 uses      
-  "../../atomic.ML" 
-  "../../../eval/eval_data.ML"       
-  "../../../eval/eval_appf.ML"       
+  "../../atomic.ML"              
+  "../../../eval/eval_data.ML"        
+  "../../../eval/eval_atomic.ML"  
+  "../../../eval/eval_graph.ML"     
          
 
   "../../../goaltype/goaltyp_match.ML"   

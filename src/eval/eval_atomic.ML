@@ -29,7 +29,7 @@ sig
 
 end
 
-functor EvalAtomicFun(EData : EVAL_DATA) : EVAL_ATOMICP =
+functor EvalAtomicFun(EData : EVAL_DATA) : EVAL_ATOMIC =
 struct
   structure EData = EData;
   structure Atomic = EData.Atomic;
