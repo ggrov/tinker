@@ -1,144 +1,200 @@
-structure EvalAtomic =
-struct
+signature EVAL_ATOMIC =
+sig
+  structure EData : EVAL_DATA
 
-  exception rtechn_exp of RTechn.T * string
-  exception gnode_exp of string
-  exception graph_exp of string * Strategy_Theory.Graph.T
+  exception partition_exp of EData.Atomic.pnode
  
-  (* should be a functor - df is default *)
-  structure EData = EvalD_DF;
+  val partition : 
+     EData.Atomic.pnode list (* new proof nodes *)
+     -> GNode.T (* old gnode [parent] *)
+     -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T list (* output types *)
+     -> GNode.T list list list (* one list for each goal type - outer when non-orthogonal outputs *)
 
-  (* updates edata *)
-  (* ignores hyps and wire *)
+  val partition_to_gnodes : 
+   GNode.T list list  
+   -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.vdata  list
 
-  (* DELETE!! *)
-  fun upd_rule wset edata gnode (pnds,prf) = 
-    let
-     val edata' = edata
-               |> EData.set_pplan prf (* updates proof in context *)
-               |> EData.del_goal (GNode.get_goal gnode) (* deletes goal from ctxt (now in prf) *)
-               |> EData.add_goals pnds
-   in
-      (edata',map (EvalOutput.upd_by_wires (EData.get_fmatch edata) gnode wset) pnds)
-   end
+  val apply_appf : 
+        EData.T 
+      -> GNode.T (* the goal node  *)
+      -> RTechn.atomic (* application function *)
+      -> (EData.Atomic.pplan * EData.Atomic.pnode list) Seq.seq
 
-  (* DELETE!! *)  (* updates graph *)
-  fun mk_result (gnode,w,rtechn) (edata,outgs) =
-    (edata,EvalGraph.delete_inputgnode_rule (gnode,w), map (EvalGraph.output_gnode (w,rtechn)) outgs)
+  val apply_tactic :
+        EData.T 
+      -> GNode.T (* the goal node *)
+      -> string (* the name of the tactic *)
+      -> RTechn.tac_assms (* tactic assumption *)
+      -> (EData.Atomic.pplan * EData.Atomic.pnode list) Seq.seq
 
-  (* executes but does not update graph *)
-  fun eval_rtechn (gnode,w) rtechn edata =
-   case RTechn.get_atomic rtechn
-   of (SOME atom) => EvalAppf.apply_appf edata gnode atom
-                    |> Seq.map (fn (gs,prf) => ((gnode,w,rtechn),(gs,prf))) 
-   | NONE => raise rtechn_exp (rtechn,"not atomic technique");
+end
 
+functor EvalAtomicFun(EData : EVAL_DATA) : EVAL_ATOMICP =
+struct
+  structure EData = EData;
+  structure Atomic = EData.Atomic;
+  structure GData = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData
 
-  (* lookup gnode and rtechn and eval and then apply eval_rtechn *)
-  fun eval_v_rtechn (v_gnode,v_rtechn) (edata,graph) =
-   let 
-     val gnode = GraphEnv.v_to_gnode graph v_gnode
-     val wire = case E.NSet.tryget_singleton (Strategy_Theory.Graph.out_enames graph v_gnode)
-                of NONE => raise gnode_exp ("gnode does not have single output")
-                | SOME e => GraphEnv.e_to_wire graph e
-     val rtechn = GraphEnv.v_to_rtechn graph v_rtechn 
-   in
-    eval_rtechn (gnode,wire) rtechn edata
-   end;
+  exception no_such_fact of string
+  exception eval_appf_exp of string;
+  exception partition_exp of Atomic.pnode
 
+  fun lookup_fact node name = 
+   case Atomic.lookup_fact node name of
+      NONE => raise no_such_fact name
+    | SOME f => f
 
-  (* FIXME: this is just the rewrite rule!!! *)
+  fun try_lookup_fact node name = 
+   case Atomic.lookup_fact node name of
+      NONE => []
+    | SOME f => [f]
 
-  (* evaluated graph (of only one gnode and one rtech) *)
-  fun eval_apply_tactic edata lhs =
-   let
-     val v_gnode = (case V.NSet.tryget_singleton (GraphEnv.get_goalnodes_of_graph lhs)
-                    of NONE => raise graph_exp ("graph does not contain exactly 1 goalnode",lhs)
-                    | SOME v => v)
-      val v_rtechn = (case V.NSet.tryget_singleton (GraphEnv.get_rtechns_of_graph lhs)
-                    of NONE => raise graph_exp ("graph does not contain exactly 1 rtechn",lhs)
-                    | (SOME v) => v)  
-   in
-      (eval_v_rtechn (v_gnode,v_rtechn) (edata,lhs))
-   end
+  fun fact_list node fact_nms =
+      fact_nms 
+      |> StrName.NSet.list_of 
+      |> map (lookup_fact node)
 
+  val fact_seq = Seq.of_list oo fact_list;
 
-  (* create rule to delete input rule:
-       input (Gnode * wire) *)
-  val mk_delete_input_rule = EvalGraph.delete_inputgnode_rule;
-
-  (* function to make output nodes *)
-  fun mk_move_output_graphfn edata gnode pnds  = 
-      EvalGraph.add_outputs gnode pnds edata;
-
-  fun update_edata_app edata prf gnode pnds =
-      edata |> EData.set_pplan prf (* updates proof in context *)
-            |> EData.del_goal (GNode.get_goal gnode) (* deletes goal from ctxt (now in prf) *)
-            |> EData.add_goals pnds;
-
-  fun mk_rule_one_branch edata lhs ((gnode,wire,_),(pnds,prf)) =
-    let
-       val edata' = update_edata_app edata prf gnode pnds;
-       val del_rule = mk_delete_input_rule (gnode,wire);     
-       val add_outf = mk_move_output_graphfn edata' gnode pnds;
-       val lhs' = EvalGraph.rewrite del_rule lhs
+  fun fact_seq_of_gnode edata gnode fact_nms =
+    let 
+      val pnode = EData.get_goal edata (GNode.get_goal gnode)
     in
-      lhs |> EvalGraph.rewrite del_rule
-          |> maps add_outf
-          |> map (fn rhs => (edata',(lhs,rhs)))
-          |> Seq.of_list
+     Seq.of_list (fact_list pnode fact_nms)
     end;
 
-  fun eval_mk_rule edata lhs =
-    eval_apply_tactic edata lhs
-    |> Seq.maps (mk_rule_one_branch edata lhs)
+  fun apply_tactic edata gnode tac_name RTechn.TNoAsm = 
+       let 
+         val pnode = EData.get_goal edata (GNode.get_goal gnode)
+         val pplan = EData.get_pplan edata
+         val tac = EData.get_tactic edata tac_name
+       in 
+         Atomic.apply_tactic [] tac (pplan,pnode)
+       end
+   |  apply_tactic edata gnode tac_name RTechn.TAllAsm = 
+       let 
+         val pnode = EData.get_goal edata (GNode.get_goal gnode)
+         val pplan = EData.get_pplan edata
+         val tac = EData.get_tactic edata tac_name
+         val facts = Atomic.get_all_facts pnode
+       in 
+         Atomic.apply_tactic facts tac (pplan,pnode)
+       end
+   |  apply_tactic edata gnode tac_name (RTechn.TClass class_nms) =
+       let 
+         val pnode = EData.get_goal edata (GNode.get_goal gnode)
+         val pplan = EData.get_pplan edata
+         val tac = EData.get_tactic edata tac_name
+         fun lookup_fact fname = case GNode.lookup_fact_names fname gnode
+                                  of NONE => StrName.NSet.empty
+                                   | (SOME ns) => ns
+         (* combines names of facts from all classes *)
+         val fact_nms = C.NSet.fold 
+                         (fn wn => StrName.NSet.union_merge (lookup_fact wn))
+                         class_nms
+                         StrName.NSet.empty
+         (* get the actual facts *)
+         val facts = fact_list pnode fact_nms
+       in
+         Atomic.apply_tactic facts tac (pplan,pnode)
+       end;
 
-  (* DELETE!! *)
-  fun eval_mk_rule_old edata lhs =
-   let
-      fun apply_subst rws = fold (fn r => maps (EvalGraph.rewrite r)) rws [lhs]
-      fun update (edata',ri,ros) =  (edata',map (fn r => (lhs,r)) (apply_subst (ri::ros)))
-      fun update_res_rule ((gnode,w,rtechn),(gs,prf)) = 
-              upd_rule (RTechn.get_outputs rtechn) edata gnode (gs,prf)
-              |> mk_result (gnode,w,rtechn)
-      (* fixme => ignores failure type currently, will be hard to debug... *)
-      fun update_all x = x
-                       |> update_res_rule
-                       |> update
-                       |>  Seq.single 
-                       handle _ => Seq.empty 
-      val appf_res = eval_apply_tactic edata lhs
-   in
-      Seq.maps update_all appf_res
-   end
+  fun apply_appf edata gnode (RTechn.Rule fact_nms) =
+        let 
+          val pnode = EData.get_goal edata (GNode.get_goal gnode)
+          val pplan = EData.get_pplan edata
+          val facts = fact_seq pnode fact_nms
+        in
+          Seq.maps (fn fact => Atomic.apply_rule fact (pplan,pnode)) facts
+        end
+    |  apply_appf edata gnode (RTechn.ERule fact_nms) =
+        let 
+          val pnode = EData.get_goal edata (GNode.get_goal gnode)
+          val pplan = EData.get_pplan edata
+          val facts = fact_seq pnode fact_nms
+        in
+          Seq.maps (fn fact => Atomic.apply_erule fact (pplan,pnode)) facts
+        end
+   |  apply_appf edata gnode (RTechn.FRule (class_nm,fact_nms)) =
+        let 
+          val pnode = EData.get_goal edata (GNode.get_goal gnode)
+          val pplan = EData.get_pplan edata
+          val hyps = GNode.get_fact_names class_nm gnode 
+                     |> fact_seq pnode 
+          val facts = fact_seq pnode fact_nms
+          (* one application of a frule of a fact to a hyp *)
+          fun apply_frule' hyp fact = Atomic.apply_frule hyp fact (pplan,pnode)
+          (* application of all facts to a hyp *)
+          fun apply_frule hyp = Seq.maps (apply_frule' hyp) facts
+        in
+           Seq.maps apply_frule hyps
+        end
+   |  apply_appf edata gnode (RTechn.Subst fact_nms) = 
+        let 
+          val pnode = EData.get_goal edata (GNode.get_goal gnode)
+          val pplan = EData.get_pplan edata
+          val facts = fact_seq pnode fact_nms
+        in
+          Seq.maps (fn fact => Atomic.apply_subst fact (pplan,pnode)) facts
+        end
+   |  apply_appf edata gnode (RTechn.SubstAsm (class_nm,fact_nms)) =  (* why not a wire? *)
+         let 
+          val pnode = EData.get_goal edata (GNode.get_goal gnode)
+          val pplan = EData.get_pplan edata
+          val hyps = GNode.get_fact_names class_nm gnode 
+                     |> fact_seq pnode 
+          val eqs = fact_seq pnode fact_nms
+          (* one application of subst of a eq to a fact *)
+          fun apply_subst_asm' hyp eq = Atomic.apply_subst_asm hyp eq (pplan,pnode)
+          (* application of all equalities to a hyp *)
+          fun apply_subst_asm hyp = Seq.maps (apply_subst_asm' hyp) eqs
+        in
+           Seq.maps apply_subst_asm hyps
+        end
+   |  apply_appf edata gnode (RTechn.Tactic (tac_data,name)) =
+        apply_tactic edata gnode name tac_data
+   |  apply_appf _ _ _ = raise eval_appf_exp "unknown application type";
 
-  fun eval_var_mk_rule edata graph_pat =
-   Seq.maps (eval_mk_rule edata) (EvalGraph.eval_match_and_instantiate_rhs (EData.get_graph edata) graph_pat);
+  (*
+    partitioning of outputs
+  *)
 
-  (* almost the same as above - just used for debugging *)
-  fun eval_debug_apply_tactic edata graph_pat =
-   Seq.maps (eval_apply_tactic edata) (EvalGraph.eval_match_and_instantiate_rhs (EData.get_graph edata) graph_pat);
+  fun lift goal_typ gnode pnode  =  NONE
 
-   fun eval_rule (edata,rule) = 
-     EvalGraph.rewrite_lazy (Strategy_Theory.Rule.mk rule) (EData.get_graph edata)
-     |> Seq.map (fn g => EData.set_graph g edata)
+  (* need some filtering of empty here *)
+  fun partition_one' [] _ _ _ [] = [] (* fails to lift for this branch *)
+  fun partition_one' (gt::gts) gnode pnode bres (r::ares) = 
+    case lift gt gnode pnode of
+      (* fails to lift *)
+      NONE => partition_one' gts gnode pnode (bres@[r]) ares
+      (* succeeds, and check for further successes *)
+    | (SOME g') =>
+        (* adds the succeded to the current result *)
+        (bres @ [g'::r] @ ares) ::
+        (* goes through and see if more succeeds (thus branching) *)
+         partition_one' gts gnode pnode (bres@[r]) ares;
 
-   (* fun eval_rules (edata,rules) = Seq.maps (eval_rule edata) (Seq.of_list rules); *)
+  (* raises exception if one proof nodes fails *)
+  fun partition_one goal_typs gnode pnode res =
+    case partition_one' goal_typs gnode pnode res [] of
+       [] => raise partition_exp pnode
+     | xs => xs
+  
+  (* return value : outer list - each branch: singleton 
+                    middle list - one branch same length as goaltype input list
+                    inner list - matching goal nodes for given goaltype
+    invariant result = partition goal_typs pplan pnds 
+       all res in result: length res  = length goal_typs (and they pairwise match)
+                          
+       outer list is all the possible options -> should be a singleton list if orthogonal
+       length (result) > 0
+  *)
+  fun partition []     _       _     = []
+   |  partition pnds gnode goal_typs =
+        [map (K []) goal_typs] (* empty list to start *)
+        |> fold (fn pnd => maps (partition_one goal_typs gnode pnd)) pnds
 
-   fun eval_graph edata lhs =
-     eval_var_mk_rule edata lhs
-     |> Seq.maps eval_rule;    
+  val partition_to_gnodes = map (GData.GN o (map GData.GN_Node));
 
-  (* makes match graphs and evaluates *)
-  fun eval_atomic edata v = 
-    v |> EvalGraph.mk_match_graph (EData.get_graph edata)
-      |> Seq.of_list
-      |> Seq.maps (eval_graph edata);
 
-  fun debug_eval_tactic edata v =
-    v |> EvalGraph.mk_match_graph (EData.get_graph edata)
-      |> Seq.of_list
-      |> Seq.maps (eval_debug_apply_tactic edata)
-      |> Seq.list_of;
-    
 end (* structure *)

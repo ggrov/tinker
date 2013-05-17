@@ -23,55 +23,62 @@ functor PSVertexDataFun(GraphSubstData : GRAPH_SUBST_DATA) : PS_VERTEX
   val compose_subst = GSD.compose_subst;
 
 
-  fun glist_eq (g1::gs1,g2::gs2) = GNode.eq(g1,g2) andalso glist_eq(gs1,gs2)
-   | glist_eq ([],[]) = true
-   | glist_eq (_,_) = false;
+  fun match_gnode (GSD.GN_Node g1,GSD.GN_Node g2) subst =
+         if GNode.eq(g1,g2) then SOME subst else NONE
+   |  match_gnode (GSD.GN_Node _,_) _ = NONE
+   |  match_gnode (GSD.GN_Var v,GSD.GN_Node g) subst = 
+        (case GSD.lookup_gsubst subst v of
+          NONE => SOME (GSD.add_gsubst (v,g) subst)
+        | (SOME g') => if GNode.eq(g,g') then SOME subst else NONE)
+   |  match_gnode (GSD.GN_Var v1,GSD.GN_Var v2) subst = NONE
+
+  fun match_gnodel ([],[]) subst = SOME subst
+   |  match_gnodel ([],_) _ = NONE
+   |  match_gnodel (_,[]) _ = NONE
+   |  match_gnodel (g1::gs1,g2::gs2) subst =
+       case match_gnode (g1,g2) subst of
+        NONE => NONE
+       | SOME subst' => match_gnodel (gs1,gs2) subst';
 
   (* inv: esubst' = esubst *)
-  fun match_data (GSD.TVar v1,GSD.TVar v2) (vsubst,esubst) =
-      (case StrName.NTab.lookup vsubst v1 of 
-            NONE => SOME (StrName.NTab.ins (v1,GSD.TVar v2) vsubst,esubst) (* bind vi if not bound - infinite loop?? *)
-          | SOME (GSD.TVar v3) => if v2=v3 then SOME (vsubst,esubst) else NONE (* already bound to v2 *)
-          | SOME (GSD.RT r1) => match_data (GSD.RT r1,GSD.TVar v2) (vsubst,esubst) (* bound to RT, check if v2 bound to it *)
+  fun match_data (GSD.TVar v1,GSD.TVar v2) subst = NONE
+    | match_data (GSD.TVar v,GSD.RT rt) subst = 
+        (case GSD.lookup_vsubst subst v of
+            NONE => SOME (GSD.add_vsubst (v,GSD.RT rt) subst) (* bind vi if not bound *)
+          | SOME (GSD.RT rt') => if RTechn.eq (rt,rt') then SOME subst else NONE 
           | SOME _ => NONE)
-    | match_data (GSD.TVar v,GSD.RT rt) (vsubst,esubst) = 
-        (case StrName.NTab.lookup vsubst v of
-            NONE => SOME (StrName.NTab.ins (v,GSD.RT rt) vsubst,esubst) (* bind vi if not bound *)
-          | SOME (GSD.RT rt') => if RTechn.eq (rt,rt') then SOME (vsubst,esubst) else NONE 
-          | SOME (GSD.TVar v') => match_data (GSD.TVar v',GSD.RT rt) (vsubst,esubst)
+   | match_data (GSD.GVar v1,GSD.GVar v2) subst = NONE
+   | match_data (GSD.GVar v,GSD.GN gn) subst = 
+        (case GSD.lookup_vsubst subst v of
+            NONE => SOME (GSD.add_vsubst (v,GSD.GN gn) subst) (* bind vi if not bound *)
+          | SOME (GSD.GN gn') => match_gnodel (gn,gn') subst
           | SOME _ => NONE)
-   | match_data (GSD.GVar v1,GSD.GVar v2) (vsubst,esubst) = 
-      (case StrName.NTab.lookup vsubst v1 of
-            NONE => SOME (StrName.NTab.ins (v1,GSD.GVar v2) vsubst,esubst) (* bind vi if not bound - infinite loop?? *)
-          | SOME (GSD.GVar v3) => if v2=v3 then SOME (vsubst,esubst) else NONE (* already bound to v2 *)
-          | SOME (GSD.GN g1) => match_data (GSD.GN g1,GSD.GVar v2) (vsubst,esubst) (* bound to RT, check if v2 bound to it *)
-          | SOME _ => NONE)
-    | match_data (GSD.GVar v,GSD.GN gn) (vsubst,esubst) = 
-        (case StrName.NTab.lookup vsubst v of
-            NONE => SOME (StrName.NTab.ins (v,GSD.GN gn) vsubst,esubst) (* bind vi if not bound *)
-          | SOME (GSD.GN gn') => if glist_eq(gn,gn') then SOME (vsubst,esubst) else NONE 
-          | SOME (GSD.GVar v') => match_data (GSD.GVar v',GSD.GN gn) (vsubst,esubst)
-          | SOME _ => NONE)
-    | match_data (GSD.GN g1, GSD.GN g2) subst = 
-         if glist_eq(g1,g2) then SOME subst else NONE
+    | match_data (GSD.GN gn1, GSD.GN gn2) subst = match_gnodel (gn1,gn2) subst
     | match_data (GSD.RT r1, GSD.RT r2) subst = 
          if RTechn.eq (r1,r2) then SOME subst else NONE
-    | match_data (GSD.RT rt,GSD.TVar v) subst = NONE
-    | match_data (GSD.GN gn,GSD.GVar v) subst = NONE
-    | match_data (_,_) _ = NONE
+    | match_data (_,_) subst = NONE
+
 
   (* FIXME: unification: if x matches y, and y matches x (with the same subst) *) 
   fun unify_data xy subst = if data_eq xy then SOME subst else NONE;
 
-  (* there is not data in a vertex, subst is just the id on the data *)
-  fun subst_in_data (subst,_) (GSD.RT rt) = (GSD.RT rt)
-   |  subst_in_data (subst,_) (GSD.GN gn) = (GSD.GN gn)
-   |  subst_in_data (subst,_) (GSD.TVar v) = 
+  fun subst_in_gdata subst [] = []
+   |  subst_in_gdata subst ((GSD.GN_Node gn)::gs) = 
+       (GSD.GN_Node gn)::subst_in_gdata subst gs
+   |  subst_in_gdata subst ((GSD.GN_Var v)::gs) =
         (case StrName.NTab.lookup subst v of
+          NONE => (GSD.GN_Var v)
+        | (SOME d) => (GSD.GN_Node d))
+       :: subst_in_gdata subst gs;
+
+  fun subst_in_data _ (GSD.RT rt) = (GSD.RT rt)
+   |  subst_in_data (GSD.Subst {gnode, ...}) (GSD.GN gn) = GSD.GN (subst_in_gdata gnode gn)
+   |  subst_in_data (GSD.Subst {vertex, ...}) (GSD.TVar v) = 
+        (case StrName.NTab.lookup vertex v of
           NONE => (GSD.TVar v) (* or should it fail? *)
         | (SOME d) => d)
-   |  subst_in_data (subst,_) (GSD.GVar v) =
-        (case StrName.NTab.lookup subst v of
+   |  subst_in_data (GSD.Subst {vertex,...}) (GSD.GVar v) =
+        (case StrName.NTab.lookup vertex v of
           NONE => (GSD.TVar v)
         | (SOME d) => d);
   

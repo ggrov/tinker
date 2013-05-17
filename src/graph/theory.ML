@@ -66,13 +66,19 @@ struct
          open JsonInputUtils
          type data = vdata;
          local open Json in
+
+           fun inp_gnode (Object jobj) = 
+              (case get jobj "gtype" of
+                (String "GN_Node") => 
+                      GraphSubstData.GN_Node (GNode.mk_goal_no_facts (case get jobj "gdata" of (String n) => n))
+              | (String "GN_Var") => GraphSubstData.GN_Var (case get jobj "gdata" of (String n) => n));
+
            fun input (Object jobj) = 
              (case get jobj "type" of
                 (String "RT") => GraphSubstData.RT (RTechnJSON.rtechn_from_json (get jobj "data"))
               | (String "GN") => let 
-                                   fun prj (String n) = GNode.mk_goal_no_facts n
                                    val (Array arr) = get jobj "data"
-                                 in GraphSubstData.GN (map prj arr) end
+                                 in GraphSubstData.GN (map inp_gnode arr) end
               | (String "TVar") => GraphSubstData.TVar (case get jobj "data" of (String n) => n)
               | (String "GVar") => GraphSubstData.GVar (case get jobj "data" of (String n) => n));
         end; (* local open *)
@@ -83,9 +89,15 @@ struct
      struct
        open JsonInputUtils
        type data = vdata;
+
+       fun out_gnode (GraphSubstData.GN_Node gn) =
+             Json.mk_object [("gtype", Json.String "GN_Node"), ("gdata", Json.String (GNode.get_goal gn))]
+        |  out_gnode (GraphSubstData.GN_Var v) =
+             Json.mk_object [("gtype", Json.String "GN_Var"), ("gdata", Json.String v)]
+ 
        fun output (GraphSubstData.RT rt) =
               Json.mk_object [("type", Json.String "RT"), ("data", RTechnJSON.rtechn_to_json rt)]
-         | output (GraphSubstData.GN gnds) = Json.Array (map (Json.String o GNode.get_goal) gnds)
+         | output (GraphSubstData.GN gnds) = Json.Array (map out_gnode gnds)
          | output (GraphSubstData.TVar tv) =
              Json.mk_object [("type", Json.String "TVar"), ("data", Json.String tv)]
          | output (GraphSubstData.GVar gv) =

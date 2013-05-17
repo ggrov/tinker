@@ -24,19 +24,19 @@ functor PSEdgeDataFun(GraphSubstData : GRAPH_SUBST_DATA) : PS_EDGE
   val empty_subst = GSD.empty_subst;
   val compose_subst = GSD.compose_subst
 
-  fun match_data (GSD.EVar v1,e) (vsubst,esubst) =
-      (case StrName.NTab.lookup esubst v1 of
-            NONE => SOME (vsubst,StrName.NTab.ins (v1,e) esubst)
-          | SOME e2 => if GSD.edata_eq(e,e2) then SOME (vsubst,esubst) else NONE)
-   |  match_data (GSD.GT gt1,GSD.GT gt2) (vsubst,esubst) = if 
-         GoalTyp.eq(gt1,gt2) then SOME (vsubst,esubst) else NONE
-   |  match_data (GSD.GT gt,GSD.EVar v) (vsubst,esubst) = NONE
+  fun match_data (GSD.EVar v1,e) subst =
+      (case GSD.lookup_esubst subst v1 of
+            NONE => SOME (GSD.add_esubst (v1,e) subst)
+          | SOME e2 => if GSD.edata_eq(e,e2) then SOME subst else NONE)
+   |  match_data (GSD.GT gt1,GSD.GT gt2) subst = if 
+         GoalTyp.eq(gt1,gt2) then SOME subst else NONE
+   |  match_data (GSD.GT _,GSD.EVar _) _ = NONE
 
   fun unify_data xy subst = if GSD.edata_eq xy then SOME subst else NONE;
 
-  fun subst_in_data (_,esubst) (GSD.GT gt) = (GSD.GT gt)
-   |  subst_in_data (_,esubst) (GSD.EVar v) = 
-        (case StrName.NTab.lookup esubst v of
+  fun subst_in_data subst (GSD.GT gt) = (GSD.GT gt)
+   |  subst_in_data subst (GSD.EVar v) = 
+        (case GSD.lookup_esubst subst v of
           NONE => (GSD.EVar v)
         | (SOME d) => d);
   

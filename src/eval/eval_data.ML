@@ -42,6 +42,12 @@ struct
   structure Atomic = Atomic;
   structure PSGraph = PSGraph;
 
+  datatype active = AGraph of {
+     psgraph : PSGraph.T,
+     vertices : V.name list,
+     parent : active option
+  }
+
   (* do we need a stack of graphs for nested evaluation? *)
   datatype T = EData of { 
       pplan : Atomic.pplan,
