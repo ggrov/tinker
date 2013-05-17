@@ -1,6 +1,6 @@
 theory JsonIO_test
 imports "../build/RTechn" "../build/GoalTyp"   
-uses "../../../rtechn/rtechn_json.ML"   "../isaPrf.ML"
+uses "../../../rtechn/rtechn_json.ML"  "../../../goaltype/goaltyp_json.ML"  "../isaPrf.ML"
 begin
 
 (* reasoning technique *)
@@ -43,36 +43,43 @@ structure GTJson = GTJsonFun (GoalTyp);
 ML{*
 val d1 = GTData.Int 0;
 val d2 = GTData.Position [1,2,3];
-val d3 = GTData.Term @{term " a + b"};
+val d3 = GTData.Term " a + b";
 
-Syntax.string_of_term @{context} @{term" a + b"} |> Syntax.parse_term @{context};
 
-GTJson.data_to_json @{context} d1 |> Json.pretty |> Pretty.writeln;
-GTJson.data_to_json @{context} d2 |> Json.pretty |> Pretty.writeln;
-GTJson.data_to_json @{context} d3 |> Json.pretty |> Pretty.writeln;
+GTJson.data_to_json d1 |> Json.pretty |> Pretty.writeln;
+GTJson.data_to_json  d2 |> Json.pretty |> Pretty.writeln;
+GTJson.data_to_json  d3 |> Json.pretty |> Pretty.writeln;
 
-GTJson.data_to_json @{context} d1 |> GTJson.data_from_json @{context} ;
-GTJson.data_to_json @{context} d2 |> GTJson.data_from_json @{context} ;
-GTJson.data_to_json @{context} d3 |> GTJson.data_from_json @{context} ;
+GTJson.data_to_json  d1 |> GTJson.data_from_json  ;
+GTJson.data_to_json  d2 |> GTJson.data_from_json  ;
+GTJson.data_to_json  d3 |> GTJson.data_from_json  ;
 *}
 
 ML{*
-  fun data_ll_to_json ctxt dll =
-  let 
-    fun list_to_json dl = map (fn x => GTJson.data_to_json x) dl |> Json.Array
-  in
-    map list_to_json dll |> Json.Array
-  end
-    
-  fun data_ll_from_json  (Json.Array j) = map (fn (Json.Array x) => map (GTJson.data_from_json) x) j
-  | data_ll_from_json _ = raise EXP_PARSING_JSON "Not a Json array type."
-
   val d1 = GTData.Int 0;
   val d2 = GTData.Position [1,2,3];
   val d3 = GTData.Int 2;
   
-  data_ll_to_json @{context} [[d1, d2],[d3]] |> Json.pretty |> Pretty.writeln;
-  data_ll_to_json @{context} [[d1, d2],[d3]] |> data_ll_from_json @{context} 
+  val class = GoalTyp.Link.Class.top |> GoalTyp.Link.Class.rename (C.mk "class") 
+                                     |> GoalTyp.Link.Class.set_item (F.mk "cname_test")[[d1, d2],[d3]]
+                                     |> GoalTyp.Link.Class.set_item (F.mk "cname_test2")[[d1],[d3]];
+  GTJson.class_to_json class |> Json.pretty |>Pretty.writeln; 
+  GTJson.class_to_json class |> GTJson.class_from_json;
+
+  val link = GoalTyp.Link.top |> GoalTyp.Link.rename (C.mk "link") 
+                                     |> GoalTyp.Link.set_item ((L.mk "ln"),(C.mk "cn1", C.mk "cn2"))[[d1, d2],[d3]]
+                                     |> GoalTyp.Link.set_item ((L.mk "ln2"),(C.mk "cnx1", C.mk "cnx2"))[[d1],[d3]];
+  GTJson.link_to_json link |> Json.pretty |>Pretty.writeln; 
+  GTJson.link_to_json link |> GTJson.link_from_json; 
+
+  val gtp = GoalTyp.top |> GoalTyp.set_name (G.mk "goal type")
+                        |> GoalTyp.set_link link
+                        |> GoalTyp.set_facts [class, class]
+                        |> GoalTyp.set_gclass class;
+  GTJson.to_json gtp;
+  GTJson.to_json gtp |> Json.pretty |>Pretty.writeln; 
+  GTJson.to_json gtp |> GTJson.from_json; 
+
 *}
 
 end

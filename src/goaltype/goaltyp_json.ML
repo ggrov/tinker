@@ -93,17 +93,58 @@ struct
   fun data_ll_from_json  (Json.Array j) = map (fn (Json.Array x) => map (data_from_json) x) j
   | data_ll_from_json _ = raise EXP_PARSING_JSON "Not a Json array type."
 
-  fun class_to_json class = Json.of_string "class";
+  fun class_to_json class = 
+    let 
+      val item_list = map (fn x => GoalTyp.Link.Class.get_item x class |> (fn (SOME y) => (x, y))) (GoalTyp.Link.Class.get_keys class)
+      val data_obj = Json.Array ((map (fn(x, y) => Json.Array [Json.String(F.string_of_name x),  data_ll_to_json y] ) item_list))
+   in
+      Json.mk_object[("cname", GoalTyp.Link.Class.get_name class |> C.string_of_name |> Json.String), ("cmap", data_obj)]
+   end                                   
   
-  fun class_from_json json = GoalTyp.Link.Class.top;
+  fun class_from_json (Json.Object jobj) = 
+  let
+    val pair = Json.get jobj "cmap" |> (fn (Json.Array ll) => map (fn (Json.Array l) => 
+                                           (hd l |> (fn (Json.String str) => F.mk str), data_ll_from_json (hd (tl l)))) ll)
+  in
+    GoalTyp.Link.Class.top 
+    |> GoalTyp.Link.Class.rename (Json.get jobj "cname" |> (fn (Json.String str) => C.mk str))
+    |> (fn class => (fold (fn (x,y) => (fn t => GoalTyp.Link.Class.set_item x y t)) pair class))
+  end
+  | class_from_json _ = raise EXP_PARSING_JSON "Not a Json object type.";
 
-  fun link_to_json link = Json.of_string "link";
+  fun link_to_json link = 
+    let 
+      val item_list = map (fn x => GoalTyp.Link.get_item x link |> (fn (SOME y) => (x, y))) (GoalTyp.Link.get_keys link)
+      val data_obj = Json.Array ((map (fn((k1,(k2,k3)), y) => Json.Array [Json.Array ([Json.String(L.string_of_name k1), Json.String(C.string_of_name k2), Json.String(C.string_of_name k3)]), data_ll_to_json y] ) item_list))
+   in
+      Json.mk_object[("lname", GoalTyp.Link.get_name link |> L.string_of_name |> Json.String), ("lmap", data_obj)]
+   end                                   
   
-  fun link_from_json json = GoalTyp.Link.top;
+  fun link_from_json (Json.Object jobj) = 
+  let
+    fun strip_JsonStr (Json.String str) = str;
+    val pair = Json.get jobj "lmap" |> (fn (Json.Array ll) => map (fn (Json.Array l) => 
+                                           (hd l |> (fn (Json.Array kl) =>(strip_JsonStr (hd kl) |> L.mk, (strip_JsonStr (hd (tl kl)) |> C.mk,strip_JsonStr (hd (tl (tl kl)))|> C.mk))), data_ll_from_json (hd (tl l)))) ll)
+  in
+    GoalTyp.Link.top 
+    |> GoalTyp.Link.rename (Json.get jobj "lname" |> (fn (Json.String str) => L.mk str))
+    |> (fn link => (fold (fn (x,y) => (fn t => GoalTyp.Link.set_item x y t)) pair link))
+  end
+  | link_from_json _ = raise EXP_PARSING_JSON "Not a Json object type.";
 
-  fun to_json gt = Json.Null;
-  
-  fun from_json json = GoalTyp.top;
+  fun to_json gt = Json.mk_object [
+                                   ("gtyp_name", GoalTyp.get_name gt |> G.string_of_name |> Json.String), (*name*)
+                                   ("gtyp_link", GoalTyp.get_link gt |> link_to_json), (*link*)
+                                   ("facts", GoalTyp.get_facts gt |> map class_to_json |> Json.Array), (*class list*)
+                                   ("goal_class", GoalTyp.get_gclass gt |> class_to_json ) (*class for goal*)
+                                  ];
+
+  fun from_json (Json.Object jobj) = GoalTyp.top 
+                                     |> GoalTyp.set_name (Json.get jobj "gtyp_name" |> (fn (Json.String str) => G.mk str))
+                                     |> GoalTyp.set_link (Json.get jobj "gtyp_link" |> link_from_json)
+                                     |> GoalTyp.set_facts (Json.get jobj "facts" |> (fn (Json.Array l) => (map class_from_json l)))
+                                     |> GoalTyp.set_gclass (Json.get jobj "goal_class" |> class_from_json)
+  | from_json _ = raise EXP_PARSING_JSON "Not a Json object type.";
 
   end (* local *)
 
