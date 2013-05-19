@@ -62,7 +62,8 @@ struct
                                           (case (linkTbl.lookup a k) of SOME xa => match_item ctxt (xa,xb)
                                              | _ => false))
                                        b then (linkTbl.forall (fn (k, xa) => 
-                                                             (case (linkTbl.lookup b k) of SOME xb => match_item ctxt (xa,xb)
+                                                             (case (linkTbl.lookup b k) 
+                                                              of SOME xb => match_item ctxt (xa,xb)
                                                               | _ => false))
                                                           a)
                                               else false

@@ -20,7 +20,9 @@ struct
     end
   fun top_of_trm trm = fst (Term.strip_comb trm)
   fun subtrm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(Term.strip_comb t), x))) (tl  pos) trm
-  fun trm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(Term.strip_comb t), x))) (tl pos) trm |> Term.strip_comb |> fst;
+  fun trm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(Term.strip_comb t), x))) (tl pos) trm 
+                           |> Term.strip_comb 
+                           |> fst;
 
   val trm_of_thm = Thm.prop_of;
 

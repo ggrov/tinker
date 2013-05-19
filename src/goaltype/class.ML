@@ -70,7 +70,8 @@ struct
                                           (case (F.NTab.lookup a name) of SOME xa => match_item ctxt (xa,xb)
                                              | _ => false))
                                        b then (F.NTab.forall (fn (name, xa) => 
-                                                             (case (F.NTab.lookup b name) of SOME xb => match_item ctxt (xa,xb)
+                                                             (case (F.NTab.lookup b name) 
+                                                              of SOME xb => match_item ctxt (xa,xb)
                                                               | _ => false))
                                                           a)
                                               else false
