@@ -6,11 +6,10 @@ imports
 uses      
   "../../atomic.ML"              
   "../../../eval/eval_data.ML"        
-  "../../../eval/eval_atomic.ML"  
+  "../../../eval/eval_atomic.ML"      
   "../../../eval/eval_graph.ML"     
          
-
-  "../../../goaltype/goaltyp_match.ML"   
+  "../../../eval/eval.ML"
 
 (*
   "../../../proof/pplan_env.ML"  

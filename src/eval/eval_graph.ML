@@ -11,7 +11,7 @@ struct
   structure Atomic = EData.Atomic;
   structure Theory = EData.PSGraph.PSTheory.PS_Theory;
   structure Graph = Theory.Graph;
-  structure GData = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData;
+  structure GData = EData.PSGraph.PSTheory.PS_GraphPamaram.GraphSubstData;
 
   (* move into separate/different file? *) 
   structure Util =
@@ -32,10 +32,14 @@ struct
     fun edge_src g e = Graph.get_edge g e |> (fst o snd);
     fun edge_data g e = Graph.get_edge g e |> fst |> snd;
 
-   fun vertex_data g v = 
-     Graph.get_vertex_data g v 
-     |> Graph.OVData.idata_of 
-     |> the;
+    fun vertex_data g v = 
+      Graph.get_vertex_data g v 
+      |> Graph.OVData.idata_of 
+      |> the;
+
+   fun out_edges graph v = 
+      Graph.out_enames graph v 
+      |> E.NSet.list_of;
 
     fun insert_node_on_edge node edge graph0 =
       let val (l,graph') = Graph.add_vertex (Graph.OVData.NVert node) graph0
@@ -99,25 +103,19 @@ struct
      map mk_lhs' (E.NSet.list_of ins)      (* one match per input *)
    end;
 
-  (* add output nodes - fixme: this is based on partition now moved
-     to eval atomic! *) 
-(*
-  fun add_outs gnode pnds goal_typs graph v =
-   let
-     val ins = Graph.in_enames graph v 
-             |> E.NSet.list_of
-     val parts = ins 
-               |> map (Util.gtyp_of graph)
-               |> partition pnds gnode 
-               |> map partition_to_gnode;
-     fun mk_out' g   []      []    = g
-      |  mk_out' g (i::is) (p::ps) =
-           mk_out' (Util.insert_node_on_edge p i g) is ps;
-  in
-    map (mk_out' graph ins) parts
-  end;     
- *)  
+  (* Should be one rtechn and one graph *)
+  fun match_lhs graph lhs =
+     Theory.RulesetRewriter.rule_matches
+           (Strategy_Theory.Rule.mk(lhs,lhs)) (* make a dummy rule *)
+           graph
+     |> snd
+     |> Seq.map (fn m => (Theory.Match.get_match_subst m, Graph.apply_data_subst (Theory.Match.get_match_subst m)));
+        
+  fun matched_lhs graph v = match_lhs graph (mk_lhs graph v)
+
+ (* vertex list -> partition -> graph -> graph *)
+ fun add_outs graph [] [] = graph
+  |  add_outs graph (i::is) (p::ps) = 
+       add_outs (Util.insert_node_on_edge p i graph) is ps;
       
-
-
-end (* structure *)
+end (* functor *)

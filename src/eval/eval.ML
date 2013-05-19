@@ -10,66 +10,26 @@ struct
   structure EGraph = EvalGraphFun(EData);
   structure EAtom = EvalAtomicFun(EData);
 
-  
-
-
-
-
-
-
-
   exception evaluate_exp of V.name option * string;
   exception graph_exp of string * Strategy_Theory.Graph.T
 
-  fun init_prf (th:theory) (pnds,prf) graph = 
-    let
-       val wset = GraphEnv.get_input_wires graph;
-       val ptab = 
-         fold
-           (fn pnode => StrName.NTab.ins (PNode.get_name pnode,pnode))
-            pnds
-           (StrName.NTab.empty);
-       val edata0 = EData.init_of prf graph ptab [] th;
-       val ggraphs = pnds 
-                   |> map (EvalOutput.lift_pnode_by_wires (EData.get_fmatch edata0) wset)
-                   |> map (fn (w,g) => GraphEnv.lift_gnode g w)
-       val g1 = fold GraphComb.then_g ggraphs graph;
-    in (* fixme: find all active techniques *)
-       edata0 
-       |> EData.set_graph g1
-    end;
+  (*
+      - make lhs
+      - instantiate lhs
+      - get and del gnode
+      - apply appf
+      - add output_nodes
+      - apply rewrite rule
+  *)
 
-  fun init_g (th:theory) trms = 
-    init_prf (th:theory) (PPlan.init_gls (Proof_Context.init_global th) trms);
 
-  fun init_f (th:theory) trms graphf = 
-    let
-       val (g0,th') = graphf th
-    in
-      init_g th' trms g0
-    end;
-  
-  (* termination condition for evaluation *)
-
-  fun is_terminated active_rtechns graph =
-    let 
-      val g' = Strategy_Theory.Graph.minimise graph
-      val iedge = Strategy_Theory.Graph.get_in_edges g' #> E.NSet.list_of;
-      val inode = (map (Strategy_Theory.Graph.get_edge_source g')) o iedge;
-      val inodes = maps inode active_rtechns
-      val check = not o (GraphEnv.is_gnode g');
-    in
-     forall check inodes
-    end;
-
-  fun graph_terminated graph = 
-     is_terminated (V.NSet.list_of (GraphEnv.get_rtechns_of_graph graph)) graph;
-
-  val edata_terminated = graph_terminated o EData.get_graph;
-  
-  (* evaluation *)
-
-  (* begin eval identity *)
+  fun eval_atomic edata v rt = 
+   let
+     val lhs = EGraph.matched_lhs (EData.get_graph edata) v
+     (* *)
+   in 
+    lhs
+   end;       
 
   fun mk_eval_identity_lhs edata v = 
      v |> EvalGraph.mk_match_graph (EData.get_graph edata)
@@ -148,7 +108,7 @@ struct
     else 
       let val rt = (GraphEnv.v_to_rtechn (EData.get_graph edata) v)
      in
-       if (RTechn.is_atomic rt) then EvalAtomic.eval_atomic edata v
+       if (RTechn.is_atomic rt) then eval_atomic edata v rt
        else if (RTechn.is_merge rt) then eval_merge edata v
        else if (RTechn.is_identity rt) then eval_identity edata v
        else if (RTechn.is_hgraph rt) then EvalNested.eval_nested eval_full (SOME (TagName.mk "unfold")) edata v
@@ -190,6 +150,55 @@ struct
 
  
 
-end (* struct *)
+end (* functor *)
+
+
+(* OLD STUFF *)
+
+(*
+  fun init_prf (th:theory) (pnds,prf) graph = 
+    let
+       val wset = GraphEnv.get_input_wires graph;
+       val ptab = 
+         fold
+           (fn pnode => StrName.NTab.ins (PNode.get_name pnode,pnode))
+            pnds
+           (StrName.NTab.empty);
+       val edata0 = EData.init_of prf graph ptab [] th;
+       val ggraphs = pnds 
+                   |> map (EvalOutput.lift_pnode_by_wires (EData.get_fmatch edata0) wset)
+                   |> map (fn (w,g) => GraphEnv.lift_gnode g w)
+       val g1 = fold GraphComb.then_g ggraphs graph;
+    in 
+       edata0 
+       |> EData.set_graph g1
+    end;
+
+  fun init_g (th:theory) trms = 
+    init_prf (th:theory) (PPlan.init_gls (Proof_Context.init_global th) trms);
+
+  fun init_f (th:theory) trms graphf = 
+    let
+       val (g0,th') = graphf th
+    in
+      init_g th' trms g0
+    end;
+
+  fun is_terminated active_rtechns graph =
+    let 
+      val g' = Strategy_Theory.Graph.minimise graph
+      val iedge = Strategy_Theory.Graph.get_in_edges g' #> E.NSet.list_of;
+      val inode = (map (Strategy_Theory.Graph.get_edge_source g')) o iedge;
+      val inodes = maps inode active_rtechns
+      val check = not o (GraphEnv.is_gnode g');
+    in
+     forall check inodes
+    end;
+
+  fun graph_terminated graph = 
+     is_terminated (V.NSet.list_of (GraphEnv.get_rtechns_of_graph graph)) graph;
+
+  val edata_terminated = graph_terminated o EData.get_graph;
+*)
 
 

@@ -42,6 +42,9 @@ sig
   val update_active_vertices : (V.name list -> V.name list) -> T -> T
   val update_active_parent : (active option -> active option) -> T -> T
 
+
+  val add_goals : Atomic.pnode list -> T -> T
+
   (* push and pop methods for parent? *)
   val pop_active : T -> T (* identify if it fails *)
   val push_active :  PSGraph.T -> V.name list -> T -> T
@@ -58,13 +61,21 @@ struct
   structure PSGraph = PSGraph;
 
   datatype active = Active of {
-     psgraph : PSGraph.T,
+     psgraph : PSGraph.T, (* maybe change to graph? *)
      vertices : V.name list,
-     parent : active option
+     parent : active option  (* FIXME: should also hold a graph for the match lhs *)
   }
+
+  datatype branch = Branch of {
+    b_active : active,
+    b_pplan : Atomic.pplan,
+    b_goals : Atomic.pnode StrName.NTab.T
+ }
+    
 
   (* do we need a stack of graphs for nested evaluation? *)
   datatype T = EData of { 
+      (* psgraph : PSGraph.T, *)
       pplan : Atomic.pplan,
       goals : Atomic.pnode StrName.NTab.T,
       active : active

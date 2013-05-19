@@ -14,6 +14,13 @@ sig
    GNode.T list list  
    -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.vdata  list
 
+  val apply_atomic : 
+        EData.T 
+      -> GNode.T (* the goal node  *)
+      -> RTechn.T (* application function *)
+      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T list (* outputs *)
+      -> (EData.T * GNode.T list list list) Seq.seq
+
   val apply_appf : 
         EData.T 
       -> GNode.T (* the goal node  *)
@@ -197,4 +204,19 @@ struct
   val partition_to_gnodes = map (GData.GN o (map GData.GN_Node));
 
 
-end (* structure *)
+  fun apply_atomic edata gnode rtechn goal_typs = 
+   let 
+     fun appf atom = apply_appf edata gnode atom
+     fun apply_one (pplan,pnds) =
+        (edata
+           |> EData.set_pplan pplan
+           |> EData.add_goals pnds ,
+         partition pnds gnode goal_typs)
+   in
+    case (RTechn.get_appf rtechn) of
+       RTechn.Appf atom => appf atom 
+                       |> Seq.map apply_one
+      | _ => Seq.empty (* TODO: raise exception *)
+  end
+
+end (* functor *)
