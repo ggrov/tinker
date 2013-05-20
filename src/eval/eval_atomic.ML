@@ -203,7 +203,6 @@ struct
 
   val partition_to_gnodes = map (GData.GN o (map GData.GN_Node));
 
-
   fun apply_atomic edata gnode rtechn goal_typs = 
    let 
      fun appf atom = apply_appf edata gnode atom

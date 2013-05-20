@@ -6,135 +6,66 @@ end
 
 functor EVal(EData : EVAL_DATA) =
 struct
-  structure EData = EData;
-  structure EGraph = EvalGraphFun(EData);
-  structure EAtom = EvalAtomicFun(EData);
+ structure EData = EData;
+ structure EGraph = EvalGraphFun(EData);
+ structure EAtom = EvalAtomicFun(EData);
+ structure Theory = EData.PSGraph.PSTheory.PS_Theory;
+ structure GComb = EData.PSGraph.PSTheory.PS_Comb;
 
-  exception evaluate_exp of V.name option * string;
-  exception graph_exp of string * Strategy_Theory.Graph.T
+ exception evaluate_exp of V.name option * string;
 
-  (*
-      - make lhs
-      - instantiate lhs
-      - get and del gnode
-      - apply appf
-      - add output_nodes
-      - apply rewrite rule
-  *)
-
+ fun mk_atomic_rhs edata rt lhs =
+    let
+      val out_edges = 
+        GComb.boundary_outputs lhs 
+        |> map (fn (_,(x,_),_) => x)
+      val out_types =  map (EGraph.Util.gtyp_of lhs) out_edges;
+      val [gnode_name] = EGraph.Util.all_gnodes lhs;
+      val gnode =  EGraph.Util.single_gnode_of lhs gnode_name
+      val result_seq = EAtom.apply_atomic edata gnode rt out_types
+      fun apply_one (edata',part) = 
+           lhs |> EGraph.Util.del_gnode gnode_name
+               |> EGraph.add_outs out_edges part 
+               |> (fn rhs => (edata',(lhs,rhs)))
+      fun apply_all (edata',parts) =
+        parts
+        |> map EAtom.partition_to_gnodes
+        |> Seq.of_list
+        |> Seq.map (fn p => apply_one (edata',p));
+    in
+      Seq.maps apply_all result_seq
+    end
 
   fun eval_atomic edata v rt = 
    let
-     val lhs = EGraph.matched_lhs (EData.get_graph edata) v
-     (* *)
+     val graph = EData.get_graph edata
+     val lhs_seq = EGraph.matched_lhs (EData.get_graph edata) v
+     fun update (edata,(lhs,rhs)) =
+       Seq.map (fn g => EData.set_graph g edata)
+               (EGraph.Util.rewrite_lazy (Theory.Rule.mk (lhs,rhs)) graph);
    in 
-    lhs
-   end;       
-
-  fun mk_eval_identity_lhs edata v = 
-     v |> EvalGraph.mk_match_graph (EData.get_graph edata)
-       |> Seq.of_list
-       |> Seq.maps (EvalGraph.eval_match_and_instantiate_rhs (EData.get_graph edata))
-       |> Seq.list_of;
-
-  fun mk_eval_identity_delete_input lhs = 
-    let 
-      val gn_v = (case V.NSet.tryget_singleton (GraphEnv.get_goalnodes_of_graph lhs)
-                    of NONE => raise graph_exp ("graph does not contain exactly 1 goalnode",lhs)
-                     | SOME v => v)
-      val wire = case E.NSet.tryget_singleton (Strategy_Theory.Graph.out_enames lhs gn_v)
-                    of NONE => raise EvalOutput.gnode_exp ("gnode does not have single output")
-                    | SOME e => GraphEnv.e_to_wire lhs e;
-     in
-       (GraphEnv.v_to_gnode lhs gn_v,EvalGraph.delete_inputvar_rule wire)
-     end;
-
-  fun mk_eval_identity_add_outputs edata gnode graph =
-   let
-     val pnode = case StrName.NTab.lookup (EData.get_goals edata) (GNode.get_goal gnode) of
-                    NONE => raise EvalOutput.gnode_exp ("Goal " ^ GNode.get_goal gnode ^ " not present in pplan")
-                  | (SOME pn) => pn
-   in 
-     EvalGraph.add_outputs gnode [pnode] edata graph
-   end;
-
-  fun mk_eval_identity_rhs edata lhs =
-    let 
-       val (gnode,del_rule) = mk_eval_identity_delete_input lhs
-    in
-      EvalGraph.rewrite del_rule lhs
-      |> maps (mk_eval_identity_add_outputs edata gnode)
-    end;
-
-  fun mk_eval_identity_rule edata v =
-   mk_eval_identity_lhs edata v
-   |> maps (fn lhs => 
-             map (fn rhs => Strategy_Theory.Rule.mk 
-                              (Strategy_Theory.Graph.minimise lhs,
-                               Strategy_Theory.Graph.minimise rhs)) 
-                 (mk_eval_identity_rhs edata lhs));
-
-  fun eval_identity edata v =
-   mk_eval_identity_rule edata v
-   |> Seq.of_list
-   |> Seq.maps (fn rule => EvalGraph.rewrite_lazy rule (EData.get_graph edata))
-   |> Seq.map (fn g => EData.set_graph g edata);
-
-  (* end eval identity *)
-
-  fun eval_merge_rule graph v = 
-    let 
-      val wire = case E.NSet.tryget_singleton (GraphEnv.get_out_edges graph v) of
-                   NONE => raise evaluate_exp (SOME v, "Evaluation of merge: multiple outputs")
-                 | SOME e => GraphEnv.edge_data graph e
-      val size = E.NSet.cardinality (Strategy_Theory.Graph.in_enames graph v)
-    in
-      EvalGraph.mk_eval_merge_rule_of_size wire size
-      (* uses !-box but gives an error: EvalGraph.mk_eval_merge_rule_of wire *)
-    end;
-
-  fun eval_merge edata v =
-      EData.get_graph edata
-      |> (fn g => EvalGraph.rewrite_lazy (eval_merge_rule g v) g)
-      (* this is a hack: problem is one match per "non-goal edge" - for now just pick one
-          but should check substitution done! *)
-      |> (fn s => case Seq.pull s of (SOME (v,_)) => Seq.single v | NONE => Seq.empty)
-      |> Seq.map (fn g => EData.set_graph g edata) 
+    lhs_seq 
+    |> Seq.maps ((mk_atomic_rhs edata rt) o snd) 
+    |> Seq.map update 
+   end;   
 
   (* for now we only unfold *)
   fun one_step edata v = 
-    if GraphEnv.is_gnode (EData.get_graph edata) v
-     then raise evaluate_exp (SOME v, "Vertex not a reasoning technique")
-    else 
-      let val rt = (GraphEnv.v_to_rtechn (EData.get_graph edata) v)
-     in
+    case EGraph.Util.lookup_rtechn (EData.get_graph edata) v of
+      NONE => raise evaluate_exp (SOME v, "Vertex not a reasoning technique")
+    | SOME rt =>
        if (RTechn.is_atomic rt) then eval_atomic edata v rt
-       else if (RTechn.is_merge rt) then eval_merge edata v
-       else if (RTechn.is_identity rt) then eval_identity edata v
-       else if (RTechn.is_hgraph rt) then EvalNested.eval_nested eval_full (SOME (TagName.mk "unfold")) edata v
-       else if (RTechn.is_or rt) then EvalNested.eval_nested eval_full (SOME (TagName.mk "or_unfold")) edata v
-       else if (RTechn.is_try rt) then 
-         case Seq.pull (EvalNested.eval_nested eval_full (SOME (TagName.mk "try")) edata v) of
-            SOME (v,vs) => Seq.cons v vs
-           | NONE => EvalNested.eval_nested eval_full (SOME (TagName.mk "else")) edata v
+       else if (RTechn.is_merge rt) then raise evaluate_exp (SOME v, "merge not supported")
+       else if (RTechn.is_identity rt) then raise evaluate_exp (SOME v, "identity not supported")
+       else if (RTechn.is_hgraph rt) then raise evaluate_exp (SOME v, "hierarchies not supported")
+       else if (RTechn.is_or rt) then raise evaluate_exp (SOME v, "or not supported")
+       else if (RTechn.is_orelse rt) then raise evaluate_exp (SOME v, "orelse not supported")
        else raise evaluate_exp (SOME v, "Unknown reasoning technique type")
-     end
- 
-  and eval_one_restricted vs edata =
-    let 
-       fun get_first [] = NONE
-        |  get_first (x::xs) = if (Option.isSome o Seq.pull) x then SOME x else get_first xs;
-    in
-      vs |> V.NSet.list_of
-         |> map (one_step edata)
-         |> get_first
-    end  
-
+     ;
+(* 
   and eval_one edata =
     eval_one_restricted (GraphEnv.get_rtechns_of_graph (EData.get_graph edata)) edata
 
-  (* maybe give some useful error messages? *)
-  (* could also empose a search strategy... *)
   and eval_full edata = 
     case eval_one edata of
       NONE => if edata_terminated edata then (Seq.single edata) else Seq.empty
@@ -144,11 +75,8 @@ struct
      GraphEnv.get_rtechns_of_graph (EData.get_graph edata)
      |> V.NSet.seq_of
      |> Seq.maps (one_step edata);
+*)
 
-  
-  (* evaluation ignoring evaluation strategy *)
-
- 
 
 end (* functor *)
 
