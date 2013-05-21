@@ -4,7 +4,7 @@ sig
 
 end
 
-functor EVal(EData : EVAL_DATA) =
+functor EValFun(EData : EVAL_DATA) =
 struct
  structure EData = EData;
  structure EGraph = EvalGraphFun(EData);

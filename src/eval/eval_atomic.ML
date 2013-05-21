@@ -25,14 +25,14 @@ sig
         EData.T 
       -> GNode.T (* the goal node  *)
       -> RTechn.atomic (* application function *)
-      -> (EData.Atomic.pplan * EData.Atomic.pnode list) Seq.seq
+      -> (EData.Atomic.pnode list * EData.Atomic.pplan) Seq.seq
 
   val apply_tactic :
         EData.T 
       -> GNode.T (* the goal node *)
       -> string (* the name of the tactic *)
       -> RTechn.tac_assms (* tactic assumption *)
-      -> (EData.Atomic.pplan * EData.Atomic.pnode list) Seq.seq
+      -> (EData.Atomic.pnode list * EData.Atomic.pplan) Seq.seq
 
 end
 
@@ -49,12 +49,12 @@ struct
   fun lookup_fact node name = 
    case Atomic.lookup_fact node name of
       NONE => raise no_such_fact name
-    | SOME f => f
+    | SOME f => (name,f)
 
   fun try_lookup_fact node name = 
    case Atomic.lookup_fact node name of
       NONE => []
-    | SOME f => [f]
+    | SOME f => [(name,f)]
 
   fun fact_list node fact_nms =
       fact_nms 
@@ -76,7 +76,7 @@ struct
          val pplan = EData.get_pplan edata
          val tac = EData.get_tactic edata tac_name
        in 
-         Atomic.apply_tactic [] tac (pplan,pnode)
+         Atomic.apply_tactic tac_name [] tac (pnode,pplan)
        end
    |  apply_tactic edata gnode tac_name RTechn.TAllAsm = 
        let 
@@ -85,7 +85,7 @@ struct
          val tac = EData.get_tactic edata tac_name
          val facts = Atomic.get_all_facts pnode
        in 
-         Atomic.apply_tactic facts tac (pplan,pnode)
+         Atomic.apply_tactic tac_name facts tac (pnode,pplan)
        end
    |  apply_tactic edata gnode tac_name (RTechn.TClass class_nms) =
        let 
@@ -101,9 +101,9 @@ struct
                          class_nms
                          StrName.NSet.empty
          (* get the actual facts *)
-         val facts = fact_list pnode fact_nms
+         val facts = fact_list pnode fact_nms |> map snd
        in
-         Atomic.apply_tactic facts tac (pplan,pnode)
+         Atomic.apply_tactic tac_name facts tac (pnode,pplan)
        end;
 
   fun apply_appf edata gnode (RTechn.Rule fact_nms) =
@@ -112,7 +112,7 @@ struct
           val pplan = EData.get_pplan edata
           val facts = fact_seq pnode fact_nms
         in
-          Seq.maps (fn fact => Atomic.apply_rule fact (pplan,pnode)) facts
+          Seq.maps (fn (fnm,fact) => Atomic.apply_rule fnm fact (pnode,pplan)) facts
         end
     |  apply_appf edata gnode (RTechn.ERule fact_nms) =
         let 
@@ -120,7 +120,7 @@ struct
           val pplan = EData.get_pplan edata
           val facts = fact_seq pnode fact_nms
         in
-          Seq.maps (fn fact => Atomic.apply_erule fact (pplan,pnode)) facts
+          Seq.maps (fn (fnm,fact) => Atomic.apply_erule fnm fact (pnode,pplan)) facts
         end
    |  apply_appf edata gnode (RTechn.FRule (class_nm,fact_nms)) =
         let 
@@ -130,7 +130,7 @@ struct
                      |> fact_seq pnode 
           val facts = fact_seq pnode fact_nms
           (* one application of a frule of a fact to a hyp *)
-          fun apply_frule' hyp fact = Atomic.apply_frule hyp fact (pplan,pnode)
+          fun apply_frule' hyp fact = Atomic.apply_frule  hyp fact (pnode,pplan)
           (* application of all facts to a hyp *)
           fun apply_frule hyp = Seq.maps (apply_frule' hyp) facts
         in
@@ -142,7 +142,7 @@ struct
           val pplan = EData.get_pplan edata
           val facts = fact_seq pnode fact_nms
         in
-          Seq.maps (fn fact => Atomic.apply_subst fact (pplan,pnode)) facts
+          Seq.maps (fn (fnm,fact) => Atomic.apply_subst fnm fact (pnode,pplan)) facts
         end
    |  apply_appf edata gnode (RTechn.SubstAsm (class_nm,fact_nms)) =  (* why not a wire? *)
          let 
@@ -152,7 +152,7 @@ struct
                      |> fact_seq pnode 
           val eqs = fact_seq pnode fact_nms
           (* one application of subst of a eq to a fact *)
-          fun apply_subst_asm' hyp eq = Atomic.apply_subst_asm hyp eq (pplan,pnode)
+          fun apply_subst_asm' hyp eq = Atomic.apply_subst_asm hyp eq (pnode,pplan)
           (* application of all equalities to a hyp *)
           fun apply_subst_asm hyp = Seq.maps (apply_subst_asm' hyp) eqs
         in
@@ -206,7 +206,7 @@ struct
   fun apply_atomic edata gnode rtechn goal_typs = 
    let 
      fun appf atom = apply_appf edata gnode atom
-     fun apply_one (pplan,pnds) =
+     fun apply_one (pnds,pplan) =
         (edata
            |> EData.set_pplan pplan
            |> EData.add_goals pnds ,

@@ -48,9 +48,9 @@ end (* signature *)
 
 
 
-functor EData(structure Atomic : ATOMIC
-              structure PSGraph : PS_GRAPH
-              sharing type Atomic.tactic = PSGraph.tactic) : EVAL_DATA  =
+functor EDataFun(structure Atomic : ATOMIC
+                 structure PSGraph : PS_GRAPH
+                 sharing type Atomic.tactic = PSGraph.tactic) : EVAL_DATA  =
 struct
 
   structure Atomic = Atomic;
