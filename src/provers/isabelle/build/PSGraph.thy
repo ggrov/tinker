@@ -1,7 +1,7 @@
 (* simple test of proof representation *)
-theory PSGraph                                                                                 
+theory PSGraph                                                                               
 imports         
-  Graph                       
+  Graph                     
 begin
 
   ML_file "../../../psgraph/psgraph.ML"  

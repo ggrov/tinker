@@ -6,8 +6,8 @@ imports
  "~~/contrib/isaplib/isabelle/isaplib/isaplib"   
 *)                                                                                 
 uses  
-  "../../../proof/GPrf.ML"     
-  "../isa_prf.ML" 
+  "../../../gprover.ML"     
+  "../isa_prover.ML" 
   "../pplan/isa_pnode.ML"
   "../pplan/isa_pplan.ML"
   "../pplan/isa_atomic.ML"
