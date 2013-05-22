@@ -6,7 +6,7 @@ imports
  "~~/contrib/isaplib/isabelle/isaplib/isaplib"   
 *)                                                                                 
 uses  
-  "../../../gprover.ML"     
+  "../../gprover.ML"     
   "../isa_prover.ML" 
   "../pplan/isa_pnode.ML"
   "../pplan/isa_pplan.ML"
