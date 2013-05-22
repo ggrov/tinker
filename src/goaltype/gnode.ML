@@ -1,18 +1,38 @@
 signature GNODE = 
 sig
-  structure GoalTyp : GOAL_TYP
   type T
+
+  val get_parent : T -> T option 
+  val get_goal : T -> StrName.name 
+  val get_facts : T -> StrName.NSet.T C.NTab.T
+
+  val get_fact_names : C.NTab.name -> T -> StrName.NSet.T  
+  val lookup_fact_names : C.NTab.name -> T -> StrName.NSet.T option
+  val delete_fact : C.NTab.name -> T -> T 
+  val add_facts : C.NTab.name * StrName.NSet.T -> T -> T
+ 
+  val update_parent : (T option -> T option) -> T -> T 
+  val update_goal : (StrName.name -> StrName.name) -> T -> T
+  val update_facts : (StrName.NSet.T C.NTab.T -> StrName.NSet.T C.NTab.T) -> T -> T 
+
+  val set_parent_none : T -> T
+  val set_parent : T -> T -> T 
+  val set_goal : StrName.name -> T -> T
+  val set_facts : StrName.NSet.T C.NTab.T -> T -> T 
+  val delete_facts : C.NSet.T -> T -> T
+
+  val pretty : T -> Pretty.T (* FIXME : implement this*)
+
+  val mk_goal_no_facts : StrName.name -> T
+  val mk_goal : StrName.NSet.T C.NTab.T -> StrName.name -> T 
+  val eq : T * T -> bool
 end
 
-(* goal type not needed anywhere *)
-(* functor GNodeFun (GTyp: GOAL_TYP) : GNODE = *)
-structure GNode =
+structure GNode : GNODE = 
 struct
-
 (*  structure GoalTyp = GTyp *)
-
   datatype T = Goal of {facts : StrName.NSet.T C.NTab.T, (* map from class to a set of assumption *)
-                        goal : string, (* the name of the goal node *)
+                        goal : StrName.name, (* the name of the goal node *) (* ??? name of pnode ? *)
                         parent : T option}
 
   fun get_goal (Goal rep) = #goal rep;

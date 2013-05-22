@@ -9,6 +9,7 @@ sig
 
   exception gterm_exp
   
+  val globe_ctxt : context (* used in those place need context in general *)
   val typ_of : term -> typ
   val match : context -> (term * term) -> bool
 
@@ -26,6 +27,8 @@ sig
   val trm_of_string : context -> string -> term
   val string_of_trm : context -> term -> string
   val pretty_trm : context -> term -> Pretty.T
+
+  val concl_of_thm : thm -> term
 
   
  (* val get_goal : context -> T ->  (context * term)*)

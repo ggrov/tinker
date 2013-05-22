@@ -9,6 +9,7 @@ struct
   
   exception gterm_exp
 
+  val globe_ctxt = @{context}
   val typ_of = Term.type_of
   fun match ctxt = Pattern.matches (Context.Proof_Context.theory_of ctxt)
   fun eq_pos (pos1, pos2) = 
@@ -32,4 +33,6 @@ struct
 
   fun intlist_of_pos pos = pos
   fun pos_of_intlist il = il
+  
+  val concl_of_thm = Thm.concl_of
 end

@@ -2,6 +2,8 @@ signature LINK =
 sig
 
   type lkey = L.name * (C.name * C.name) 
+  structure LKey : KEY
+
   type T
   
   structure Class : CLASS
@@ -27,13 +29,13 @@ functor LinkFun (Cls : CLASS) : LINK =
 struct 
   structure Class  = Cls
 
-  type lkey = L.name * (C.name * C.name)
+  type lkey = F.name * (C.name * C.name)
   
   structure LKey =
   struct
     type key = lkey;
-    fun ord ((l1,(c1, c3)),(l2, (c2, c4))) = 
-       (case L.name_ord (l1,l2)of EQUAL => 
+    fun ord ((f1,(c1, c3)),(f2, (c2, c4))) = 
+       (case F.name_ord (f1,f2)of EQUAL => 
            (case C.name_ord (c1,c2)of EQUAL => C.name_ord (c3,c4)
             | x => x)
         | x => x);

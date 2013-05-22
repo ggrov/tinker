@@ -15,7 +15,6 @@ sig
 
   val get_name: T -> C.name
   val rename : C.name -> T -> T  
-  
 
   val match_item : GTData.GProver.context -> (GTData.data list list * GTData.data list list) -> bool
   val eq : GTData.GProver.context -> (T * T) -> bool
@@ -51,7 +50,7 @@ struct
       fun match_flist ctxt ((l1 : GTData.data list),l2) = 
         (if (List.length l1 = List.length l2)
         then
-           not (List.exists (fn (x,y) => if GTData.match_data ctxt (x,y) then false else true) (zip l1 l2))
+           not (List.exists (fn (x,y) => if GTData.match_data (x,y) then false else true) (zip l1 l2))
         else false);
       fun member e s = List.filter (fn x => match_flist ctxt (e,x)) s |> List.length |> (fn x => (x > 0))
       fun insert e s = (if member e s then s else e :: s)

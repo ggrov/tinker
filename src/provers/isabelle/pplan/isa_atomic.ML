@@ -46,7 +46,13 @@ struct
        (PNode.get_assms pnode) 
        |> StrName.NTab.values;
 
+   fun get_all_name_facts pnode =
+       (PNode.get_assms pnode) 
+       |> StrName.NTab.list_of;
+
   val get_pnode_name = PNode.get_name;
+  
+  val get_pnode_goal = PNode.get_goal
  
 
   (* OLD STUFF *)

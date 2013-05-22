@@ -22,8 +22,10 @@ sig
 
   val lookup_fact : pnode -> string -> fact option
   val get_all_facts : pnode -> fact list
+  val get_all_name_facts : pnode -> (string * fact) list
 
   val get_pnode_name : pnode -> string
+  val get_pnode_goal : pnode -> fact (* note that if the goal is A, then this will return A => A or [...] => A*)
   
 end;
 
