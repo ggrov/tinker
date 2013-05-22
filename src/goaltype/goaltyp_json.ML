@@ -62,7 +62,7 @@ struct
   fun data_to_json (Int i) = Json.mk_object [("Feature_Int", Json.Int i)]
     | data_to_json (String s) = Json.mk_object [("Feature_Str", Json.String s)]
     | data_to_json (Term t) = Json.mk_object [("Feature_Trm", Json.String t)]
-    | data_to_json (Position p) = Json.mk_object [("Feature_Pos", map Json.Int (GPrf.intlist_of_pos p) |> Json.Array)]
+    | data_to_json (Position p) = Json.mk_object [("Feature_Pos", map Json.Int (GProver.intlist_of_pos p) |> Json.Array)]
     | data_to_json (Bool b) = Json.mk_object [("Feature_Bool", Json.Bool b)]
     | data_to_json (DVar d) = Json.mk_object [("Feature_DVar", Json.String (F.string_of_name d))]
 
@@ -79,7 +79,7 @@ struct
                            | 2 => let val (Json.String s) =  Json.get jobj typStr in String s end
                            | 3 => let val (Json.String t) = Json.get jobj typStr in Term t end
                            | 4 => let val (Json.Array ary) = Json.get jobj typStr in 
-                                    GPrf.pos_of_intlist (map (fn (Json.Int i) => i) ary) |> Position end
+                                    GProver.pos_of_intlist (map (fn (Json.Int i) => i) ary) |> Position end
                            | 5 => let val (Json.Bool b) = Json.get jobj typStr in Bool b end
                            | 6 => let val (Json.String s) =  Json.get jobj typStr in F.mk s |> DVar end
           )

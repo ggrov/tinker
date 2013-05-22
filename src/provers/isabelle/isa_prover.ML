@@ -1,4 +1,4 @@
-structure IsaPrf : GPRF =
+structure IsaProver : GPROVER =
 struct 
   type pos = int list
   type typ = typ

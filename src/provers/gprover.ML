@@ -1,4 +1,4 @@
-signature GPRF =
+signature GPROVER =
 sig
   type pos
   type typ
