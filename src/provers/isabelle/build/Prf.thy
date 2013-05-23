@@ -10,7 +10,7 @@ uses
   "../isa_prover.ML" 
   "../pplan/isa_pnode.ML"
   "../pplan/isa_pplan.ML"
-  "../pplan/isa_atomic.ML"
+  "../pplan/isa_atomic.ML" 
   "../isa_setup.ML"                
 begin
 

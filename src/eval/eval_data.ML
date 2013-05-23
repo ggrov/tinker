@@ -8,7 +8,15 @@ sig
   type branch
   type active
   type T
-  
+
+   (* initialisations *)
+  val init : 
+    PSGraph.T 
+    -> Atomic.pplan 
+    -> Atomic.pnode StrName.NTab.T 
+    -> V.name list
+    -> T
+
   (* get methods *)
   val get_psgraph : T -> PSGraph.T  
   val get_pplan : T -> Atomic.pplan
@@ -147,8 +155,8 @@ struct
   fun init_branch prf graph goals vs  =
     Branch {active = init_active graph vs, pplan = prf, goals = goals};
 
-  fun init psgraph prf graph goals vs  =
-    EData {psgraph = psgraph, current = init_branch prf graph goals vs, branches = []};
+  fun init psgraph prf goals vs  =
+    EData {psgraph = psgraph, current = init_branch prf (PSGraph.get_graph psgraph) goals vs, branches = []};
 
   fun ins_tab pnode = StrName.NTab.ins (Atomic.get_pnode_name pnode,pnode);
   val lookup_goal = StrName.NTab.lookup o get_goals;

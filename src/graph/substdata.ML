@@ -74,8 +74,8 @@ functor GraphSubstDataFun (GoalTyp : GOAL_TYP) : GRAPH_SUBST_DATA
 
   fun gnode_ord (GN_Node g1 ,GN_Node g2) = String.compare (GNode.get_goal g1,GNode.get_goal g2)
    |  gnode_ord (GN_Var s1,GN_Var s2) = String.compare (s1,s2)
-   |  gnode_ord (GN_Node _,_) = LESS
-   |  gnode_ord (GN_Var _,_) = GREATER
+   |  gnode_ord (GN_Node _,GN_Var _) = GREATER
+   |  gnode_ord (GN_Var _,GN_Node _) = LESS
   fun gnode_eq (xy as (x, y)) = 
       (case gnode_ord xy of EQUAL => true
           | _ => false);
@@ -90,21 +90,24 @@ functor GraphSubstDataFun (GoalTyp : GOAL_TYP) : GRAPH_SUBST_DATA
 
   (* ordering for vertex data *)
   fun vdata_ord (TVar v1,TVar v2) = String.compare (v1,v2)
-    | vdata_ord (TVar v1,TVar v2) = String.compare (v1,v2)
     | vdata_ord (TVar _,_) = LESS
+    | vdata_ord (GVar g1,GVar g2) = String.compare (g1,g2)
+    | vdata_ord (GVar _,TVar _) = GREATER
     | vdata_ord (GVar _,_) = LESS
-    | vdata_ord (GN _, RT _) = LESS
-    | vdata_ord (RT _, GN _) = GREATER
     | vdata_ord (GN g1, GN g2) = gnodel_ord (g1,g2)
-    | vdata_ord (RT r1, RT r2) = RTechn.ord (r1,r2);
+    | vdata_ord (GN _, RT _) = LESS
+    | vdata_ord (GN _, _) = GREATER
+    | vdata_ord (RT r1, RT r2) = RTechn.ord (r1,r2)
+    | vdata_ord (RT _,_) = GREATER;
+
   fun vdata_eq (xy as (x, y)) = 
       (case vdata_ord xy of EQUAL => true
           | _ => false);
 
   fun edata_ord (EVar v1,EVar v2) = String.compare (v1,v2)
-    | edata_ord (EVar v1,_) = LESS
+    | edata_ord (EVar v1,GT _) = LESS
     | edata_ord (GT _,EVar _) = GREATER
-    | edata_ord (GT g1,GT g2) = EQUAL (* FIXME!!! *)
+    | edata_ord (GT g1,GT g2) = GoalTyp.ord(g1,g2); (* FIXME!!! *)
   fun edata_eq (xy as (x, y)) = 
       (case edata_ord xy of EQUAL => true
           | _ => false);

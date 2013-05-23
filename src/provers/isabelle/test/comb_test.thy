@@ -1,19 +1,19 @@
 (* simple test of combinators *)
 theory comb_test                                                
 imports               
- "../build/Graph"                                                                  
+ "../build/Prf"                                                                  
 begin
 
 ML{*
 ;
  val impI = RTechn.id
-           |> RTechn.set_name "impI"
+           |> RTechn.set_name (RT.mk "impI")
            |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.single "HOL.impI"))
 *}
 ML{*
-  val psfg1 = LIFT ([GoalTyp.top],[GoalTyp.top]) (impI)
-  val psfg2 = LIFT ([GoalTyp.top],[GoalTyp.top]) (RTechn.id)
-  val psfg3 = psfg1 THENG psfg2;
+  val psfg1 = PSComb.LIFT ([GoalTyp.top],[GoalTyp.top]) (impI)
+  val psfg2 = PSComb.LIFT ([GoalTyp.top],[GoalTyp.top]) (RTechn.id)
+  val psfg3 = PSComb.THENG (psfg1,psfg2);
 *}
 
 ML{*

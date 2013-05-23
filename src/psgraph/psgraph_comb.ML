@@ -173,6 +173,8 @@ struct
   fun LIFT' (ins,outs) rt = 
      PSGraph.of_graph (graph_of_rtechn rt ins outs);
 
+ infixr 6 THENG;
+
 end; (* end struct *)
 
 (* TO DO: this has to be done for each structore of the functor *)

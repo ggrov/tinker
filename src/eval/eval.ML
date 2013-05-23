@@ -50,7 +50,7 @@ struct
    end;   
 
   (* for now we only unfold *)
-  fun one_step edata v = 
+  fun evaluate edata v = 
     case EGraph.Util.lookup_rtechn (EData.get_graph edata) v of
       NONE => raise evaluate_exp (SOME v, "Vertex not a reasoning technique")
     | SOME rt =>
@@ -62,6 +62,12 @@ struct
        else if (RTechn.is_orelse rt) then raise evaluate_exp (SOME v, "orelse not supported")
        else raise evaluate_exp (SOME v, "Unknown reasoning technique type")
      ;
+
+   fun evaluate_any edata =
+     EGraph.Util.all_rtechns (EData.get_graph edata)
+     |> Seq.of_list
+     |> Seq.maps (evaluate edata);
+
 (* 
   and eval_one edata =
     eval_one_restricted (GraphEnv.get_rtechns_of_graph (EData.get_graph edata)) edata
