@@ -1,8 +1,8 @@
 signature GRAPH_SUBST_DATA =
 sig
-  structure GoalTyp : GOAL_TYP
+  structure GoalTyp : GENERIC_GOALTYPE
 
-  datatype gnode = GN_Node of GNode.T 
+  datatype gnode = GN_Node of GoalTyp.gnode 
                  | GN_Var of string (* single goalnode variable *)
 
   (* TO DO: allow variables inside a rtechn? *)
@@ -48,7 +48,7 @@ sig
 end
 
 (* combine data to allow substitutions on both vertex and edge *)
-functor GraphSubstDataFun (GoalTyp : GOAL_TYP) : GRAPH_SUBST_DATA
+functor GraphSubstDataFun (GoalTyp : GENERIC_GOALTYPE) : GRAPH_SUBST_DATA
 = struct
 
   (* fixme: need to be generalised, e.g. want to have ?g::?gs *)
