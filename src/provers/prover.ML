@@ -1,4 +1,4 @@
-signature GPROVER =
+signature PROVER =
 sig
   type pos
   type typ

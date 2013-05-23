@@ -3,7 +3,7 @@ signature PS_GRAPH =
 sig
   structure PSTheory : PS_THEORY 
   type T
-  type tactic = PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Link.Class.GTData.GProver.tactic
+  type tactic = PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Link.Class.GTData.Prover.tactic
 
   val empty : T
   val of_graph : PSTheory.PS_Theory.Graph.T -> T
@@ -48,7 +48,7 @@ struct
    structure PS_Theory = PSTheory.PS_Theory;
    
    (* may need to try to avoid this nesting ... *)
-   type tactic = PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Link.Class.GTData.GProver.tactic
+   type tactic = PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Link.Class.GTData.Prover.tactic
 
    (* no longer uses underlying storage of data in isabelle? *)
    datatype T = PSGraph of {
