@@ -1,4 +1,4 @@
-theory GoalType_test             
+theory goaltype_test             
 imports                    
   Main  
   "../build/RTechn"   

@@ -1,4 +1,4 @@
-theory JsonIO_test
+theory json_test
 imports "../build/RTechn" "../build/GoalTyp"   
 uses "../../../rtechn/rtechn_json.ML"  "../../../goaltype/goaltyp_json.ML"  "../isaPrf.ML"
 begin
