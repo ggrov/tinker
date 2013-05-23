@@ -1,23 +1,37 @@
+signature LINK_SHARING =
+sig
+  type T
+  (*type lkey*)
+  structure GoalTypData : GOALTYP_DATA_SHARING
+end
+
 signature LINK = 
 sig
 
-  type lkey = L.name * (C.name * C.name) 
+  type lkey = L.name * (C.name * C.name)
   structure LKey : KEY
 
   type T
   
-  structure Class : CLASS
+  structure GoalTypData : GOALTYP_DATA
+  structure Prover : PROVER
+  sharing GoalTypData.Sharing.Prover = Prover.Sharing
+
   val top : T
-  val get_item : lkey -> T -> (Class.GTData.data list list) option
-  val set_item: lkey -> (Class.GTData.data list list) -> T -> T
+  val get_item : lkey -> T -> (GoalTypData.data list list) option
+  val set_item: lkey -> (GoalTypData.data list list) -> T -> T
   val del_item : lkey -> T -> T
   val get_keys : T -> lkey list
 
   val get_name: T -> L.name
   val rename : L.name -> T -> T  
   
-  val match_item : Class.GTData.Prover.context -> (Class.GTData.data list list * Class.GTData.data list list) -> bool
-  val eq : Class.GTData.Prover.context -> (T * T) -> bool
+  val eq : (T * T) -> bool
+
+  structure Sharing : LINK_SHARING
+    sharing type Sharing.T = T
+    (*sharing type Sharing.lkey = lkey*)
+    sharing Sharing.GoalTypData = GoalTypData
 
 end;
 
@@ -25,9 +39,12 @@ end;
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
 
   (* to do: generalise, by creating a term structure and a functor over this *)
-functor LinkFun (Cls : CLASS) : LINK = 
+functor LinkFun (structure GoalTypData : GOALTYP_DATA
+                 structure Prover : PROVER
+                 sharing GoalTypData.Sharing.Prover = Prover ) : LINK = 
 struct 
-  structure Class  = Cls
+  structure GoalTypData = GoalTypData;
+  structure Prover = Prover;
 
   type lkey = F.name * (C.name * C.name)
   
@@ -43,7 +60,7 @@ struct
 
   structure linkTbl =  Table(LKey);
 
-  type T =  (L.name * (Class.GTData.data list list) linkTbl.table);
+  type T =  (L.name * (GoalTypData.data list list) linkTbl.table);
 
   val top = (L.mk "Top", linkTbl.empty)
 
@@ -58,18 +75,21 @@ struct
   val get_name = fst
   fun rename gname (_, link) = (gname, link) 
   
-  val match_item = Class.match_item
-
-  fun eq ctxt ((_,a), (_,b)) = if linkTbl.forall (fn (k, xb) => 
-                                          (case (linkTbl.lookup a k) of SOME xa => match_item ctxt (xa,xb)
+  fun eq ((_,a), (_,b)) = if linkTbl.forall (fn (k, xb) => 
+                                          (case (linkTbl.lookup a k) of SOME xa =>  GoalTypData.match_data_ll (xa,xb)
                                              | _ => false))
                                        b then (linkTbl.forall (fn (k, xa) => 
                                                              (case (linkTbl.lookup b k) 
-                                                              of SOME xb => match_item ctxt (xa,xb)
+                                                              of SOME xb => GoalTypData.match_data_ll (xa,xb)
                                                               | _ => false))
                                                           a)
                                               else false
-
+  structure Sharing = 
+  struct
+    type T = T
+    (*type lkey = lkey*)
+    structure GoalTypData = GoalTypData.Sharing
+  end
 end; (* struct *)
 
 

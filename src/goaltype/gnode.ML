@@ -33,6 +33,7 @@ struct
 (*  structure GoalTyp = GTyp *)
   datatype T = Goal of {facts : StrName.NSet.T C.NTab.T, (* map from class to a set of assumption *)
                         goal : StrName.name, (* the name of the goal node *) (* ??? name of pnode ? *)
+                        (* ??? link: ((C.Name * C.Name) * (StrName * StrName) list) C.NTab.T   tbale from (lkey to set of pair of StrName) Table(lKey)*)
                         parent : T option}
 
   fun get_goal (Goal rep) = #goal rep;

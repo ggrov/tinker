@@ -12,7 +12,9 @@ sig
   (* structure PS_TheoryIO :*)
 end (* signature *)
 
-functor PSTheoryFun(GoalTyp : GOAL_TYP) : PS_THEORY =
+functor PSTheoryFun(structure GoalTyp : GOAL_TYP
+                    structure GoalTypJson : GOALTYP_JSON
+                    sharing GoalTyp.Sharing = GoalTypJson.Sharing.GoalTyp) : PS_THEORY =
 struct
 (*  PS_Theory.Graph.OVData.IData.data is PS_GraphParam.VData *)
   structure PS_GraphParam = PSGraphParamFun(GoalTyp);
@@ -55,7 +57,7 @@ struct
      type edata = PS_GraphParam.PSEdgeData.data;
      structure GraphSubstData = PS_GraphParam.GraphSubstData;
      structure GoalTyp = GraphSubstData.GoalTyp;
-     structure GTJson = GTJsonFun(GoalTyp);
+     structure GTJson = GoalTypJson;
 
       (* vertex data
          { type : RT | GN | TVar | GVar

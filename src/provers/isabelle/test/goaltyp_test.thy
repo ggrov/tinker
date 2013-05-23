@@ -1,15 +1,21 @@
-theory goaltype_test             
+theory goaltyp_test             
 imports                    
-  Main  
-  "../build/RTechn"   
-uses  "../../../rtechn_names.ML"
-      "../../../goaltype/type_set.ML" 
-      "../../../goaltype/general_term.ML" 
-      "../../../goaltype/goaltyp_data.ML"
-      "../../../goaltype/class.ML"
-      "../../../goaltype/link.ML"
-      "../../../goaltype/goaltyp.ML"
+  "../build/GoalTyp" 
+
+  uses "../../prover.ML"  "../isa_prover.ML"  (* "../isa_setup.ML"*)
 begin
+ML{*
+structure GoalTypData : GOALTYP_DATA = GoalTypDataFun (IsaProver);
+structure Class : CLASS = ClassFun (GoalTypData);
+structure Link : LINK = LinkFun(structure GoalTypData = GoalTypData structure Prover = IsaProver);
+structure GoalTyp = GoalTypFun(structure Link = Link structure Class = Class);
+structure GoalTypJson = GoalTypJsonFun  (structure GoalTyp: GOAL_TYP = GoalTyp
+                                         structure Link : LINK = Link
+                                         structure Class : CLASS = Class
+                                         structure GoalTypData : GOALTYP_DATA = GoalTypData
+                                         structure Prover : PROVER = IsaProver);
+*}
+
 ML{*
 (*
   fun feature_to_json f = x;

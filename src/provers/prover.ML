@@ -1,3 +1,13 @@
+signature PROVER_SHARING =
+sig
+  type pos
+  type typ
+  type term 
+  type thm
+  type context
+  type tactic
+end
+
 signature PROVER =
 sig
   type pos
@@ -29,12 +39,15 @@ sig
   val pretty_trm : context -> term -> Pretty.T
 
   val concl_of_thm : thm -> term
-
-
-
-
   
  (* val get_goal : context -> T ->  (context * term)*)
   
+  structure Sharing : PROVER_SHARING
+    sharing type Sharing.pos = pos
+    sharing type Sharing.typ = typ
+    sharing type Sharing.term = term 
+    sharing type Sharing.thm = thm
+    sharing type Sharing.context = context
+    sharing type Sharing.tactic = tactic 
 end;
 
