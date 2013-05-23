@@ -75,6 +75,10 @@ val graph = EData.get_graph edata;
 val [a,b,c,d] = EVal.EGraph.Util.all_rtechns graph;
 *}
 
+(*
+
+
+
 (* test instantiation *)
 ML{*
 structure Theory = EData.PSGraph.PSTheory.PS_Theory;

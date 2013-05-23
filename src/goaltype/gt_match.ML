@@ -1,4 +1,4 @@
-signature GT_MATCH =
+signature GOALTYP_MATCH =
 sig
   structure GoalTyp : GOAL_TYP 
   structure Atomic : ATOMIC
@@ -15,6 +15,9 @@ sig
   val cfmatch : F.name -> GoalTyp.Link.Class.GTData.data list -> GoalTyp.Link.Class.GTData.GProver.term -> bool
   val lfmatch : GoalTyp.Link.lkey -> GoalTyp.Link.Class.GTData.data list
                          -> (GoalTyp.Link.Class.T * GoalTyp.Link.Class.T) -> bool
+
+  val match : GoalTyp.T -> GNode.T -> Atomic.pplan -> bool
+  val lift : GoalTyp.T -> GNode.T -> Atomic.pnode -> GNode.T option
  
 
 end (* signature *)

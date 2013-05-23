@@ -1,6 +1,15 @@
 TO DO:
 
-1) order function for data. Rule.mk not terminated - did hack of commenting out some code in quanto *)
+1) order function for data. Rule.mk not terminated - the following hack in 
+       quantomatic/core/rewriting/rule.ML for Rule.mk required:
+
+      in (Rule { lhs = lhs, rhs = rhs',
+                lhs_aut = lhsauts,
+                selfapps = [] (* GG: filterorbits lhsba [] *),
+                order = [] (* GG: gen_order lhs lhsauts
+                                  V.NSet.empty V.NSet.empty *) },
+          (vrn,ern))
+
 1) eval data [hard] -- GG started
     -> started generalised into ATOMIC.ML signature (combined with prf?)
     -> have done eval_data and eval_appf

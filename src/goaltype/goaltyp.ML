@@ -5,6 +5,7 @@ sig
 
   type T
   structure Link : LINK
+  structure Class : CLASS
    
   val top : T
   val get_name : T -> G.name

@@ -30,6 +30,9 @@ sig
 
   val concl_of_thm : thm -> term
 
+
+
+
   
  (* val get_goal : context -> T ->  (context * term)*)
   
