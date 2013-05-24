@@ -1,9 +1,7 @@
 signature EVAL_DATA =
 sig 
   (* add sharing constraints *)
-  structure Atomic : ATOMIC
   structure PSGraph : PS_GRAPH
-  sharing type Atomic.tactic = PSGraph.tactic
 
   type branch
   type active
@@ -12,39 +10,39 @@ sig
    (* initialisations *)
   val init : 
     PSGraph.T 
-    -> Atomic.pplan 
-    -> Atomic.pnode StrName.NTab.T 
+    -> PSGraph.Atomic.pplan 
+    -> PSGraph.Atomic.pnode StrName.NTab.T 
     -> V.name list
     -> T
 
   (* get methods *)
   val get_psgraph : T -> PSGraph.T  
-  val get_pplan : T -> Atomic.pplan
-  val get_goals : T -> Atomic.pnode StrName.NTab.T
+  val get_pplan : T -> PSGraph.Atomic.pplan
+  val get_goals : T -> PSGraph.Atomic.pnode StrName.NTab.T
   val get_vertices : T -> V.name list
   val get_graph : T -> PSGraph.PSTheory.PS_Theory.Graph.T
 
   (* more get methods *)
-  val lookup_goal : T -> string -> Atomic.pnode option
-  val get_goal : T -> string -> Atomic.pnode
-  val lookup_tactic : T -> string -> Atomic.tactic option
-  val get_tactic : T -> string -> Atomic.tactic
+  val lookup_goal : T -> string -> PSGraph.Atomic.pnode option
+  val get_goal : T -> string -> PSGraph.Atomic.pnode
+  val lookup_tactic : T -> string -> PSGraph.Atomic.tactic option
+  val get_tactic : T -> string -> PSGraph.Atomic.tactic
 
   (* set methods *)
   val set_psgraph : PSGraph.T -> T -> T
-  val set_pplan : Atomic.pplan -> T -> T
-  val set_goals : Atomic.pnode StrName.NTab.T -> T -> T
+  val set_pplan : PSGraph.Atomic.pplan -> T -> T
+  val set_goals : PSGraph.Atomic.pnode StrName.NTab.T -> T -> T
   val set_vertices : V.name list -> T -> T
   val set_graph : PSGraph.PSTheory.PS_Theory.Graph.T -> T -> T
 
   (* update methods *)
   val update_psgraph : (PSGraph.T -> PSGraph.T) -> T -> T
-  val update_pplan : (Atomic.pplan -> Atomic.pplan) -> T -> T
-  val update_goals : (Atomic.pnode StrName.NTab.T -> Atomic.pnode StrName.NTab.T)  -> T -> T
+  val update_pplan : (PSGraph.Atomic.pplan -> PSGraph.Atomic.pplan) -> T -> T
+  val update_goals : (PSGraph.Atomic.pnode StrName.NTab.T -> PSGraph.Atomic.pnode StrName.NTab.T)  -> T -> T
   val update_graph : (PSGraph.PSTheory.PS_Theory.Graph.T -> PSGraph.PSTheory.PS_Theory.Graph.T) -> T -> T
   val update_vertices : (V.name list -> V.name list) -> T -> T
 
-  val add_goals : Atomic.pnode list -> T -> T
+  val add_goals : PSGraph.Atomic.pnode list -> T -> T
 
   (* push and pop methods for parent? *)
 
@@ -56,12 +54,9 @@ end (* signature *)
 
 
 
-functor EDataFun(structure Atomic : ATOMIC
-                 structure PSGraph : PS_GRAPH
-                 sharing type Atomic.tactic = PSGraph.tactic) : EVAL_DATA  =
+functor EDataFun(structure PSGraph : PS_GRAPH) : EVAL_DATA  =
 struct
 
-  structure Atomic = Atomic;
   structure PSGraph = PSGraph;
 
   datatype active = Active of {
@@ -71,8 +66,8 @@ struct
   }
   datatype branch = Branch of {
     active : active,
-    pplan : Atomic.pplan,
-    goals : Atomic.pnode StrName.NTab.T
+    pplan : PSGraph.Atomic.pplan,
+    goals : PSGraph.Atomic.pnode StrName.NTab.T
   }
   (* todo : should we keep the previous Edata  too?*)
   datatype T = EData of { 
@@ -158,7 +153,7 @@ struct
   fun init psgraph prf goals vs  =
     EData {psgraph = psgraph, current = init_branch prf (PSGraph.get_graph psgraph) goals vs, branches = []};
 
-  fun ins_tab pnode = StrName.NTab.ins (Atomic.get_pnode_name pnode,pnode);
+  fun ins_tab pnode = StrName.NTab.ins (PSGraph.Atomic.get_pnode_name pnode,pnode);
   val lookup_goal = StrName.NTab.lookup o get_goals;
   val get_goal = StrName.NTab.get o get_goals;
   fun add_goal pnode = update_goals (ins_tab pnode)

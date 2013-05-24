@@ -2,7 +2,7 @@
 theory Graph                                                                                             
 imports         
   RTechn                          
-  GoalTyp                                                
+  GoalTyp                                                            
   "~~/contrib/quantomatic/core/isabelle/QuantoCore"                                                         
 uses
   "../../../graph/graph_comb.ML" (* generic for graphs - move to quantomatic? *)

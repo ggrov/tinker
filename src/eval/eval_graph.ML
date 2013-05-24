@@ -8,7 +8,7 @@ end
 functor EvalGraphFun(EData : EVAL_DATA) =
 struct
   structure EData = EData;
-  structure Atomic = EData.Atomic;
+  structure Atomic = EData.PSGraph.Atomic;
   structure Theory = EData.PSGraph.PSTheory.PS_Theory;
   structure Graph = Theory.Graph;
   structure GData = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData;

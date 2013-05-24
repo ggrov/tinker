@@ -1,6 +1,6 @@
 signature GRAPH_SUBST_DATA =
 sig
-  structure GoalTyp : GENERIC_GOALTYPE
+  structure GoalTyp : BASIC_GOALTYPE
 
   datatype gnode = GN_Node of GoalTyp.gnode 
                  | GN_Var of string (* single goalnode variable *)
@@ -16,7 +16,7 @@ sig
                  | EVar of string (* variable of goalnode *)
 
   datatype subst = Subst of { vertex : vdata StrName.NTab.T,
-                              gnode : GNode.T StrName.NTab.T,
+                              gnode : GoalTyp.gnode StrName.NTab.T,
                               edge : edata StrName.NTab.T }
 
   val gnode_eq : gnode * gnode -> bool
@@ -31,11 +31,11 @@ sig
   
   val add_vsubst : (string * vdata) -> subst -> subst
   val add_esubst : (string * edata) -> subst -> subst
-  val add_gsubst : (string * GNode.T) -> subst -> subst
+  val add_gsubst : (string * GoalTyp.gnode) -> subst -> subst
 
   val lookup_vsubst : subst -> string -> vdata option
   val lookup_esubst : subst -> string -> edata option
-  val lookup_gsubst : subst -> string -> GNode.T option
+  val lookup_gsubst : subst -> string -> GoalTyp.gnode option
 
   val pretty_gnode : gnode -> Pretty.T 
   val pretty_vdata : vdata -> Pretty.T
@@ -48,18 +48,18 @@ sig
 end
 
 (* combine data to allow substitutions on both vertex and edge *)
-functor GraphSubstDataFun (GoalTyp : GENERIC_GOALTYPE) : GRAPH_SUBST_DATA
+functor GraphSubstDataFun (GoalTyp : BASIC_GOALTYPE) : GRAPH_SUBST_DATA
 = struct
 
   (* fixme: need to be generalised, e.g. want to have ?g::?gs *)
-  datatype gnode' = tGn of GNode.T
+  (* datatype gnode' = tGn of GNode.T
                   | tL of gnode' list
-                  | tV of string
+                  | tV of string *)
    (* then we can get rid of gvar! *)
   
   structure GoalTyp = GoalTyp;
 
-  datatype gnode = GN_Node of GNode.T 
+  datatype gnode = GN_Node of GoalTyp.gnode
                  | GN_Var of string (* single goalnode variable *)
 
   (* TO DO: allow variables inside a rtechn? *)
@@ -72,7 +72,7 @@ functor GraphSubstDataFun (GoalTyp : GENERIC_GOALTYPE) : GRAPH_SUBST_DATA
   datatype edata = GT of GoalTyp.T
                  | EVar of string (* variable of goalnode *)
 
-  fun gnode_ord (GN_Node g1 ,GN_Node g2) = String.compare (GNode.get_goal g1,GNode.get_goal g2)
+  fun gnode_ord (GN_Node g1 ,GN_Node g2) = GoalTyp.gnode_ord(g1,g2)
    |  gnode_ord (GN_Var s1,GN_Var s2) = String.compare (s1,s2)
    |  gnode_ord (GN_Node _,GN_Var _) = GREATER
    |  gnode_ord (GN_Var _,GN_Node _) = LESS
@@ -113,7 +113,7 @@ functor GraphSubstDataFun (GoalTyp : GENERIC_GOALTYPE) : GRAPH_SUBST_DATA
           | _ => false);
 
   datatype subst = Subst of { vertex : vdata StrName.NTab.T,
-                              gnode : GNode.T StrName.NTab.T,
+                              gnode : GoalTyp.gnode StrName.NTab.T,
                               edge : edata StrName.NTab.T }
 
   fun add_vsubst (n,v) (Subst subst) = 
@@ -143,12 +143,12 @@ functor GraphSubstDataFun (GoalTyp : GENERIC_GOALTYPE) : GRAPH_SUBST_DATA
 
   fun compose_subst (Subst s1,Subst s2) =
     Subst { vertex = StrName.NTab.merge_joint vdata_eq (#vertex s1) (#vertex s2),
-            gnode = StrName.NTab.merge_joint GNode.eq (#gnode s1) (#gnode s2),
+            gnode = StrName.NTab.merge_joint GoalTyp.gnode_eq (#gnode s1) (#gnode s2),
             edge = StrName.NTab.merge_joint edata_eq (#edge s1) (#edge s2)};
 
   (* pretty printing *)
 
-  fun pretty_gnode (GN_Node gn) = GNode.pretty gn 
+  fun pretty_gnode (GN_Node gn) = GoalTyp.pretty_gnode gn 
    |  pretty_gnode (GN_Var s) = Pretty.str ("?GN_" ^ s);
   val print_gnode = Pretty.writeln o pretty_gnode;
 
@@ -158,13 +158,13 @@ functor GraphSubstDataFun (GoalTyp : GENERIC_GOALTYPE) : GRAPH_SUBST_DATA
    |  pretty_vdata (GVar s) = Pretty.str ("?GL_" ^ s);
   val print_vdata = Pretty.writeln o pretty_vdata;
 
-  fun pretty_edata (GT gt) = G.pretty_name (GoalTyp.get_name gt)
+  fun pretty_edata (GT gt) = GoalTyp.pretty gt
    |  pretty_edata (EVar v) = Pretty.str ("?" ^ v)
   val print_edata = Pretty.writeln o pretty_edata;
 
   fun pretty_subst (Subst {vertex,gnode,edge}) =
     Pretty.block [Pretty.str "vertex subst: ",StrName.NTab.pretty pretty_vdata vertex,
-                  Pretty.str "gnode subst: ",StrName.NTab.pretty GNode.pretty gnode, 
+                  Pretty.str "gnode subst: ",StrName.NTab.pretty GoalTyp.pretty_gnode gnode, 
                   Pretty.str "edge subst: ",StrName.NTab.pretty pretty_edata edge];
   val print_subst = Pretty.writeln o pretty_subst;  
 end;

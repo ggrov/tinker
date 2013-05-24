@@ -2,12 +2,9 @@ structure BIsaAtomic : ATOMIC =
 struct
   type fact = Thm.thm
 
-  type pnode = string * Thm.thm
-  datatype pplan' = Closed of pnode * (pplan list)
-                  | Open of pnode (* string is the name *)
-  
-  datatype pplan = StrName.NSet.T * pplan'
-
+  type pnode = string
+  datatype pplan = Thm.thm * string list
+    
   type tactic = Proof.context -> Tactical.tactic
 
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq

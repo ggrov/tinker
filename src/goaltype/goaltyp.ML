@@ -7,7 +7,6 @@ end
 
 signature GOAL_TYP = 
 sig
-
   type T
   structure Link : LINK
   structure Class : CLASS

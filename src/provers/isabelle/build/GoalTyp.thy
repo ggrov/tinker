@@ -1,11 +1,12 @@
 (* simple test of proof representation *)
 theory GoalTyp 
 imports                
- "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                           
+ "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                               
 uses
+  "../../../rtechn_names.ML" 
   "../../prover.ML"  
   "../../atomic.ML"
-  "../../../rtechn_names.ML"   
+  "../../../goaltype/basic_goaltyp.ML"    
   "../../../goaltype/goaltyp_data.ML"
   "../../match_param.ML"
   "../../../goaltype/class.ML"  

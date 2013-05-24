@@ -2,45 +2,46 @@ signature EVAL_ATOMIC =
 sig
   structure EData : EVAL_DATA
 
-  exception partition_exp of EData.Atomic.pnode
- 
+  exception partition_exp of EData.PSGraph.Atomic.pnode
+
   val partition : 
-     EData.Atomic.pnode list (* new proof nodes *)
-     -> GNode.T (* old gnode [parent] *)
+     EData.PSGraph.Atomic.pnode list (* new proof nodes *)
+     -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode (* old gnode [parent] *)
      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T list (* output types *)
-     -> GNode.T list list list (* one list for each goal type - outer when non-orthogonal outputs *)
+     -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode list list list (* one list for each goal type - outer when non-orthogonal outputs *)
 
   val partition_to_gnodes : 
-   GNode.T list list  
+   EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode list list  
    -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.vdata  list
 
   val apply_atomic : 
         EData.T 
-      -> GNode.T (* the goal node  *)
+      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode (* the goal node  *)
       -> RTechn.T (* application function *)
       -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T list (* outputs *)
-      -> (EData.T * GNode.T list list list) Seq.seq
+      -> (EData.T * EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode list list list) Seq.seq
 
   val apply_appf : 
         EData.T 
-      -> GNode.T (* the goal node  *)
+      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode (* the goal node  *)
       -> RTechn.atomic (* application function *)
-      -> (EData.Atomic.pnode list * EData.Atomic.pplan) Seq.seq
+      -> (EData.PSGraph.Atomic.pnode list * EData.PSGraph.Atomic.pplan) Seq.seq
 
   val apply_tactic :
         EData.T 
-      -> GNode.T (* the goal node *)
+      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode (* the goal node *)
       -> string (* the name of the tactic *)
       -> RTechn.tac_assms (* tactic assumption *)
-      -> (EData.Atomic.pnode list * EData.Atomic.pplan) Seq.seq
+      -> (EData.PSGraph.Atomic.pnode list * EData.PSGraph.Atomic.pplan) Seq.seq
 
 end
 
 functor EvalAtomicFun(EData : EVAL_DATA) : EVAL_ATOMIC =
 struct
   structure EData = EData;
-  structure Atomic = EData.Atomic;
+  structure Atomic = EData.PSGraph.Atomic;
   structure GData = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData
+  structure GoalTyp = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp;
 
   exception no_such_fact of string
   exception eval_appf_exp of string;
@@ -65,14 +66,14 @@ struct
 
   fun fact_seq_of_gnode edata gnode fact_nms =
     let 
-      val pnode = EData.get_goal edata (GNode.get_goal gnode)
+      val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
     in
      Seq.of_list (fact_list pnode fact_nms)
     end;
 
   fun apply_tactic edata gnode tac_name RTechn.TNoAsm = 
        let 
-         val pnode = EData.get_goal edata (GNode.get_goal gnode)
+         val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
          val pplan = EData.get_pplan edata
          val tac = EData.get_tactic edata tac_name
        in 
@@ -80,7 +81,7 @@ struct
        end
    |  apply_tactic edata gnode tac_name RTechn.TAllAsm = 
        let 
-         val pnode = EData.get_goal edata (GNode.get_goal gnode)
+         val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
          val pplan = EData.get_pplan edata
          val tac = EData.get_tactic edata tac_name
          val facts = Atomic.get_all_facts pnode
@@ -89,10 +90,10 @@ struct
        end
    |  apply_tactic edata gnode tac_name (RTechn.TClass class_nms) =
        let 
-         val pnode = EData.get_goal edata (GNode.get_goal gnode)
+         val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
          val pplan = EData.get_pplan edata
          val tac = EData.get_tactic edata tac_name
-         fun lookup_fact fname = case GNode.lookup_fact_names fname gnode
+         fun lookup_fact fname = case GoalTyp.lookup_fact_names fname gnode
                                   of NONE => StrName.NSet.empty
                                    | (SOME ns) => ns
          (* combines names of facts from all classes *)
@@ -108,7 +109,7 @@ struct
 
   fun apply_appf edata gnode (RTechn.Rule fact_nms) =
         let 
-          val pnode = EData.get_goal edata (GNode.get_goal gnode)
+          val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
           val pplan = EData.get_pplan edata
           val facts = fact_seq pnode fact_nms
         in
@@ -116,7 +117,7 @@ struct
         end
     |  apply_appf edata gnode (RTechn.ERule fact_nms) =
         let 
-          val pnode = EData.get_goal edata (GNode.get_goal gnode)
+          val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
           val pplan = EData.get_pplan edata
           val facts = fact_seq pnode fact_nms
         in
@@ -124,9 +125,9 @@ struct
         end
    |  apply_appf edata gnode (RTechn.FRule (class_nm,fact_nms)) =
         let 
-          val pnode = EData.get_goal edata (GNode.get_goal gnode)
+          val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
           val pplan = EData.get_pplan edata
-          val hyps = GNode.get_fact_names class_nm gnode 
+          val hyps = GoalTyp.get_fact_names class_nm gnode 
                      |> fact_seq pnode 
           val facts = fact_seq pnode fact_nms
           (* one application of a frule of a fact to a hyp *)
@@ -138,7 +139,7 @@ struct
         end
    |  apply_appf edata gnode (RTechn.Subst fact_nms) = 
         let 
-          val pnode = EData.get_goal edata (GNode.get_goal gnode)
+          val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
           val pplan = EData.get_pplan edata
           val facts = fact_seq pnode fact_nms
         in
@@ -146,9 +147,9 @@ struct
         end
    |  apply_appf edata gnode (RTechn.SubstAsm (class_nm,fact_nms)) =  (* why not a wire? *)
          let 
-          val pnode = EData.get_goal edata (GNode.get_goal gnode)
+          val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
           val pplan = EData.get_pplan edata
-          val hyps = GNode.get_fact_names class_nm gnode 
+          val hyps = GoalTyp.get_fact_names class_nm gnode 
                      |> fact_seq pnode 
           val eqs = fact_seq pnode fact_nms
           (* one application of subst of a eq to a fact *)

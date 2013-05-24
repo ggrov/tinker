@@ -8,7 +8,7 @@ sig
   
 end
 
-functor PSGraphParamFun(GoalTyp : GOAL_TYP) : PS_GRAPH_PARAM
+functor PSGraphParamFun(GoalTyp : BASIC_GOALTYPE) : PS_GRAPH_PARAM
 = struct
 
   structure GraphSubstData = GraphSubstDataFun(GoalTyp);

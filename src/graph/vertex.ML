@@ -10,6 +10,7 @@ functor PSVertexDataFun(GraphSubstData : GRAPH_SUBST_DATA) : PS_VERTEX
 = struct
   structure GraphSubstData = GraphSubstData;
   structure GSD = GraphSubstData;
+  structure GT = GraphSubstData.GoalTyp;
 
   type data = GSD.vdata;
   val data_ord = GSD.vdata_ord;
@@ -24,12 +25,12 @@ functor PSVertexDataFun(GraphSubstData : GRAPH_SUBST_DATA) : PS_VERTEX
 
 
   fun match_gnode (GSD.GN_Node g1,GSD.GN_Node g2) subst =
-         if GNode.eq(g1,g2) then SOME subst else NONE
+         if GT.gnode_eq(g1,g2) then SOME subst else NONE
    |  match_gnode (GSD.GN_Node _,_) _ = NONE
    |  match_gnode (GSD.GN_Var v,GSD.GN_Node g) subst = 
         (case GSD.lookup_gsubst subst v of
           NONE => SOME (GSD.add_gsubst (v,g) subst)
-        | (SOME g') => if GNode.eq(g,g') then SOME subst else NONE)
+        | (SOME g') => if GT.gnode_eq(g,g') then SOME subst else NONE)
    |  match_gnode (GSD.GN_Var v1,GSD.GN_Var v2) subst = NONE
 
   fun match_gnodel ([],[]) subst = SOME subst

@@ -2,8 +2,8 @@
 signature PS_GRAPH =
 sig
   structure PSTheory : PS_THEORY 
+  structure Atomic : ATOMIC
   type T
-  type tactic = PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Link.GoalTypData.Prover.tactic
 
   val empty : T
   val of_graph : PSTheory.PS_Theory.Graph.T -> T
@@ -13,14 +13,14 @@ sig
   val get_g_tacs : T -> PSTheory.PS_Theory.Graph.T StrName.NTab.T
   val get_or_tacs : T -> (PSTheory.PS_Theory.Graph.T list) StrName.NTab.T
   val get_orelse_tacs : T -> (PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T
-  val get_atomics : T -> tactic StrName.NTab.T
+  val get_atomics : T -> Atomic.tactic StrName.NTab.T
 
   (* set methods *)
   val set_graph : PSTheory.PS_Theory.Graph.T -> T -> T 
   val set_g_tacs : PSTheory.PS_Theory.Graph.T StrName.NTab.T -> T -> T 
   val set_or_tacs : (PSTheory.PS_Theory.Graph.T list) StrName.NTab.T -> T -> T 
   val set_orelse_tacs : (PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T -> T -> T 
-  val set_atomics : tactic StrName.NTab.T -> T -> T 
+  val set_atomics : Atomic.tactic StrName.NTab.T -> T -> T 
 
   (* update methods *)
   val update_graph : (PSTheory.PS_Theory.Graph.T -> PSTheory.PS_Theory.Graph.T) -> T -> T 
@@ -34,22 +34,21 @@ sig
        ((PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T 
        -> (PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T) 
        -> T -> T 
-  val update_atomics : (tactic StrName.NTab.T -> tactic StrName.NTab.T) -> T -> T 
+  val update_atomics : (Atomic.tactic StrName.NTab.T -> Atomic.tactic StrName.NTab.T) -> T -> T 
 
   (* fresh name generation *)
   val fresh_name : T -> StrName.name -> StrName.name
 
 end
 
-functor PSGraphFun(PSTheory : PS_THEORY) : PS_GRAPH =
+functor PSGraphFun(structure PSTheory : PS_THEORY
+                   structure Atomic : ATOMIC) : PS_GRAPH =
 struct
 
    structure PSTheory = PSTheory;
    structure PS_Theory = PSTheory.PS_Theory;
+   structure Atomic = Atomic;
    
-   (* may need to try to avoid this nesting ... *)
-   type tactic = PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Link.GoalTypData.Prover.tactic
-
    (* no longer uses underlying storage of data in isabelle? *)
    datatype T = PSGraph of {
         graph : PS_Theory.Graph.T,
@@ -57,7 +56,7 @@ struct
         or_tacs : (PS_Theory.Graph.T list) StrName.NTab.T,
         orelse_tacs : (PS_Theory.Graph.T * PS_Theory.Graph.T) StrName.NTab.T, (* (try,orelse) *)
         (* fixme: should depend on underlying theorem prover *)
-        atomics : tactic StrName.NTab.T
+        atomics : Atomic.tactic StrName.NTab.T
     }
 
    fun update_graph f (PSGraph rep) = PSGraph

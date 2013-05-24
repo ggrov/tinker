@@ -62,7 +62,7 @@ functor PSEdgeDataFun(GraphSubstData : GRAPH_SUBST_DATA) : PS_EDGE
     fun cdata_of d = 
       ComponentData.String (Pretty.string_of (pretty_data d));
   
-    fun default_data "GT" = GSD.GT (GoalTyp.top)
+    fun default_data "GT" = GSD.GT (GoalTyp.default)
       | default_data "EVar" = GSD.EVar "v"
       | default_data s = raise unknown_type_exp s;
 
