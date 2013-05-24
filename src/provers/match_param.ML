@@ -1,25 +1,26 @@
+signature MATCH_PARAM_SHARING =
+sig
+  structure GoalTypData : GOALTYP_DATA_SHARING
+  structure Prover : PROVER_SHARING
+end
+
 signature MATCH_PARAM =
 sig
-  structure GData : GT_DATA
+  structure GoalTypData : GOALTYP_DATA
+  structure Prover : PROVER
 
   exception class_match_exp of string * C.name
   exception link_match_exp of string * L.name
 
-  val class_match : 
-    C.name (* name of class *)
-    -> GData.Prover.context 
-    -> GData.Prover.term (* one element of the class *)
-    -> GData.data 
-    -> bool (* raises link_match_exp *)
-
-  val link_match : 
-     L.name 
-     -> GData.Prover.context 
-     -> GData.Prover.term * GData.Prover.term 
-     -> GData.data 
-     -> bool (* raises link_match_exp *)
+  val class_data_match : F.name -> Prover.context -> Prover.term -> GoalTypData.data list -> bool
+  val link_data_match :  F.name ->  Prover.context -> (Prover.term * Prover.term) -> GoalTypData.data list -> bool
+  
+  structure Sharing : MATCH_PARAM_SHARING
+    sharing Sharing.GoalTypData = GoalTypData
+    sharing Sharing.Prover = Prover 
 end;
 
+(*
 functor ProverMatchFun(structure Prover : PROVER
                        structure Atomic : ATOMIC) : MATCH_PARAM =
 struct
@@ -32,5 +33,5 @@ struct
   fun 
 
 
-end (* *)
-
+end 
+*)

@@ -1,9 +1,19 @@
+signature ATOMIC_SHARING =
+sig
+  type fact
+  type tactic 
+  type pplan
+  type pnode
+  type context
+end
+
 signature ATOMIC =
 sig
   type fact
   type tactic 
   type pplan
   type pnode
+  type context
 
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
@@ -26,6 +36,13 @@ sig
 
   val get_pnode_name : pnode -> string
   val get_pnode_goal : pnode -> fact (* note that if the goal is A, then this will return A => A or [...] => A*)
-  
+  val get_pnode_ctxt : pnode -> context
+
+  structure Sharing : ATOMIC_SHARING
+    sharing type Sharing.fact = fact
+    sharing type Sharing.tactic = tactic
+    sharing type Sharing.pplan = pplan
+    sharing type Sharing.pnode = pnode
+    sharing type Sharing.context = context
 end;
 

@@ -1,45 +1,210 @@
+signature GOALTYP_MATCH_SHARING =
+sig
+  structure GoalTyp: GOAL_TYP_SHARING
+  structure Link : LINK_SHARING
+  structure Class : CLASS_SHARING
+  structure GoalTypData : GOALTYP_DATA_SHARING
+  structure Prover : PROVER_SHARING
+  structure MatchParam : MATCH_PARAM_SHARING
+ (* structure Atomic : ATOMIC_SHARING  maybe not *)
+end
+
 signature GOALTYP_MATCH =
 sig
   structure GoalTyp : GOAL_TYP 
+  structure Link : LINK
+  structure Class : CLASS
+  structure GoalTypData : GOALTYP_DATA
+  structure Prover : PROVER
   structure Atomic : ATOMIC
+  structure MatchParam : MATCH_PARAM
+  sharing GoalTypData.Sharing = Link.Sharing.GoalTypData
+  sharing GoalTypData.Sharing = Class.Sharing.GoalTypData
+  sharing GoalTypData.Sharing = MatchParam.Sharing.GoalTypData
+  sharing Link.Sharing = GoalTyp.Sharing.Link
+  sharing Class.Sharing = GoalTyp.Sharing.Class
+  sharing Prover.Sharing = GoalTypData.Sharing.Prover
+  sharing Prover.Sharing = MatchParam.Sharing.Prover
+  sharing type Atomic.Sharing.context = Prover.Sharing.context
+  sharing type Atomic.Sharing.fact = Prover.Sharing.thm (* FIXME sounds bad, very hacky*)
 
-  exception lfmatch_exp of string * F.name (* links *)
-  exception cfmatch_exp of string * F.name (* classes *)
+  exception class_match_exp of string * C.name
+  exception link_match_exp of string * L.name
+                     
+  val class_match : Class.T-> Prover.context -> Prover.term -> bool
 
-  val class_fmathcher_tab : (GoalTyp.Link.Class.GTData.data list -> GoalTyp.Link.Class.GTData.GProver.term -> bool) F.NTab.T  
-  val link_fmatcher_tab :  (GoalTyp.Link.Class.GTData.data list
-                         -> (GoalTyp.Link.Class.T * GoalTyp.Link.Class.T) 
-                         -> bool) 
-                      GoalTyp.Link.linkTbl 
+  val link_data_ll_match : F.name -> Prover.context 
+                              -> Prover.term list -> Prover.term list
+                              -> GoalTypData.data list list -> bool
+(*  val link_data_ll_match' : F.name -> Prover.context 
+                               -> Prover.term list -> Prover.term list
+                               -> GoalTypData.data list -> (Prover.term * Prover.term) list option*)
 
-  val cfmatch : F.name -> GoalTyp.Link.Class.GTData.data list -> GoalTyp.Link.Class.GTData.GProver.term -> bool
-  val lfmatch : GoalTyp.Link.lkey -> GoalTyp.Link.Class.GTData.data list
-                         -> (GoalTyp.Link.Class.T * GoalTyp.Link.Class.T) -> bool
-
-  val match : GoalTyp.T -> GNode.T -> Atomic.pplan -> bool
+  val match : GoalTyp.T -> GNode.T -> Atomic.pnode -> bool
   val lift : GoalTyp.T -> GNode.T -> Atomic.pnode -> GNode.T option
  
+  structure Sharing : GOALTYP_MATCH_SHARING
+    sharing Sharing.GoalTyp = GoalTyp.Sharing
+    sharing Sharing.Link = Link.Sharing
+    sharing Sharing.Class = Class.Sharing
+    sharing Sharing.GoalTypData = GoalTypData.Sharing
+    sharing Sharing.Prover = Prover.Sharing
+    sharing Sharing.MatchParam = MatchParam.Sharing
+    (*sharing Sharing.Atomic = Atomic.Sharing*)
 
 end (* signature *)
 
-functor GTMatchFun (GoalTyp : GOAL_TYP, Atomic : ATOMIC) : GT_MATCH =
+functor GTMatchFun (structure GoalTyp : GOAL_TYP 
+                    structure Link : LINK
+                    structure Class : CLASS
+                    structure GoalTypData : GOALTYP_DATA
+                    structure Prover : PROVER
+                    structure Atomic : ATOMIC
+                    structure MatchParam : MATCH_PARAM
+                    sharing GoalTypData.Sharing = Link.Sharing.GoalTypData
+                    sharing GoalTypData.Sharing = Class.Sharing.GoalTypData
+                    sharing GoalTypData.Sharing = MatchParam.Sharing.GoalTypData
+                    sharing Link.Sharing = GoalTyp.Sharing.Link
+                    sharing Class.Sharing = GoalTyp.Sharing.Class
+                    sharing Prover.Sharing = GoalTypData.Sharing.Prover
+                    sharing Prover.Sharing = MatchParam.Sharing.Prover
+                    sharing type Atomic.Sharing.context = Prover.Sharing.context
+                    sharing type Atomic.Sharing.fact = Prover.Sharing.thm
+                    ) : GOALTYP_MATCH =
 struct
 
   structure GoalTyp = GoalTyp;
+  structure Link = Link;
+  structure Class = Class;
+  structure GoalTypData = GoalTypData;
   structure Atomic = Atomic;
+  structure Prover = Prover;  
+  structure MatchParam = MatchParam;
 
-  exception lfmatch_exp of string * F.name (* links *)
-  exception cfmatch_exp of string * F.name (* classes *)
 
-  val class_fmathcher_tab = F.NTab.T.empty (* FIXME: add matcher *)
-  val link_fmatcher_tab =  GoalTyp.Link.linkTbl.empty (* FIXME: add matcher *)
+  exception class_match_exp of string * C.name
+  exception link_match_exp of string * L.name
 
-  fun cfmatch fname = F.NTab.get fmathcher_tab fname
-  handle _ => raise fmatch_exp ("class not supported",fname);
 
-  fun lfmatch lkey = GoalTyp.Link.linkTbl.get link_fmatcher_tab lkey
-  handle => raise lmatch_exp ("link not supported",lname);
+  val class_data_match = MatchParam.class_data_match
+  val link_data_match = MatchParam.link_data_match
 
+  fun class_match class ctxt trm = 
+    let 
+      fun matches (data :: datal) fname =  
+            if class_data_match fname ctxt trm data 
+            then true 
+            else matches datal fname
+        | matches [] fname = false;
+      fun strip_some (SOME x) = x
+    in
+      map (fn fname => matches (Class.get_item fname class |> strip_some) fname) (Class.get_keys class)
+      |> filter (fn x => x = false)
+      |> (fn x => (case x of [] => true | _ => false))
+    end
+(*
+  val link_match : Link.T -> Prover.context -> (Prover.term * Prover.term) -> bool
+  val link_match' : Link.T -> Prover.context -> Prover.term list -> Prover.term list -> (Prover.term * Prover.term) list
+*)
+ 
+ fun link_data_ll_match' fname (ctxt : Prover.context) (tl1 : Prover.term list) (tl2 : Prover.term list) datal =
+   let
+      fun link_match0 name (t1, t2) =
+        let 
+          fun matches (data :: dl) =  
+                if link_data_match name ctxt (t1,t2) data 
+                then true 
+                else matches dl
+            | matches [] = false;
+          fun strip_some (SOME x) = x
+        in
+          matches datal
+        end
+      fun merge_pair (x, (y :: ys)) l = merge_pair (x, ys) [(x, y)] @ l
+        | merge_pair (x, []) l = l
+  in
+      map
+        (fn x => 
+          (filter (fn y => link_match0 fname (x,y)) tl2 (* filter the matched terms for x in tl2 *)
+          |> (fn p => (x,p)))) (* pair them *)
+        tl1
+      (* get a list of pair which matches, e.g.[(a,l1)] where a is the term, l1 conatins terms which matches a1
+         now we need to filter thoes pairs where l1 is empty. 
+         Also we need to change the type from (term * term list) list to (term * term) list *)
+      |> filter (fn (x,y) => (case y of [] => false | _ => true))
+      |> (fn l => fold merge_pair l [])
+      |> (fn x => case x of [] => NONE | _ => SOME x)
+    end
+
+  fun link_data_ll_match fname ctxt tl1 tl2 dl= case link_data_ll_match' fname ctxt tl1 tl2 dl of NONE => false | _ => true
+
+ 
+ (* 
+  val match : GoalTyp.T -> GNode.T -> Atomic.pnode -> bool
+  val lift : GoalTyp.T -> GNode.T -> Atomic.pnode -> GNode.T option
+ *)
+  fun lift gtyp gnode pnode =       
+    let
+      val gterm = Atomic.get_pnode_goal pnode (* fact of pnode goal *) (* FIXME: what happen if in the middle of proof *)
+                  |> Prover.concl_of_thm; (* goal term *)
+      val ctxt = Atomic.get_pnode_ctxt pnode
+    in
+      if class_match (GoalTyp.get_gclass gtyp) ctxt gterm (* check if the goal class fits*) 
+        then 
+          (let 
+             val cname_factList = (* a list of pair (cname, facts list), *)
+               map (fn cls => (
+                                (filter (fn y => snd y |> class_match cls ctxt) 
+                                (* facts list : (name * trm) list*)
+                                (map (fn x => (fst x, Prover.trm_of_thm (snd x))) 
+                                  (Atomic.get_all_name_facts pnode))) 
+                                (* a list of facts ((name * trm) list) which fits class c*)
+                                |> map fst (* project only facts name*)
+                                |> (fn x => (Class.get_name cls, x))
+                              )
+                   ) (* cname * name list*)
+                 (GoalTyp.get_facts gtyp);
+             val if_empty = (map snd cname_factList) 
+                                  |> (fn x => case x of [] => true | _ => false)
+           in
+             if if_empty (* check if all class are binded with facts*)
+             then
+               (let 
+                  val link = GoalTyp.get_link gtyp (* GNode.get_fact_names |> StrName.NSet.list_of *)
+                  fun match_link_item (lkey as (fname, (cname1, cname2))) dl = 
+                    let
+                      fun get_facts_term_list cname =
+                         GNode.get_fact_names cname1 gnode 
+                         |> StrName.NSet.list_of 
+                         |> map 
+                              (fn i => (Atomic.lookup_fact pnode i
+                                        |> (fn x => case x of NONE  => raise link_match_exp ("can't find matched facts", Link.get_name link)
+                                                          | (SOME y) => y)))
+                         |> map Prover.trm_of_thm
+                      val fact_l1 = get_facts_term_list cname1
+                      val fact_l2 =  get_facts_term_list cname2
+                    in
+                      link_data_ll_match fname ctxt fact_l1 fact_l2 dl
+                    end  
+                  fun strip_some (SOME x) = x
+                  val if_link_match = 
+                    map (fn x => match_link_item x (Link.get_item x link |> strip_some)) (Link.get_keys link) (* a list of bool *)
+                    |> filter (fn x => x = false)
+                    |> (fn x => case x of [] => true | _ => false)
+                in
+                  if if_link_match  (* check link *)
+                  then
+                    GNode.mk_goal_no_facts (Atomic.get_pnode_name pnode) 
+                      |> fold GNode.add_facts (map (fn (x,y) => (x,StrName.NSet.of_list y)) cname_factList)
+                      |> GNode.set_parent gnode |> SOME
+                  else NONE
+                end)
+             else NONE
+           end)
+      else NONE
+    end
+
+    fun match gtyp gnode pnode =  case (lift gtyp gnode pnode) of NONE => false | _=> true
 (*
   exception quick_eval_exp
   fun qfold f_exp d f l b  =  
@@ -51,79 +216,15 @@ struct
   handle quick_eval_exp => d;
 *)
 
-  fun match_class class trm = 
-    let 
-      fun matches (x :: xs) fname =  if cfmatch fname x trm then true else matches xs
-        | matches [] fname = false
-    in
-      map (fn name => matches (GoaTyp.Link.Class.get_item name class) name) (GoaTyp.Link.Class.get_keys class)
-      |> filter (fn x => x = false)
-      |> fn x => (case x of [] => true | _ => false)
-    end
-
-  exception match_exp of string
-  (* match link with a list of class *)
-  fun match_link link class_list =
-    let
-      fun get_class cname = 
-        let val ret_l = filter (fn cls => C.name_eq (GoalTyp.Link.Class.get_name cls * cname)) class_list in
-                  if List.length ret_l > 1 then raise match_exp "classes with the same name"
-                  else
-                    (case ret_t of [] => NONE
-                                 | [x] => SOME x)
-        end;
-      fun matches (x :: xs) (l, c1, c2) = 
-          let 
-            val cl1 = get_class c1;
-            val cl2 = get_class c2;
-            val if_cls_exists = case cl1 of NONE => false | _ => (case cl2 of NONE => false | _ => true);
-            fun strip_SOME (SOME x) = x
-          in
-            if if_cls_exists then 
-              if lfmatch (l, c1, c2) x (strip_SOME cl1, strip_SOME cl2) then true else matches xs
-            else false
-          end
-        | matches [] fname = false
-    in
-      map (fn lkey => matches (GoaTyp.Link.get_item lkey link) lkey) (GoaTyp.Link.get_keys link)
-      |> filter (fn x => x = false)
-      |> fn x => (case x of [] => true | _ => false)
-    end
-  
-
-  fun lift gtyp gnode pnode =       
-    let
-      val gterm = Atomic.get_pnode_goal pnode (* fact of pnode goal *) (* FIXME: what happen if in the middle of proof *)
-                  |> GoalTyp.Link.Class.GTData.GProver.concl_of_thm; (* goal term *)
-    in
-      if match_class (GoalTyp.get_gclass gtyp) gterm (* check if the goal class fits*) 
-        then 
-          (let 
-             val cname_facts_list = 
-               map (fn c => (filter (fn y => snd y |> match_class c) 
-                              (map (fn x => (fst x, GoalTyp.Link.Class.GTData.GProver.trm_of_thm (snd x))) 
-                                (get_all_name_facts pnode))) (* facts list : (name * trm) list*)
-                              (* a list of facts ((name * trm) list) which fits class c*)
-                     |> fn x => (GoalTyp.Link.Class.get_name c, fst x)) (* cname * name list*)
-                 (GoaTyp.get_facts gtyp);
-             val if_facts_class = (map snd cname_facts_list) 
-                                  |> filter (fn x => x = false) 
-                                  |> (fn x => case x of [] => true | _ => false)
-           in
-             if if_facts_class (* check if all class are binded with facts*)
-             then
-               (if match_link (GoalTyp.get_link gtyp) (GoalTyp.get_facts gtyp) (* check link *)
-                then
-                  GNode.mk_goal_no_facts (get_pnode_name pnode) 
-                    |> fold GNode.add_facts (map (fn x => snd |> StrName.NSet.of_list) cname_facts_list)
-                    |> GNode.set_parent gnode |> SOME
-                else NONE)
-             else NONE
-           end)
-      else NONE
-    end
-
-
+  structure Sharing =
+  struct
+   structure GoalTyp = GoalTyp.Sharing
+   structure Link = Link.Sharing
+   structure Class = Class.Sharing
+   structure GoalTypData = GoalTypData.Sharing
+   structure Prover = Prover.Sharing
+   structure MatchParam = MatchParam.Sharing
+  end 
 end (* structure *)
 
 
