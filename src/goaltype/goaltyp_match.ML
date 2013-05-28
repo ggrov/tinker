@@ -145,7 +145,7 @@ struct
  *)
   fun lift gtyp gnode pnode =       
     let
-      val gterm = Atomic.get_pnode_goal pnode (* fact of pnode goal *) (* FIXME: what happen if in the middle of proof *)
+      val gterm = Atomic.get_pnode_concl pnode (* fact of pnode goal *) (* FIXME: what happen if in the middle of proof *)
                   |> Prover.concl_of_thm; (* goal term *)
       val ctxt = Atomic.get_pnode_ctxt pnode
     in

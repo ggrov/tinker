@@ -5,6 +5,7 @@ sig
   type pplan
   type pnode
   type context
+  type concl
 end
 
 signature ATOMIC =
@@ -14,6 +15,7 @@ sig
   type pplan
   type pnode
   type context
+  type concl
 
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
@@ -36,7 +38,8 @@ sig
 
   val get_pnode_name : pnode -> string
   (*  TODO: can we give the pplan as arguments as well on these? *)
-  val get_pnode_goal : pnode -> fact (* note that if the goal is A, then this will return A => A or [...] => A*)
+  (* What does this do? is this specific for one particular goal type? *)
+  val get_pnode_concl : pnode -> concl (* note that if the goal is A, then this will return A => A or [...] => A*)
   val get_pnode_ctxt : pnode -> context
 
   structure Sharing : ATOMIC_SHARING
@@ -45,5 +48,6 @@ sig
     sharing type Sharing.pplan = pplan
     sharing type Sharing.pnode = pnode
     sharing type Sharing.context = context
+    sharing type Sharing.concl = concl
 end;
 

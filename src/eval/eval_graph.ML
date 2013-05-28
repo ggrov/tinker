@@ -1,6 +1,6 @@
 signature EVAL_GRAPH =
 sig
-  structure GoalTyp : GOAL_TYP
+  structure GoalTyp : BASIC_GOALTYPE
   structure Atomic : ATOMIC
 
 end

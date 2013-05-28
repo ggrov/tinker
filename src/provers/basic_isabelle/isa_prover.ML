@@ -35,4 +35,15 @@ struct
   fun pos_of_intlist il = il
   
   val concl_of_thm = Thm.concl_of
+
+  structure Sharing = 
+  struct
+    type pos = pos
+    type typ = typ
+    type term = term
+    type thm = thm
+    type context = context
+    type tactic = tactic
+  end
+
 end
