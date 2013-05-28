@@ -35,6 +35,7 @@ sig
   val get_all_name_facts : pnode -> (string * fact) list
 
   val get_pnode_name : pnode -> string
+  (*  TODO: can we give the pplan as arguments as well on these? *)
   val get_pnode_goal : pnode -> fact (* note that if the goal is A, then this will return A => A or [...] => A*)
   val get_pnode_ctxt : pnode -> context
 
