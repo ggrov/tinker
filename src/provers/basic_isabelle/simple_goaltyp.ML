@@ -24,9 +24,13 @@ struct
   val pretty_gnode = Pretty.str;
   val pretty = Pretty.str;
 
+  fun match _ _ _ = false
+  fun lift _ _ _ = NONE
+  fun init_lift _ _ = NONE
+
   (* delete *)
   fun lookup_fact_names _ _ = NONE;
   fun get_fact_names _ _ = StrName.NSet.empty;
 
-
+  
 end;
