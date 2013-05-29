@@ -21,6 +21,8 @@ sig
   sharing Class.Sharing = GoalTyp.Sharing.Class
   sharing GoalTypData.Sharing.Prover = Prover.Sharing
 
+  val gnode_to_json : GNode.T -> Json.json 
+  val gnode_from_json : Json.json -> GNode.T 
 
   val to_json : GoalTyp.T -> Json.json 
   val from_json : Json.json -> GoalTyp.T 
@@ -56,7 +58,12 @@ struct
     exception EXP_PARSING_JSON of string
 
   (* json format
- 
+     GNode := {
+         facts_map [[string(cname), [string ... string (fact names)]]]
+         gname: string
+         parent: string
+     }
+
      GoalTyp := { 
          gtyp_name : string
          gtyp_link : link_json_object
@@ -80,7 +87,7 @@ struct
       feature_data_typ : Int | String | Term | Bool | DVar
       feature_data: ...
      }
-
+  
   *)
 
   structure GoalTyp = GoalTyp;
@@ -98,7 +105,8 @@ struct
     | data_to_json (GoalTypData.String s) = Json.mk_object [("Feature_Str", Json.String s)]
     | data_to_json (GoalTypData.Term t) = Prover.string_of_trm Prover.globe_ctxt t 
         |> (fn x => Json.mk_object [("Feature_Trm", Json.String x)])
-    | data_to_json (GoalTypData.Position p) = Json.mk_object [("Feature_Pos", map Json.Int (Prover.intlist_of_pos p) |> Json.Array)]
+    | data_to_json (GoalTypData.Position p) = 
+        Json.mk_object [("Feature_Pos", map Json.Int (Prover.intlist_of_pos p) |> Json.Array)]
     | data_to_json (GoalTypData.Bool b) = Json.mk_object [("Feature_Bool", Json.Bool b)]
     | data_to_json (GoalTypData.DVar d) = Json.mk_object [("Feature_DVar", Json.String (F.string_of_name d))]
 
@@ -202,6 +210,50 @@ struct
                                         |> (fn (Json.Array l) => (map class_from_json l)))
                                      |> GoalTyp.set_gclass (Json.get jobj "goal_class" |> class_from_json)
   | from_json _ = raise EXP_PARSING_JSON "Not a Json object type.";
+
+
+(*
+ Goal of {facts : StrName.NSet.T C.NTab.T,
+                        goal : StrName.name, 
+                        parent : T option}
+     GNode := {
+         facts_map [[string(cname), [string ... string (fact names)]]]
+         gname: string
+         parent_node: GNode
+     }
+*)
+  fun gnode_to_json gn =  
+    let
+      val facts = GNode.get_facts gn;
+      val keys = C.NTab.keys facts;
+      fun map_to_json map (key : C.NTab.name) = List.map Json.String (C.NTab.get map key |> StrName.NSet.list_of)
+                              |> (fn x => Json.Array ([Json.String(C.NTab.string_of_name key), Json.Array x]))
+    in
+      Json.mk_object [("facts_map", Json.Array (map (map_to_json facts) keys)),
+                      ("gname", GNode.get_goal gn |> Json.String), 
+                      ("parent_node", GNode.get_parent gn |> (fn x=> 
+                                                                case x of (SOME y) => gnode_to_json y
+                                                                        | _ => Json.Null))]
+   end
+
+  fun gnode_from_json (Json.Object jobj) =
+    let
+      fun strip_string (Json.String x) = x;
+      fun strip_array (Json.Array x) = x
+      val gname = Json.get jobj "gname" |> strip_string; 
+      val parent = Json.get jobj "parent_node" |> (fn x => case x of Json.Null => NONE
+                                                                    | _ => SOME(gnode_from_json x)) 
+      val facts = Json.get jobj "facts_map"
+                  |> strip_array 
+                  |> map 
+                     (fn i => (strip_array i |> (fn x => ((hd x |> strip_string |> C.mk), 
+                                                 (tl x) |> map strip_string |> StrName.NSet.of_list ))))
+                  |> (fn x => fold C.NTab.ins x C.NTab.empty)
+    in
+      GNode.mk_goal facts gname |> GNode.set_parent' parent 
+    end
+ | gnode_from_json _ = raise EXP_PARSING_JSON "Not a Json object type.";
+
 
   structure Sharing =
   struct

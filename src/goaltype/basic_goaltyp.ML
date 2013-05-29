@@ -2,7 +2,7 @@
 
 signature BASIC_GOALTYPE = 
 sig
-
+  structure Atomic : ATOMIC
   type T
   type gnode
    
@@ -16,8 +16,6 @@ sig
   val gnode_eq : (gnode * gnode) -> bool
 
   val goal_name : gnode -> string
-  val lookup_fact_names : C.name -> gnode -> StrName.NSet.T option
-  val get_fact_names : C.name -> gnode -> StrName.NSet.T 
 
   val gnode_to_json : gnode -> Json.json 
   val gnode_from_json : Json.json -> gnode 
@@ -29,11 +27,10 @@ sig
   val pretty : T -> Pretty.T
 
 (* for evaluation *)
-(*
-  val match : context -> gnode -> T -> bool
-  val lift : context -> gnode -> T -> pnode -> bool
-  val init_lift : context -> T -> pnode -> bool
-*)
+
+  val match : gnode -> T -> Atomic.pnode -> bool
+  val lift :  gnode -> T -> Atomic.pnode -> gnode option
+  val init_lift :  T -> Atomic.pnode -> gnode option
 
 (* for type checking *)
 
@@ -42,6 +39,11 @@ sig
  val is_orthogonal : T -> T -> bool
  val is_equal : T -> T -> bool 
 *)
+
+(* To be removed *)
+  val lookup_fact_names : C.name -> gnode -> StrName.NSet.T option
+  val get_fact_names : C.name -> gnode -> StrName.NSet.T 
+
 
 end;
 

@@ -1,5 +1,5 @@
 (* simple test of proof representation *)
-theory GoalTyp 
+theory BasicGoalTyp 
 imports                
  "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                               
 uses

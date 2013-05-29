@@ -1,6 +1,6 @@
 theory json_test
-imports "../build/RTechn" "../build/GoalTyp"   
-uses "../../../rtechn/rtechn_json.ML"  "../../../goaltype/goaltyp_json.ML"  "../isa_prover.ML"
+imports "../build/basic/RTechn" "../build/GoalTyp"   
+uses "../../../rtechn/rtechn_json.ML"  "../../../goaltype/cls_lnk/goaltyp_json.ML"  "../isa_prover.ML"
 begin
 
 (* reasoning technique *)

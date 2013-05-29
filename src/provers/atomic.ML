@@ -39,7 +39,7 @@ sig
   val get_pnode_name : pnode -> string
   (*  TODO: can we give the pplan as arguments as well on these? *)
   (* What does this do? is this specific for one particular goal type? *)
-  val get_pnode_concl : pnode -> concl (* note that if the goal is A, then this will return A => A or [...] => A*)
+  val get_pnode_concl : pnode -> concl (* return type concl which would be type term*)
   val get_pnode_ctxt : pnode -> context
 
   structure Sharing : ATOMIC_SHARING

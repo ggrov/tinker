@@ -1,4 +1,4 @@
-signature GNODE = 
+signature BASIC_GNODE = 
 sig
   type T
 
@@ -28,7 +28,7 @@ sig
   val eq : T * T -> bool
 end
 
-structure GNode : GNODE = 
+structure BasicGNode : BASIC_GNODE = 
 struct
 (*  structure GoalTyp = GTyp *)
   datatype T = Goal of {facts : StrName.NSet.T C.NTab.T, (* map from class to a set of assumption *)

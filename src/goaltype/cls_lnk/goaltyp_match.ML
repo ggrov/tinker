@@ -26,7 +26,8 @@ sig
   sharing Prover.Sharing = GoalTypData.Sharing.Prover
   sharing Prover.Sharing = MatchParam.Sharing.Prover
   sharing type Atomic.Sharing.context = Prover.Sharing.context
-  sharing type Atomic.Sharing.fact = Prover.Sharing.thm (* FIXME sounds bad, very hacky*)
+  sharing type Atomic.Sharing.concl = Prover.Sharing.term
+  sharing type Atomic.Sharing.fact = Prover.Sharing.thm
 
   exception class_match_exp of string * C.name
   exception link_match_exp of string * L.name
@@ -69,8 +70,8 @@ functor GTMatchFun (structure GoalTyp : GOAL_TYP
                     sharing Prover.Sharing = GoalTypData.Sharing.Prover
                     sharing Prover.Sharing = MatchParam.Sharing.Prover
                     sharing type Atomic.Sharing.context = Prover.Sharing.context
-                    sharing type Atomic.Sharing.fact = Prover.Sharing.thm
-                    ) : GOALTYP_MATCH =
+                    sharing type Atomic.Sharing.concl = Prover.Sharing.term
+                    sharing type Atomic.Sharing.fact = Prover.Sharing.thm) : GOALTYP_MATCH =
 struct
 
   structure GoalTyp = GoalTyp;
@@ -145,8 +146,7 @@ struct
  *)
   fun lift gtyp gnode pnode =       
     let
-      val gterm = Atomic.get_pnode_concl pnode (* fact of pnode goal *) (* FIXME: what happen if in the middle of proof *)
-                  |> Prover.concl_of_thm; (* goal term *)
+      val gterm = Atomic.get_pnode_concl pnode 
       val ctxt = Atomic.get_pnode_ctxt pnode
     in
       if class_match (GoalTyp.get_gclass gtyp) ctxt gterm (* check if the goal class fits*) 
