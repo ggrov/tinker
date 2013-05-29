@@ -28,6 +28,7 @@ sig
   val mk_goal : StrName.NSet.T C.NTab.T -> StrName.name -> T 
   val eq : T * T -> bool
   val ord : T * T -> order
+
 end
 
 structure GNode : GNODE = 
@@ -67,7 +68,7 @@ struct
         then update_facts (C.NTab.map_entry (StrName.NSet.union_merge gs) fact) gnode
         else update_facts (C.NTab.ins (fact,gs)) gnode;
 
-  fun pretty gnode = Pretty.str (get_goal gnode);
+ 
   
   fun eq (gnode1,gnode2) = (get_goal gnode1 = get_goal gnode2);
   fun ord (gnode1,gnode2) = String.compare(get_goal gnode1, get_goal gnode2);
@@ -78,6 +79,8 @@ struct
 
   fun mk_goal facts goal = Goal {facts = facts, goal = goal, parent = NONE};
   val mk_goal_no_facts = mk_goal C.NTab.empty;
+
+   fun pretty gnode = Pretty.str (get_goal gnode);
 
 end (* struct GNode *)
 

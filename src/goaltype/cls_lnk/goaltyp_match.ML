@@ -6,7 +6,7 @@ sig
   structure GoalTypData : GOALTYP_DATA_SHARING
   structure Prover : PROVER_SHARING
   structure MatchParam : MATCH_PARAM_SHARING
- (* structure Atomic : ATOMIC_SHARING  maybe not *)
+  structure Atomic : ATOMIC_SHARING
 end
 
 signature GOALTYP_MATCH =
@@ -41,8 +41,9 @@ sig
                                -> Prover.term list -> Prover.term list
                                -> GoalTypData.data list -> (Prover.term * Prover.term) list option*)
 
-  val match : GoalTyp.T -> GNode.T -> Atomic.pnode -> bool
-  val lift : GoalTyp.T -> GNode.T -> Atomic.pnode -> GNode.T option
+  val match : GNode.T -> GoalTyp.T -> Atomic.pnode -> bool (* dummy *)
+  val init_lift : GoalTyp.T -> Atomic.pnode -> GNode.T option
+  val lift : GNode.T -> GoalTyp.T -> Atomic.pnode -> GNode.T option
  
   structure Sharing : GOALTYP_MATCH_SHARING
     sharing Sharing.GoalTyp = GoalTyp.Sharing
@@ -51,11 +52,11 @@ sig
     sharing Sharing.GoalTypData = GoalTypData.Sharing
     sharing Sharing.Prover = Prover.Sharing
     sharing Sharing.MatchParam = MatchParam.Sharing
-    (*sharing Sharing.Atomic = Atomic.Sharing*)
+    sharing Sharing.Atomic = Atomic.Sharing
 
 end (* signature *)
 
-functor GTMatchFun (structure GoalTyp : GOAL_TYP 
+functor GoalTypMatchFun (structure GoalTyp : GOAL_TYP 
                     structure Link : LINK
                     structure Class : CLASS
                     structure GoalTypData : GOALTYP_DATA
@@ -140,11 +141,8 @@ struct
   fun link_data_ll_match fname ctxt tl1 tl2 dl= case link_data_ll_match' fname ctxt tl1 tl2 dl of NONE => false | _ => true
 
  
- (* 
-  val match : GoalTyp.T -> GNode.T -> Atomic.pnode -> bool
-  val lift : GoalTyp.T -> GNode.T -> Atomic.pnode -> GNode.T option
- *)
-  fun lift gtyp gnode pnode =       
+
+  fun lift' gnode gtyp pnode =       
     let
       val gterm = Atomic.get_pnode_concl pnode 
       val ctxt = Atomic.get_pnode_ctxt pnode
@@ -173,38 +171,42 @@ struct
                   val link = GoalTyp.get_link gtyp (* GNode.get_fact_names |> StrName.NSet.list_of *)
                   fun match_link_item (lkey as (fname, (cname1, cname2))) dl = 
                     let
-                      fun get_facts_term_list cname =
-                         GNode.get_fact_names cname1 gnode 
-                         |> StrName.NSet.list_of 
-                         |> map 
-                              (fn i => (Atomic.lookup_fact pnode i
-                                        |> (fn x => case x of NONE  => raise link_match_exp ("can't find matched facts", Link.get_name link)
-                                                          | (SOME y) => y)))
-                         |> map Prover.trm_of_thm
-                      val fact_l1 = get_facts_term_list cname1
-                      val fact_l2 =  get_facts_term_list cname2
-                    in
+                      val factsTbl = C.NTab.of_list cname_factList;
+                      fun get_facts cname = 
+                        C.NTab.get factsTbl cname 
+                          |> map (fn i => (Atomic.lookup_fact pnode i
+                                    |> (fn x => case x of NONE => raise link_match_exp 
+                                                                  ("can't find matched facts", Link.get_name link)
+                                                        | (SOME y) => y)))
+                           |> map Prover.trm_of_thm
+                        handle _ => raise link_match_exp (" No such a class to match Link", cname);
+                        val fact_l1 = get_facts cname1;
+                        val fact_l2 = get_facts cname2              
+                     in
                       link_data_ll_match fname ctxt fact_l1 fact_l2 dl
-                    end  
-                  fun strip_some (SOME x) = x
-                  val if_link_match = 
-                    map (fn x => match_link_item x (Link.get_item x link |> strip_some)) (Link.get_keys link) (* a list of bool *)
-                    |> filter (fn x => x = false)
-                    |> (fn x => case x of [] => true | _ => false)
-                in
-                  if if_link_match  (* check link *)
-                  then
+                     end(* end of fun match_link_item*);
+                    fun strip_some (SOME x) = x;
+                    val if_link_match = 
+                      map (fn x => match_link_item x (Link.get_item x link |> strip_some)) (Link.get_keys link) (* a list of bool *)
+                      |> filter (fn x => x = false)
+                      |> (fn x => case x of [] => true | _ => false)
+                  in
+                    if if_link_match  (* check link *)
+                    then
                     GNode.mk_goal_no_facts (Atomic.get_pnode_name pnode) 
                       |> fold GNode.add_facts (map (fn (x,y) => (x,StrName.NSet.of_list y)) cname_factList)
-                      |> GNode.set_parent gnode |> SOME
+                      |> GNode.set_parent' gnode |> SOME
                   else NONE
                 end)
              else NONE
            end)
       else NONE
     end
-
-    fun match gtyp gnode pnode =  case (lift gtyp gnode pnode) of NONE => false | _=> true
+   (* handle _ => NONE*)
+    
+    fun lift gnode = lift' (SOME gnode) 
+    val init_lift = lift' NONE
+    fun match _ _ _  = false 
 (*
   exception quick_eval_exp
   fun qfold f_exp d f l b  =  
@@ -224,6 +226,7 @@ struct
    structure GoalTypData = GoalTypData.Sharing
    structure Prover = Prover.Sharing
    structure MatchParam = MatchParam.Sharing
+   structure Atomic = Atomic.Sharing
   end 
 end (* structure *)
 

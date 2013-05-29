@@ -2,7 +2,7 @@ theory goaltyp_test
 imports                    
   "../build/GoalTyp" 
 
-  uses "../../prover.ML"  "../isa_prover.ML"  (* "../isa_setup.ML"*)
+  uses  "../isa_prover.ML" "../../basic_isabelle/isa_atomic.ML" "../isa_match_param.ML" (* "../isa_setup.ML"*)
 begin
 ML{*
 structure GoalTypData : GOALTYP_DATA = GoalTypDataFun (IsaProver);
@@ -14,6 +14,19 @@ structure GoalTypJson = GoalTypJsonFun  (structure GoalTyp: GOAL_TYP = GoalTyp
                                          structure Class : CLASS = Class
                                          structure GoalTypData : GOALTYP_DATA = GoalTypData
                                          structure Prover : PROVER = IsaProver);
+structure MatchParam = IsaMatchParamFun (structure GoalTypData = GoalTypData
+                                         structure Prover = IsaProver )
+structure GoalTypMatch = GoalTypMatchFun (structure GoalTyp: GOAL_TYP = GoalTyp
+                                         structure Link : LINK = Link
+                                         structure Class : CLASS = Class
+                                         structure GoalTypData : GOALTYP_DATA = GoalTypData
+                                         structure Prover : PROVER = IsaProver
+                                         structure Atomic = BIsaAtomic
+                                         structure MatchParam = MatchParam);
+structure BasicGoalTyp = BasicGoalTypFun (structure GoalTyp = GoalTyp
+                                          structure Atomic : ATOMIC = BIsaAtomic
+                                          structure GoalTypJson : GOALTYP_JSON = GoalTypJson
+                                          structure GoalTypMatch : GOALTYP_MATCH = GoalTypMatch)
 *}
 
 ML{*

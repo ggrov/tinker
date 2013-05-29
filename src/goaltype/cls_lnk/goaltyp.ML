@@ -26,6 +26,8 @@ sig
   val ord : (T * T) -> order
   val eq : (T * T) -> bool
 
+  val pretty : T -> Pretty.T
+
   structure Sharing : GOAL_TYP_SHARING
     sharing type Sharing.T = T
     sharing Sharing.Link = Link.Sharing
@@ -64,6 +66,8 @@ struct
   fun eq(gt1,gt2) = (ord(gt1,gt2) = EQUAL);
 
   val top = GoalTyp {name = G.mk "top", link = Link.top, facts = [Class.top], goal = Class.top};
+  
+  fun pretty gtyp = get_name gtyp |> G.string_of_name |> Pretty.str;
 
   structure Sharing = 
   struct
