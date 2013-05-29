@@ -1,6 +1,6 @@
 structure SimpleGoalTyp : BASIC_GOALTYPE = 
 struct
-
+  structure Atomic = BIsaAtomic;
   type T = string
   type gnode = string (* or with term? *)
    
