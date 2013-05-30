@@ -1,14 +1,16 @@
 (* BASIC GOAL TYPE which is used for graph *)
 
-structure BasicGoalTyp : BASIC_GOALTYPE = 
+functor BasicGoalTypFun (structure Atomic : ATOMIC
+                      structure GoalTypJson : GOALTYP_JSON
+                      structure GoalTypMatch : GOALTYP_MATCH
+                      sharing Atomic.Sharing = GoalTypMatch.Sharing.Atomic) : BASIC_GOALTYPE = 
 struct
   structure Atomic = Atomic
-  structure GoalTyp = GoalTyp
 
-  type T = GoalTyp.T
+  type T = G.name
   type gnode = GNode.T
    
-  val default = GoalTyp.top
+  val default = G.mk "default"
   val default_gnode = GNode.mk_goal (G.mk "top") "default_gnode"
 
   val ord = G.name_ord
