@@ -24,9 +24,48 @@ struct
   val pretty_gnode = Pretty.str;
   val pretty = Pretty.str;
 
-  fun match _ _ _ = false
-  fun lift _ _ _ = NONE
-  fun init_lift _ _ = NONE
+  structure TF = TermFeatures;
+  local open BIsaAtomic in
+
+    fun top_level' str pn = 
+      case TF.top_level_str (#ptrm pn) of
+         NONE => false
+       | SOME v => (v = str);
+    
+    fun top_level strs pn = map (fn str => top_level' str pn) strs;
+
+    fun has_symbol strs pn = TF.has_constants strs (Logic.strip_imp_concl (#ptrm pn));
+
+    fun liftp pn pred = 
+     if pred then SOME (#pname pn) else NONE; 
+ 
+    val splitstr =  String.tokens (member (op =) [#" ",#",",#"(",#")",#"[",#"]"]);
+    
+    fun lift' pn str = 
+      (case splitstr str of
+        [] => false
+      | (x::xs) => 
+          (case x of 
+            "top_symbol" => forall I (top_level xs pn)
+           |"has_symbol" => has_symbol xs pn
+           | _           => false)
+       handle _ => false);
+
+    fun init_lift str pn = 
+     String.tokens (fn c => c = #";") str
+     |> map (lift' pn)
+     |> forall I 
+     |> liftp pn
+
+  end; (* local open *)
+
+  (* assume gn is the name of pn *)
+  fun match gn gt pn = 
+    case init_lift gt pn of
+     NONE => false
+    | SOME _ => true;
+  val lift = K init_lift;
+
 
   (* delete *)
   fun lookup_fact_names _ _ = NONE;

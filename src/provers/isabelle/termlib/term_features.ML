@@ -102,7 +102,7 @@ struct
   |  const_pred _ _ = false;
 
  fun has_constant s = Term.exists_subterm (const_pred s);
- fun has_constants ss t = forall (fn s => has_constant s t);
+ fun has_constants ss t = forall (fn s => has_constant s t) ss;
  val has_meta_var = Term.exists_subterm Term.is_Var
 
   fun has_constant_times (s,n) t = (get_numconstants s t = n);
