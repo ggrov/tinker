@@ -57,22 +57,22 @@ sig
 end (* signature *)
 
 functor GoalTypMatchFun (structure GoalTyp : GOAL_TYP 
-                    structure Link : LINK
-                    structure Class : CLASS
-                    structure GoalTypData : GOALTYP_DATA
-                    structure Prover : PROVER
-                    structure Atomic : ATOMIC
-                    structure MatchParam : MATCH_PARAM
-                    sharing GoalTypData.Sharing = Link.Sharing.GoalTypData
-                    sharing GoalTypData.Sharing = Class.Sharing.GoalTypData
-                    sharing GoalTypData.Sharing = MatchParam.Sharing.GoalTypData
-                    sharing Link.Sharing = GoalTyp.Sharing.Link
-                    sharing Class.Sharing = GoalTyp.Sharing.Class
-                    sharing Prover.Sharing = GoalTypData.Sharing.Prover
-                    sharing Prover.Sharing = MatchParam.Sharing.Prover
-                    sharing type Atomic.Sharing.context = Prover.Sharing.context
-                    sharing type Atomic.Sharing.concl = Prover.Sharing.term
-                    sharing type Atomic.Sharing.fact = Prover.Sharing.thm) : GOALTYP_MATCH =
+                         structure Link : LINK
+                         structure Class : CLASS
+                         structure GoalTypData : GOALTYP_DATA
+                         structure Prover : PROVER
+                         structure Atomic : ATOMIC
+                         structure MatchParam : MATCH_PARAM
+                         sharing GoalTypData.Sharing = Link.Sharing.GoalTypData
+                         sharing GoalTypData.Sharing = Class.Sharing.GoalTypData
+                         sharing GoalTypData.Sharing = MatchParam.Sharing.GoalTypData
+                         sharing Link.Sharing = GoalTyp.Sharing.Link
+                         sharing Class.Sharing = GoalTyp.Sharing.Class
+                         sharing Prover.Sharing = GoalTypData.Sharing.Prover
+                         sharing Prover.Sharing = MatchParam.Sharing.Prover
+                         sharing type Atomic.Sharing.context = Prover.Sharing.context
+                         sharing type Atomic.Sharing.concl = Prover.Sharing.term
+                         sharing type Atomic.Sharing.fact = Prover.Sharing.thm) : GOALTYP_MATCH =
 struct
 
   structure GoalTyp = GoalTyp;
