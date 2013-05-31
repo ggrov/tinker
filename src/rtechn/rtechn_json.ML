@@ -28,6 +28,7 @@ structure RTechnJSON (* : RTECHN_JSON *)
     rt_name : string
     appf_type : string (HGraph | Merge | Identity | Or | Try | Appf)
     atomic: atomic | null
+    type : "RT"
   }
 
 *)
@@ -154,7 +155,7 @@ local open RTechn Json in
     let 
       val appf_obj =  appfn_to_json (get_appf rtechn)
     in
-      mk_object [("rt_name", String (RT.string_of_name (get_name rtechn))), ("appf", appf_obj)]
+      mk_object [("rt_name", String (RT.string_of_name (get_name rtechn))), ("appf", appf_obj), ("type", Json.String "RT")]
     end
   
   fun rtechn_from_json  (Object jobj) =

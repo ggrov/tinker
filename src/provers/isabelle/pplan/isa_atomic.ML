@@ -4,6 +4,8 @@ struct
   type pplan = PPlan.T
   type pnode = PNode.T
   type tactic = Proof.context -> Tactical.tactic
+  type concl = Term.term  
+  type context = Proof.context
 
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
@@ -52,7 +54,9 @@ struct
 
   val get_pnode_name = PNode.get_name;
   
-  val get_pnode_goal = PNode.get_goal
+  val get_pnode_ctxt = PNode.get_ctxt
+  
+  val get_pnode_concl = PNode.get_goal
  
 
   (* OLD STUFF *)
@@ -78,6 +82,16 @@ struct
      THEN
      (EqSubst.eqsubst_asm_tac ctxt [1] [thm_eq] 1)
     end;
+
+  structure Sharing =
+  struct
+    type fact = fact
+    type tactic = tactic
+    type pplan = pplan
+    type pnode = pnode
+    type context = context
+    type concl = concl
+  end
 
 end;
 

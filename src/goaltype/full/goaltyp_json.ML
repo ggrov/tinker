@@ -159,7 +159,7 @@ struct
   end
   | link_from_json _ = raise EXP_PARSING_JSON "Not a Json object type.";
 
-  fun to_json gt = Json.mk_object [
+  fun to_json gt = Json.mk_object [("type", Json.String "GT"),
                                    ("gtyp_name", GoalTyp.get_name gt |> G.string_of_name |> Json.String), (*name*)
                                    ("gtyp_link", GoalTyp.get_link gt |> link_to_json), (*link*)
                                    ("facts", GoalTyp.get_facts gt |> map class_to_json |> Json.Array), (*class list*)

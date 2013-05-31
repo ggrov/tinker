@@ -23,10 +23,12 @@ struct
      GoalTyp := gtyp_name : string
   *)
 
-  fun to_json gt = gt |> G.string_of_name |> Json.String
+  fun to_json gt = 
+     Json.mk_object [("type", Json.String "GT"), ("gtyp_name", gt |> G.string_of_name |> Json.String)]
+     
 
-  fun from_json (Json.String jstr) = G.mk jstr
-   | from_json _ = raise EXP_PARSING_JSON "Not a Json String type.";
+  fun from_json (Json.Object jobj) = Json.get jobj "gtyp_name" |> (fn Json.String x => x)  |> G.mk
+   | from_json _ = raise EXP_PARSING_JSON "Not a Json object type.";
 
 
   fun gnode_to_json gn =  
