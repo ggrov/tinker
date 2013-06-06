@@ -44,7 +44,7 @@ struct
                name)
         handle _ => NONE
 
-   fun get_all_facts pnode =
+   fun get_all_assms pnode =
        (PNode.get_assms pnode) 
        |> StrName.NTab.values;
 

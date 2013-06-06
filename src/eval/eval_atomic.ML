@@ -84,7 +84,7 @@ struct
          val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
          val pplan = EData.get_pplan edata
          val tac = EData.get_tactic edata tac_name
-         val facts = Atomic.get_all_facts pnode
+         val facts = Atomic.get_all_assms pnode
        in 
          Atomic.apply_tactic tac_name facts tac (pnode,pplan)
        end

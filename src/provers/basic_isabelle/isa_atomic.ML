@@ -85,7 +85,7 @@ struct
   fun lookup_fact _ name = 
     SOME (Global_Theory.get_thm @{theory} name) handle _ => NONE
 
-  fun get_all_facts _ = []
+  fun get_all_assms _ = []
 
   fun get_all_named_facts_pair _ = []
  
