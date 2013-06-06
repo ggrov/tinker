@@ -76,13 +76,17 @@ struct
   exception link_match_exp of string * L.name
 
 
+  exception class_match_exp of string * C.name
+  exception link_match_exp of string * L.name
+
+
   val class_data_match = MatchParam.class_data_match
   val link_data_match = MatchParam.link_data_match
 
-  fun class_match class ctxt trm = 
+  fun class_match class ctxt trm_pair = 
     let 
       fun matches (data :: datal) fname =  
-            if class_data_match fname ctxt trm data 
+            if class_data_match fname ctxt trm_pair data 
             then true 
             else matches datal fname
         | matches [] fname = false;
@@ -92,13 +96,12 @@ struct
       |> filter (fn x => x = false)
       |> (fn x => (case x of [] => true | _ => false))
     end
-
 (*
   val link_match : Link.T -> Prover.context -> (Prover.term * Prover.term) -> bool
   val link_match' : Link.T -> Prover.context -> Prover.term list -> Prover.term list -> (Prover.term * Prover.term) list
 *)
  
- fun link_data_ll_match' fname (ctxt : Prover.context) (tl1 : Prover.term list) (tl2 : Prover.term list) datal =
+ fun link_data_ll_match' fname (ctxt : Prover.context) tpl1 tpl2 datal =
    let
       fun link_match0 name (t1, t2) =
         let 
@@ -116,9 +119,9 @@ struct
   in
       map
         (fn x => 
-          (filter (fn y => link_match0 fname (x,y)) tl2 (* filter the matched terms for x in tl2 *)
+          (filter (fn y => link_match0 fname (x,y)) tpl2 (* filter the matched terms for x in tl2 *)
           |> (fn p => (x,p)))) (* pair them *)
-        tl1
+        tpl1
       (* get a list of pair which matches, e.g.[(a,l1)] where a is the term, l1 conatins terms which matches a1
          now we need to filter thoes pairs where l1 is empty. 
          Also we need to change the type from (term * term list) list to (term * term) list *)
@@ -127,7 +130,7 @@ struct
       |> (fn x => case x of [] => NONE | _ => SOME x)
     end
 
-  fun link_data_ll_match fname ctxt tl1 tl2 dl= case link_data_ll_match' fname ctxt tl1 tl2 dl of NONE => false | _ => true
+  fun link_data_ll_match fname ctxt tpl1 tpl2 dl= case link_data_ll_match' fname ctxt tpl1 tpl2 dl of NONE => false | _ => true
 
   fun lift' gnode gtyp pnode =       
     let
@@ -138,15 +141,16 @@ struct
       val facts_data = fst (snd goaltyp)
       val link_data = snd (snd goaltyp)
     in
-      if class_match (goal_data) ctxt gterm (* check if the goal class fits*) 
+      if class_match (goal_data) ctxt ([],gterm) (* check if the goal class fits*) 
         then 
           (let 
              val cname_factList = (* a list of pair (cname, facts list), *)
                map (fn cls => (
-                                (filter (fn y => snd y |> class_match cls ctxt) 
-                                (* facts list : (name * trm) list*)
-                                (map (fn x => (fst x, Prover.trm_of_thm (snd x))) 
-                                  (Atomic.get_all_name_facts pnode))) 
+                                (filter 
+                                  (fn y => snd y |> class_match cls ctxt)  (* facts list : (name * trm) list*)
+                                  (map (fn (x,y) => (x, (Prover.asms_of_thm y, Prover.concl_of_thm y))) 
+                                    (Atomic.get_all_named_facts_pair pnode))
+                                )
                                 (* a list of facts ((name * trm) list) which fits class c*)
                                 |> map fst (* project only facts name*)
                                 |> (fn x => (Class.get_name cls, x))
@@ -168,7 +172,7 @@ struct
                                     |> (fn x => case x of NONE => raise link_match_exp 
                                                                   ("can't find matched facts", Link.get_name link_data)
                                                         | (SOME y) => y)))
-                           |> map Prover.trm_of_thm
+                           |> map (fn x => (Prover.asms_of_thm x, Prover.concl_of_thm x))
                         handle _ => raise link_match_exp (" No such a class to match Link", cname);
                         val fact_l1 = get_facts cname1;
                         val fact_l2 = get_facts cname2              

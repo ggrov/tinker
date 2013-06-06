@@ -48,7 +48,7 @@ struct
        (PNode.get_assms pnode) 
        |> StrName.NTab.values;
 
-   fun get_all_name_facts pnode =
+   fun get_all_named_facts_pair pnode =
        (PNode.get_assms pnode) 
        |> StrName.NTab.list_of;
 

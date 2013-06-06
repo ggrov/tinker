@@ -87,7 +87,7 @@ struct
 
   fun get_all_facts _ = []
 
-  fun get_all_name_facts _ = []
+  fun get_all_named_facts_pair _ = []
  
   fun get_pnode_name (pnode:pnode) = #pname pnode;
   fun get_pnode_ctxt (pnode:pnode) = #pctxt pnode;

@@ -1,5 +1,5 @@
 (* simple test of proof representation *)
-theory GoalTyp 
+theory GoalTyp
 imports                
  "basic/BasicIsaPS"                                            
 uses
@@ -17,8 +17,8 @@ uses
   "../../../goaltype/full/goaltyp_match.ML"
   "../../../goaltype/full/goaltyp_i.ML"
 
-(* for simple goaltyp *)
-(*
+(* for simple goaltyp 
+
   "../../../goaltype/simple/gnode.ML"
   "../../../goaltype/simple/goaltyp_json.ML"  
   "../../../goaltype/simple/goaltyp_match.ML"
