@@ -3,4 +3,5 @@ fun I x = x;
 fun K x = fn _ => x;
 fun x |> f = f x;
 
-use "../../../proof/GTerm"
+use "../../prover";
+use "../pp_prover.ML";
