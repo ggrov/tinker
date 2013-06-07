@@ -5,7 +5,7 @@ struct
   type context = PpProver.context
   type concl = PpProver.term
   
-  type pnode = {pname : string, pctxt : context, gs: GOAL_STATE} 
+  type pnode = {pname : string, pctxt : context, gs: GOAL_STATE, glabel : string} 
   type pplan = {opengs : pnode list, usedgs : StrName.NSet.T }
   
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
@@ -19,21 +19,61 @@ struct
     let
       val gs = (set_goal (asms_trms, concl_trm) ; top_goal_state());
       val ctxt = get_current_pc();
-      val pname = "g" ^ top_current_label();
-      val pnode = {pname = pname , pctxt = ctxt, gs = gs};
+      val pname = StrName.NSet.new StrName.NSet.empty "g"
+      val pnode = {pname = pname , pctxt = ctxt, gs = gs, glabel = ""};
       val pplan = {opengs = [pnode], usedgs = StrName.NSet.add pname StrName.NSet.empty}
     in
       (pnode, pplan)
     end;
     
-  fun update _ _ = ([], {opengs = [], usedgs = StrName.NSet.empty})
+  (*fun update _ _ = ([], {opengs = [], usedgs = StrName.NSet.empty})*)
   
   (*val update : TACTIC -> (pnode * pplan) -> (pnode list * pplan) *)
-  (*
-  fun update (pnode, pplan) (tac : tactic) : (pnode list * pplan) Seq.seq = 
+  
+  fun update (tac : tactic) (pnode : pnode, pplan : pplan)  : (pnode list * pplan) = 
   let 
       val gs = (push_goal_state (#gs pnode); apply_tactic tac; top_goal_state());
-  *)
+      val sgs = top_goals(); (* string * (term list * term) list *)
+      val gstr_list = map (fn (a, _) => a) sgs
+      val ctxt = get_current_pc();   
+      fun lift_to_pnode (name, (strl, _)) = 
+      	{pname = name, 
+      	 pctxt = ctxt, 
+      	 gs = (set_labelled_goal(hd strl) ; top_goal_state()),
+      	 glabel = hd strl};
+      fun gen_name (0, i) (newnamel, nameset) = (newnamel, nameset)
+      	| gen_name (i, j) (newnamel, nameset) = 
+      	let val fresh = StrName.NSet.new nameset ((#pname pnode) ^ Int.toString (j + 1 -i)) in
+      	  gen_name (i - 1, j) (fresh :: newnamel, StrName.NSet.add fresh nameset) end
+   in
+    if (List.length gstr_list) = 0 (* no sgs *) 
+    then 
+      ([], pplan)
+    else(
+      if (List.length gstr_list) = 1(* only one goal *) 
+      then(
+        let 
+          val newname = StrName.NSet.new (#usedgs pplan) (#pname pnode);
+          val new_pnode = lift_to_pnode (newname, (hd sgs));
+          val new_pplan = {opengs = [new_pnode] @ (#opengs pplan), usedgs = StrName.NSet.add newname (#usedgs pplan)}
+        in
+          ([new_pnode], new_pplan)
+        end)
+      else((* a list of sgs*)
+        let 
+          val newnames = (* generate a list of fresh name, based on: (previous_gname ^ order_of_sg) *)
+           gen_name (List.length sgs, List.length sgs) ([], #usedgs pplan);
+          fun zip [] [] = []
+            | zip (x :: xs) (y :: ys) = (x,y) :: (zip xs ys);
+          val new_pnodel = map lift_to_pnode (zip (fst newnames) sgs);
+          val new_pplan = {opengs = new_pnodel @ (#opengs pplan), usedgs = snd newnames}
+        in
+          (new_pnodel, new_pplan) 
+        end
+      )
+    )
+   end
+  
   (* TACTIC in pp is always determined, no branching ?? *)
   fun apply_rule _ thm pinfo = update (bc_thm_tac thm) pinfo |> Seq.single
  
@@ -60,7 +100,7 @@ struct
   			      |> fst (* a list of term *)
   			      |> map asm_rule (* to thm type *)
   			      
-  (* need to think about more for this *)			 
+  (* need to think about more for this,  in order *)			 
   fun get_all_named_facts_pair _ = [] (*pnode -> (string * fact) list*)
 
   fun get_pnode_name (pnode:pnode) = #pname pnode;
