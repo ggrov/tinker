@@ -48,6 +48,7 @@ struct
           (case x of 
             "top_symbol" => forall I (top_level xs pn)
            |"has_symbol" => has_symbol xs pn
+           | "any"       => true (* default *)
            | _           => false)
        handle _ => false);
 

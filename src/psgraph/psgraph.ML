@@ -2,7 +2,8 @@
 signature PS_GRAPH =
 sig
   structure PSTheory : PS_THEORY 
-  structure Atomic : ATOMIC
+  (* Atomic = PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic *)
+  (* structure Atomic : ATOMIC *)
   type T
 
   val empty : T
@@ -13,14 +14,14 @@ sig
   val get_g_tacs : T -> PSTheory.PS_Theory.Graph.T StrName.NTab.T
   val get_or_tacs : T -> (PSTheory.PS_Theory.Graph.T list) StrName.NTab.T
   val get_orelse_tacs : T -> (PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T
-  val get_atomics : T -> Atomic.tactic StrName.NTab.T
+  val get_atomics : T -> PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic StrName.NTab.T
 
   (* set methods *)
   val set_graph : PSTheory.PS_Theory.Graph.T -> T -> T 
   val set_g_tacs : PSTheory.PS_Theory.Graph.T StrName.NTab.T -> T -> T 
   val set_or_tacs : (PSTheory.PS_Theory.Graph.T list) StrName.NTab.T -> T -> T 
   val set_orelse_tacs : (PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T -> T -> T 
-  val set_atomics : Atomic.tactic StrName.NTab.T -> T -> T 
+  val set_atomics : PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic StrName.NTab.T -> T -> T 
 
   (* update methods *)
   val update_graph : (PSTheory.PS_Theory.Graph.T -> PSTheory.PS_Theory.Graph.T) -> T -> T 
@@ -34,20 +35,19 @@ sig
        ((PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T 
        -> (PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T) 
        -> T -> T 
-  val update_atomics : (Atomic.tactic StrName.NTab.T -> Atomic.tactic StrName.NTab.T) -> T -> T 
+  val update_atomics : (PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic StrName.NTab.T -> PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic StrName.NTab.T) -> T -> T 
 
   (* fresh name generation *)
   val fresh_name : T -> StrName.name -> StrName.name
 
 end
 
-functor PSGraphFun(structure PSTheory : PS_THEORY
-                   structure Atomic : ATOMIC) : PS_GRAPH =
+functor PSGraphFun(structure PSTheory : PS_THEORY) : PS_GRAPH =
 struct
 
    structure PSTheory = PSTheory;
    structure PS_Theory = PSTheory.PS_Theory;
-   structure Atomic = Atomic;
+   structure Atomic = PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic;
    
    (* no longer uses underlying storage of data in isabelle? *)
    datatype T = PSGraph of {

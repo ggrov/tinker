@@ -19,6 +19,9 @@ sig
 
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
+  (* could also make an init version with assumptions? *)
+  val init : context -> concl -> pnode * pplan
+
   (* FIXME: also need to add name for export! *)
 
 

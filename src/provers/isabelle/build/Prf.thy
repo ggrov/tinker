@@ -1,13 +1,13 @@
 (* simple test of proof representation *)
-theory Prf                                             
+theory Prf                                              
 imports       
-  Eval 
+  "GoalTyp" 
 (*      
  "~~/contrib/isaplib/isabelle/isaplib/isaplib"   
 *)                                                                                 
 uses  
-  "../../prover.ML"     
-  "../isa_prover.ML" 
+  (* "../../prover.ML" *)    
+  "../isa_prover.ML"   
   "../pplan/isa_pnode.ML"
   "../pplan/isa_pplan.ML"
   "../pplan/isa_atomic.ML" 

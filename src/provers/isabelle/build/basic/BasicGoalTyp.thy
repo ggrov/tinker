@@ -6,7 +6,7 @@ uses
   "../../../../rtechn_names.ML" 
   "../../../prover.ML"  
   "../../../atomic.ML"
-  "../../../../goaltype/basic_goaltyp.ML"    
+  "../../../../goaltype/basic_goaltyp.ML"     
 
 (*
  "../isaPrf.ML"

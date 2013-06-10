@@ -2,10 +2,11 @@ signature EVAL_ATOMIC =
 sig
   structure EData : EVAL_DATA
 
-  exception partition_exp of EData.PSGraph.Atomic.pnode
+  exception partition_exp of EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode
 
+  (* generalise *)
   val partition : 
-     EData.PSGraph.Atomic.pnode list (* new proof nodes *)
+     EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode list (* new proof nodes *)
      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode (* old gnode [parent] *)
      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T list (* output types *)
      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode list list list (* one list for each goal type - outer when non-orthogonal outputs *)
@@ -25,21 +26,21 @@ sig
         EData.T 
       -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode (* the goal node  *)
       -> RTechn.atomic (* application function *)
-      -> (EData.PSGraph.Atomic.pnode list * EData.PSGraph.Atomic.pplan) Seq.seq
+      -> (EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode list * EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan) Seq.seq
 
   val apply_tactic :
         EData.T 
       -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode (* the goal node *)
       -> string (* the name of the tactic *)
       -> RTechn.tac_assms (* tactic assumption *)
-      -> (EData.PSGraph.Atomic.pnode list * EData.PSGraph.Atomic.pplan) Seq.seq
+      -> (EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode list * EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan) Seq.seq
 
 end
 
 functor EvalAtomicFun(EData : EVAL_DATA) : EVAL_ATOMIC =
 struct
   structure EData = EData;
-  structure Atomic = EData.PSGraph.Atomic;
+  structure Atomic = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic;
   structure GData = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData
   structure GoalTyp = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp;
 
@@ -167,12 +168,12 @@ struct
     partitioning of outputs
   *)
 
-  fun lift goal_typ gnode pnode  =  NONE
+  val lift  = GoalTyp.lift;
 
   (* need some filtering of empty here *)
   fun partition_one' [] _ _ _ [] = [] (* fails to lift for this branch *)
   fun partition_one' (gt::gts) gnode pnode bres (r::ares) = 
-    case lift gt gnode pnode of
+    case lift gnode gt pnode of
       (* fails to lift *)
       NONE => partition_one' gts gnode pnode (bres@[r]) ares
       (* succeeds, and check for further successes *)

@@ -1,10 +1,10 @@
 (* simple test of proof representation *)
 theory BIsaP                                             
 imports       
-  "../../isabelle/build/basic/BasicIsaPS"                                                                             
+  "../../isabelle/build/basic/BasicIsaPS"                                                                              
 begin
  ML_file "../isa_prover.ML"  
- ML_file "../isa_atomic.ML"
+ ML_file "../isa_atomic.ML"  
  ML_file "../simple_goaltyp.ML"              
 
 ML{*

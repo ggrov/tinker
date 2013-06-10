@@ -8,7 +8,7 @@ end
 functor EvalGraphFun(EData : EVAL_DATA) =
 struct
   structure EData = EData;
-  structure Atomic = EData.PSGraph.Atomic;
+  structure Atomic = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic;
   structure Theory = EData.PSGraph.PSTheory.PS_Theory;
   structure Graph = Theory.Graph;
   structure GData = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData;
@@ -20,13 +20,28 @@ struct
     fun rewrite_lazy rule graph = 
       let 
         val graph' = Graph.normalise graph;
-        val (rule',matches) = Theory.RulesetRewriter.rule_matches rule graph';
+        val (rule',matches) = Theory.Rewriter.find_matches rule graph';
         fun rewr match = 
-          Theory.GraphSubst.do_rewrite match (Theory.Rule.get_rhs rule')
+          Theory.Rewriter.rewrite_at rule' match
+          |> snd
       in
         Seq.map rewr matches
       end;
     val rewrite = Seq.list_of oo rewrite_lazy;
+
+
+  fun input_boundary g = 
+    let val bvertexes = Graph.get_boundary g (* Vertex.NSet.T *)
+        fun dest_name bv e = let val ((_,ed),(_,v)) = Graph.get_edge g e in (bv,(e,ed),v) end
+        fun mk_pairs v = Graph.out_enames g v 
+                  |> E.NSet.list_of
+                  |> map (fn e => dest_name v e)
+    in  
+      V.NSet.fold
+        (fn v => fn xs => xs @ (mk_pairs v))
+        bvertexes
+        []
+    end;
 
     fun edge_dest g e = Graph.get_edge g e |> (snd o snd);
     fun edge_src g e = Graph.get_edge g e |> (fst o snd);
@@ -99,6 +114,8 @@ struct
    fun single_gnode_of graph v = 
      case vertex_data graph v of (GData.GN [GData.GN_Node gnode]) => gnode;
 
+   fun mk_single_gnode gnode = GData.GN [GData.GN_Node gnode];
+
    (* projects *)
    fun all_rtechns graph = 
      map fst (Graph.get_vertex_list graph)
@@ -137,7 +154,7 @@ struct
 
   (* Should be one rtechn and one graph *)
   fun match_lhs graph lhs =
-     Theory.RulesetRewriter.rule_matches
+     Theory.Rewriter.find_matches
            (Theory.Rule.mk(lhs,lhs)) (* make a dummy rule *)
            graph
      |> snd

@@ -3,7 +3,9 @@ struct
   type fact = Thm.thm
   type pplan = PPlan.T
   type pnode = PNode.T
+  type context = Proof.context
   type tactic = Proof.context -> Tactical.tactic
+  type concl = Thm.thm
 
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
@@ -51,9 +53,19 @@ struct
        |> StrName.NTab.list_of;
 
   val get_pnode_name = PNode.get_name;
-  
-  val get_pnode_goal = PNode.get_goal
+  val get_pnode_concl = PNode.get_goal;
+  val get_pnode_ctxt = PNode.get_ctxt;
+
  
+  structure Sharing =
+  struct
+    type fact = fact
+    type tactic = tactic
+    type pplan = pplan
+    type pnode = pnode
+    type context = context
+    type concl = concl
+  end
 
   (* OLD STUFF *)
 

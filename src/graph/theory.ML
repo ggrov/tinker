@@ -9,6 +9,10 @@ sig
   sharing type PS_GraphParam.GraphSubstData.edata = PS_Theory.Graph.SharingBasicGraph.Param.EData.data
   sharing PS_Comb.Graph.EData = PS_Theory.Graph.SharingBasicGraph.Param.EData
 
+  val out_json : PS_Theory.Graph.T -> Json.json
+  val dot_graph : PS_Theory.Graph.T -> string
+  val write_dot : string -> PS_Theory.Graph.T -> unit
+
   (* structure PS_TheoryIO :*)
 end (* signature *)
 
@@ -147,6 +151,80 @@ struct
   structure PS_TheoryIO = GraphicalTheoryIO(
      structure Theory = PS_Theory
      structure GraphComponentDataIO = PS_ComponentDataIO );
+
+  val out_json = PS_TheoryIO.OutputGraphJSON.output;
+
+ structure GraphDot =
+ struct
+  structure Graph = PS_Theory.Graph;
+  structure GData = PS_GraphParam.GraphSubstData;
+
+  fun pretty_node g v = V.pretty_name v
+  fun pretty_edge g e = GData.pretty_edata (Graph.get_edge_data g e);
+
+  fun is_rtechn (GData.RT _) = true
+   |  is_rtechn (GData.TVar _) = true
+   |  is_rtechn _ = false;
+
+  val node_str = GData.pretty_vdata #> Pretty.string_of;
+
+  fun node_style_str g v = 
+     case Graph.get_vertex_data g v of 
+       (Graph.OVData.NVert node) => 
+        (if is_rtechn node 
+          then " [style=filled,fillcolor=white,fontcolor=black,shape=box,label=\"" ^ (node_str node) ^ "\"]"
+          else  " [style=filled,fillcolor=white,fontcolor=black,shape=circle,label=" ^ (node_str node) ^ "]")
+      | _ => " [style=filled,fillcolor=gray,shape=box,width=0,height=0,fontcolor=white]"
+
+  fun node_style g v = Pretty.str (node_style_str g v);
+
+  fun node_block graph = let
+    val boxtab = Graph.get_bbox_table graph
+   fun f nm list = (pretty_node graph nm)::
+                    (node_style graph nm)::
+                    (Pretty.str ";\n")::
+                    list
+    fun box_f (box,vset) list = 
+      (Pretty.str "subgraph cluster_")::
+      (B.pretty_name box)::
+      (Pretty.str " {\n")::
+      (V.NSet.fold_rev f vset
+      (Pretty.str "}\n"::list))
+  in B.NTab.fold box_f boxtab (V.NSet.fold_rev f (Graph.get_unbboxed graph) [])
+  end
+  
+  fun edge_block graph = let
+    fun f nm list = let
+      val (_, (s,t)) = Graph.get_edge graph nm
+    in (pretty_node graph s)::
+       (Pretty.str " -> ")::
+       (pretty_node graph t)::
+       (Pretty.str " [label=\"")::
+       (pretty_edge graph nm)::
+       (Pretty.str "\"];\n")::list
+    end
+  in E.NSet.fold_rev f (Graph.get_enames graph) []
+  end
+  
+  fun output graph = Pretty.string_of (Pretty.block (
+    [Pretty.str "digraph G {\n"] @
+    node_block graph @
+    edge_block graph @
+    [Pretty.str "}\n"]
+  ))
+
+  fun write_dot_to_file fname graph =
+     let 
+       val str = Print_Mode.setmp [] (fn () => output graph) ();
+       val outs = TextIO.openOut fname; 
+       val _ = TextIO.output (outs,str)
+     in 
+       TextIO.closeOut outs
+     end;
+ end (* end graphdot*)
+
+ val dot_graph = GraphDot.output;
+ val write_dot = GraphDot.write_dot_to_file;
 
 end (* end functor *)
 

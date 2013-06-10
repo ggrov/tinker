@@ -1,5 +1,5 @@
 (* simple test of proof representation *)
-theory BasicIsaPS                                                                                                                                                                                  
+theory BasicIsaPS                                                                                                                                                                                   
 imports           
   Eval         
 begin

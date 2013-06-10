@@ -13,6 +13,17 @@ struct
   type tactic = Proof.context -> int -> Tactical.tactic
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
+  fun init ctxt trm =
+    let 
+      val th = Proof_Context.theory_of ctxt
+      val goal = Thm.cterm_of th trm
+               |> Goal.init;
+      val pnode = { pname = "g", pctxt = ctxt, ptrm = trm}
+      val pplan = { goal = goal, opengs = [pnode], usedgs = StrName.NSet.single "g"}
+   in
+     (pnode,pplan)
+   end;
+
   fun get_ind str _ [] = raise atomic_exp ("goal " ^ str ^ " does not exists")
    |  get_ind str n (x::xs) = if str = (#pname x) then n else get_ind str (n+1) xs;
 

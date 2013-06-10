@@ -1,6 +1,6 @@
 theory eval_test 
 imports
-  "../build/Prf"         
+  "../build/Prf"          
 begin
 
 (* proof of A \<and> B \<longrightarrow> B \<and> A *)

@@ -11,8 +11,44 @@ struct
  structure EAtom = EvalAtomicFun(EData);
  structure Theory = EData.PSGraph.PSTheory.PS_Theory;
  structure GComb = EData.PSGraph.PSTheory.PS_Comb;
+ structure GoalTyp = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp;
+ structure Atomic = GoalTyp.Atomic;
 
  exception evaluate_exp of V.name option * string;
+
+ (* fixme: may loose goals! *)
+ fun init_goal pnode edata  = 
+   let
+     val graph = EData.get_graph edata
+     fun to_gt e = [(e,EGraph.Util.gtyp_of graph e)] handle _ => []
+     val in_edges = EGraph.Util.input_boundary graph
+                  |> maps (fn (_,(e,_),_) => to_gt e)
+     fun new_graph (e,gt) = 
+       case GoalTyp.init_lift gt pnode of
+         NONE => []
+         | SOME gn => [EGraph.Util.insert_node_on_edge 
+                           (EGraph.Util.mk_single_gnode gn) e graph] 
+     val new_graphs = maps new_graph in_edges
+   in
+       map (fn g => EData.set_graph g edata) new_graphs
+   end;
+
+ fun init_goals edata pnodes = 
+   fold (fn pnode => fn edatas => maps (init_goal pnode) edatas)
+        pnodes
+        [edata];
+
+ fun init psgraph ctxt goals =
+   let
+     val (pnode,pplan) = Atomic.init ctxt goals
+     val pnode_tab = 
+       StrName.NTab.ins
+         (Atomic.get_pnode_name pnode,pnode)
+         StrName.NTab.empty;
+     val edata0 = EData.init psgraph pplan pnode_tab []
+   in
+    init_goal pnode edata0
+   end;
 
  fun mk_atomic_rhs edata rt lhs =
     let
@@ -46,7 +82,7 @@ struct
    in 
     lhs_seq 
     |> Seq.maps ((mk_atomic_rhs edata rt) o snd) 
-    |> Seq.map update 
+    |> Seq.maps update 
    end;   
 
   (* for now we only unfold *)

@@ -3,7 +3,7 @@
 *)
 signature GRAPH_COMB = 
 sig
-
+i
   type graph = Strategy_Theory.Graph.T
   exception goalnode_exp of string * V.name
   exception vertex_exp of string * V.name option
