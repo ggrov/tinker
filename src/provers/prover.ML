@@ -19,7 +19,7 @@ sig
 
   exception gterm_exp
   
-  val globe_ctxt : context (* used in those place need context in general *)
+  val current_ctxt : context (* used in those place need context in general *)
   val typ_of : term -> typ
   val match : context -> (term * term) -> bool
 
@@ -31,7 +31,7 @@ sig
   val trm_of_pos : pos -> term -> term 
   val subtrm_of_pos : pos -> term -> term
 
-  val trm_of_thm : thm -> term
+  (*val trm_of_thm : thm -> term*)
   (*val consts_of_trm : term -> term list  return ops ?? duplicated ops allowed*)
  
   val trm_of_string : context -> string -> term
@@ -39,6 +39,7 @@ sig
   val pretty_trm : context -> term -> Pretty.T
 
   val concl_of_thm : thm -> term
+  val asms_of_thm : thm -> term list
   
  (* val get_goal : context -> T ->  (context * term)*)
   

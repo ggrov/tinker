@@ -12,8 +12,12 @@ sig
   exception class_match_exp of string * C.name
   exception link_match_exp of string * L.name
 
-  val class_data_match : F.name -> Prover.context -> Prover.term -> GoalTypData.data list -> bool
-  val link_data_match :  F.name ->  Prover.context -> (Prover.term * Prover.term) -> GoalTypData.data list -> bool
+  val class_data_match : F.name -> Prover.context 
+                         -> (Prover.term list * Prover.term) 
+                         -> GoalTypData.data list -> bool
+  val link_data_match :  F.name ->  Prover.context 
+                         -> ((Prover.term list * Prover.term) * (Prover.term list * Prover.term)) 
+                         -> GoalTypData.data list -> bool
   
   structure Sharing : MATCH_PARAM_SHARING
     sharing Sharing.GoalTypData = GoalTypData

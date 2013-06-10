@@ -36,8 +36,8 @@ sig
   val apply_tactic : string -> fact list -> tactic -> appf
 
   val lookup_fact : pnode -> string -> fact option
-  val get_all_facts : pnode -> fact list
-  val get_all_name_facts : pnode -> (string * fact) list
+  val get_all_assms : pnode -> fact list
+  val get_all_named_facts_pair : pnode -> (string * fact) list
 
   val get_pnode_name : pnode -> string
   (*  TODO: can we give the pplan as arguments as well on these? *)

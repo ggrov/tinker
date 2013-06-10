@@ -9,7 +9,7 @@ struct
   
   exception gterm_exp
 
-  val globe_ctxt = @{context}
+  val current_ctxt = @{context}
   val typ_of = Term.type_of
   fun match ctxt = Pattern.matches (Context.Proof_Context.theory_of ctxt)
   fun eq_pos (pos1, pos2) = 
@@ -25,7 +25,7 @@ struct
                            |> Term.strip_comb 
                            |> fst;
 
-  val trm_of_thm = Thm.prop_of;
+  (*val trm_of_thm = Thm.prop_of;*)
 
   val trm_of_string = Syntax.parse_term;
   val string_of_trm = Syntax.string_of_term;
@@ -34,6 +34,7 @@ struct
   fun intlist_of_pos pos = pos
   fun pos_of_intlist il = il
   
+  val asms_of_thm = Thm.prems_of
   val concl_of_thm = Thm.concl_of
 
   structure Sharing = 

@@ -16,7 +16,7 @@ sig
   (* structure PS_TheoryIO :*)
 end (* signature *)
 
-functor PSTheoryFun(structure GoalTyp : BASIC_GOALTYPE) : PS_THEORY =
+functor PSTheoryFun(structure GoalTyp : BASIC_GOALTYPE) (*: PS_THEORY *) =
 struct
 (*  PS_Theory.Graph.OVData.IData.data is PS_GraphParam.VData *)
   structure PS_GraphParam = PSGraphParamFun(GoalTyp);
@@ -78,7 +78,7 @@ struct
 
            fun input (Object jobj) = 
              (case get jobj "type" of
-                (String "RT") => GraphSubstData.RT (RTechnJSON.rtechn_from_json (get jobj "data"))
+                (String "RT") => GraphSubstData.RT (RTechnJSON.rtechn_from_json (Object jobj)(*(get jobj "data")*))
               | (String "GN") => let 
                                    val (Array arr) = get jobj "data"
                                  in GraphSubstData.GN (map inp_gnode arr) end
@@ -98,13 +98,15 @@ struct
         |  out_gnode (GraphSubstData.GN_Var v) =
              Json.mk_object [("gtype", Json.String "GN_Var"), ("gdata", Json.String v)]
  
-       fun output (GraphSubstData.RT rt) =
-              Json.mk_object [("type", Json.String "RT"), ("data", RTechnJSON.rtechn_to_json rt)]
+       fun output (GraphSubstData.RT rt) = RTechnJSON.rtechn_to_json rt
+              (*Json.mk_object [("type", Json.String "RT"), ("data", RTechnJSON.rtechn_to_json rt)]*)
          | output (GraphSubstData.GN gnds) = Json.Array (map out_gnode gnds)
          | output (GraphSubstData.TVar tv) =
              Json.mk_object [("type", Json.String "TVar"), ("data", Json.String tv)]
          | output (GraphSubstData.GVar gv) =
-            Json.mk_object [("type", Json.String "GVar"), ("data", Json.String gv)]
+            Json.mk_object [("type", Json.String "GVar"), ("data", Json.String gv)] 
+
+
      end; (* structure *)
 
      (* edge data ( could have made var just a string to simplify but need (future) support for short data):
@@ -120,7 +122,7 @@ struct
         fun input (Object jobj) = 
           (case get jobj "type" of
               (String "EVar") => GraphSubstData.EVar (case get jobj "data" of (String n) => n)
-            | (String "GT") => GraphSubstData.GT (GoalTyp.from_json (get jobj "data")));
+            | (String "GT") => GraphSubstData.GT (GoalTyp.from_json ( Object jobj) (*(get jobj "data")*)));
       end; (* local *)
     end; (* struct *)
 
@@ -130,8 +132,8 @@ struct
       type data = edata;
       fun output (GraphSubstData.EVar var) =
             Json.mk_object [("type", Json.String "EVar"), ("data", Json.String var)]
-       |  output (GraphSubstData.GT gt)  = 
-            Json.mk_object [("type", Json.String "GT"), ("data",GoalTyp.to_json gt)];
+       |  output (GraphSubstData.GT gt)  = GoalTyp.to_json gt
+            (*Json.mk_object [("type", Json.String "GT"), ("data",GoalTyp.to_json gt)];*)
     end; (* struct *)
 
     structure DotStyle : DOT_STYLE =

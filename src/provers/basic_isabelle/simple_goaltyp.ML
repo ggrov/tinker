@@ -18,8 +18,16 @@ struct
   val gnode_to_json = Json.String;
   fun gnode_from_json (Json.String str) = str
 
-  val to_json = Json.String; 
+(*
+  val to_json = Json.String;
   fun from_json (Json.String str) = str;
+*)
+  fun to_json str = 
+     Json.mk_object [("type", Json.String "GT"), ("gtyp_name", Json.String str)] 
+
+  fun from_json (Json.Object jobj) = Json.get jobj "gtyp_name" |> (fn Json.String x => x)
+
+
 
   val pretty_gnode = Pretty.str;
   val pretty = Pretty.str;
