@@ -47,6 +47,7 @@ sig
   val is_orelse : T -> bool
 
   val get_atomic : T -> atomic option
+  val get_tactic : T -> string option 
 
   val id : T 
   val merge : T
@@ -146,6 +147,10 @@ structure RTechn
     of (Appf atom) => SOME atom
     | _ => NONE;
 
+  fun get_tactic rt = 
+     case get_atomic rt of 
+      SOME (Tactic (_,n)) => SOME n
+     | _ => NONE;
 
   val id = RTechn {name = RT.mk "id", appf = Identity};
 

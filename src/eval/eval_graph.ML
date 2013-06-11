@@ -112,9 +112,9 @@ struct
    fun gnode_of graph v = 
      case vertex_data graph v of (GData.GN gn) => gn
    fun single_gnode_of graph v = 
-     case vertex_data graph v of (GData.GN [GData.GN_Node gnode]) => gnode;
+     case vertex_data graph v of (GData.GN (GData.GN_Node gnode)) => gnode;
 
-   fun mk_single_gnode gnode = GData.GN [GData.GN_Node gnode];
+   fun mk_single_gnode gnode = GData.GN (GData.GN_Node gnode);
 
    (* projects *)
    fun all_rtechns graph = 
@@ -134,7 +134,7 @@ struct
      val ins = Graph.in_enames graph v  
      val outs = Graph.out_enames graph v
      val gtyp = Util.gtyp_of
-     val gnode = Graph.OVData.NVert (GData.GN [(GData.GN_Var "g")])
+     val gnode = Graph.OVData.NVert (GData.GN ((GData.GN_Var "g")))
      val rtechn  = Util.rtechn_of graph v
      (* graph with rtechn *)
      val (v_rt,g) = Graph.empty
@@ -166,5 +166,53 @@ struct
  fun add_outs [] [] graph = graph
   |  add_outs  (i::is) (p::ps) graph = 
        add_outs is ps (Util.insert_node_on_edge p i graph);
+
+ val split_gnode_pairs = 
+  let
+    val edge = GData.EVar "e";
+    val bnode = GData.GN (GData.GN_Pair (GData.GN_Var "h",GData.GN_Var "t"));
+    val fnode = GData.GN (GData.GN_Var "h");
+    val snode = GData.GN (GData.GN_Var "t");
+    val (inp,g0) = Graph.add_vertex Graph.OVData.WVert Graph.empty;
+    val (outp,g0) = Graph.add_vertex Graph.OVData.WVert g0;
+    val (bn,left) = Graph.add_vertex (Graph.OVData.NVert bnode) g0; 
+    val left = left |> Graph.doadd_edge (Graph.Directed,edge) inp bn
+                    |> Graph.doadd_edge (Graph.Directed,edge) bn outp;
+    val (fno,right) = Graph.add_vertex (Graph.OVData.NVert fnode) g0; 
+    val (sno,right) = Graph.add_vertex (Graph.OVData.NVert snode) right;
+    val right = right |> Graph.doadd_edge (Graph.Directed,edge) inp sno
+                      |> Graph.doadd_edge (Graph.Directed,edge) sno fno
+                      |> Graph.doadd_edge (Graph.Directed,edge) fno outp;
+  in
+     Theory.Rule.mk (left,right)
+  end;
+
+ val del_empty_gnode = 
+  let
+    val edge = GData.EVar "e";
+    val node = GData.GN (GData.GN_Empty);
+    val (inp,g0) = Graph.add_vertex Graph.OVData.WVert Graph.empty;
+    val (outp,g0) = Graph.add_vertex Graph.OVData.WVert g0;
+    val (bn,left) = Graph.add_vertex (Graph.OVData.NVert node) g0; 
+    val left = left |> Graph.doadd_edge (Graph.Directed,edge) inp bn
+                    |> Graph.doadd_edge (Graph.Directed,edge) bn outp;
+    val right = Graph.doadd_edge (Graph.Directed,edge) inp outp g0
+  in
+     Theory.Rule.mk (left,right)
+  end;
+
+ val gnode_rs = Theory.Ruleset.empty
+            |> Theory.Ruleset.add_fresh_rule (R.mk "del_empty",del_empty_gnode)
+            |> (fn (rn,rs) => Theory.Ruleset.activate_rule rn rs)
+            |> Theory.Ruleset.add_fresh_rule (R.mk "split_pair",split_gnode_pairs)
+            |> (fn (rn,rs) => Theory.Ruleset.activate_rule rn rs)
+
+ val gnode_one_step  = Theory.RulesetRewriter.apply gnode_rs
+                     #> Seq.map snd;
+
+ fun normalise_gnode g = 
+   case Seq.pull (gnode_one_step g) of
+      NONE => g
+     | SOME (g',_) => normalise_gnode g';
       
 end (* functor *)

@@ -74,17 +74,17 @@ struct
               (case get jobj "gtype" of
                 (String "GN_Node") => 
                       GraphSubstData.GN_Node (GoalTyp.gnode_from_json (get jobj "gdata"))
-              | (String "GN_Var") => GraphSubstData.GN_Var (case get jobj "gdata" of (String n) => n));
+              | (String "GN_Var") => GraphSubstData.GN_Var (case get jobj "gdata" of (String n) => n)
+              | (String "GN_Empty") => GraphSubstData.GN_Empty
+              (* TO DO: fixme: basically linked list -> or convert to list?? *)
+              | (String "GN_Pair") => GraphSubstData.GN_Empty);
 
            fun input (Object jobj) = 
              (case get jobj "type" of
                 (String "RT") => GraphSubstData.RT (RTechnJSON.rtechn_from_json (Object jobj)(*(get jobj "data")*))
-              | (String "GN") => let 
-                                   val (Array arr) = get jobj "data"
-                                 in GraphSubstData.GN (map inp_gnode arr) end
-              | (String "TVar") => GraphSubstData.TVar (case get jobj "data" of (String n) => n)
-              | (String "GVar") => GraphSubstData.GVar (case get jobj "data" of (String n) => n));
-        end; (* local open *)
+              | (String "GN") => GraphSubstData.GN (inp_gnode (Object jobj))
+              | (String "TVar") => GraphSubstData.TVar (case get jobj "data" of (String n) => n))
+      end; (* local open *)
         fun input _ = GraphSubstData.RT RTechn.id; (* RTechnJSON.rtechn_from_json *)
      end; (* struct *)
 
@@ -96,15 +96,17 @@ struct
        fun out_gnode (GraphSubstData.GN_Node gn) =
              Json.mk_object [("gtype", Json.String "GN_Node"), ("gdata", GoalTyp.gnode_to_json gn)]
         |  out_gnode (GraphSubstData.GN_Var v) =
-             Json.mk_object [("gtype", Json.String "GN_Var"), ("gdata", Json.String v)]
- 
-       fun output (GraphSubstData.RT rt) = RTechnJSON.rtechn_to_json rt
-              (*Json.mk_object [("type", Json.String "RT"), ("data", RTechnJSON.rtechn_to_json rt)]*)
-         | output (GraphSubstData.GN gnds) = Json.Array (map out_gnode gnds)
+             Json.mk_object [("gtype", Json.String "GN_Var"), ("gdata",Json.String v)]
+        |  out_gnode (GraphSubstData.GN_Empty) = Json.mk_object [("gtype", Json.String "GN_Empty")]
+        (* fixme: should be like a linked list -> or turn to list and just use array? *)
+        |  out_gnode (GraphSubstData.GN_Pair _) =Json.mk_object [("gtype", Json.String "GN_Empty")]
+
+       fun output (GraphSubstData.RT rt) =
+              Json.mk_object [("type", Json.String "RT"), ("data", RTechnJSON.rtechn_to_json rt)] 
+         | output (GraphSubstData.GN gn) = 
+              Json.mk_object [("type", Json.String "GN"), ("data", out_gnode gn)] 
          | output (GraphSubstData.TVar tv) =
              Json.mk_object [("type", Json.String "TVar"), ("data", Json.String tv)]
-         | output (GraphSubstData.GVar gv) =
-            Json.mk_object [("type", Json.String "GVar"), ("data", Json.String gv)] 
 
 
      end; (* structure *)
@@ -145,8 +147,6 @@ struct
             "[style=filled,fillcolor=green,fontcolor=black,shape=circle]"
         | style_for_ivertex_data (GraphSubstData.TVar _) =
             "[style=filled,fillcolor=yellow,fontcolor=red,shape=square]"
-        | style_for_ivertex_data (GraphSubstData.GVar _) =
-            "[style=filled,fillcolor=yellow,fontcolor=red,shape=circle]";
     end; (* struct DotStyle *)
   end; (* struct PS_ComponentDataIO *)
 

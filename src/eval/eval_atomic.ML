@@ -204,7 +204,7 @@ struct
         [map (K []) goal_typs] (* empty list to start *)
         |> fold (fn pnd => maps (partition_one goal_typs gnode pnd)) pnds;
 
-  val partition_to_gnodes = map (GData.GN o (map GData.GN_Node));
+  val partition_to_gnodes = map (GData.GN o GData.gnode_of_list o (map GData.GN_Node));
 
   fun apply_atomic edata gnode rtechn goal_typs = 
    let 

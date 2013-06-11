@@ -4,6 +4,7 @@ sig
 
   type psgraphfn = PSGraph.T -> PSGraph.T
   type goaltyp = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T 
+  type tactic = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic
 
  (* working with graph part of a psgraph *)
   val collapse_graph : 
@@ -24,7 +25,10 @@ sig
   val ORELSE: psgraphfn * psgraphfn -> psgraphfn 
   val NEST': string -> psgraphfn -> PSGraph.T -> string * PSGraph.T
   val NEST:string -> psgraphfn -> psgraphfn
-  
+
+  val LIFTtac' : goaltyp list * goaltyp list -> (RTechn.T * tactic) -> PSGraph.T
+  val LIFTtac : goaltyp list * goaltyp list -> (RTechn.T * tactic) -> psgraphfn  
+
   val LIFT' : goaltyp list * goaltyp list -> RTechn.T -> PSGraph.T
   val LIFT : goaltyp list * goaltyp list -> RTechn.T -> psgraphfn
 end
@@ -40,6 +44,7 @@ struct
 
   type psgraphfn = PSGraph.T -> PSGraph.T
   type goaltyp = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T 
+  type tactic = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic
 
   (* collapsing of graph into a vertex *)
   fun collapse_graph_vertex rt_typ name g =
@@ -172,6 +177,20 @@ struct
 
   fun LIFT' (ins,outs) rt = 
      PSGraph.of_graph (graph_of_rtechn rt ins outs);
+
+  fun LIFTtac (ins,outs) (rt,tac) ps =
+   case RTechn.get_tactic rt of
+     NONE => LIFT (ins,outs) rt ps
+     | (SOME n) => ps
+          |> PSGraph.update_atomics (StrName.NTab.doadd (n,tac))
+          |> LIFT (ins,outs) rt;
+
+  fun LIFTtac' (ins,outs) (rt,tac) =
+   case RTechn.get_tactic rt of
+     NONE => PSGraph.of_graph (graph_of_rtechn rt ins outs)
+     | (SOME n) => 
+          PSGraph.of_graph (graph_of_rtechn rt ins outs)
+          |> PSGraph.update_atomics (StrName.NTab.doadd (n,tac));
 
  infixr 6 THENG;
 

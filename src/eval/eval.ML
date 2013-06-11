@@ -90,7 +90,7 @@ struct
     case EGraph.Util.lookup_rtechn (EData.get_graph edata) v of
       NONE => raise evaluate_exp (SOME v, "Vertex not a reasoning technique")
     | SOME rt =>
-       if (RTechn.is_atomic rt) then eval_atomic edata v rt
+       if (RTechn.is_atomic rt) then eval_atomic edata v rt 
        else if (RTechn.is_merge rt) then raise evaluate_exp (SOME v, "merge not supported")
        else if (RTechn.is_identity rt) then raise evaluate_exp (SOME v, "identity not supported")
        else if (RTechn.is_hgraph rt) then raise evaluate_exp (SOME v, "hierarchies not supported")
@@ -103,6 +103,8 @@ struct
      EGraph.Util.all_rtechns (EData.get_graph edata)
      |> Seq.of_list
      |> Seq.maps (evaluate edata);
+
+  val normalise_gnode = EData.update_graph EGraph.normalise_gnode;
 
 (* 
   and eval_one edata =

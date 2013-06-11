@@ -17,7 +17,8 @@ structure EData = EDataFun(structure Atomic = BIsaAtomic
 *}
 ML{*
 structure EVal = EValFun(EData); 
-*}                               
+*}                    
+          
 end
 
 
