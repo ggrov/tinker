@@ -60,11 +60,16 @@ struct
            | _           => false)
        handle _ => false);
 
-    fun init_lift str pn = 
-     String.tokens (fn c => c = #";") str
-     |> map (lift' pn)
-     |> forall I 
-     |> liftp pn
+    fun init_lift str pn =
+     let 
+        val ls = String.tokens (fn c => c = #";") str
+    in 
+     case ls of 
+       [] => NONE
+      | _ => ls |> map (lift' pn)
+                |> forall I 
+                |> liftp pn
+   end;
 
   end; (* local open *)
 

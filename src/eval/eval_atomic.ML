@@ -172,8 +172,8 @@ struct
 
   (* need some filtering of empty here *)
   fun partition_one' [] _ _ _ [] = [] (* fails to lift for this branch *)
-  fun partition_one' (gt::gts) gnode pnode bres (r::ares) = 
-    case lift gnode gt pnode of
+   |  partition_one' (gt::gts) gnode pnode bres (r::ares) = 
+    (case lift gnode gt pnode of
       (* fails to lift *)
       NONE => partition_one' gts gnode pnode (bres@[r]) ares
       (* succeeds, and check for further successes *)
@@ -181,14 +181,15 @@ struct
         (* adds the succeded to the current result *)
         (bres @ [g'::r] @ ares) ::
         (* goes through and see if more succeeds (thus branching) *)
-         partition_one' gts gnode pnode (bres@[r]) ares;
+         partition_one' gts gnode pnode (bres@[r]) ares)
+  | partition_one' _ _ _ _ _ = [];
 
   (* raises exception if one proof nodes fails *)
   fun partition_one goal_typs gnode pnode res =
-    case partition_one' goal_typs gnode pnode res [] of
+    case partition_one' goal_typs gnode pnode [] res of
        [] => raise partition_exp pnode
      | xs => xs
-  
+
   (* return value : outer list - each branch: singleton 
                     middle list - one branch same length as goaltype input list
                     inner list - matching goal nodes for given goaltype
@@ -201,7 +202,7 @@ struct
   fun partition []     _       _     = []
    |  partition pnds gnode goal_typs =
         [map (K []) goal_typs] (* empty list to start *)
-        |> fold (fn pnd => maps (partition_one goal_typs gnode pnd)) pnds
+        |> fold (fn pnd => maps (partition_one goal_typs gnode pnd)) pnds;
 
   val partition_to_gnodes = map (GData.GN o (map GData.GN_Node));
 

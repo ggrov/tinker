@@ -3,7 +3,8 @@ sig
   structure GoalTyp : BASIC_GOALTYPE
 
   datatype gnode = GN_Node of GoalTyp.gnode 
-                 | GN_Var of string (* single goalnode variable *)
+                 | GN_Var of string 
+
 
   (* TO DO: allow variables inside a rtechn? *)
   datatype vdata = RT of RTechn.T
@@ -153,7 +154,7 @@ functor GraphSubstDataFun (GoalTyp : BASIC_GOALTYPE) : GRAPH_SUBST_DATA
   val print_gnode = Pretty.writeln o pretty_gnode;
 
   fun pretty_vdata (RT rt) = RTechn.pretty rt
-   |  pretty_vdata (GN gn) = Pretty.block (Pretty.commas (map pretty_gnode gn))
+   |  pretty_vdata (GN gn) = Pretty.enclose "[" "]" (Pretty.commas (map pretty_gnode gn))
    |  pretty_vdata (TVar s) = Pretty.str ("?T_" ^ s)
    |  pretty_vdata (GVar s) = Pretty.str ("?GL_" ^ s);
   val print_vdata = Pretty.writeln o pretty_vdata;

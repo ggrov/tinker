@@ -175,7 +175,7 @@ struct
        (Graph.OVData.NVert node) => 
         (if is_rtechn node 
           then " [style=filled,fillcolor=white,fontcolor=black,shape=box,label=\"" ^ (node_str node) ^ "\"]"
-          else  " [style=filled,fillcolor=white,fontcolor=black,shape=circle,label=" ^ (node_str node) ^ "]")
+          else  " [style=filled,fillcolor=white,fontcolor=black,shape=circle,label=\"" ^ (node_str node) ^ "\"]")
       | _ => " [style=filled,fillcolor=gray,shape=box,width=0,height=0,fontcolor=white]"
 
   fun node_style g v = Pretty.str (node_style_str g v);

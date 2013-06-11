@@ -1,4 +1,4 @@
-structure BIsaAtomic : ATOMIC  =
+structure BIsaAtomic_DB =
 struct
   type fact = Thm.thm
   type goal = term (* this is not part of the structure *)
@@ -52,7 +52,8 @@ struct
   fun update (pnode,pplan) newgoal = 
    let 
     val (b,ind,a) = othergs (#pname pnode) 1 (#opengs pplan) []; 
-    val numb = (Thm.nprems_of newgoal) - (Thm.nprems_of (#goal pplan))
+    (* 1 for current goal *)
+    val numb = 1 + (Thm.nprems_of newgoal) - (Thm.nprems_of (#goal pplan))
     val prems = Thm.prems_of newgoal
     val newgoals' = 
       if numb > 0 
@@ -66,18 +67,21 @@ struct
     (newgoals,pplan')
   end;
 
-  fun apply_rule _ thm (pnode,pplan) = 
+  fun apply_rule name thm (pnode,pplan) = 
+    (tracing ("rule " ^ name);
     rtac thm (get_index pnode pplan) (#goal pplan) 
-    |> Seq.map (update (pnode,pplan));
+    |> Seq.map (update (pnode,pplan)));
 
   fun apply_erule _ thm (pnode,pplan) =
     etac thm (get_index pnode pplan) (#goal pplan) 
     |> Seq.map (update (pnode,pplan));
 
-  (* not sure how to do this! ~ just ignore second one... *)
-  fun apply_frule (_,fst_thm) (_,_) (pnode,pplan) = 
-    ftac fst_thm (get_index pnode pplan) (#goal pplan) 
-    |> Seq.map (update (pnode,pplan));
+  (* try both of them *)
+  fun apply_frule (n1,fst_thm) (n2,snd_thm) (pnode,pplan) = 
+    (tracing ("frule with " ^ n1 ^ " and " ^ n2); 
+    Seq.append (ftac fst_thm (get_index pnode pplan) (#goal pplan)) 
+               (ftac snd_thm (get_index pnode pplan) (#goal pplan))
+    |> Seq.map (update (pnode,pplan)));
 
   fun apply_subst _ thm (pnode,pplan) =
     EqSubst.eqsubst_tac (#pctxt pnode) [0] [thm] (get_index pnode pplan) (#goal pplan)
@@ -115,4 +119,7 @@ struct
     type concl = concl
   end
 
-end
+end (* struct *)
+
+structure BIsaAtomic : ATOMIC = BIsaAtomic_DB;
+
