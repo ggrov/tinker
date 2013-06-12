@@ -124,19 +124,30 @@ struct
         in
           Seq.maps (fn (fnm,fact) => Atomic.apply_erule fnm fact (pnode,pplan)) facts
         end
+     (* it never fails: it tries of them once (should revisit this though) *)
    |  apply_appf edata gnode (RTechn.FRule (class_nm,fact_nms)) =
         let 
           val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
           val pplan = EData.get_pplan edata
+          (* the class to apply to *)
           val hyps = GoalTyp.get_fact_names class_nm gnode 
-                     |> fact_seq pnode 
-          val facts = fact_seq pnode fact_nms
+                     |> fact_list pnode
+          (* the fact to apply *) 
+          val facts = fact_list pnode fact_nms
           (* one application of a frule of a fact to a hyp *)
-          fun apply_frule' hyp fact = Atomic.apply_frule  hyp fact (pnode,pplan)
-          (* application of all facts to a hyp *)
-          fun apply_frule hyp = Seq.maps (apply_frule' hyp) facts
-        in
-           Seq.maps apply_frule hyps
+          fun try_apply_as_list hyp fact (pn,pp) = 
+             (case Atomic.apply_frule hyp fact (pn,pp) |> Seq.list_of of
+                [] => [([pn],pp)]
+               | xs => xs)
+          fun try_apply_frule' hyp fact (pnds,pp) =
+             maps (fn pn => try_apply_as_list hyp fact (pn,pp)) pnds
+          fun try_apply_frule hyp fact pnpps =
+             maps (try_apply_frule' hyp fact) pnpps
+          fun apply_frule hyp pnpps =
+            fold (try_apply_frule hyp) facts pnpps
+        in (* fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b *)
+           fold apply_frule hyps [([pnode],pplan)] 
+           |> Seq.of_list
         end
    |  apply_appf edata gnode (RTechn.Subst fact_nms) = 
         let 

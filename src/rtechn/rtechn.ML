@@ -173,9 +173,7 @@ structure RTechn
   fun pretty_name rt = RT.pretty_name (get_name rt);
 
   (* to do: do this in terms of appf as well *)
-  fun pretty rt = Pretty.block 
-                    [Pretty.chunks 
-                       [Pretty.str "Name: ", pretty_name rt]];
+  fun pretty rt = pretty_name rt;
   
 
 

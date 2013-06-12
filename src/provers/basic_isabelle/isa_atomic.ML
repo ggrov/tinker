@@ -76,10 +76,10 @@ struct
     etac thm (get_index pnode pplan) (#goal pplan) 
     |> Seq.map (update (pnode,pplan));
 
-  (* try both of them *)
+  (* only second *)
   fun apply_frule (n1,fst_thm) (n2,snd_thm) (pnode,pplan) = 
     (tracing ("frule with " ^ n1 ^ " and " ^ n2); 
-    Seq.append (ftac fst_thm (get_index pnode pplan) (#goal pplan)) 
+    (* Seq.append (ftac fst_thm (get_index pnode pplan) (#goal pplan)) *)
                (ftac snd_thm (get_index pnode pplan) (#goal pplan))
     |> Seq.map (update (pnode,pplan)));
 

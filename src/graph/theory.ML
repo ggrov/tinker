@@ -161,8 +161,8 @@ struct
   structure Graph = PS_Theory.Graph;
   structure GData = PS_GraphParam.GraphSubstData;
 
-  fun pretty_node g v = V.pretty_name v
-  fun pretty_edge g e = GData.pretty_edata (Graph.get_edge_data g e);
+  fun pretty_node g v = V.dest v
+  fun pretty_edge g e = Pretty.string_of (GData.pretty_edata (Graph.get_edge_data g e));
 
   fun is_rtechn (GData.RT _) = true
    |  is_rtechn (GData.TVar _) = true
@@ -170,7 +170,7 @@ struct
 
   val node_str = GData.pretty_vdata #> Pretty.string_of;
 
-  fun node_style_str g v = 
+  fun node_style g v = 
      case Graph.get_vertex_data g v of 
        (Graph.OVData.NVert node) => 
         (if is_rtechn node 
@@ -178,42 +178,35 @@ struct
           else  " [style=filled,fillcolor=white,fontcolor=black,shape=circle,label=\"" ^ (node_str node) ^ "\"]")
       | _ => " [style=filled,fillcolor=gray,shape=box,width=0,height=0,fontcolor=white]"
 
-  fun node_style g v = Pretty.str (node_style_str g v);
-
-  fun node_block graph = let
-    val boxtab = Graph.get_bbox_table graph
-   fun f nm list = (pretty_node graph nm)::
-                    (node_style graph nm)::
-                    (Pretty.str ";\n")::
-                    list
-    fun box_f (box,vset) list = 
-      (Pretty.str "subgraph cluster_")::
-      (B.pretty_name box)::
-      (Pretty.str " {\n")::
-      (V.NSet.fold_rev f vset
-      (Pretty.str "}\n"::list))
-  in B.NTab.fold box_f boxtab (V.NSet.fold_rev f (Graph.get_unbboxed graph) [])
+  fun node_block graph = 
+   let
+     fun single_node nm list = 
+        (pretty_node graph nm)
+        ^ (node_style graph nm)
+        ^ ";\n"
+        ^ list
+  in (V.NSet.fold_rev single_node (Graph.get_unbboxed graph) "")
   end
   
   fun edge_block graph = let
-    fun f nm list = let
+    fun f nm str = let
       val (_, (s,t)) = Graph.get_edge graph nm
-    in (pretty_node graph s)::
-       (Pretty.str " -> ")::
-       (pretty_node graph t)::
-       (Pretty.str " [label=\"")::
-       (pretty_edge graph nm)::
-       (Pretty.str "\"];\n")::list
+    in (pretty_node graph s)
+       ^ " -> "
+       ^ (pretty_node graph t)
+       ^  " [label=\""
+       ^ (pretty_edge graph nm)
+       ^ "\"];\n" 
+       ^ str
     end
-  in E.NSet.fold_rev f (Graph.get_enames graph) []
+  in E.NSet.fold_rev f (Graph.get_enames graph) ""
   end
   
-  fun output graph = Pretty.string_of (Pretty.block (
-    [Pretty.str "digraph G {\n"] @
-    node_block graph @
-    edge_block graph @
-    [Pretty.str "}\n"]
-  ))
+  fun output graph = 
+     "digraph G {\n" 
+      ^ (node_block graph)
+      ^ (edge_block graph)
+      ^ "}\n";
 
   fun write_dot_to_file fname graph =
      let 

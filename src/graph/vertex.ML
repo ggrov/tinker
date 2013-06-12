@@ -32,7 +32,7 @@ functor PSVertexDataFun(GraphSubstData : GRAPH_SUBST_DATA) : PS_VERTEX
           NONE => SOME (GSD.add_gsubst (v,g) subst)
         | (SOME g') => if GSD.gnode_eq(g,g') then SOME subst else NONE)
    |  match_gnode (GSD.GN_Var v1,GSD.GN_Var v2) _ = NONE
-   |  match_gnode (GSD.GN_Empty,GSD.GN_Empty) _ = NONE
+   |  match_gnode (GSD.GN_Empty,GSD.GN_Empty) subst = SOME subst
    |  match_gnode (GSD.GN_Pair (x1,x2),GSD.GN_Pair (y1,y2)) subst =
        (case  match_gnode (x1,y1) subst of
           NONE => NONE   

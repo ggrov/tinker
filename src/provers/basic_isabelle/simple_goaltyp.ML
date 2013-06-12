@@ -83,7 +83,8 @@ struct
 
   (* delete *)
   fun lookup_fact_names _ _ = NONE;
-  fun get_fact_names _ _ = StrName.NSet.empty;
+  (* need to pretend there is a single fact *)
+  fun get_fact_names _ _ = StrName.NSet.single ("True_def");
 
   
 end;

@@ -63,11 +63,15 @@ struct
            lhs |> EGraph.Util.del_gnode gnode_name
                |> EGraph.add_outs out_edges part 
                |> (fn rhs => (edata',(lhs,rhs)))
-      fun apply_all (edata',parts) =
-        parts
-        |> map EAtom.partition_to_gnodes
-        |> Seq.of_list
-        |> Seq.map (fn p => apply_one (edata',p));
+      fun apply_all (edata',[]) = (* no subgoals *)
+          lhs |> EGraph.Util.del_gnode gnode_name
+              |> (fn rhs => (edata',(lhs,rhs)))
+              |> Seq.single      
+        | apply_all (edata',parts) =
+              parts
+              |> map EAtom.partition_to_gnodes
+              |> Seq.of_list
+              |> Seq.map (fn p => apply_one (edata',p));
     in
       Seq.maps apply_all result_seq
     end
