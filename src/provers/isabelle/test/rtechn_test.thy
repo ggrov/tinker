@@ -1,5 +1,5 @@
 theory rtechn_test
-imports "../build/RTechn"
+imports "../build/basic/RTechn"
 begin
 
 (*a simple rtechn*)
@@ -16,8 +16,9 @@ ML{*
 *}
 
 ML{*
-  val psfg1 = LIFT ([GoalTyp.top],[GoalTyp.top]) (impI)
-  val psfg2 = LIFT ([GoalTyp.top],[GoalTyp.top]) (RTechn.id)
-  val psfg3 = psfg1 THENG psfg2;
+  val quickcheck_auto_r = 
+    RTechn.id
+    |> RTechn.set_name (RT.mk "quickcheck-auto")
+    |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TNoAsm (* or TAllAsm *), "auto"))
 *}
 end

@@ -16,14 +16,7 @@ uses
   "../../../goaltype/full/goaltyp_json.ML"  
   "../../../goaltype/full/goaltyp_match.ML"
   "../../../goaltype/full/goaltyp_i.ML"
-
-(* for simple goaltyp 
-
-  "../../../goaltype/simple/gnode.ML"
-  "../../../goaltype/simple/goaltyp_json.ML"  
-  "../../../goaltype/simple/goaltyp_match.ML"
-  "../../../goaltype/simple/goaltyp_i.ML"
-*)
+  "../../../goaltype/full_goaltyp.ML"
 begin
 
 end

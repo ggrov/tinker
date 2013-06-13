@@ -16,10 +16,12 @@ structure GoalTypMatch = GoalTypMatchFun (structure GoalTyp: GOAL_TYP = GoalTyp
                                          structure Prover : PROVER = IsaProver
                                          structure Atomic = BIsaAtomic
                                          structure MatchParam = MatchParam);
-structure BasicGoalTyp = BasicGoalTypFun (structure GoalTyp = GoalTyp
+structure GoalTyp_I = GoalTypIFun (structure GoalTyp = GoalTyp
                                           structure Atomic : ATOMIC = BIsaAtomic
                                           structure GoalTypJson : GOALTYP_JSON = GoalTypJson
                                           structure GoalTypMatch : GOALTYP_MATCH = GoalTypMatch);
+structure BasicGoalTyp : BASIC_GOALTYPE = GoalTyp_I
+structure FullGoalTyp : FULL_GOAL_TYP = GoalTyp_I
 
 structure Theory = PSTheoryFun(structure GoalTyp = BasicGoalTyp);
 structure PSGraph = PSGraphFun(structure PSTheory = Theory

@@ -1,15 +1,17 @@
 (* BASIC GOAL TYPE which is used for graph *)
 
-functor BasicGoalTypFun (structure GoalTyp : GOAL_TYP 
+functor GoalTypIFun (structure GoalTyp : GOAL_TYP 
                          structure Atomic : ATOMIC
                          structure GoalTypJson : GOALTYP_JSON
                          structure GoalTypMatch : GOALTYP_MATCH
                          sharing GoalTyp.Sharing = GoalTypJson.Sharing.GoalTyp
                          sharing GoalTypMatch.Sharing.GoalTyp = GoalTypJson.Sharing.GoalTyp
-                         sharing Atomic.Sharing = GoalTypMatch.Sharing.Atomic): BASIC_GOALTYPE = 
+                         sharing Atomic.Sharing = GoalTypMatch.Sharing.Atomic) = 
 struct
   structure Atomic = Atomic
   structure GoalTyp = GoalTyp
+  structure Class = GoalTyp.Class
+  structure Link = GoalTyp.Link
 
   type T = GoalTyp.T
   type gnode = GNode.T
@@ -53,11 +55,33 @@ struct
  val is_equal : T -> T -> bool 
 *)
 
+(* for full goal type *)
+  val get_name = GoalTyp.get_name
+  val get_link = GoalTyp.get_link
+  val get_facts = GoalTyp.get_facts
+  val get_gclass = GoalTyp.get_gclass
+  val set_name = GoalTyp.set_name
+  val set_link = GoalTyp.set_link
+  val set_facts = GoalTyp.set_facts
+  val set_gclass = GoalTyp.set_gclass
+
+
+  structure FullSharing = 
+  struct
+    structure Link = GoalTyp.Sharing.Link
+    structure Class = GoalTyp.Sharing.Class
+  end
+
+  structure BasicSharing = 
+  struct
+    type T = T
+    type gnode = gnode
+  end
+
 (* to remove*)
 
   fun lookup_fact_names _ _ = NONE 
   fun get_fact_names _ _ = StrName.NSet.empty 
-
 
 end;
 

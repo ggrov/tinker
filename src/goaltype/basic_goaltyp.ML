@@ -1,5 +1,10 @@
-(* BASIC GOAL TYPE which is used for graph *)
+signature BASIC_GOALTYPE_SHARING =
+sig
+  type T
+  type gnode
+end
 
+(* BASIC GOAL TYPE which is used for graph *)
 signature BASIC_GOALTYPE = 
 sig
   structure Atomic : ATOMIC
@@ -44,7 +49,10 @@ sig
   val lookup_fact_names : C.name -> gnode -> StrName.NSet.T option
   val get_fact_names : C.name -> gnode -> StrName.NSet.T 
 
-
+  structure BasicSharing : BASIC_GOALTYPE_SHARING
+    sharing type BasicSharing.T = T
+    sharing type BasicSharing.gnode = gnode
+    
 end;
 
 
