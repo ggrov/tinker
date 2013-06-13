@@ -1,101 +1,38 @@
 theory eval_test 
 imports
-  "../build/Prf"          
+  "../build/IsaP"         
 begin
 
-(* proof of A \<and> B \<longrightarrow> B \<and> A *)
-lemma "A \<and> B \<longrightarrow> B \<and> A"
-  apply (rule impI)
-  apply (elim conjE) (* FIXME: won't work in strategy - need to know which asm to use *)
-  apply (rule conjI)
-  apply assumption
-  apply assumption 
-  done
-
-lemma "A \<and> B \<longrightarrow> B \<and> A"
-  apply (rule impI)
-  apply (rule conjI)
-  apply (frule conjunct2)
-  apply assumption
-  apply (frule conjunct1)
-  apply assumption 
-  done
-
-(* tactics -- to do atac has to be registered! *)
 ML{*
-  val asm = RTechn.id
-            |> RTechn.set_name (RT.mk "assumption")
-            |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "atac"));
+  val gt = BasicGoalTyp.default;
 
-   val intro = RTechn.id
-            |> RTechn.set_name (RT.mk "rule impI | conjI")
-            |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["impI","conjI"]));
+  val auto = RTechn.id
+            |> RTechn.set_name (RT.mk "auto")
+            |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "auto"));
+  val auto_tac = fn x => ( fn _ => Clasimp.auto_tac x);
 
-   val frule = RTechn.id
-            |> RTechn.set_name (RT.mk "frule conjuncts")
-            |> RTechn.set_atomic_appf (RTechn.FRule (C.mk "conj",StrName.NSet.of_list ["conjunct1","conjunct2"]));
-*}
+  val psauto = PSComb.LIFT ([gt],[]) (auto);
+  val psgraph = psauto PSGraph.empty;
 
-(* goaltyp: need to keep all assumptions (with and in them) *)
-ML{*
-
-  val gt = GoalTyp.top
+  val psgraph = 
+    psauto PSGraph.empty 
+    |> PSGraph.update_atomics (StrName.NTab.doadd ("auto", auto_tac))
 
 *}
-
-(* psgraph *)
 ML{*
-  infixr 6 THENG;
-  val op THENG = PSComb.THENG;
+  val (pn,pp) = BIsaAtomic.init @{context} @{prop "A --> A"};
+  val pnode_tab = 
+       StrName.NTab.ins
+         (BIsaAtomic.get_pnode_name pn,pn)
+         StrName.NTab.empty;
+  val edata_0 = EData.init psgraph pp pnode_tab [];
 
-  val psintro = PSComb.LIFT ([gt],[gt]) (intro);
-  val psfrule = PSComb.LIFT ([gt],[gt]) (frule);
-  val psasm = PSComb.LIFT ([gt],[]) (asm);
-  val psfg3 = psintro THENG psintro THENG psfrule THENG psasm;
+  BasicGoalTyp.init_lift gt pn;
 *}
-
-(* evaldata *)
 ML{*
-  val psgraph = psfg3 PSGraph.empty;
-  val (pnode,pplan) = PPlan.init @{context} @{prop "A \<and> B \<longrightarrow> B \<and> A"};
-  (* get graph and insert pnode  *)
-
-  val edata = EData.init psgraph pplan StrName.NTab.empty [];
+  val edata0 = EVal.init psgraph @{context} @{prop "A --> A"} |> hd;
+  val edata1 = EVal.evaluate_any edata0 |> Seq.list_of |> hd;
 *}
-
-(* test evaluation - doesn't terminate... *)
-
- ML{*
-EVal.evaluate_any edata |> Seq.list_of;
-*} 
-
-(* test part of it *)
-ML{*
-val graph = EData.get_graph edata;
-val [a,b,c,d] = EVal.EGraph.Util.all_rtechns graph;
-*}
-
-(*
-
-
-
-(* test instantiation *)
-ML{*
-structure Theory = EData.PSGraph.PSTheory.PS_Theory;
-val [lhs] = EVal.EGraph.mk_lhs graph a;
-val rule = Theory.Rule.mk(lhs,lhs);
-*}
-
-(* 
-
-  fun match_lhs graph lhs =
-     Theory.RulesetRewriter.rule_matches
-           (Theory.Rule.mk(lhs,lhs)) (* make a dummy rule *)
-           graph
-     |> snd
-     |> Seq.map (fn m => (Theory.Match.get_match_subst m, Graph.apply_data_subst (Theory.Match.get_match_subst m) lhs));
-        
-*)
 end;
 
 

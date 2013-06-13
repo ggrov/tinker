@@ -65,7 +65,7 @@ struct
   fun ord(gt1,gt2) = G.name_ord (get_name gt1,get_name gt2);
   fun eq(gt1,gt2) = (ord(gt1,gt2) = EQUAL);
 
-  val top = GoalTyp {name = G.mk "top", link = Link.top, facts = [Class.top], goal = Class.top};
+  val top = GoalTyp {name = G.mk "top", link = Link.top, facts = [], goal = Class.top};
   
   fun pretty gtyp = get_name gtyp |> G.string_of_name |> Pretty.str;
 

@@ -157,10 +157,10 @@ struct
                               )
                    ) (* cname * name list*)
                  (facts_data);
-             val if_empty = (map snd cname_factList) 
-                                  |> (fn x => case x of [] => true | _ => false)
+             val if_class_binded = (map snd cname_factList) 
+                                  |> (fn x => case x of [] => false | _ => true)
            in
-             if if_empty (* check if all class are binded with facts*)
+             if if_class_binded (* check if all class are binded with facts*)
              then
                (let 
                   fun match_link_item (lkey as (fname, (cname1, cname2))) dl = 

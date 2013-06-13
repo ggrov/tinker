@@ -156,12 +156,14 @@ struct
                                 |> map fst (* project only facts name*)
                                 |> (fn x => (Class.get_name cls, x))
                               )
-                   ) (* cname * name list*)
+                   )
                  (GoalTyp.get_facts gtyp);
-             val if_empty = (map snd cname_factList) 
-                                  |> (fn x => case x of [] => true | _ => false)
+             val if_class_binded = 
+               (map snd cname_factList) 
+               |> List.exists (fn x => case x of [] => true | _ => false) 
+               |> not;
            in
-             if if_empty (* check if all class are binded with facts*)
+             if if_class_binded (* check if all class are binded with facts*)
              then
                (let 
                   val link = GoalTyp.get_link gtyp (* GNode.get_fact_names |> StrName.NSet.list_of *)
@@ -192,11 +194,11 @@ struct
                     GNode.mk_goal_no_facts (Atomic.get_pnode_name pnode) 
                       |> fold GNode.add_facts (map (fn (x,y) => (x,StrName.NSet.of_list y)) cname_factList)
                       |> GNode.set_parent' gnode |> SOME
-                  else NONE
+                  else (writeln "NONE due to link"; NONE)
                 end)
-             else NONE
+             else (writeln "NONE due to class";NONE)
            end)
-      else NONE
+      else (writeln "NONE due to goal class";NONE)
     end
    (* handle _ => NONE*)
     
