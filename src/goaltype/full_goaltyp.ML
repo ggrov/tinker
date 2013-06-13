@@ -10,7 +10,8 @@ sig
   structure Link : LINK
   structure Class : CLASS
   sharing Class.Sharing.GoalTypData = Link.Sharing.GoalTypData
-   
+
+  val top : T   
   val get_name : T -> G.name
   val get_link : T -> Link.T
   val get_facts: T -> Class.T list

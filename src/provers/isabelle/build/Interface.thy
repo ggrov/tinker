@@ -1,13 +1,9 @@
 (* simple test of proof representation *)
-theory Parse                                                      
+theory Interface                                                      
 imports
   PreIsaP           
   IsaP  
 begin
-
- ML_file "../../../parse/whym_tree.ML"  
- ML_file "../../../parse/whym_parse.ML"
-
  ML_file  "../../../parse/string_transfer.ML"
 
 text "add merge and identify as default"

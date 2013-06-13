@@ -13,7 +13,7 @@ sig
   val top : T
   
   val get_item : F.name -> T -> (GoalTypData.data list list) option
-  val set_item: F.name -> (GoalTypData.data list list) -> T -> T
+  val add_item: F.name -> (GoalTypData.data list list) -> T -> T
   val del_item : F.name -> T -> T
   val get_keys : T -> F.name list
 
@@ -42,8 +42,11 @@ struct
 
   exception CLASS_EXP of F.name * T
   fun get_item gname (_, class) =  F.NTab.lookup class gname
-  fun set_item gname item (g, class) = (g, (F.NTab.update (gname, item) class))
+  fun add_item gname item (g, class) = (g, (F.NTab.update (gname, item) class))
   fun del_item gname (g, class) = (g, F.NTab.delete gname class)
+
+
+
   
   fun get_keys (_, class) = F.NTab.keys class
 

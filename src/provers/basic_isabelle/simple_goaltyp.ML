@@ -86,5 +86,10 @@ struct
   (* need to pretend there is a single fact *)
   fun get_fact_names _ _ = StrName.NSet.single ("True_def");
 
+  structure BasicSharing =
+  struct
+    type T = T
+    type gnode = gnode
+  end
   
 end;

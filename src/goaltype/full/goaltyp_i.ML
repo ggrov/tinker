@@ -17,6 +17,7 @@ struct
   type gnode = GNode.T
    
   val default = GoalTyp.top
+  val top = default;
   val default_gnode = GNode.mk_goal_no_facts "default_gnode"
 
   val ord = GoalTyp.ord

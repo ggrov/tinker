@@ -122,7 +122,7 @@ struct
   in
     Class.top 
     |> Class.rename (Json.get jobj "cname" |> (fn (Json.String str) => C.mk str))
-    |> (fn class => (fold (fn (x,y) => (fn t => Class.set_item x y t)) pair class))
+    |> (fn class => (fold (fn (x,y) => (fn t => Class.add_item x y t)) pair class))
   end
   | class_from_json _ = raise EXP_PARSING_JSON "Not a Json object type.";
 

@@ -1,7 +1,7 @@
 (* simple test of proof representation *)
 theory GoalTyp
 imports                
- "basic/BasicIsaPS"                                            
+ "basic/BasicIsaPS"                                               
 uses
 
   "../../../goaltype/goaltyp_data.ML"

@@ -1,13 +1,13 @@
 (* simple test of proof representation *)
-theory IsaP                                             
+theory IsaP                                              
 imports       
   "GoalTyp" 
-(*      
- "~~/contrib/isaplib/isabelle/isaplib/isaplib"   
-*)                                                                                 
-uses  "../isa_prover.ML" "../../basic_isabelle/isa_atomic.ML" "../isa_match_param.ML" "../isa_setup.ML"
-            
-begin
+begin  
+
+ ML_file "../isa_prover.ML" 
+ ML_file "../../basic_isabelle/isa_atomic.ML" 
+ ML_file "../isa_match_param.ML" 
+ ML_file "../isa_setup.ML"
 
 end
 

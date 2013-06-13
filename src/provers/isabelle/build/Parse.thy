@@ -6,14 +6,14 @@ imports
 begin
 
  ML_file "../../../parse/whym_tree.ML"  
- ML_file "../../../parse/whym_parse.ML"
+ ML_file "../../../parse/whym_parse.ML" 
 
- ML_file  "../../../parse/string_transfer.ML"
-
-text "add merge and identify as default"
-setup {* StringTransfer.add_rtechn ("merge",RTechn.merge) 
-       #> StringTransfer.add_rtechn ("id",RTechn.id)  *}
-
+ -- "simple test"
+ ML{*
+   val whymtree = WhyMTree.parse_file "/u1/staff/gg112/psgraph/src/parse/examples/simple2.yxml";
+   val graph =  WhyMParse.graph_of_goal @{context} (K[]) whymtree;
+   PSGraph.PSTheory.write_dot "/u1/staff/gg112/pptest.dot" graph
+ *}
 end
 
 
