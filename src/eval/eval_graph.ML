@@ -167,6 +167,8 @@ struct
   |  add_outs  (i::is) (p::ps) graph = 
        add_outs is ps (Util.insert_node_on_edge p i graph);
 
+  (* RULES FOR REWRITING *)
+
  val split_gnode_pairs = 
   let
     val edge = GData.EVar "e";
@@ -186,6 +188,8 @@ struct
   in
      Theory.Rule.mk (left,right)
   end;
+
+ val combine_gnodes_to_pair = Theory.Rule.symmetric split_gnode_pairs;
 
  val del_empty_gnode = 
   let

@@ -101,7 +101,42 @@ struct
     |> Seq.maps update 
    end;   
 
-  (* for now we only unfold *)
+  val normalise_gnode = EData.update_graph EGraph.normalise_gnode;
+
+  (* terminated 
+      -> if root then stop
+      -> if not
+           -> combine goalnode
+           -> move to parent
+           -> make parent current
+  *)
+
+  (*       val [gnode_name] = EGraph.Util.all_gnodes lhs; *)
+  fun unfold_nested edata v = 
+   let 
+     val lhs_seq = EGraph.matched_lhs (EData.get_graph edata) v
+     val name = EGraph.Util.rtechn_of (EData.get_graph edata) v
+              |> RTechn.get_name
+              |> RT.dest
+     val rhs = StrName.NTab.get (EData.PSGraph.get_g_tacs (EData.get_psgraph edata)) name
+     (* TODO: add goalnode to input *)
+     fun update (subst,lhs) = EData.push_active rhs lhs [] edata
+   in
+     Seq.map update lhs_seq
+   end
+
+  fun fold_nested edata v = ()
+    (*
+       check terminated
+       ok -> combine goalnodes
+          -> get goalnodes
+          -> get parent lhs
+          -> rhs := add goalnodes to out of lhs (use boundary!)
+          -> graph := pop parent
+          -> graphs := apply (lhs,rhs) to graph
+          -> Seq.maps (fn g => set_graph g edata) graphs
+    *)
+
   fun evaluate edata v = 
     case EGraph.Util.lookup_rtechn (EData.get_graph edata) v of
       NONE => raise evaluate_exp (SOME v, "Vertex not a reasoning technique")
@@ -115,12 +150,14 @@ struct
        else raise evaluate_exp (SOME v, "Unknown reasoning technique type")
      ;
 
+   (* should check if it is a nested and then move goalnodes back  *)
+
    fun evaluate_any edata =
      EGraph.Util.all_rtechns (EData.get_graph edata)
      |> Seq.of_list
      |> Seq.maps (evaluate edata);
 
-  val normalise_gnode = EData.update_graph EGraph.normalise_gnode;
+
 
 (* 
   and eval_one edata =
