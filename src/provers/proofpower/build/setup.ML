@@ -49,6 +49,7 @@
   use "../../../goaltype/full/goaltyp_json.ML";  
   use "../../../goaltype/full/goaltyp_match.ML";
   use "../../../goaltype/full/goaltyp_i.ML";
+  use "../../../goaltype/full_goaltyp.ML";
   
   use "../pp_match_param.ML";
   
@@ -79,12 +80,15 @@ structure GoalTypMatch = GoalTypMatchFun (structure GoalTyp: GOAL_TYP = GoalTyp
                                          structure Prover : PROVER = PpProver
                                          structure Atomic = PpAtomic
                                          structure MatchParam = MatchParam);
-structure BasicGoalTyp = BasicGoalTypFun (structure GoalTyp = GoalTyp
+                                          
+structure GoalTyp_I = GoalTypIFun (structure GoalTyp = GoalTyp
                                           structure Atomic : ATOMIC = PpAtomic
                                           structure GoalTypJson : GOALTYP_JSON = GoalTypJson
-                                          structure GoalTypMatch : GOALTYP_MATCH = GoalTypMatch)
+                                          structure GoalTypMatch : GOALTYP_MATCH = GoalTypMatch);
+structure FullGoalTyp : FULL_GOAL_TYP = GoalTyp_I
 
-structure Theory = PSTheoryFun(structure GoalTyp = BasicGoalTyp);
+structure Theory = PSTheoryFun(structure GoalTyp = FullGoalTyp);
+structure Theory = PSTheoryFun(structure GoalTyp = FullGoalTyp);
 structure PSGraph = PSGraphFun(structure PSTheory = Theory
                                structure Atomic = PpAtomic);
 structure PSComb = PSCombFun(PSGraph);

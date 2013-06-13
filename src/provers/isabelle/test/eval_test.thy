@@ -4,7 +4,7 @@ imports
 begin
 
 ML{*
-  val gt = BasicGoalTyp.default;
+  val gt = FullGoalTyp.default;
 
   val auto = RTechn.id
             |> RTechn.set_name (RT.mk "auto")
@@ -27,7 +27,7 @@ ML{*
          StrName.NTab.empty;
   val edata_0 = EData.init psgraph pp pnode_tab [];
 
-  BasicGoalTyp.init_lift gt pn;
+  FullGoalTyp.init_lift gt pn;
 *}
 ML{*
   val edata0 = EVal.init psgraph @{context} @{prop "A --> A"} |> hd;

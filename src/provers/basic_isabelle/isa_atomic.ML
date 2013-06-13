@@ -3,7 +3,8 @@ struct
   type fact = Thm.thm
   type goal = term (* this is not part of the structure *)
   type context = Proof.context
-  type concl = Term.term  
+  type concl = Term.term 
+  type assm = Term.term 
 
   exception atomic_exp of string
 
@@ -23,6 +24,9 @@ struct
    in
      (pnode,pplan)
    end;
+
+  fun init_with_assm _ _ _ =   (* a dummy init which is not used in isabelle by LYH*)
+    raise atomic_exp "init_with_assm should not be used in isabelle"
 
   fun get_ind str _ [] = raise atomic_exp ("goal " ^ str ^ " does not exists")
    |  get_ind str n (x::xs) = if str = (#pname x) then n else get_ind str (n+1) xs;
@@ -117,6 +121,7 @@ struct
     type pnode = pnode
     type context = context
     type concl = concl
+    type assm = assm
   end
 
 end (* struct *)

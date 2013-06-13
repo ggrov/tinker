@@ -4,6 +4,6 @@ structure test2 = SimpleLexer;(*quanto is OK*)
 set_goal;(*proof power is OK*)
 
 (*Theor Hierarchy is OK*)
-get_theory names();
-open_theory"sets";
-print_theory"sets";
+get_theory_names();
+open_theory "sets";
+print_theory "sets";

@@ -6,6 +6,7 @@ sig
   type pnode
   type context
   type concl
+  type assm
 end
 
 signature ATOMIC =
@@ -16,11 +17,13 @@ sig
   type pnode
   type context
   type concl
+  type assm
 
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
   (* could also make an init version with assumptions? *)
   val init : context -> concl -> pnode * pplan
+  val init_with_assm : context -> assm list -> concl -> pnode * pplan
 
   (* FIXME: also need to add name for export! *)
 
@@ -52,5 +55,7 @@ sig
     sharing type Sharing.pnode = pnode
     sharing type Sharing.context = context
     sharing type Sharing.concl = concl
+    sharing type Sharing.assm = assm
+   
 end;
 

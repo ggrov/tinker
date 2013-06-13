@@ -50,6 +50,18 @@ struct
     init_goal pnode edata0
    end;
 
+ fun init_with_assm psgraph ctxt assms goals =
+   let
+     val (pnode,pplan) = Atomic.init_with_assm ctxt assms goals
+     val pnode_tab = 
+       StrName.NTab.ins
+         (Atomic.get_pnode_name pnode,pnode)
+         StrName.NTab.empty;
+     val edata0 = EData.init psgraph pplan pnode_tab []
+   in
+    init_goal pnode edata0
+   end;
+
  fun mk_atomic_rhs edata rt lhs =
     let
       val out_edges = 

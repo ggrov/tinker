@@ -46,7 +46,7 @@ start pp
 
 in the poly ml interface: 
 build isap + quanto + psgraph
-  use "PRELOAD/ml";
+  use "PRELOAD.ml";
 load the built heap
   PolyML.SaveState.loadState "zed_psgraph.heap";
 run testing, should be no exceptions or any error messages:

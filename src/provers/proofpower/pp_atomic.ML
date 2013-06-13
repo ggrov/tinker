@@ -4,6 +4,7 @@ struct
   type tactic = TACTIC
   type context = PpProver.context
   type concl = PpProver.term
+  type assm = PpProver.term
   
   type pnode = {pname : string, pctxt : context, gs: GOAL_STATE, glabel : string} 
   type pplan = {opengs : pnode list, usedgs : StrName.NSet.T }
@@ -14,10 +15,11 @@ struct
   
   (* there is no interface to init a pnode and pplan ?*)
   (* if paralle evalation then it would be problematic*)
-
-  fun init asms_trms concl_trm : (pnode * pplan) =
+  fun init _ _  = raise atomic_exp "init is not expected to be called in pp"
+  fun init_with_assm ctxt asms_trms concl_trm : (pnode * pplan) =
     let
-      val gs = (set_goal (asms_trms, concl_trm) ; top_goal_state());
+      val (pcs, thy) = ctxt
+      val gs = ((*open_theory thy;*) set_merge_pcs pcs; set_goal (asms_trms, concl_trm) ; top_goal_state());
       val ctxt = get_current_pc();
       val pname = StrName.NSet.new StrName.NSet.empty "g"
       val pnode = {pname = pname , pctxt = ctxt, gs = gs, glabel = ""};
@@ -32,6 +34,12 @@ struct
   
   fun update (tac : tactic) (pnode : pnode, pplan : pplan)  : (pnode list * pplan) = 
   let 
+      fun filter_goals plist name = 
+        filter 
+        (fn x => 
+          (case String.compare ((#pname x), name) of EQUAL => false 
+          | _ => true))
+        plist
       val gs = (push_goal_state (#gs pnode); apply_tactic tac; top_goal_state());
       val sgs = top_goals(); (* string * (term list * term) list *)
       val gstr_list = map (fn (a, _) => a) sgs
@@ -48,7 +56,7 @@ struct
    in
     if (List.length gstr_list) = 0 (* no sgs *) 
     then 
-      ([], pplan)
+       ([], {opengs = filter_goals (#opengs pplan) (#pname pnode), usedgs = (#usedgs pplan)})
     else(
       if (List.length gstr_list) = 1(* only one goal *) 
       then(
@@ -57,7 +65,7 @@ struct
           val new_pnode = lift_to_pnode (newname, (hd sgs));
           val new_pplan = {opengs = [new_pnode] @ (#opengs pplan), usedgs = StrName.NSet.add newname (#usedgs pplan)}
         in
-          ([new_pnode], new_pplan)
+          ([new_pnode], {opengs = filter_goals (#opengs new_pplan) (#pname pnode), usedgs = (#usedgs new_pplan)})
         end)
       else((* a list of sgs*)
         let 
@@ -68,7 +76,7 @@ struct
           val new_pnodel = map lift_to_pnode (zip (fst newnames) sgs);
           val new_pplan = {opengs = new_pnodel @ (#opengs pplan), usedgs = snd newnames}
         in
-          (new_pnodel, new_pplan) 
+          (new_pnodel,  {opengs = filter_goals (#opengs new_pplan) (#pname pnode), usedgs = (#usedgs new_pplan)}) 
         end
       )
     )
@@ -117,6 +125,7 @@ struct
     type pnode = pnode
     type context = context
     type concl = concl
+    type assm = assm
   end
 
 end
