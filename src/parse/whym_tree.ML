@@ -1,5 +1,5 @@
 (* authors: Gudmund Grov and Andrius Velykis *)
-structure ParseTree =
+structure WhyMTree =
 struct
   structure XML = IsaXML;
 
