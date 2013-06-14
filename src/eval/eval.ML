@@ -92,8 +92,8 @@ struct
    let
      val graph = EData.get_graph edata
      val lhs_seq = EGraph.matched_lhs (EData.get_graph edata) v
-     fun update (edata,(lhs,rhs)) =
-       Seq.map (fn g => EData.set_graph g edata)
+     fun update (branch,(lhs,rhs)) =
+       Seq.map (fn g => EData.set_bgraph g branch)
                (EGraph.Util.rewrite_lazy (Theory.Rule.mk (lhs,rhs)) graph);
    in 
     lhs_seq 
@@ -103,39 +103,68 @@ struct
 
   val normalise_gnode = EData.update_graph EGraph.normalise_gnode;
 
-  (* terminated 
-      -> if root then stop
-      -> if not
-           -> combine goalnode
-           -> move to parent
-           -> make parent current
-  *)
+   (* allows to step over gnodes *)
+   fun try_get_out graph v =
+    if EGraph.Util.is_rtechn graph v (* assume no variables *) 
+     then NONE
+     else 
+      case EGraph.Util.out_edges graph v  of
+          [] => SOME v (* output *)
+       | [e] => try_get_out graph (EGraph.Util.edge_dest graph e) (* gnode or  *)
+       |  _  => NONE (* many outputs (shouldn't happen) *);
 
-  (*       val [gnode_name] = EGraph.Util.all_gnodes lhs; *)
+   (* allows to step over gnodes *)
+   fun try_get_in graph v =
+    if EGraph.Util.is_rtechn graph v (* assume no variables *) 
+     then NONE
+     else 
+      case EGraph.Util.in_edges graph v  of
+          [] => SOME v (* output *)
+       | [e] => try_get_in graph (EGraph.Util.edge_src graph e) (* gnode or  *)
+       |  _  => NONE (* many outputs (shouldn't happen) *);
+
+   fun has_terminated edata = 
+     EGraph.Util.all_gnodes (EData.get_graph edata)
+     |> forall (is_some o (try_get_out (EData.get_graph edata)));
+
   fun unfold_nested edata v = 
    let 
      val lhs_seq = EGraph.matched_lhs (EData.get_graph edata) v
      val name = EGraph.Util.rtechn_of (EData.get_graph edata) v
               |> RTechn.get_name
               |> RT.dest
-     val rhs = StrName.NTab.get (EData.PSGraph.get_g_tacs (EData.get_psgraph edata)) name
-     (* TODO: add goalnode to input *)
-     fun update (subst,lhs) = EData.push_active rhs lhs [] edata
+     val unfrule = StrName.NTab.get (EData.PSGraph.get_g_tacs (EData.get_psgraph edata)) name
+     fun upd (_,lhs) = EGraph.Util.rewrite_lazy unfrule lhs
+                     |> Seq.map (fn rhs => EData.push_bactive rhs lhs [] (EData.get_current edata))
    in
-     Seq.map update lhs_seq
+     Seq.maps upd lhs_seq
    end
 
-  fun fold_nested edata v = ()
-    (*
-       check terminated
-       ok -> combine goalnodes
-          -> get goalnodes
-          -> get parent lhs
-          -> rhs := add goalnodes to out of lhs (use boundary!)
-          -> graph := pop parent
-          -> graphs := apply (lhs,rhs) to graph
-          -> Seq.maps (fn g => set_graph g edata) graphs
-    *)
+  (* assume exact same boundary *)
+  fun move_gnode from v to =
+    let 
+      val (SOME b) = try_get_out from v
+      val [edge] = EGraph.Util.in_edges to b
+      val (SOME node) = EGraph.Util.lookup_ivertex_data from v
+    in
+      EGraph.Util.insert_node_on_edge node edge to
+    end
+
+  (* assumes nested , terminated and exact same boundary *)
+  fun fold_nested edata =
+   let  
+    val res = EData.get_graph edata |> EGraph.normalise_combine_gnodes;
+    val (SOME lhs) = EData.parent_lhs edata;
+    val [gnode_name] = EGraph.Util.all_gnodes lhs;
+    val lhs' = EGraph.Util.del_gnode gnode_name lhs
+    val out_gnodes = EGraph.Util.all_gnodes res
+    val rhs = fold (move_gnode res) out_gnodes lhs'
+    val rule = EGraph.Theory.Rule.mk (lhs,rhs);
+    val branch = EData.pop_bactive (EData.get_current edata);
+   in (* to do: update active? *)
+     EGraph.Util.rewrite_lazy rule (EData.get_bgraph branch)
+     |> Seq.map (fn g => EData.set_bgraph g branch)
+   end;
 
   fun evaluate edata v = 
     case EGraph.Util.lookup_rtechn (EData.get_graph edata) v of
@@ -144,7 +173,7 @@ struct
        if (RTechn.is_atomic rt) then eval_atomic edata v rt 
        else if (RTechn.is_merge rt) then raise evaluate_exp (SOME v, "merge not supported")
        else if (RTechn.is_identity rt) then raise evaluate_exp (SOME v, "identity not supported")
-       else if (RTechn.is_hgraph rt) then raise evaluate_exp (SOME v, "hierarchies not supported")
+       else if (RTechn.is_hgraph rt) then unfold_nested edata v
        else if (RTechn.is_or rt) then raise evaluate_exp (SOME v, "or not supported")
        else if (RTechn.is_orelse rt) then raise evaluate_exp (SOME v, "orelse not supported")
        else raise evaluate_exp (SOME v, "Unknown reasoning technique type")
@@ -152,12 +181,29 @@ struct
 
    (* should check if it is a nested and then move goalnodes back  *)
 
+   datatype result = Good of EData.T | Bad | Cont of EData.T
+
+   fun update_branches edata branches =
+     case Seq.list_of branches of
+       [] => Bad
+     | (x::xs) => 
+         Cont (edata 
+               |> EData.set_current x 
+               |> EData.update_branches (fn ys => ys @ xs))
+
    fun evaluate_any edata =
+    if has_terminated edata then
+     (case EData.parent_lhs edata of
+       NONE => Good edata
+       | _ =>  update_branches edata (fold_nested edata))
+    else
      EGraph.Util.all_rtechns (EData.get_graph edata)
      |> Seq.of_list
-     |> Seq.maps (evaluate edata);
+     |> Seq.maps (evaluate edata)
+     |> update_branches edata;
 
 
+    
 
 (* 
   and eval_one edata =

@@ -11,14 +11,14 @@ sig
 
   (* get methods *)
   val get_graph : T -> PSTheory.PS_Theory.Graph.T
-  val get_g_tacs : T -> PSTheory.PS_Theory.Graph.T StrName.NTab.T
+  val get_g_tacs : T -> PSTheory.PS_Theory.Rule.T StrName.NTab.T
   val get_or_tacs : T -> (PSTheory.PS_Theory.Graph.T list) StrName.NTab.T
   val get_orelse_tacs : T -> (PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T
   val get_atomics : T -> PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic StrName.NTab.T
 
   (* set methods *)
   val set_graph : PSTheory.PS_Theory.Graph.T -> T -> T 
-  val set_g_tacs : PSTheory.PS_Theory.Graph.T StrName.NTab.T -> T -> T 
+  val set_g_tacs : PSTheory.PS_Theory.Rule.T StrName.NTab.T -> T -> T 
   val set_or_tacs : (PSTheory.PS_Theory.Graph.T list) StrName.NTab.T -> T -> T 
   val set_orelse_tacs : (PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T -> T -> T 
   val set_atomics : PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic StrName.NTab.T -> T -> T 
@@ -26,7 +26,7 @@ sig
   (* update methods *)
   val update_graph : (PSTheory.PS_Theory.Graph.T -> PSTheory.PS_Theory.Graph.T) -> T -> T 
   val update_g_tacs : 
-       (PSTheory.PS_Theory.Graph.T StrName.NTab.T -> PSTheory.PS_Theory.Graph.T StrName.NTab.T)
+       (PSTheory.PS_Theory.Rule.T StrName.NTab.T -> PSTheory.PS_Theory.Rule.T StrName.NTab.T)
         -> T -> T 
   val update_or_tacs : 
        ((PSTheory.PS_Theory.Graph.T list) StrName.NTab.T -> (PSTheory.PS_Theory.Graph.T list) StrName.NTab.T)
@@ -52,7 +52,7 @@ struct
    (* no longer uses underlying storage of data in isabelle? *)
    datatype T = PSGraph of {
         graph : PS_Theory.Graph.T,
-        g_tacs : PS_Theory.Graph.T StrName.NTab.T, (* only name of parent *)
+        g_tacs : PS_Theory.Rule.T StrName.NTab.T, (* only name of parent *)
         or_tacs : (PS_Theory.Graph.T list) StrName.NTab.T,
         orelse_tacs : (PS_Theory.Graph.T * PS_Theory.Graph.T) StrName.NTab.T, (* (try,orelse) *)
         (* fixme: should depend on underlying theorem prover *)

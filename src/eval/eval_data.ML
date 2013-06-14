@@ -21,6 +21,8 @@ sig
   val get_goals : T -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T
   val get_vertices : T -> V.name list
   val get_graph : T -> PSGraph.PSTheory.PS_Theory.Graph.T
+  val get_current : T -> branch
+
 
   (* more get methods *)
   val lookup_goal : T -> string -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode option
@@ -34,6 +36,8 @@ sig
   val set_goals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T -> T -> T
   val set_vertices : V.name list -> T -> T
   val set_graph : PSGraph.PSTheory.PS_Theory.Graph.T -> T -> T
+  val set_current : branch -> T -> T
+  val set_branches : branch list -> T -> T
 
   (* update methods *)
   val update_psgraph : (PSGraph.T -> PSGraph.T) -> T -> T
@@ -41,14 +45,41 @@ sig
   val update_goals : (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T)  -> T -> T
   val update_graph : (PSGraph.PSTheory.PS_Theory.Graph.T -> PSGraph.PSTheory.PS_Theory.Graph.T) -> T -> T
   val update_vertices : (V.name list -> V.name list) -> T -> T
+  val update_current : (branch -> branch) -> T -> T
+  val update_branches : (branch list -> branch list) -> T -> T
 
   val add_goals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode list -> T -> T
+  val add_bgoals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode list -> branch -> branch
 
-  (* push and pop methods for parent? *)
 
+  (* methods for branches *)
+  val get_bactive : branch -> active
+  val get_bpplan : branch -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan
+  val get_bgoals : branch -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T
+
+  val set_bactive : active -> branch -> branch 
+  val set_bpplan : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan -> branch -> branch
+  val set_bgoals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T -> branch -> branch
+
+  val get_bgraph : branch -> PSGraph.PSTheory.PS_Theory.Graph.T 
+  val set_bgraph : PSGraph.PSTheory.PS_Theory.Graph.T -> branch -> branch
+
+  val update_bactive : (active -> active) -> branch -> branch 
+  val update_bpplan : (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan
+                       -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan)
+                      -> branch -> branch
+  val update_bgoals : (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T 
+                      -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T)
+                      -> branch -> branch
+
+  (* push and pop methods for parent *)
   val parent_lhs : T -> PSGraph.PSTheory.PS_Theory.Graph.T option
   val pop_active : T -> T (* identify if it fails *)
   val push_active : PSGraph.PSTheory.PS_Theory.Graph.T -> PSGraph.PSTheory.PS_Theory.Graph.T -> V.name list -> T -> T
+
+  val pop_bactive : branch -> branch (* identify if it fails *)
+  val push_bactive : PSGraph.PSTheory.PS_Theory.Graph.T -> PSGraph.PSTheory.PS_Theory.Graph.T -> V.name list -> branch -> branch
+
 
 end (* signature *)
 
@@ -96,6 +127,10 @@ struct
   val get_graph = get_agraph o get_active;
   val get_parent = get_aparent o get_active;
   val get_vertices = get_avertices o get_active;
+
+  val get_bparent = get_aparent o get_bactive;
+  val get_bvertices = get_avertices o get_bactive;
+  val get_bgraph = get_agraph o get_bactive;
 
   fun update_agraph f (Active rep) =
     Active {graph = f (#graph rep), vertices = #vertices rep, parent = #parent rep};
@@ -145,6 +180,14 @@ struct
   val set_option_parent = update_parent o K;
   val set_parent = set_option_parent o SOME;
 
+  val update_bgraph =  update_bactive o update_agraph;
+  val set_bgraph = update_bgraph o K;
+  val update_bparent = update_bactive o update_aparent;
+  val set_option_bparent = update_bparent o K;
+  val set_bparent = set_option_bparent o SOME;
+  val update_bvertices =  update_bactive o update_avertices;
+  val set_bvertices = update_bvertices o K;
+
   fun init_active graph vs =
      Active {graph = graph, vertices = vs, parent = NONE}
 
@@ -159,6 +202,7 @@ struct
   val get_goal = StrName.NTab.get o get_goals;
   fun add_goal pnode = update_goals (ins_tab pnode)
   fun add_goals pnods = update_goals (fold ins_tab pnods);
+  fun add_bgoals pnods = update_bgoals (fold ins_tab pnods);
   fun del_goal pname = update_goals (StrName.NTab.delete pname);
 
   val get_tactics = get_psgraph #> PSGraph.get_atomics;
@@ -177,12 +221,21 @@ struct
         NONE => edata
        | SOME (p,_) => set_active p edata
 
-(* give active cannot be unified with active error *)
-
   fun push_active graph lhs (vnms:V.name list) edata = 
     edata |> set_parent (get_active edata,lhs)
           |> set_graph graph
           |> set_vertices vnms;
+  
+  (* for working with branches *)
+  fun pop_bactive branch = 
+     case get_bparent branch of 
+        NONE => branch
+       | SOME (p,_) => set_bactive p branch
+
+  fun push_bactive graph lhs (vnms:V.name list) branch = 
+    branch |> set_bparent (get_bactive branch,lhs)
+           |> set_bgraph graph
+           |> set_bvertices vnms;
      
 end; (* functor *)
 

@@ -136,8 +136,9 @@ struct
       val g = PSGraph.get_graph ps'
       val name' = PSGraph.fresh_name ps' name
       val g' = collapse_graph (RTechn.set_appf (RTechn.HGraph NONE)) name' g
+      val rule = PS_Theory.Rule.mk (g',g);
       val ps'' = ps' |> PSGraph.set_graph g'
-                     |> PSGraph.update_g_tacs (StrName.NTab.ins (name',g))
+                     |> PSGraph.update_g_tacs (StrName.NTab.ins (name',rule))
     in
       (name',ps'')
     end;

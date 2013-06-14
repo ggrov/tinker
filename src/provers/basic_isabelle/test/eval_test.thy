@@ -56,30 +56,23 @@ EVal.EGraph.Util.all_rtechns (EData.get_graph edata0)
 *}
 
 
-
-(* why aren't nodes printed as lists? *)
 ML{*
-val edata1 = EVal.evaluate_any edata0 |> Seq.list_of |> hd;
+val (EVal.Cont edata1) = EVal.evaluate_any edata0;
+val edata1 = EVal.normalise_gnode edata1;
 PSGraph.PSTheory.write_dot "/u1/staff/gg112/test2.dot" (EData.get_graph edata1) 
 *}
 
 ML{*
- val edata1a = EVal.normalise_gnode edata1;
- val edata1a = EVal.normalise_gnode edata1a; 
-PSGraph.PSTheory.write_dot "/u1/staff/gg112/test2a.dot" (EData.get_graph edata1a) 
-*}
-
-ML{*
-val edata2 = EVal.evaluate_any edata1a |> Seq.list_of |> hd |>  EVal.normalise_gnode; 
+val (EVal.Cont edata2) = EVal.evaluate_any edata1;
+val edata2 = EVal.normalise_gnode edata2;
 PSGraph.PSTheory.write_dot "/u1/staff/gg112/test3.dot" (EData.get_graph edata2);  
 *}
 
-
 ML{*
-val edata3 = EVal.evaluate_any edata2 |> Seq.list_of |> hd |> EVal.normalise_gnode;;  
+val (EVal.Cont edata3) = EVal.evaluate_any edata2;
+val edata3 = EVal.normalise_gnode edata3;
 PSGraph.PSTheory.write_dot "/u1/staff/gg112/test4.dot" (EData.get_graph edata3) 
 *}
-
 
 -- "add assumption tactic"
 ML{*
@@ -87,24 +80,31 @@ val edata3 = EData.update_psgraph (PSGraph.update_atomics (StrName.NTab.ins ("at
 *}
 
 ML{*
-val edata4 = EVal.evaluate_any edata3 |> Seq.list_of |> hd |> EVal.normalise_gnode;; 
+val (EVal.Cont edata4) = EVal.evaluate_any edata3;
+val edata4 = EVal.normalise_gnode edata4;
 PSGraph.PSTheory.write_dot "/u1/staff/gg112/test5.dot" (EData.get_graph edata4) 
 *}
 
 ML{*
-val edata5 = EVal.evaluate_any edata4 |> Seq.list_of |> hd |> EVal.normalise_gnode;
+val (EVal.Cont edata5) = EVal.evaluate_any edata4;
+val edata5 = EVal.normalise_gnode edata5;
 PSGraph.PSTheory.write_dot "/u1/staff/gg112/test6.dot" (EData.get_graph edata5) 
 *}
 
 ML{*
-val edata6 = EVal.evaluate_any edata5 |> Seq.list_of |> hd |> EVal.normalise_gnode; 
+val (EVal.Cont edata6) = EVal.evaluate_any edata5;
+val edata6 = EVal.normalise_gnode edata6;
 PSGraph.PSTheory.write_dot "/u1/staff/gg112/test7.dot" (EData.get_graph edata6) 
 *}
 
+ML{*
+val (EVal.Good edata7) = EVal.evaluate_any edata6;
+PSGraph.PSTheory.write_dot "/u1/staff/gg112/test7.dot" (EData.get_graph edata7) 
+*}
 
 -- "Proof COMPLETED!!!"
 
-
+section "Random debug code"
 
 
 ML{*

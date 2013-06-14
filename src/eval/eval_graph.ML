@@ -29,7 +29,6 @@ struct
       end;
     val rewrite = Seq.list_of oo rewrite_lazy;
 
-
   fun input_boundary g = 
     let val bvertexes = Graph.get_boundary g (* Vertex.NSet.T *)
         fun dest_name bv e = let val ((_,ed),(_,v)) = Graph.get_edge g e in (bv,(e,ed),v) end
@@ -42,6 +41,9 @@ struct
         bvertexes
         []
     end;
+
+
+
 
     fun edge_dest g e = Graph.get_edge g e |> (snd o snd);
     fun edge_src g e = Graph.get_edge g e |> (fst o snd);
@@ -56,6 +58,10 @@ struct
 
    fun out_edges graph v = 
       Graph.out_enames graph v 
+      |> E.NSet.list_of;
+
+   fun in_edges graph v = 
+      Graph.in_enames graph v 
       |> E.NSet.list_of;
 
     fun insert_node_on_edge node edge graph0 =
@@ -189,7 +195,9 @@ struct
      Theory.Rule.mk (left,right)
   end;
 
- val combine_gnodes_to_pair = Theory.Rule.symmetric split_gnode_pairs;
+ fun symmetric_rule rule = Theory.Rule.mk (Theory.Rule.get_rhs rule,Theory.Rule.get_lhs rule);
+
+ val combine_gnodes_to_pair = symmetric_rule split_gnode_pairs;
 
  val del_empty_gnode = 
   let
@@ -218,5 +226,11 @@ struct
    case Seq.pull (gnode_one_step g) of
       NONE => g
      | SOME (g',_) => normalise_gnode g';
+
+ fun normalise_combine_gnodes g = 
+   case Seq.pull (Util.rewrite_lazy combine_gnodes_to_pair g) of
+     NONE => g
+   | SOME (g',_) => normalise_combine_gnodes g';
+
       
 end (* functor *)
