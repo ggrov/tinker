@@ -19,7 +19,6 @@
 signature BASIC_RIPPLE_CINFO = 
 sig
   type T
-  type wruleT = WRules.wrule;
 
   structure RippleSkel : RIPPLE_SKEL;
 
@@ -30,6 +29,7 @@ sig
                                     * Term.term); (* tgt *)
 
     (* working with rippling cinfo: starting/updating *)
+   (* to do: update type? *)
   val start : (PPlan.gname * Term.term) list 
               -> ParamRGraph.T ->
               PPlan.gname ->
@@ -52,21 +52,21 @@ sig
                     ((PPlan.gname * Term.term) * RippleSkel.T option) list)
                    -> PPlan.gname -> RState.T -> RState.T Seq.seq
 
-  val mk_rcinfo :  DTac.T list -> ParamRGraph.T -> 
+  val mk_rcinfo :  ParamRGraph.T -> 
                    ((PPlan.gname * Term.term) * RippleSkel.T option) list
                    -> T
                       
   (* do we have some valid embedding for rippling *)
   val is_valid_ripple_state_i : T -> bool
   val is_valid_ripple_state_goal : RState.T -> PPlan.gname -> bool
-  val some_curgoal_is_ripple_valid : RState.T -> bool
+  val some_curgoal_is_ripple_valid : BWire.name -> RState.T -> bool
   (* we are blocked given possible nest states *)
   val blocked1_chk_i : T -> T list -> bool
-  val blocked_chk : RState.T -> PPlan.gname -> RState.T list -> bool
+  val blocked_chk : RState.T -> PPlan.gname -> (PPlan.gname list * RState.T) list -> bool
   (* are we trying to ripple, even if we don't have any embeddings *)
   val is_rippling_i : T -> bool
   val is_rippling : RState.T -> PPlan.gname -> bool
-  val some_curgoal_is_rippling : RState.T -> bool 
+  val some_curgoal_is_rippling : BWire.name -> RState.T -> bool 
   (* is this goal's rippling successfull *) 
   val success_chk : RState.T -> PPlan.gname -> bool
                                                
@@ -100,26 +100,31 @@ sig
 
   val inst_skels_terms : RState.T -> PPlan.gname -> Term.term list
 
-  (* applicable rules *)
-  val applicable_dtacs_of_i : T -> DTac.T list
-  val applicable_dtacs_of :  RState.T -> PPlan.gname -> DTac.T list
-  val applicable_dtacseq_of_i : T -> DTac.T Seq.seq
-  val applicable_dtacseq_of : RState.T -> PPlan.gname -> DTac.T Seq.seq
 
   (* get relation graph used by relational rippling *)
   val get_relgraph :  RState.T -> PPlan.gname -> ParamRGraph.T
 
-  (* if goal, looks up backwards applicable stuff, else fwd applicable stuff *)
-  val lookup_arules :  PPlan.T -> PPlan.gname -> DTac.T list
+  (* lookup rulesets *)
+  val lookup_substs_of_goal : PPlan.T -> PPlan.gname -> (Zipper.T * Substset.rule) list
+  val lookup_bckimps_of_goal : PPlan.T -> PPlan.gname -> Bckimpset.rule list
+  val lookup_fwdimps_of_goal : PPlan.T -> PPlan.gname -> Fwdimpset.rule list
 
-  (* what are the backward proof/foward proof dtacs applicable? *)
-  val lookup_bck_arules :  PPlan.T -> PPlan.gname -> DTac.T list
-  val lookup_fwd_arules :  PPlan.T -> PPlan.gname -> DTac.T list
+
+  (* lookup and apply rules for given goal *)
+  (* fixme: some returns only 1 goal some 2 different "types" of goal -- now flatten *)
+  val apply_substs_of_goal : PPlan.T -> PPlan.gname -> (PPlan.gname list * PPlan.T) Seq.seq
+  val apply_bckimps_of_goal : PPlan.T -> PPlan.gname -> (PPlan.gname list * PPlan.T) Seq.seq
+  val apply_fwdimps_of_goal : PPlan.T -> PPlan.gname -> (PPlan.gname list * PPlan.T) Seq.seq
+
+  val apply_bckrules_of_goal : PPlan.T -> PPlan.gname -> (PPlan.gname list * PPlan.T) Seq.seq
+  val apply_fwdrules_of_goal : PPlan.T -> PPlan.gname -> (PPlan.gname list * PPlan.T) Seq.seq
+  val apply_rules_of_goal_pplan : PPlan.T -> PPlan.gname -> (PPlan.gname list * PPlan.T) Seq.seq 
+
+  val apply_rules_of_goal : PPlan.gname -> RState.T -> (PPlan.gname list * RState.T) Seq.seq 
 
   (* for debugging *)
   val set_skels_i : ((PPlan.gname * Term.term) 
                      * RippleSkel.T option) list -> T -> T
-  val set_arules_i : DTac.T list -> T -> T
 
   (* pretty printing *)
   val pretty_i : Proof.context -> T -> Pretty.T
@@ -129,13 +134,7 @@ sig
   
   val pretty_skels_i : Proof.context -> T -> Pretty.T
   val pretty_skels : RState.T -> PPlan.gname -> Pretty.T
-  (* pretty skeletons from the current rippling goals *)
-  val pretty_curgoals_skels : RState.T -> Pretty.T
-
-  val pretty_applicable_rules_i : Proof.context -> T -> Pretty.T
-  val pretty_applicable_rules : RState.T -> PPlan.gname -> Pretty.T
-  val print_applicable_rules : RState.T -> PPlan.gname -> unit
-                                                          
+                              
                                                           
 end;
 
@@ -151,20 +150,18 @@ functor BasicRippleCInfoFUN (RippleSkel : RIPPLE_SKEL)
   exception rippling_cinfo2_exp of ((PPlan.gname * Term.term) list  (* skel *)
                                     * Term.term); (* tgt *)
 
-  type wruleT = WRules.wrule;
 
   (* FIXME: make a clear notion of uninitialised cinfo - otherwsie
   failure to initialise it will be hard to debug. *)
   datatype T = RCInfo of 
-           {arules : DTac.T list, (* all aplicable rules *)
-            relgraph : ParamRGraph.T, (* relational rippling relation graph *)
+            {relgraph : ParamRGraph.T, (* relational rippling relation graph *)
             skels : ((PPlan.gname * Term.term) (* skeleton name and term *)
                      * RippleSkel.T option) (* anntotations etc for a skel *)
                       list};
 
   (*Construct a basic rcinfo, for use by other variants of rippleCInfo *)
-  fun mk_rcinfo arules relgraph skels = 
-      RCInfo{arules=arules, relgraph = relgraph, skels=skels};
+  fun mk_rcinfo relgraph skels = 
+      RCInfo{relgraph = relgraph, skels=skels};
 
 (* Return the skeletons that currently embedd *)
   fun select_valid_skels skels = (* clever filter for option lists *)
@@ -174,41 +171,31 @@ functor BasicRippleCInfoFUN (RippleSkel : RIPPLE_SKEL)
   fun get_relgraph_i (RCInfo rep) = (#relgraph rep);
   fun all_skels_of_i (RCInfo rep) = (#skels rep);
 
-  fun applicable_dtacs_of_i (RCInfo rep) = #arules rep; 
-  val applicable_dtacseq_of_i = Seq.of_list o applicable_dtacs_of_i;
-
   fun update_skels_i f (RCInfo rep) = 
       RCInfo {skels = f (#skels rep), 
-              relgraph = #relgraph rep,
-              arules = #arules rep};
+              relgraph = #relgraph rep};
   fun update_relgraph_i f (RCInfo rep) = 
       RCInfo {skels = #skels rep, 
-              relgraph = f (#relgraph rep),
-              arules = #arules rep};
+              relgraph = f (#relgraph rep)};
+
+
+(*
   fun update_arules_i f (RCInfo rep) = 
       RCInfo {skels = #skels rep, 
               relgraph = #relgraph rep,
               arules = f (#arules rep)};
+*)
 
   val set_skels_i = update_skels_i o K;
   val set_relgraph_i = update_relgraph_i o K;
-  val set_arules_i = update_arules_i o K;
 
 (* pretty printing *)
   fun pretty_skels_i ctxt d =
       (case (skels_of_i d) of 
-         [] => Pretty.str "No valid skeletons."
+        [] => Pretty.str "No valid skeletons."
        | l => Pretty.chunks (([Pretty.str "Skeleton Measures:"]) @ 
                              (map (RippleSkel.pretty ctxt) l)));
 
-  fun pretty_applicable_rules_i ctxt d =
-      let val rules = (applicable_dtacs_of_i d)
-      in case rules 
-          of [] => Pretty.str "No applicable rules."
-           | (_::_) => 
-             Pretty.chunks ([Pretty.str "Applicable Rules: "] @
-                            (map (fn r => DTac.pretty r ctxt) rules))
-      end;
 
   fun pretty_relgraph_i d = 
       let val relgraph = (get_relgraph_i d)
@@ -220,20 +207,9 @@ functor BasicRippleCInfoFUN (RippleSkel : RIPPLE_SKEL)
               ParamRGraph.pretty relgraph]
       end;
 
-(*
-  fun pretty_measuredec_rules ctxt d =
-      Pretty.chunks 
-        (map (DTac.pretty_of ctxt) f** (applicable_dtacs_of d));
-  fun pretty_measuredec_rules rst =
-      pretty_applicable_rules (RstPP.top_ctxt rst) (I.get_from_rst rst);
-  val pretty_measuredec_rules =
-      Pretty.writeln o pretty_applicable_rules_rst;
-*)
-
   fun pretty_i ctxt d = 
       Pretty.chunks [pretty_skels_i ctxt d,
-                     pretty_relgraph_i d,
-                     pretty_applicable_rules_i ctxt d];
+                     pretty_relgraph_i d];
 
 
 
@@ -249,18 +225,12 @@ structure I =
     end
   );
 
-  fun pretty_applicable_rules rst goal =
-      pretty_applicable_rules_i (RState.get_ctxt rst) (I.get rst goal);
-  val print_applicable_rules =
-      Pretty.writeln oo pretty_applicable_rules;
   fun pretty_relgraph rst goal =
       pretty_relgraph_i (I.get rst goal);
   val print_relgraph =
       Pretty.writeln oo pretty_relgraph;
   fun pretty_skels rst goal =
       pretty_skels_i (RState.get_ctxt rst) (I.get rst goal);
-  fun pretty_curgoals_skels rst =
-      Pretty.chunks (RstPP.map_cur_goals pretty_skels rst);
 
   fun pretty rst goal  =
       pretty_i (RState.get_ctxt rst) (I.get rst goal);
@@ -321,34 +291,49 @@ structure I =
 
   (* A rst is blocked if every child goal of every child-rst is
      blocked. *)
+
+  (* Assume applied on the output! - I don't think the wire is really necessary!! *)
+
+
   fun blocked_chk rst goal rsts =
       let (* Get the ripplecinfos of the subgoals that are rippling them. 
              Can can ignore goals that have any ripple info *)
-        fun infolist rst = 
-            map_filter (I.get_opt rst) (RState.get_goalnames rst);
+        fun infolist (gs,rst) = map_filter (I.get_opt rst) gs;
+        fun check_empty ([],rst) = true
+         |  check_empty  _  = false         
       in 
         (not (* no solved state *)
-           (List.exists (* solved *)
-              (fn st => null (RState.get_goalnames st))
-              rsts))
+           (List.exists check_empty rsts)) (* solved *)
         andalso 
         (List.all (* no states or all states do not ripple *)
            (fn st => (blocked1_chk_i (I.get rst goal) (infolist st)))
             rsts)
       end;
 
+(*
+  fun blocked_chk rst wire goal rsts =
+      let (* Get the ripplecinfos of the subgoals that are rippling them. 
+             Can can ignore goals that have any ripple info *)
+        fun infolist rst = 
+           rst |> RState.get_outputs
+               |> GoalNode.get_matching_gnodes wire
+               |> GNode.get_all_goals
+               |> Goaln.NSet.list_of
+               |> map_filter (I.get_opt rst);
+        fun check_empty rst = (* was  (fn st => Goaln.NSet.is_empty (RState.get_names_of_wire st wire)) *)
+           rst |> RState.get_outputs
+               |> GoalNode.get_matching_gnodes wire
+               |> GNode.GoalSet.is_empty              
+      in 
+        (not (* no solved state *)
+           (List.exists check_empty rsts)) (* solved *)
+        andalso 
+        (List.all (* no states or all states do not ripple *)
+           (fn st => (blocked1_chk_i (I.get rst goal) (infolist st)))
+            rsts)
+      end;
+*)
 
-  (* get the applicable rules *)                       
-  fun applicable_dtacs_of rst goal = 
-      applicable_dtacs_of_i (I.get rst goal);
-  fun applicable_dtacseq_of rst goal = 
-      applicable_dtacseq_of_i (I.get rst goal); 
-
-  (* get applicable critics during rippling, eg case-splitting *)
-  fun applicable_critics_of rst goal = 
-      if (SplitterRTechn.is_if rst goal) then 
-        [(RTechnEnv.map_then SplitterRTechn.split_if_rtechn)]
-      else [];
 
   (* check to see if we are rippling ie have some skeleton that embeds *)
   (* implicit T *)
@@ -357,8 +342,12 @@ structure I =
       case (I.get_opt rst goal) of
         NONE => false
       | SOME ripple_info => is_valid_ripple_state_i ripple_info;
-  val some_curgoal_is_ripple_valid = 
-      RstPP.forsome is_valid_ripple_state_goal;
+  fun some_curgoal_is_ripple_valid wire rst = (* GG: changed for graphdev *)
+    rst |> RState.get_outputs
+        |> GoalNode.get_matching_gnodes wire
+        |> GNode.get_all_goals
+        |> Goaln.NSet.exists (is_valid_ripple_state_goal rst); 
+        (* RstPP.forsome is_valid_ripple_state_goal; *)
 
   (* Checks if this state has any skeletons, regardless of if they embedd *)
   val is_rippling_i = not o null o all_skels_of_i;
@@ -366,73 +355,100 @@ structure I =
       case (I.get_opt rst goal) of
         NONE => false
       | SOME ripple_info => is_rippling_i ripple_info;
-  val some_curgoal_is_rippling = RstPP.forsome is_rippling;
+  fun some_curgoal_is_rippling wire rst = (* GG: changed for graphdev *)
+    rst |> RState.get_outputs
+        |> GoalNode.get_matching_gnodes wire
+        |> GNode.get_all_goals
+        |> Goaln.NSet.exists (is_rippling rst); 
+        (* RstPP.forsome is_rippling; *)
 
   (* check to see if any skeleton has been rippled out
   completely, if so we can apply that assumption and solve the goal. *)
   (* implicit T *)
   val success_chk_i = 
      List.exists RippleSkel.success_chk o skels_of_i;
-  fun success_chk rst goal = success_chk_i (I.get rst goal);
+  fun success_chk rst goal = success_chk_i (I.get rst goal); 
 
-  (* lookup substitutions possible *)
-  fun lookup_substs_i pplan gname = 
-      let
-        val t = Prf.get_ndname_ctrm pplan gname
-        val db = WRulesGCtxt.wrules_of_ctxt (PPlan.get_context pplan)
-        val eqs = WRules.eqrule_zipper_lookup 
-                    db pplan gname (Zipper.mktop t)
-      in eqs end;
+  (* get applicable critics during rippling, eg case-splitting *)
 
-  fun lookup_bck_res_i pplan gname = 
-      let
-        val t = Prf.get_ndname_ctrm pplan gname
-        val db = WRulesGCtxt.wrules_of_ctxt (PPlan.get_context pplan)
-        val imps = WRules.imprule_concl_lookup db pplan gname t
-      in imps end;
+(* GG: changes for graphdev *)
+  fun applicable_critics_of rst goal = [];
+(*
+  fun applicable_critics_of rst goal = 
+      if (SplitterRTechn.is_if rst goal) then 
+        [SplitterRTechn.split_if_rtechn]
+      else [];
+*)
 
-  fun lookup_fwd_res_i pplan gname = 
-      let
-        val t = Prf.get_ndname_ctrm pplan gname
-        val db = WRulesGCtxt.wrules_of_ctxt (PPlan.get_context pplan)
-        val fwd_imps = WRules.fwd_imprule_prems_lookup db pplan gname t
-      in fwd_imps end;
+  (* get the applicable rules *) 
 
-  (* lookup all rules and their aplication to the pplan. IMPROVE:
-  rules should come from local contextual info: so we we can add to
-  wave rules locally within a proof planning attempt *)
-  fun lookup_bck_arules pplan gname = 
-      let 
-        val db = WRulesGCtxt.wrules_of_ctxt (PPlan.get_context pplan)
-        val t = Prf.get_ndname_ctrm pplan gname
-      in
-        Seq.list_of
-        (Seq.append (WRules.imprule_concl_lookup db pplan gname t)
-                    (WRules.eqrule_zipper_lookup db pplan gname (Zipper.mktop t)))
-      end;
+  fun lookup_substs_of_goal pplan gname = 
+    let
+      val t = Prf.get_ndname_ctrm pplan gname (* Term.term vs Trm.t ?? *)
+      val db = WRulesGCtxt.get_sub_from_ctxt (PPlan.get_context pplan)
+     in 
+       Substset.match db t
+     end;
 
-  (* lookup all rules and their aplication to the pplan. IMPROVE:
-  rules should come from local contextual info: so we we can add to
-  wave rules locally within a proof planning attempt *)
-  fun lookup_fwd_arules pplan gname = 
-      let 
-        val db = WRulesGCtxt.wrules_of_ctxt (PPlan.get_context pplan)
-        val t = Prf.get_ndname_ctrm pplan gname
-      in
-        (map (fn (imprule,(subgoals,pplan)) => 
-                 DTac.mk ((fn ctxt => WRules.pretty_fwd_impwrule_sml ctxt imprule), 
-                          K (Seq.single (([],subgoals),pplan))))
-             (Seq.list_of 
-                (WRules.fwd_imprule_prems_lookup db pplan gname t)))
-         @ 
-         ((Seq.list_of (WRules.eqrule_zipper_lookup 
-                              db pplan gname (Zipper.mktop t))))
-      end;
+  fun lookup_bckimps_of_goal pplan gname = 
+    let
+      val t = Prf.get_ndname_ctrm pplan gname (* fixme: Term.term vs Trm.T *)
+      val db = WRulesGCtxt.get_bck_from_ctxt (PPlan.get_context pplan)
+    in 
+      Bckimpset.match db t
+    end;
 
-  fun lookup_arules pplan gname = 
+  fun lookup_fwdimps_of_goal pplan gname = 
+    let
+      val t = Prf.get_ndname_ctrm pplan gname
+      val db = WRulesGCtxt.get_fwd_from_ctxt (PPlan.get_context pplan)
+    in
+      Fwdimpset.match db t
+    end
+
+  (* FIXME: is g already in gs? -- now only gs returned, should g be returned too? *)
+  fun apply_substs_of_goal pplan gname = 
+     let 
+       fun app_subst' (zip,rule) = Subst.apply_thm_at (Substset.thm_of_rule rule) false gname zip pplan
+       val app_subst = Seq.map (fn ((g,gs),p) => (gs,p)) o app_subst' (* flattens the goals - not sure if this is a good idea! *)
+     in
+       Seq.maps app_subst (Seq.of_list (lookup_substs_of_goal pplan gname))
+     end;
+
+  fun apply_bckimps_of_goal pplan gname = 
+    let 
+      fun app_bckimp rule = Prf.apply_rule_thm (Bckimpset.thm_of_rule rule) gname pplan
+    in
+      Seq.maps app_bckimp (Seq.of_list (lookup_bckimps_of_goal pplan gname))
+    end;
+
+   fun apply_fwdimps_of_goal pplan gname = 
+    let 
+      fun app_fwdimp' rule = Prf.apply_frule_thm (Fwdimpset.thm_of_rule rule) gname pplan
+      val app_fwdimp = Seq.map (fn (g,p) => ([g],p)) o app_fwdimp' (* to make all of same type *)
+    in
+      Seq.maps app_fwdimp (Seq.of_list (lookup_fwdimps_of_goal pplan gname))
+    end;
+
+   fun apply_bckrules_of_goal pplan gname =
+     Seq.append (apply_substs_of_goal pplan gname) (apply_bckimps_of_goal pplan gname);
+
+   fun apply_fwdrules_of_goal pplan gname =
+      Seq.append (apply_fwdimps_of_goal pplan gname) (apply_substs_of_goal pplan gname);
+
+  (* Fixme: (I think) this will wrongly classify a new fact as a goal in fwd rippling *)
+  fun apply_rules_of_goal_pplan pplan gname  = 
       if Prf.is_open_goal pplan gname then 
-        lookup_bck_arules pplan gname
-      else lookup_fwd_arules pplan gname;
+        apply_bckrules_of_goal pplan gname 
+      else apply_fwdrules_of_goal pplan gname;
+   
+  fun apply_rules_of_goal gname rst =
+    let 
+      fun upd_rst (a,pp) = (a,RState.set_pplan pp rst)
+      val arules = apply_rules_of_goal_pplan (RState.get_pplan rst) gname
+    in 
+      Seq.map upd_rst arules
+    end;  
 
   (* lists with one of each list of list of lists *)
   fun one_of_each [] = []
@@ -449,7 +465,7 @@ structure I =
    reasoning state. Create a new rst for each such combo.*)
   (* create the initial possible rippling contextual informations given the 
   skeletons (name, term) pairs and the target *)
-  fun start skels relgraph goal rst = 
+  fun start  skels relgraph goal rst = 
     let 
       val pplan = RState.get_pplan rst
       val goalterm = Prf.get_ndname_ctrm pplan goal 
@@ -470,11 +486,9 @@ structure I =
                 (writeln "NONE of the skeletons embed into the goal!";
                  raise rippling_cinfo2_exp (skels,goalterm))
               else ();
-      val arules = lookup_arules pplan goal
     in
-      (map (fn sts => RCInfo{arules = arules,
-                             relgraph = relgraph,
-                             skels = sts})
+      (map (fn sts => RCInfo{ relgraph = relgraph,
+                              skels = sts})
            skellists)
         |> Seq.of_list
         |> Seq.map (fn rcinfo => I.put (goal, rcinfo) rst) 
@@ -502,12 +516,8 @@ fun update_i (oldgname,oldskels) newgname rst =
                               (RippleSkel.get_named_skel_term e,
                                SOME e)) l)))
         |> one_of_each
-        |> map (fn sts2 => 
-                   let val arules2 = lookup_arules pplan newgname;
-                   in RCInfo{arules=arules2,
-                             relgraph=oldrelgraph,
-                             skels=sts2}
-                   end)
+        |> map (fn sts2 => RCInfo{relgraph=oldrelgraph,
+                                  skels=sts2})
         (* filter out cases where nothing embeds *)
         |> List.filter is_valid_ripple_state_i
         |> Seq.of_list
@@ -523,7 +533,6 @@ fun update oldgname newgname rst =
 fun update_unrestricted_i (oldgname,oldskels) newgname rst = 
     let 
       val pplan = RState.get_pplan rst
-      val arules2 = lookup_arules pplan newgname
        val newgoalterm = Prf.get_ndname_ctrm pplan newgname;
       val oldrelgraph = get_relgraph rst oldgname 
       val ectxt = Embed.Ectxt.init (PPlan.get_ienv pplan) oldrelgraph;
@@ -550,15 +559,14 @@ fun update_unrestricted_i (oldgname,oldskels) newgname rst =
                             map (fn e => (RippleSkel.get_named_skel_term e,  
                                           SOME e)) l ))
         |> one_of_each
-        |> map (fn sts2 => RCInfo {arules = arules2,
-                                   relgraph = oldrelgraph,
+        |> map (fn sts2 => RCInfo {relgraph = oldrelgraph,
                                    skels = sts2})
         |> Seq.of_list
         |> Seq.map (fn rcinfo => I.put (newgname, rcinfo) rst)
         (*  no filter: keep all skels *)
     end;
 
-fun update_unrestricted oldgoal newgoal rst = 
+fun update_unrestricted  oldgoal newgoal rst = 
     update_unrestricted_i (oldgoal,all_skels_of rst oldgoal) newgoal rst;
 
 (* Update function that can call critic that modifies
@@ -570,3 +578,116 @@ fun best_mes e = hd (Library.sort mes_order (RippleSkel.get_measures e));
 val print = Pretty.writeln oo pretty;
 
 end; (* struct *)
+
+(* old stuff *)
+(*
+
+  (* lookup substitutions possible *)
+  (* + make RTechn from rule *)
+  (* fixme: turn stuff into rtechn : need to sort out wiring stuff first - one for each goal? i.e. no input? *)
+  fun lookup_substs_i pplan gname = 
+      let
+        val t = Prf.get_ndname_ctrm pplan gname (* Term.term vs Trm.t ?? *)
+        val db = WRulesGCtxt.get_sub_from_ctxt (PPlan.get_context pplan)
+        val eqs = Seq.of_list (Substset.match db t)
+        fun app_subst (zip,rule) = Subst.apply_thm_at (Substset.thm_of_rule rule) false gname zip pplan
+                      (* returns ((Prf.gname * Prf.gname list) * Prf.T) Seq.seq *)
+                (*  WRules.eqrule_zipper_lookup  db pplan gname (Zipper.mktop t) *)
+      in Seq.maps app_subst eqs end;
+
+  fun lookup_and_apply_substs out_wire gname rst0 =
+      let val substs = lookup_substs_i (RState.get_pplan rst0) gname
+          fun upd_rst ((g,gs),ppl) = RState.set_pplan ppl rst0
+                                  |> RState.add_names_to_wire out_wire (Goaln.NSet.of_list (g::gs))
+                                  |> RState.remove_single_name gname
+      in Seq.map upd_rst substs end;
+
+  (* need to turn into a rtechn -- one for each goal ?  *)
+  fun lookup_bck_res_i pplan gname = 
+      let
+        val t = Prf.get_ndname_ctrm pplan gname (* fixme: Term.term vs Trm.T *)
+        val db = WRulesGCtxt.get_bck_from_ctxt (PPlan.get_context pplan)
+        val imps = Seq.of_list (Bckimpset.match db t) (* WRules.imprule_concl_lookup db pplan gname t *)
+        fun app_res rule = Prf.apply_rule_thm (Bckimpset.thm_of_rule rule) gname pplan 
+                  (* returns (gname list * Prf.T) Seq.seq *)
+                  (* alternative RTechnEnv.rule_wire *)
+      in Seq.maps app_res imps end;
+
+  fun lookup_and_apply_bck_res out_wire gname rst0 =
+      let val bck_res = lookup_bck_res_i (RState.get_pplan rst0) gname
+          fun upd_rst (gs,ppl) = RState.set_pplan ppl rst0
+                                  |> RState.add_names_to_wire out_wire (Goaln.NSet.of_list gs)
+                                  |> RState.remove_single_name gname
+      in Seq.map upd_rst bck_res end;
+
+  fun lookup_fwd_res_i pplan gname = 
+      let
+        val t = Prf.get_ndname_ctrm pplan gname
+        val db = WRulesGCtxt.get_fwd_from_ctxt (PPlan.get_context pplan)
+        (* do we assume that gname is a goal -- in that case we need to match with assumptions of gname *)
+        val fwd_imps = Seq.of_list (Fwdimpset.match db t) (* fwd_imprule_prems_lookup db pplan gname t *)
+        fun app_fres rule = Prf.apply_frule_thm (Fwdimpset.thm_of_rule rule) gname pplan
+        (* returns (gname * Prf.T) Seq.seq *)
+      in Seq.maps app_fres fwd_imps end; (* note return value fwd_imprule_prems_lookup in (old) WRules *)
+
+  fun lookup_and_apply_fwd_res out_wire gname rst0 =
+      let val fwd_res = lookup_fwd_res_i (RState.get_pplan rst0) gname
+          fun upd_rst (g,ppl) = RState.set_pplan ppl rst0
+                                  |> RState.add_names_to_wire out_wire (Goaln.NSet.single g)
+                                  (* |> RState.remove_single_name gname *) (* should keep result *)
+      in Seq.map upd_rst fwd_res end;
+
+  (* lookup all rules and their aplication to the pplan. IMPROVE:
+  rules should come from local contextual info: so we we can add to
+  wave rules locally within a proof planning attempt *)
+(*  fun lookup_bck_arules pplan gname = 
+      let 
+        val db = WRulesGCtxt.wrules_of_ctxt (PPlan.get_context pplan)
+        val t = Prf.get_ndname_ctrm pplan gname
+      in
+        Seq.list_of
+        (Seq.append (WRules.imprule_concl_lookup db pplan gname t)
+                    (WRules.eqrule_zipper_lookup db pplan gname (Zipper.mktop t)))
+      end;
+*)
+
+  fun lookup_bck_arules out_wire gname rst =
+       Seq.append (lookup_and_apply_substs out_wire gname rst)
+                  (lookup_and_apply_bck_res out_wire gname rst)
+
+  (* lookup all rules and their aplication to the pplan. IMPROVE:
+  rules should come from local contextual info: so we we can add to
+  wave rules locally within a proof planning attempt *)
+(*  fun lookup_fwd_arules pplan gname = 
+      let 
+        val db = WRulesGCtxt.wrules_of_ctxt (PPlan.get_context pplan)
+        val t = Prf.get_ndname_ctrm pplan gname
+      in
+        (map (fn (imprule,(subgoals,pplan)) => 
+                 DTac.mk ((fn ctxt => WRules.pretty_fwd_impwrule_sml ctxt imprule), 
+                          K (Seq.single (([],subgoals),pplan))))
+             (Seq.list_of 
+                (WRules.fwd_imprule_prems_lookup db pplan gname t)))
+         @ 
+         ((Seq.list_of (WRules.eqrule_zipper_lookup 
+                              db pplan gname (Zipper.mktop t))))
+      end;
+*)
+
+   val lookup_fwd_arules = lookup_and_apply_fwd_res;
+
+(*
+  fun lookup_arules pplan gname = 
+      if Prf.is_open_goal pplan gname then 
+        lookup_bck_arules pplan gname
+      else lookup_fwd_arules pplan gname;
+*)
+  fun lookup_arules out_wire pplan gname rst = 
+      if Prf.is_open_goal pplan gname then 
+        lookup_bck_arules out_wire gname rst
+      else lookup_fwd_arules out_wire gname rst;
+
+  (* fixme: change name and input/output *)
+  fun lookup_arules_rtechn out_wire pplan gname = 
+     RTechn.id |> RTechn.set_appf (lookup_arules out_wire pplan gname) 
+*)
