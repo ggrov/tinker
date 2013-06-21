@@ -36,7 +36,7 @@ struct
   local open BIsaAtomic in
 
     fun top_level' str pn = 
-      case TF.top_level_str (#ptrm pn) of
+      case TF.top_level_str (Logic.strip_imp_concl (#ptrm pn)) of
          NONE => false
        | SOME v => (v = str);
     
@@ -67,21 +67,21 @@ struct
         exists (fn hyp => TF.ctxt_embeds ctxt goal hyp) hyps
       end;
 
-    fun lift' pn str = 
-      (case splitstr str of
-        [] => false
-      | (x::xs) => 
-          (case x of 
-             "top_symbol" => forall I (top_level xs pn)
+    fun lift_list pn [] = false
+     |  lift_list pn (x::xs) =
+          ((case x of 
+             "top_symbol" => exists I (top_level xs pn)
            | "has_symbol" => has_symbol xs pn
            | "goal_embeds" => goal_embeds pn (* to be tested *)
            | "hyp_embeds" => hyp_embeds pn (* to be tested *)
-           | "not" => not (lift' pn xs) (* to be tested *)
+           | "not"        => not (lift_list pn xs) 
            | "any"       => true (* default *)
            | _           => false)
-       handle _ => false);
+        handle _ => false);
 
-    fun init_lift str pn =
+   fun lift' pn str = lift_list pn (splitstr str);
+
+   fun init_lift str pn =
      let 
         val ls = String.tokens (fn c => c = #";") str
     in 

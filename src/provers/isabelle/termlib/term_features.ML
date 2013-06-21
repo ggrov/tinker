@@ -140,7 +140,7 @@ struct
       Embed.embed emb_ext t1 t2 |> is_nempty_seq
     end;
 
-  val embeds = ctxt_embeds o ProofContext.init_global
+  val embeds = ctxt_embeds o Proof_Context.init_global
 
 
  fun inductable_things_in_term thry t = 

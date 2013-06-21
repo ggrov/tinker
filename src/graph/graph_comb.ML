@@ -115,6 +115,7 @@ struct
  fun LOOP g =  
      fst (fold plug_one (boundary_outputs g) (g,boundary_inputs g));
 
+ (* DO TO: fixme - now hack: picks first *)
  fun LOOP_WITH g e =
    let
     fun check_typ (_,(_,d),_) = Graph.EData.data_eq(e,d);
@@ -122,7 +123,7 @@ struct
     val ins = filter_typ (boundary_inputs g)
     val outs = filter_typ (boundary_outputs g)
    in
-     fst (fold plug_one outs (g,ins))
+     fst (fold plug_one [hd outs] (g,[hd ins]))
    end;
 
 end (* struct *)
