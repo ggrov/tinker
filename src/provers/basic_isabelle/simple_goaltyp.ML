@@ -49,13 +49,34 @@ struct
  
     val splitstr =  String.tokens (member (op =) [#" ",#",",#"(",#")",#"[",#"]"]);
     
+    fun hyp_embeds pn =
+      let 
+         val ctxt = #pctxt pn
+         val hyps  = Logic.strip_imp_prems (#ptrm pn)
+         val goal = Logic.strip_imp_concl (#ptrm pn)
+      in
+        exists (fn hyp => TF.ctxt_embeds ctxt hyp goal) hyps
+      end;
+
+    fun goal_embeds pn =
+      let 
+         val ctxt = #pctxt pn
+         val hyps  = Logic.strip_imp_prems (#ptrm pn)
+         val goal = Logic.strip_imp_concl (#ptrm pn)
+      in
+        exists (fn hyp => TF.ctxt_embeds ctxt goal hyp) hyps
+      end;
+
     fun lift' pn str = 
       (case splitstr str of
         [] => false
       | (x::xs) => 
           (case x of 
-            "top_symbol" => forall I (top_level xs pn)
-           |"has_symbol" => has_symbol xs pn
+             "top_symbol" => forall I (top_level xs pn)
+           | "has_symbol" => has_symbol xs pn
+           | "goal_embeds" => goal_embeds pn (* to be tested *)
+           | "hyp_embeds" => hyp_embeds pn (* to be tested *)
+           | "not" => not (lift' pn xs) (* to be tested *)
            | "any"       => true (* default *)
            | _           => false)
        handle _ => false);

@@ -39,6 +39,7 @@ val src = @{term "((a \<union> c) \<union> (e \<union> c))  \<union> (b \<inter>
 
 val ienv = (InstEnv.init @{context});
 val ectxt = Embed.Ectxt.init ienv ParamRGraph.empty;
+Embed.embed;
 val embeding = Embed.embed ectxt tgt src |> Seq.list_of |> hd;
 Embed.print embeding;
 *}
