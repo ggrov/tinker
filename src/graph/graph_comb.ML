@@ -18,6 +18,7 @@ sig
   val TENSOR :  Graph.T -> Graph.T -> Graph.T
   val THEN :  Graph.T -> Graph.T -> Graph.T
   val LOOP : Graph.T -> Graph.T
+  val LOOP_WITH : Graph.T -> Graph.EData.data -> Graph.T
 
 end; (* sig *)
 
@@ -113,5 +114,15 @@ struct
  (* essentially then without all the renaming... *)
  fun LOOP g =  
      fst (fold plug_one (boundary_outputs g) (g,boundary_inputs g));
+
+ fun LOOP_WITH g e =
+   let
+    fun check_typ (_,(_,d),_) = Graph.EData.data_eq(e,d);
+    val filter_typ = filter check_typ 
+    val ins = filter_typ (boundary_inputs g)
+    val outs = filter_typ (boundary_outputs g)
+   in
+     fst (fold plug_one outs (g,ins))
+   end;
 
 end (* struct *)

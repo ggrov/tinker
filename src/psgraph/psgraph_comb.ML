@@ -21,6 +21,7 @@ sig
 
   val THENG: psgraphfn * psgraphfn -> psgraphfn
   val TENSOR: psgraphfn * psgraphfn -> psgraphfn
+  val LOOP_WITH: psgraphfn -> goaltyp -> psgraphfn
   val OR: psgraphfn * psgraphfn -> psgraphfn
   val ORELSE: psgraphfn * psgraphfn -> psgraphfn 
   val NEST': string -> psgraphfn -> PSGraph.T -> string * PSGraph.T
@@ -129,6 +130,16 @@ struct
   in
     ps2 |> PSGraph.set_graph g'
   end;
+
+  fun LOOP_WITH psfn gt ps =
+    let
+      val ps1 = psfn ps
+      val graph = PSGraph.get_graph ps1
+      val edge = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GT gt
+      val graph' = GraphComb.LOOP_WITH graph edge
+    in
+     PSGraph.set_graph graph' ps1
+   end;
 
   fun NEST' name psf ps = 
     let 
