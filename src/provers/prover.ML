@@ -10,6 +10,7 @@ end
 
 signature PROVER =
 sig
+(* [] for root, digit n for the nth branch  *)
   type pos
   type typ
   type term 
@@ -27,7 +28,7 @@ sig
   val intlist_of_pos : pos -> int list
   val pos_of_intlist : int list -> pos
 
-  val top_of_trm : term -> term
+  val root_of_trm : term -> term
   val trm_of_pos : pos -> term -> term 
   val subtrm_of_pos : pos -> term -> term
 

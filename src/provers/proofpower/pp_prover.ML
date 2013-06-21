@@ -34,9 +34,9 @@ struct
     in  stripc(u,[])  end;
     
 
-  fun top_of_trm trm = fst (strip_comb trm)
-  fun subtrm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(strip_comb t), x))) (tl  pos) trm
-  fun trm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(strip_comb t), x))) (tl pos) trm 
+  fun root_of_trm trm = fst (strip_comb trm)
+  fun subtrm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(strip_comb t), x))) pos trm
+  fun trm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(strip_comb t), x))) pos trm 
                            |> strip_comb 
                            |> fst;
   val concl_of_thm = concl

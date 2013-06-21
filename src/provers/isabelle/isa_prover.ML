@@ -19,9 +19,9 @@ struct
     in 
       if List.length pos1 = List.length pos2 then if_eq pos1 pos2 else false
     end
-  fun top_of_trm trm = fst (Term.strip_comb trm)
-  fun subtrm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(Term.strip_comb t), x))) (tl  pos) trm
-  fun trm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(Term.strip_comb t), x))) (tl pos) trm 
+  fun root_of_trm trm = fst (Term.strip_comb trm)
+  fun subtrm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(Term.strip_comb t), x))) pos trm
+  fun trm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(Term.strip_comb t), x))) pos trm 
                            |> Term.strip_comb 
                            |> fst;
 
