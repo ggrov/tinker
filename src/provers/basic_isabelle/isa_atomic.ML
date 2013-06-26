@@ -25,6 +25,22 @@ struct
      (pnode,pplan)
    end;
 
+  fun init_of_thm (ctxt : context) thm = 
+    let 
+      val prems = Thm.prems_of thm
+      fun add prem (prms,nms) = 
+          let 
+             val (nm,nms') = StrName.NSet.add_new "g" nms
+          in
+            (prms @ [{ pname = nm, pctxt = ctxt, ptrm = prem}],nms')
+          end
+      val (pnds,usedgs) = fold add prems ([],StrName.NSet.empty)
+      val pplan = { goal = thm, opengs = pnds, usedgs = usedgs}
+   in
+     (pnds,pplan)
+   end;
+
+
   fun init_with_assm _ _ _ =   (* a dummy init which is not used in isabelle by LYH*)
     raise atomic_exp "init_with_assm should not be used in isabelle"
 

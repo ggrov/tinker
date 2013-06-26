@@ -80,6 +80,7 @@ sig
   val pop_bactive : branch -> branch (* identify if it fails *)
   val push_bactive : PSGraph.PSTheory.PS_Theory.Graph.T -> PSGraph.PSTheory.PS_Theory.Graph.T -> V.name list -> branch -> branch
 
+  val next_branch : T -> (branch * T) option (* moves to next branch *)
 
 end (* signature *)
 
@@ -236,6 +237,11 @@ struct
     branch |> set_bparent (get_bactive branch,lhs)
            |> set_bgraph graph
            |> set_bvertices vnms;
+
+  fun next_branch edata =
+    case get_branches edata of
+         []    => NONE
+     | (x::xs) => SOME (get_current edata,edata |> set_current x |> set_branches xs);
      
 end; (* functor *)
 

@@ -50,6 +50,19 @@ struct
     init_goal pnode edata0
    end;
 
+
+ fun init_of psgraph (pnds,pplan) =
+   let
+     val pnode_tab = 
+      fold 
+       (fn pnode => StrName.NTab.ins (Atomic.get_pnode_name pnode,pnode))
+       pnds
+       StrName.NTab.empty;
+     val edata0 = EData.init psgraph pplan pnode_tab []
+   in
+    init_goals edata0 pnds
+   end;
+
  fun init_with_assm psgraph ctxt assms goals =
    let
      val (pnode,pplan) = Atomic.init_with_assm ctxt assms goals
@@ -191,6 +204,12 @@ struct
                |> EData.set_current x 
                |> EData.update_branches (fn ys => ys @ xs))
 
+   fun pick_first_branch edata [] = Bad
+    |  pick_first_branch edata (x::xs) = 
+         case update_branches edata x of 
+           Bad => pick_first_branch edata xs
+         | res => res;
+
    fun evaluate_any edata =
     if has_terminated edata then
      (case EData.parent_lhs edata of
@@ -202,7 +221,29 @@ struct
      |> Seq.maps (evaluate edata)
      |> update_branches edata;
 
-
+   (* similar to evaluate_any, but only evaluate a single one *)
+   fun evaluate_arbitrary edata =
+    if has_terminated edata then
+     (case EData.parent_lhs edata of
+       NONE => Good edata
+       | _ =>  update_branches edata (fold_nested edata))
+    else
+     EGraph.Util.all_rtechns (EData.get_graph edata)
+     |> map (evaluate edata)
+     |> pick_first_branch edata;
+    
+   (* depth first search *)
+   fun evaluate_full edata = 
+     case evaluate_arbitrary edata of
+       Good edata' =>
+         (case EData.next_branch edata' of
+            NONE => [EData.get_pplan edata']
+           | SOME (res,edata'') =>  (EData.get_bpplan res) :: (evaluate_full edata''))
+       | Bad => 
+         (case EData.next_branch edata of
+            NONE => []
+           | SOME (_,edata'') => evaluate_full edata'')
+       | Cont edata' => evaluate_full edata';
     
 
 (* 
