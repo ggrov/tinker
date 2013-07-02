@@ -251,24 +251,7 @@ structure WRNet = PrfMorphNetFUN(WRData);
 (* partial wave rule net *)
 type partwrule_net = part_wrule Net.net;
 
-(* 
-structure PartialWRData = 
-struct 
-  type T = pwrule;
-  val pat_of = term_of;
-  val ienv_of = ienv_of_partwrule;
-  (* FIXME: dummy value for prff as moa does search separately *)
-  fun prff wrule prf gname z = Seq.empty;  
-  val eq = partwrule_eq;
-  val pretty = pretty_partwrule;
-end;
-structure PartialWRNet = PrfMorphNetFUN(PartialWRData);
-*)
 
-(*search function for parial wave-rules.
-type searchf =
-     Prf.T -> (Zipper.T * Prf.gname) -> PartialWRNet.T 
-     -> (pwrule * Prf.T) Seq.seq; *)
 
 
 (* search function for zippers: defines ordering and way rules are
