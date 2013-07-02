@@ -4,6 +4,15 @@ begin
 
 
 ML{*
+
+(* export elements of array to a list *)
+fun arrayToList0 l idx char_arr =
+  if idx < CharArray.length char_arr
+  then arrayToList0 ((CharArray.sub(char_arr, idx)) :: l) (idx + 1) char_arr
+  else (rev l);
+val arrayToList = arrayToList0 [] 0;
+
+(* in WR: send vector *)
 fun sendVec0 sock char_slice = 
   let
     (* char slice to byte slice *)
@@ -13,6 +22,7 @@ fun sendVec0 sock char_slice =
     Socket.sendVec(sock, byte_slice)
   end
 
+(* in WR: send array *)
 fun sendArr0 sock char_slice = 
   let
     (* char slice to byte slice *)
@@ -27,6 +37,7 @@ fun sendArr0 sock char_slice =
     Socket.sendArr(sock, byte_slice)
   end
 
+(* with given sock, init TEXT_IO stream for input and output *)
 fun make_streams sock =
   let
     val bufsize = (*Unsynchronized.ref*) 4096;
@@ -72,7 +83,7 @@ fun make_streams sock =
 *}
 
 ML{*
-(* STEP 1: setup a passive socket server *)
+(* setup a passive socket server *)
 fun init_server_socket port =
   let
     val sock = INetSock.TCP.socket ();
@@ -85,21 +96,12 @@ fun init_server_socket port =
 *}
 
 ML{*
-Socket.bind;
-Socket.Ctl.setREUSEADDR;
+(* debugging, can be turned off *)
 fun server_print str = writeln str;
-
-fun test str = 
-  case str of "abc" => 1
-    | "bbc" => 2
-    | _ => 3;
-
-test "bbc";
 *}
-ML{*
-(* receive and send string with socket *)
 
-(* STEP 2: accept a income connection to make it acitve *)
+ML{*
+(* accept a income connection to make it acitve *)
 
 fun server_main port = 
   let (* demo here only receive then send them back *)
@@ -130,27 +132,8 @@ fun server_main port =
   end
 *}
 
-ML{* -
-server_main 4442;
-*}
-
-
-(* some useful pre-trying *)
-ML{*
-val char_arr = CharArray.fromList [#"a", #"b", #"c", #"d", #"e"];
-Char.ord;
-Word8.fromInt;
-
-fun arrayToList0 l idx char_arr =
-  if idx < CharArray.length char_arr
-  then arrayToList0 ((CharArray.sub(char_arr, idx)) :: l) (idx + 1) char_arr
-  else (rev l);
-val arrayToList = arrayToList0 [] 0;
-
-
-Socket.sendArr;
-type writeArr = CharArraySlice.slice;
-
+ML{*-
+server_main 4442; 
 *}
 
 
