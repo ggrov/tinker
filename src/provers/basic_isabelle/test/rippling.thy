@@ -1,7 +1,6 @@
 theory rippling
 imports "../build/BIsaP"
 begin
-  ML_file "../../isabelle/rtechn/rippling/eqsubst.ml"
 (* wrapping trm with name structure *)
   ML_file "../../isabelle/rtechn/rippling/embedding/paramtab.ML" 
   ML_file "../../isabelle/rtechn/rippling/embedding/trm.ML"  
