@@ -1,7 +1,7 @@
 (* simple test of proof representation *)
 theory IsaTerm                                                                                                                                                                                             
 imports           
- "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                                                            
+ "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                                                           
 begin         
 (* wrapping trm with name structure *)
   ML_file "../../rtechn/rippling/embedding/paramtab.ML" 
@@ -23,10 +23,10 @@ begin
 (* wave rule set *)
   ML_file  "../../rtechn/rippling/rulesets/substs.ML"
 
-(* rippling *)
-  ML_file "../../rtechn/rippling/basic_ripple.ML"
+(* don't think this is the right place to place them ? 
+   need to further refactor the rippling and induct, i.e. seperate the feature with tac*)
                           
   ML_file "../../termlib/term_fo_au.ML"
-  ML_file "../../termlib/term_features.ML"              
+  ML_file "../../termlib/term_features.ML"         
 
 end

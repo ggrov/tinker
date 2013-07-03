@@ -1,30 +1,9 @@
 theory rippling
 imports "../build/BIsaP"
 begin
-(* wrapping trm with name structure *)
-  ML_file "../../isabelle/rtechn/rippling/embedding/paramtab.ML" 
-  ML_file "../../isabelle/rtechn/rippling/embedding/trm.ML"  
-  ML_file "../../isabelle/rtechn/rippling/embedding/isa_trm.ML"
-  ML_file "../../isabelle/rtechn/rippling/embedding/instenv.ML"
-  ML_file "../../isabelle/rtechn/rippling/embedding/typ_unify.ML"   
 
-(* embeddings *)
-  ML_file "../../isabelle/rtechn/rippling/embedding/eterm.ML"  
-  ML_file "../../isabelle/rtechn/rippling/embedding/ectxt.ML" 
-  ML_file "../../isabelle/rtechn/rippling/embedding/embed.ML" 
-  
-(* measure and skeleton *)
-  ML_file "../../isabelle/rtechn/rippling/measure_traces.ML"
-  ML_file "../../isabelle/rtechn/rippling/measure.ML" 
-  ML_file "../../isabelle/rtechn/rippling/flow_measure.ML"
- (* ML_file "../../../rtechn/rippling/dsum_measure.ML" 
-  ML_file "../../../rtechn/rippling/skel.ML" 
-  ML_file "../../../rtechn/rippling/skel_mes_traces.ML"*) 
 
-(* wave rule set *)
-  ML_file  "../../isabelle/rtechn/rippling/rulesets/substs.ML"
-
-(* some utils for rippling*)
+(* rippling *)
   ML_file "../../isabelle/rtechn/rippling/basic_ripple.ML"
 
 (* induction *)
@@ -84,8 +63,8 @@ ML{*
  val gt =  @{prop "((M0 & True) & (M1 & True)) = (M2 & True)"};
  val gt' =  @{prop "((M0 & True)) = (M0)"};
 
-BasicRipple.is_hyps_embedd @{context} (tl hyps) gt;
-BasicRipple.is_hyps_embedd @{context} hyps gt;
+TermFeatures.ctxt_embeds @{context} (tl hyps) gt;
+TermFeatures.ctxt_embeds @{context} hyps gt;
 
  val substset = Substset.empty;
  val thms = [("test1",@{thm "test1"}), ("test0", @{thm "test0"})];
@@ -97,8 +76,8 @@ BasicRipple.is_hyps_embedd @{context} hyps gt;
 
 (* check whether exists measure decreasing rule, with given goal term and matched rules *)
 ML{*
-BasicRipple.has_measure_decreasing_rules @{context} skel matched gt;
-BasicRipple.get_subst_params ();
+TermFeatures.has_measure_decreasing_rules @{context}  matched gt;
+TermFeatures.Data.get_subst_params ();
 *}
 
 (* apply rippling tactic *)

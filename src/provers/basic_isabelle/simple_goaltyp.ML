@@ -54,7 +54,7 @@ struct
          val ctxt = #pctxt pn
          val hyps  = Logic.strip_imp_prems (#ptrm pn)
          val goal = Logic.strip_imp_concl (#ptrm pn)
-      in
+      in 
         exists (fn hyp => TF.ctxt_embeds ctxt hyp goal) hyps
       end;
 
@@ -67,6 +67,25 @@ struct
         exists (fn hyp => TF.ctxt_embeds ctxt goal hyp) hyps
       end;
 
+    fun is_inductable pn =
+      let
+         val thy = #pctxt pn |> Proof_Context.theory_of
+         val hyps  = Logic.strip_imp_prems (#ptrm pn)
+         val goal = Logic.strip_imp_concl (#ptrm pn)
+      in
+        TF.is_inductable_structural thy goal
+      end
+ 
+    fun measure_decreased pn =
+      let
+         val ctxt = #pctxt pn 
+         val thy = #pctxt pn |> Proof_Context.theory_of
+         val goal = Logic.strip_imp_concl (#ptrm pn)
+         val wrules = BasicRipple.get_matched_wrules thy goal
+      in
+        TF.has_measure_decreasing_rules ctxt wrules goal
+      end
+
     fun lift_list pn [] = false
      |  lift_list pn (x::xs) =
           ((case x of 
@@ -74,6 +93,8 @@ struct
            | "has_symbol" => has_symbol xs pn
            | "goal_embeds" => goal_embeds pn (* to be tested *)
            | "hyp_embeds" => hyp_embeds pn (* to be tested *)
+           | "inductable" => is_inductable pn
+           | "measure_decreased" => measure_decreased pn
            | "not"        => not (lift_list pn xs) 
            | "any"       => true (* default *)
            | _           => false)

@@ -6,7 +6,15 @@ begin
 
  ML_file "../isa_prover.ML"   
  ML_file "../isa_atomic.ML"               
- ML_file "../simple_goaltyp.ML"                              
+
+(* rippling *)
+ ML_file "../../isabelle/rtechn/rippling/basic_ripple.ML"
+(* induction *)
+ ML_file "../../isabelle/rtechn/induct.ML"
+
+ ML_file "../simple_goaltyp.ML"
+                            
+
 
 ML{*
 structure Theory = PSTheoryFun(structure GoalTyp = SimpleGoalTyp);

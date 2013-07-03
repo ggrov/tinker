@@ -46,6 +46,8 @@ end (* sig *)
 structure TermFeatures =
 struct
 
+  exception term_feature_exp of string
+
  (* projections *)
 
   fun insert_tab tab str = 
@@ -131,18 +133,6 @@ struct
   fun has_shape th shape t =
     Term.exists_subterm (fn st => Pattern.matches th (shape,st)) t
 
-  fun ctxt_embeds ctxt t1 t2 =
-    let
-     val ienv = InstEnv.init ctxt;
-     val emb_ext = Embed.Ectxt.init ienv ParamRGraph.empty
-     fun is_nempty_seq ss = case Seq.pull ss of NONE => false | _ => true;
-    in 
-      Embed.embed emb_ext t1 t2 |> is_nempty_seq
-    end;
-
-  val embeds = ctxt_embeds o Proof_Context.init_global
-
-
  fun inductable_things_in_term thry t = 
     let 
     fun add_term_frees (t, frees: term list) = case t of
@@ -165,6 +155,101 @@ struct
    not ((inductable_things_in_term th t |> fst) = []);
 
   fun fo_au_match th patt t = Pattern.matches th (patt,t);
+
+(* Hi G, you might not like this and get furious ;-p, but I feel it would be interesting to do so. 
+   We can revert it if it turns out to be useless --by LYH
+
+   To centerlise the feature testing, we need a buffer to store some info, i.e. sharing some data.
+   Because some features are related, e.g. embedding and measurement decreasing (sharing skeleon info),
+   it would be painful if we can pass some info from one feature-testing func to another.
+   Moreover, some feature testing and tactic is hightly related, e.g. measure decreasing 
+   and rippling (sharing the subst info). It can make evaluation more efficient. *)
+  structure Data = 
+  struct
+
+    val skel = Unsynchronized.ref NONE (* restore the skeleton if current rippling *);
+    fun init_skel () = skel := NONE;
+    fun update_skel (t : term) = skel := SOME t;
+    fun get_skel () =
+      if !skel = NONE then raise term_feature_exp "[No buffered skel]"
+      else (!(skel) |> (fn (SOME x) => x));
+
+    val subst_params : (int list * Substset.rule) list Unsynchronized.ref
+    = Unsynchronized.ref []; (* store decreased measure to improve efficiency *)
+    fun update_subst_params ll = subst_params := ll;
+    fun get_subst_params () = 
+      case !(subst_params) of [] 
+        => raise term_feature_exp "[No buffered subst params]"
+      | _ => !(subst_params);
+  end
+
+  fun ctxt_embeds ctxt t1 t2 =
+    let
+     val ienv = InstEnv.init ctxt;
+     val emb_ext = Embed.Ectxt.init ienv ParamRGraph.empty
+     fun is_nempty_seq ss = 
+      case Seq.pull ss of NONE =>  (Data.init_skel () ; false) 
+      | _ => (Data.update_skel t1 ; true);
+    in 
+      Embed.embed emb_ext t1 t2 |> is_nempty_seq 
+    end;
+
+  val embeds = ctxt_embeds o Proof_Context.init_global
+
+(* measurment for rippling *)
+  fun gen_occl' l  i = if i > 0 then gen_occl' ([i] :: l)  (i - 1)  else l;
+  val gen_occl = gen_occl' [];
+   
+  fun get_decreased_measures ctxt skel old_gterm new_gterm = 
+    let
+      val ienv = (InstEnv.init ctxt);
+      val ectxt = Embed.Ectxt.init ienv ParamRGraph.empty;
+      val old_embeding = Embed.embed ectxt skel old_gterm |> Seq.list_of;
+      val new_embedding = Embed.embed ectxt skel new_gterm |> Seq.list_of
+    in
+      FlowMeasure.better_next_measures (FlowMeasure.init_measures old_embeding) new_embedding
+    end;
+    
+  fun is_measure_decreased ctxt skel old_gterm new_gterm =  
+    case get_decreased_measures ctxt skel old_gterm new_gterm |> FlowMeasure.Col.list_of of [] => false
+      | _ => true;
+ 
+  (* return a list of pair of rule and occ to subst *)
+  fun get_decreased_measure_params ctxt skel matches gtrm = 
+    let
+      val matches' = map (fn (x,y) => (gen_occl x, y)) matches; (* occs -> occL *)
+      val gthm = Thm.cterm_of (Proof_Context.theory_of ctxt) gtrm |> Thm.trivial;
+      fun filter_valid_occ (occL, rule) = 
+        let
+          val thm = Substset.thm_of_rule rule;
+          val possL = 
+            map
+            (fn occ => 
+              (EqSubst.eqsubst_tac ctxt occ [thm] 1 gthm (* apply eqsubst to get the next goal term *)
+              |> Seq.list_of |> hd (* only pull the first, very hacky, but works *)
+              |> Thm.prems_of |> hd (* get the substed goal term *)
+              |> (fn x => ((occ, rule), x)))) (* pair with the occ and rule info for further use *)
+            occL;
+        in
+         filter 
+         (fn (_,y) => (is_measure_decreased ctxt skel gtrm y))
+         possL
+        end
+    in
+      maps filter_valid_occ matches'
+      |> map fst
+    end;
+
+  fun has_measure_decreasing_rules' ctxt skel matches gtrm = 
+    let
+      val l = get_decreased_measure_params ctxt skel matches gtrm;
+      val _ = Data.update_subst_params l
+    in
+      case l of [] => false
+        | _ => true
+    end;
+
+  fun has_measure_decreasing_rules ctxt = has_measure_decreasing_rules' ctxt (Data.get_skel())
 
 end (* struct *)
 
