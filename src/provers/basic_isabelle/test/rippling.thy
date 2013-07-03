@@ -27,8 +27,28 @@ begin
 (* some utils for rippling*)
   ML_file "../../isabelle/rtechn/rippling/basic_ripple.ML"
 
-section "example of how to use eqsust_tac with occL "
+(* induction *)
+  ML_file "../../isabelle/rtechn/induct.ML"
 
+
+(* apply induction *)
+lemma "rev (a @ b) = rev b @ rev a"
+apply (induct_tac "a")
+apply auto
+oops
+
+ML{*
+  val print = fn x => Syntax.pretty_term @{context} x |> Pretty.writeln;
+  val gthm = Thm.cterm_of @{theory} @{prop "rev (a @ b) = rev b @ rev a"} |> Thm.trivial;
+  val gtrm = Thm.concl_of gthm (*|> Syntax.pretty_term @{context} |> Pretty.writeln*);
+(* if inductable *)
+  InductRTechn.has_inductable_var @{theory} gtrm;
+(* try both tactics *)
+  InductRTechn.induct_on_first_var_tac 1 gthm |> Seq.map Thm.prop_of |> Seq.list_of |> map print;
+  InductRTechn.induct_tac 1 gthm |> Seq.map Thm.prop_of |> Seq.list_of |> map print;
+*}
+
+(* example of how to use eqsust_tac with occL *)
 lemma test2: "((M & True) & (M & True)) = (M & True)"
 by auto
 

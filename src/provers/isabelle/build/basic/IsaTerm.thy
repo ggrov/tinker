@@ -19,18 +19,14 @@ begin
   ML_file "../../rtechn/rippling/measure_traces.ML"
   ML_file "../../rtechn/rippling/measure.ML" 
   ML_file "../../rtechn/rippling/flow_measure.ML"
- (* ML_file "../../../rtechn/rippling/dsum_measure.ML" 
-  ML_file "../../../rtechn/rippling/skel.ML" 
-  ML_file "../../../rtechn/rippling/skel_mes_traces.ML"*) 
 
 (* wave rule set *)
   ML_file  "../../rtechn/rippling/rulesets/substs.ML"
 
 (* rippling *)
-  ML_file "../../rtechn/rippling/basic_ripple.ML"       
+  ML_file "../../rtechn/rippling/basic_ripple.ML"
                           
   ML_file "../../termlib/term_fo_au.ML"
   ML_file "../../termlib/term_features.ML"              
 
 end
-
