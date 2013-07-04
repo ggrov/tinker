@@ -17,7 +17,6 @@ ML{*
   val psgraph = 
     psauto PSGraph.empty 
     |> PSGraph.update_atomics (StrName.NTab.doadd ("auto", auto_tac))
-
 *}
 ML{*
   val (pn,pp) = BIsaAtomic.init @{context} @{prop "A --> A"};
@@ -31,7 +30,7 @@ ML{*
 *}
 ML{*
   val edata0 = EVal.init psgraph @{context} @{prop "A --> A"} |> hd;
-  val edata1 = EVal.evaluate_any edata0 |> Seq.list_of |> hd;
+  val edata1 = EVal.evaluate_any edata0 ;
 *}
 end;
 

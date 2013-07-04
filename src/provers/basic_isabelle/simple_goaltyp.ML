@@ -52,8 +52,11 @@ struct
     fun hyp_embeds pn =
       let 
          val ctxt = #pctxt pn
-         val hyps  = Logic.strip_imp_prems (#ptrm pn)
-         val goal = Logic.strip_imp_concl (#ptrm pn)
+         val sg = (#ptrm pn)
+         val hyps  = Logic.strip_imp_prems sg
+         val goal = Logic.strip_imp_concl sg
+         val _ = Pretty.chunks ([Pretty.str "hyps in hyp_embed: "] @ (map (Syntax.pretty_term @{context}) hyps)) |> Pretty.writeln
+         val _ = Pretty.chunks ([Pretty.str "goal in hyp_embed: "] @ [((Syntax.pretty_term @{context} goal))]) |> Pretty.writeln
       in 
         exists (fn hyp => TF.ctxt_embeds ctxt hyp goal) hyps
       end;
@@ -66,6 +69,21 @@ struct
       in
         exists (fn hyp => TF.ctxt_embeds ctxt goal hyp) hyps
       end;
+
+   (* hyp_embeds should be called before use this func *)
+    fun skel_subterm pn = 
+      let 
+        val ctxt = #pctxt pn
+        val thy = #pctxt pn |> Proof_Context.theory_of
+        val sg = (#ptrm pn)
+        val hyps  = Logic.strip_imp_prems sg
+        val goal = Logic.strip_imp_concl sg
+        val embedd_hyp =
+          filter (fn hyp => TF.ctxt_embeds ctxt hyp goal) hyps
+          |> hd (* only get the first embedding *)
+      in
+        TF.is_subterm thy goal embedd_hyp
+      end
 
     fun is_inductable pn =
       let
@@ -94,7 +112,9 @@ struct
            | "goal_embeds" => goal_embeds pn (* to be tested *)
            | "hyp_embeds" => hyp_embeds pn (* to be tested *)
            | "inductable" => is_inductable pn
-           | "measure_decreased" => measure_decreased pn
+           | "measure_decreasing" => measure_decreased pn
+           | "ripple" => (hyp_embeds pn) andalso (measure_decreased pn) 
+           | "rippled" => (hyp_embeds pn) andalso (skel_subterm pn)
            | "not"        => not (lift_list pn xs) 
            | "any"       => true (* default *)
            | _           => false)

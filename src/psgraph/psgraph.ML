@@ -87,7 +87,7 @@ struct
    val set_orelse_tacs = update_orelse_tacs o K;
    val set_atomics = update_atomics o K;
 
-   fun of_graph graph = (*TODO : LYH of_graph or of_rtechn*)
+   fun of_graph graph = 
      PSGraph { graph = graph,
                g_tacs = StrName.NTab.empty,
                or_tacs = StrName.NTab.empty,

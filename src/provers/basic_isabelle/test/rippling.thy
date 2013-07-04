@@ -63,8 +63,8 @@ ML{*
  val gt =  @{prop "((M0 & True) & (M1 & True)) = (M2 & True)"};
  val gt' =  @{prop "((M0 & True)) = (M0)"};
 
-TermFeatures.ctxt_embeds @{context} (tl hyps) gt;
-TermFeatures.ctxt_embeds @{context} hyps gt;
+TermFeatures.ctxt_embeds @{context} (hd (tl hyps)) gt;
+TermFeatures.ctxt_embeds @{context} (hd hyps) gt;
 
  val substset = Substset.empty;
  val thms = [("test1",@{thm "test1"}), ("test0", @{thm "test0"})];
@@ -72,11 +72,17 @@ TermFeatures.ctxt_embeds @{context} hyps gt;
  val substset = fold (Substset.add) rules substset;
 
  val matched = Substset.match @{theory} substset gt;
+
+(* new way to init db *)
+ val thms = [("test1",@{thm "test1"}), ("test0", @{thm "test0"})];
+ BasicRipple.init_wrule_db();
+ BasicRipple.add_wrules thms;
+ val matched = BasicRipple.get_matched_wrules @{theory} gt;
 *}
 
 (* check whether exists measure decreasing rule, with given goal term and matched rules *)
 ML{*
-TermFeatures.has_measure_decreasing_rules @{context}  matched gt;
+TermFeatures.has_measure_decreasing_rules @{context} matched gt;
 TermFeatures.Data.get_subst_params ();
 *}
 
@@ -84,6 +90,27 @@ TermFeatures.Data.get_subst_params ();
 ML{*
 val gthm = Thm.cterm_of @{theory} gt |> Thm.trivial;
 BasicRipple.ripple_tac @{context} 1 gthm |> Seq.list_of;
+*}
+
+(* test subterm *)
+ML{*
+val t1 = @{term "a + b"};
+val t2 = @{term "a + b + c"};
+
+  fun is_subterm thy src sub =
+    let
+      val ctrm = (Thm.cterm_of thy src);
+      val maxid = (#maxidx (rep_cterm ctrm))
+      val searchinfo = (thy, maxid, Zipper.mktop src) 
+    in 
+      EqSubst.searchf_lr_unify_valid searchinfo sub
+      |> Seq.flat |> Seq.pull
+      |> (fn x => (case x of NONE => false | _ => true))
+    end;
+
+is_subterm @{theory} t1 t2;
+is_subterm @{theory} t2 t1;
+is_subterm @{theory} t2 t2;
 *}
 
 (* more debug codes *)

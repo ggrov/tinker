@@ -40,7 +40,17 @@ sig
 
   val is_inductable_structural : theory -> term -> bool
 
-
+  val has_measure_decreasing_rules : 
+    Proof.context -> 
+    (int * Substset.rule) list -> (* a list of numbers of occs and applicable wrule*)
+    term -> (* goal term *)
+    bool
+  val is_subterm : 
+    theory 
+    -> term 
+    -> term (* subterm *)
+    -> bool 
+  
 end (* sig *)
 
 structure TermFeatures =
@@ -250,6 +260,17 @@ struct
     end;
 
   fun has_measure_decreasing_rules ctxt = has_measure_decreasing_rules' ctxt (Data.get_skel())
+
+  fun is_subterm thy src sub =
+    let
+      val ctrm = (Thm.cterm_of thy src);
+      val maxid = (#maxidx (rep_cterm ctrm))
+      val searchinfo = (thy, maxid, Zipper.mktop src) 
+    in 
+      EqSubst.searchf_lr_unify_valid searchinfo sub
+      |> Seq.flat |> Seq.pull
+      |> (fn x => (case x of NONE => false | _ => true))
+    end;
 
 end (* struct *)
 

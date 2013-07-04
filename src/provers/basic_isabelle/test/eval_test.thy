@@ -3,6 +3,84 @@ theory eval_test
 imports       
   "../build/BIsaP"    
 begin
+ML{*
+  val path = (*"/Users/yuhuilin/Desktop/"*) "/u1/staff/gg112/";
+*}
+(* test more complicated comb *)
+ML{*
+  val asm = RTechn.id
+          |> RTechn.set_name (RT.mk "assumption")
+          |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "atac"));
+  
+  val conjI = RTechn.id
+          |> RTechn.set_name (RT.mk "rule conjI")
+          |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["conjI"]));
+  
+  val impI = RTechn.id
+          |> RTechn.set_name (RT.mk "rule impI")
+          |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["impI"]));
+  
+  
+  val gt = SimpleGoalTyp.default;
+  val gt_imp = "top_symbol(HOL.implies)";
+  val gt_conj = "top_symbol(HOL.conj)";
+  
+  infixr 6 THENG;
+  val op THENG = PSComb.THENG;
+  
+  val psconjI0 =  PSComb.LIFT ([gt_conj],[gt_conj, gt_imp]) (conjI);
+  val psconjI = PSComb.LIFT ([gt_conj],[gt]) (conjI);
+  val psimpI = PSComb.LIFT ([gt_imp],[gt]) (impI);
+  val psasm1 = PSComb.LIFT ([gt],[]) (asm);
+  val psasm2 = PSComb.LIFT ([gt,gt],[]) (asm);
+  val psfg3 = psconjI0 THENG  psconjI THENG psimpI THENG psasm2;
+  val psgraph = psfg3 PSGraph.empty;
+
+  PSGraph.PSTheory.write_dot (path ^ "graph.dot") ( PSGraph.get_graph psgraph);
+*}
+
+ML{*
+val edata0 = EVal.init psgraph @{context} @{prop "A \<Longrightarrow>(A \<and> A)  \<and> (A \<longrightarrow> A)"} |> hd; 
+PSGraph.PSTheory.write_dot (path ^ "graph0.dot") (EData.get_graph edata0)  
+*}
+
+ML{*
+val (EVal.Cont edata1) = EVal.evaluate_any edata0;
+val edata1 = EVal.normalise_gnode edata1;
+PSGraph.PSTheory.write_dot (path ^"graph1.dot") (EData.get_graph edata1)   
+*}
+
+ML{*
+val (EVal.Cont edata2) = EVal.evaluate_any edata1;
+val edata2 = EVal.normalise_gnode edata2;
+PSGraph.PSTheory.write_dot (path ^"graph2.dot")  (EData.get_graph edata2)   
+*}
+
+ML{*
+val edata2 = EData.update_psgraph (PSGraph.update_atomics (StrName.NTab.ins ("atac",K atac))) edata2;
+val (EVal.Cont edata3) = EVal.evaluate_any edata2;
+val edata3 = EVal.normalise_gnode edata3;
+PSGraph.PSTheory.write_dot (path ^"graph3.dot")  (EData.get_graph edata3)   
+*}
+
+ML{*
+val (EVal.Cont edata4) = EVal.evaluate_any edata3;
+val edata4 = EVal.normalise_gnode edata4;
+PSGraph.PSTheory.write_dot  (path ^"graph4.dot")  (EData.get_graph edata4)   
+*}
+
+ML{*
+EVal.evaluate_any edata4; 
+val (EVal.Cont edata5) = EVal.evaluate_any edata4;
+val edata5 = EVal.normalise_gnode edata5;
+PSGraph.PSTheory.write_dot  (path ^"graph5.dot")  (EData.get_graph edata5);  
+val (EVal.Cont edata6) = EVal.evaluate_any edata5;
+val edata6 = EVal.normalise_gnode edata6;
+PSGraph.PSTheory.write_dot  (path ^"graph6.dot")  (EData.get_graph edata6) ;
+val (EVal.Good edata7) = EVal.evaluate_any edata6;
+PSGraph.PSTheory.write_dot  (path ^"graph7.dot")  (EData.get_graph edata7)   
+(* proof completed *)
+*}
 
 (* create a new graph *)
 ML{*
@@ -46,7 +124,7 @@ open BIsaAtomic_DB;
 
 (* show graph *)
 ML{*
-PSGraph.PSTheory.write_dot "/u1/staff/gg112/test.dot" (EData.get_graph edata0)
+PSGraph.PSTheory.write_dot (path ^ "test.dot") (EData.get_graph edata0)
 *}
 
 
@@ -59,19 +137,19 @@ EVal.EGraph.Util.all_rtechns (EData.get_graph edata0)
 ML{*
 val (EVal.Cont edata1) = EVal.evaluate_any edata0;
 val edata1 = EVal.normalise_gnode edata1;
-PSGraph.PSTheory.write_dot "/u1/staff/gg112/test2.dot" (EData.get_graph edata1) 
+PSGraph.PSTheory.write_dot (path ^ "test2.dot") (EData.get_graph edata1) 
 *}
 
 ML{*
 val (EVal.Cont edata2) = EVal.evaluate_any edata1;
 val edata2 = EVal.normalise_gnode edata2;
-PSGraph.PSTheory.write_dot "/u1/staff/gg112/test3.dot" (EData.get_graph edata2);  
+PSGraph.PSTheory.write_dot  (path ^ "test3.dot") (EData.get_graph edata2); 
 *}
 
 ML{*
 val (EVal.Cont edata3) = EVal.evaluate_any edata2;
 val edata3 = EVal.normalise_gnode edata3;
-PSGraph.PSTheory.write_dot "/u1/staff/gg112/test4.dot" (EData.get_graph edata3) 
+PSGraph.PSTheory.write_dot  (path ^ "test4.dot") (EData.get_graph edata3) 
 *}
 
 -- "add assumption tactic"
@@ -82,24 +160,24 @@ val edata3 = EData.update_psgraph (PSGraph.update_atomics (StrName.NTab.ins ("at
 ML{*
 val (EVal.Cont edata4) = EVal.evaluate_any edata3;
 val edata4 = EVal.normalise_gnode edata4;
-PSGraph.PSTheory.write_dot "/u1/staff/gg112/test5.dot" (EData.get_graph edata4) 
+PSGraph.PSTheory.write_dot (path ^ "test5.dot") (EData.get_graph edata4) 
 *}
 
 ML{*
 val (EVal.Cont edata5) = EVal.evaluate_any edata4;
 val edata5 = EVal.normalise_gnode edata5;
-PSGraph.PSTheory.write_dot "/u1/staff/gg112/test6.dot" (EData.get_graph edata5) 
+PSGraph.PSTheory.write_dot  (path ^ "test6.dot") (EData.get_graph edata5) 
 *}
 
 ML{*
 val (EVal.Cont edata6) = EVal.evaluate_any edata5;
 val edata6 = EVal.normalise_gnode edata6;
-PSGraph.PSTheory.write_dot "/u1/staff/gg112/test7.dot" (EData.get_graph edata6) 
+PSGraph.PSTheory.write_dot  (path ^ "test7.dot") (EData.get_graph edata6) 
 *}
 
 ML{*
 val (EVal.Good edata7) = EVal.evaluate_any edata6;
-PSGraph.PSTheory.write_dot "/u1/staff/gg112/test7.dot" (EData.get_graph edata7) 
+PSGraph.PSTheory.write_dot  (path ^ "test8.dot") (EData.get_graph edata7) 
 *}
 
 -- "Proof COMPLETED!!!"

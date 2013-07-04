@@ -4,6 +4,9 @@ imports
   "../build/BIsaP"     
 begin
 
+ML{*
+  val path = "/Users/yuhuilin/Desktop/" (*"/u1/staff/gg112/"*);
+*}
 (* create a new graph *)
 ML{*
   val asm = RTechn.id
@@ -91,7 +94,7 @@ ML{*
   val psf = psf THENG psasm;
   val psgraph = psf PSGraph.empty;
   val graph = PSGraph.get_graph psgraph;
-  PSGraph.PSTheory.write_dot "/u1/staff/gg112/test.dot" graph  
+  PSGraph.PSTheory.write_dot "/Users/yuhuilin/Desktop/graph.dot" graph  
 *}
 
 (* create a new proof node *)     
@@ -126,6 +129,107 @@ PSGraph.PSTheory.write_dot "/u1/staff/gg112/test4.dot" (EData.get_graph edata3)
 ML{*
 val (EVal.Good edata3) = EVal.evaluate_any edata3;  
 *}
+
+
+-- "test rippling"
+ML{*
+  val gt = SimpleGoalTyp.default;
+  val gt_induct = "inductable";
+  val gt_ripple = "rippling";
+  val gt_rippled = "rippled"
+  val gt_rippled = "not(ripplling)"
+  val gt_not_embeds = "not(hyp_embeds)"
+  fun load_tactics tacs ps = 
+    fold
+     (fn (str, tac) => PSGraph.update_atomics (StrName.NTab.doadd (str, tac)))
+     tacs ps;
+
+  val HOL_simps = Simplifier.simpset_of (Proof_Context.init_global @{theory "HOL"});
+
+(* setup simp *)
+  val simp_tac = (fn _ => Simplifier.simp_tac HOL_simps);
+  val simp = RTechn.id
+            |> RTechn.set_name (RT.mk "simp")
+            |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "simp"));
+  val pssimp = PSComb.LIFT ([gt_not_embeds],[]) (simp);
+
+(* setup up fertlisation, maybe we can use asm_lr_simp_tac to implement weak fert *)
+  val fert_tac = (fn _ => Simplifier.asm_simp_tac Simplifier.empty_ss) 
+  val fert = RTechn.id
+            |> RTechn.set_name (RT.mk "fert")
+            |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "fert"));
+  val psfert = PSComb.LIFT ([gt_rippled],[]) (fert);
+
+(* setup up induct *)
+  val induct_tac = fn _ => InductRTechn.induct_on_first_var_tac;
+  val induct = RTechn.id
+              |> RTechn.set_name (RT.mk "induct")
+              |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "induct"));
+  val psinduct =  PSComb.LIFT ([gt_induct],[gt_ripple,gt_not_embeds]) (induct);
+
+(* setup up rippling *)
+   val ripple_tac = BasicRipple.ripple_tac
+   val rippling = RTechn.id
+               |> RTechn.set_name (RT.mk "rippling")
+               |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "rippling"));
+
+  val psrippling' =  PSComb.LIFT ([gt_ripple, gt_ripple],[gt_rippled,gt_ripple]) (rippling);
+  val psrippling = PSComb.LOOP_WITH psrippling' gt_ripple;
+  
+  val psf = psinduct THENG psrippling THENG psfert THENG pssimp
+
+  val tacs = [("simp",simp_tac), ("induct", induct_tac), ("fert",fert_tac), ("rippling", ripple_tac)];
+  val psgraph = psf PSGraph.empty |> load_tactics tacs;
+  val graph = PSGraph.get_graph psgraph;
+  PSGraph.PSTheory.write_dot (path ^ "rippling.dot") graph;
+*}
+
+lemma rev_cons: "rev (x # xs) = rev xs @ [x]"
+by auto
+
+lemma "rev (l1 @ l2) = rev l2 @ rev l1"
+apply (induct l1)
+apply simp
+apply (subst List.append_Cons)
+apply (subst rev_cons)
+apply (subst rev_cons)
+
+thm List.append_Cons List.rev.simps(2)
+oops
+
+(* setup wrules db*)
+ML{* 
+ val thms = [ ("app_cons", @{thm "List.append_Cons"}), ("rev_cons", @{thm "rev_cons"})];
+ BasicRipple.init_wrule_db();
+ BasicRipple.add_wrules thms;
+*}
+
+(* create a new proof node *)     
+ML{*
+val edata0 = EVal.init psgraph @{context} @{prop "rev (l1 @ l2) = rev l2 @ rev l1"} |> hd; 
+PSGraph.PSTheory.write_dot (path ^"ripple0.dot") (EData.get_graph edata0); 
+*}
+
+ML{*
+val (EVal.Cont edata1) = EVal.evaluate_any edata0;
+val edata1 = EVal.normalise_gnode edata1;
+PSGraph.PSTheory.write_dot (path ^"ripple1.dot") (EData.get_graph edata1)   
+*}
+
+ML{*
+Thm.cterm_of;
+fun myprint x = Syntax.pretty_term @{context} x |> Pretty.writeln;
+@{term "(rev (l1 @ l2) = rev l2 @ rev l1) \<Longrightarrow> rev ((a # l1) @ l2) = rev l2 @ rev (a # l1) "};
+@{term "\<And>a l1 l2. (\<And>l2. rev (l1 @ l2) = rev l2 @ rev l1) \<Longrightarrow> rev ((a # l1) @ l2) = rev l2 @ rev (a # l1) "}
+|> myprint
+*}
+
+ML{*
+val (EVal.Cont edata2) = EVal.evaluate_any edata1;
+val edata2 = EVal.normalise_gnode edata2;
+PSGraph.PSTheory.write_dot "/u1/staff/gg112/test3.dot" (EData.get_graph edata2)   
+*}
+
 
 (* debug stuff *)
 ML{*

@@ -1,7 +1,7 @@
 (* simple test of proof representation *)
 theory IsaTerm                                                                                                                                                                                             
 imports           
- "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                                                           
+ "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                                                          
 begin         
 (* wrapping trm with name structure *)
   ML_file "../../rtechn/rippling/embedding/paramtab.ML" 
@@ -14,7 +14,7 @@ begin
   ML_file "../../rtechn/rippling/embedding/eterm.ML"  
   ML_file "../../rtechn/rippling/embedding/ectxt.ML" 
   ML_file "../../rtechn/rippling/embedding/embed.ML" 
-  
+ 
 (* measure and skeleton *)
   ML_file "../../rtechn/rippling/measure_traces.ML"
   ML_file "../../rtechn/rippling/measure.ML" 
