@@ -51,6 +51,7 @@ sig
     -> term (* subterm *)
     -> bool 
   
+  val fix_alls_in_term : term -> term
 end (* sig *)
 
 structure TermFeatures =
@@ -183,6 +184,7 @@ struct
     fun get_skel () =
       if !skel = NONE then raise term_feature_exp "[No buffered skel]"
       else (!(skel) |> (fn (SOME x) => x));
+    
 
     val subst_params : (int list * Substset.rule) list Unsynchronized.ref
     = Unsynchronized.ref []; (* store decreased measure to improve efficiency *)
@@ -191,6 +193,13 @@ struct
       case !(subst_params) of [] 
         => raise term_feature_exp "[No buffered subst params]"
       | _ => !(subst_params);
+
+    fun pretty_subst_params (occ, rule) = 
+      Pretty.block
+      ["(" ^ (Int.toString (hd occ)) |> Pretty.str, 
+        Pretty.str ", ",
+        Substset.name_of_rule rule |> Pretty.str,
+        Pretty.str ")"]
   end
 
   fun ctxt_embeds ctxt t1 t2 =
@@ -198,8 +207,8 @@ struct
      val ienv = InstEnv.init ctxt;
      val emb_ext = Embed.Ectxt.init ienv ParamRGraph.empty
      fun is_nempty_seq ss = 
-      case Seq.pull ss of NONE =>  (Data.init_skel () ; false) 
-      | _ => (Data.update_skel t1 ; true);
+      case Seq.pull ss of NONE =>  ((*Data.init_skel () ;*) false) 
+      | _ => ((*Data.update_skel t1 ;*) true);
     in 
       Embed.embed emb_ext t1 t2 |> is_nempty_seq 
     end;
@@ -250,16 +259,16 @@ struct
       |> map fst
     end;
 
-  fun has_measure_decreasing_rules' ctxt skel matches gtrm = 
+  fun has_measure_decreasing_rules ctxt skel matches gtrm = 
     let
       val l = get_decreased_measure_params ctxt skel matches gtrm;
-      val _ = Data.update_subst_params l
+      (*val _ = Data.update_subst_params l*)  (* TODO: in some future, maybe enable it to improve efficiency *)
     in
-      case l of [] => false
-        | _ => true
+      case l of [] => (tracing "no decreased measures"; false)
+        | _ => (tracing "found decreased measures"; true)
     end;
 
-  fun has_measure_decreasing_rules ctxt = has_measure_decreasing_rules' ctxt (Data.get_skel())
+  (*fun has_measure_decreasing_rules' ctxt = has_measure_decreasing_rules ctxt (Data.get_skel())*)
 
   fun is_subterm thy src sub =
     let
@@ -271,6 +280,18 @@ struct
       |> Seq.flat |> Seq.pull
       |> (fn x => (case x of NONE => false | _ => true))
     end;
+
+ (*  copy from isabelle 2012 which is not available from 2013, it's used to unbound/free variables *)
+  fun fix_alls_in_term alledt = 
+    let
+      val t = Term.strip_all_body alledt;
+      val alls = rev (Term.strip_all_vars alledt);
+      val varnames = map (fst o fst o Term.dest_Var) (Misc_Legacy.term_vars t)
+      val names = Misc_Legacy.add_term_names (t,varnames);
+      val fvs = map Free 
+                    (Name.variant_list names (map fst alls)
+                       ~~ (map snd alls));
+    in ((subst_bounds (fvs,t))(*, fvs uncomment it, as it's not useful here -- LYH*)) end;
 
 end (* struct *)
 

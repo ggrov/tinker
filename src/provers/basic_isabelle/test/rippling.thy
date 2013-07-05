@@ -17,14 +17,42 @@ apply auto
 oops
 
 ML{*
-  val print = fn x => Syntax.pretty_term @{context} x |> Pretty.writeln;
+fun fix_alls_in_term alledt = 
+    let
+      val t = Term.strip_all_body alledt;
+      val alls = rev (Term.strip_all_vars alledt);
+      val varnames = map (fst o fst o Term.dest_Var) (Misc_Legacy.term_vars t)
+      val names = Misc_Legacy.add_term_names (t,varnames);
+      val fvs = map Free 
+                    (Name.variant_list names (map fst alls)
+                       ~~ (map snd alls));
+    in ((subst_bounds (fvs,t))) end;
+
+val t = @{prop "a"} |> Thm.cterm_of @{theory} |> Thm.trivial |> Thm.prop_of |> Logic.get_goal; t 1; 
+val print = fn x => Syntax.pretty_term @{context} x |> Pretty.writeln;
+val gall = @{term "(\<And>b. rev ([] @ b) = rev b @ rev []) \<Longrightarrow>
+          (\<And>a1 a2 b. (\<And>b. rev (a2 @ b) = rev b @ rev a2) \<Longrightarrow> rev ((a1 # a2) @ b) = rev b @ rev (a1 # a2)) \<Longrightarrow>
+          rev (a @ b) = rev b @ rev a"};
+val g =  @{term "(\<And>b. rev ([] @ b) = rev b @ rev [])"};
+val g1 = @{term "(\<And>a1 a2 b. (\<And>b. rev (a2 @ b) = rev b @ rev a2) \<Longrightarrow> rev ((a1 # a2) @ b) = rev b @ rev (a1 # a2))"};
+val g2 = @{term "rev (a @ b) = rev b @ rev a "};
+val nt = fix_alls_in_term  g1; 
+val nt =  Logic.strip_imp_prems  nt |> hd |> fix_alls_in_term;
+print nt;
+
+
   val gthm = Thm.cterm_of @{theory} @{prop "rev (a @ b) = rev b @ rev a"} |> Thm.trivial;
   val gtrm = Thm.concl_of gthm (*|> Syntax.pretty_term @{context} |> Pretty.writeln*);
 (* if inductable *)
   InductRTechn.has_inductable_var @{theory} gtrm;
-(* try both tactics *)
+(* try both tactics 
   InductRTechn.induct_on_first_var_tac 1 gthm |> Seq.map Thm.prop_of |> Seq.list_of |> map print;
   InductRTechn.induct_tac 1 gthm |> Seq.map Thm.prop_of |> Seq.list_of |> map print;
+*)
+InductRTechn.induct_on_first_var_tac 1 gthm |> Seq.hd |> Thm.prop_of |> print;
+val gthm = InductRTechn.induct_on_first_var_tac 1 gthm |> Seq.hd;
+Thm.incr_indexes 2 gthm;
+Thm.prop_of;
 *}
 
 (* example of how to use eqsust_tac with occL *)
@@ -34,6 +62,9 @@ by auto
 lemma test0 : "(A & False) = False"
 by auto
 lemma test1 : "(A & True) = (A)"
+by auto
+
+lemma test1' : " A = (True & A)"
 by auto
 
 (* test tactic *)
@@ -60,36 +91,35 @@ section "wrule sets -> matching seq -> eqsubst -> measure"
 ML{*
  val skel = @{prop "((M0) & (M1)) = (M2 & True)"};
  val hyps = [skel, @{prop "M = N"}];
- val gt =  @{prop "((M0 & True) & (M1 & True)) = (M2 & True)"};
- val gt' =  @{prop "((M0 & True)) = (M0)"};
+ val gt =  @{prop "((M0) & (M1)) = (M2 & True) ==> ((M0 & True) & ( True & M1)) = (M2 & True)"};
+ val gt' =  @{prop " ((M0 & True) & ( True & M1)) = (M2 & True)"};
 
 TermFeatures.ctxt_embeds @{context} (hd (tl hyps)) gt;
 TermFeatures.ctxt_embeds @{context} (hd hyps) gt;
 
  val substset = Substset.empty;
- val thms = [("test1",@{thm "test1"}), ("test0", @{thm "test0"})];
+ val thms = [("test1",@{thm "test1"}),("test1'(sym)", Substset.mk_sym_thm @{thm "test1'"}), ("test0", @{thm "test0"})];
+
  val rules = map (fn m => Substset.rule_of_thm m |> (fn SOME x => x)) thms;
  val substset = fold (Substset.add) rules substset;
 
  val matched = Substset.match @{theory} substset gt;
 
 (* new way to init db *)
- val thms = [("test1",@{thm "test1"}), ("test0", @{thm "test0"})];
  BasicRipple.init_wrule_db();
  BasicRipple.add_wrules thms;
- val matched = BasicRipple.get_matched_wrules @{theory} gt;
+ val matched = BasicRipple.get_matched_wrules @{theory} gt';
 *}
 
 (* check whether exists measure decreasing rule, with given goal term and matched rules *)
 ML{*
-TermFeatures.has_measure_decreasing_rules @{context} matched gt;
-TermFeatures.Data.get_subst_params ();
+TermFeatures.has_measure_decreasing_rules @{context} skel matched gt';
 *}
 
 (* apply rippling tactic *)
 ML{*
 val gthm = Thm.cterm_of @{theory} gt |> Thm.trivial;
-BasicRipple.ripple_tac @{context} 1 gthm |> Seq.list_of;
+BasicRipple.ripple_tac @{context} 1 gthm |> Seq.list_of ;
 *}
 
 (* test subterm *)

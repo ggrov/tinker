@@ -100,19 +100,28 @@ ML{*
 (* create a new proof node *)     
 ML{*
 val edata0 = EVal.init psgraph @{context} @{prop "A \<longrightarrow> A \<longrightarrow> A"} |> hd; 
-PSGraph.PSTheory.write_dot "/u1/staff/gg112/test1.dot" (EData.get_graph edata0)  
+PSGraph.PSTheory.write_dot (path^"test1.dot") (EData.get_graph edata0)  
+*}
+
+ML{*
+EVal.has_terminated edata0;
+val vl = EVal.EGraph.Util.all_rtechns (EData.get_graph edata0) ;
+val t = hd vl;
+EVal.evaluate edata0 (t) |> Seq.list_of;
+val t = hd (tl vl);
+EVal.evaluate edata0 (t) |> Seq.list_of;
 *}
 
 ML{*
 val (EVal.Cont edata1) = EVal.evaluate_any edata0;
 val edata1 = EVal.normalise_gnode edata1;
-PSGraph.PSTheory.write_dot "/u1/staff/gg112/test2.dot" (EData.get_graph edata1)   
+PSGraph.PSTheory.write_dot (path^"test2.dot") (EData.get_graph edata1)   
 *}
 
 ML{*
 val (EVal.Cont edata2) = EVal.evaluate_any edata1;
 val edata2 = EVal.normalise_gnode edata2;
-PSGraph.PSTheory.write_dot "/u1/staff/gg112/test3.dot" (EData.get_graph edata2)   
+PSGraph.PSTheory.write_dot (path^"test3.dot") (EData.get_graph edata2)   
 *}
 
 -- "add assumption tactic"
@@ -123,7 +132,7 @@ val edata2 = EData.update_psgraph (PSGraph.update_atomics (StrName.NTab.ins ("at
 ML{*
 val (EVal.Cont edata3) = EVal.evaluate_any edata2;
 val edata3 = EVal.normalise_gnode edata3;
-PSGraph.PSTheory.write_dot "/u1/staff/gg112/test4.dot" (EData.get_graph edata3)    
+PSGraph.PSTheory.write_dot (path^"test4.dot") (EData.get_graph edata3)    
 *}
 
 ML{*
@@ -137,8 +146,9 @@ ML{*
   val gt_induct = "inductable";
   val gt_ripple = "rippling";
   val gt_rippled = "rippled"
-  val gt_rippled = "not(ripplling)"
+  val gt_rippled = "(rimppling)"
   val gt_not_embeds = "not(hyp_embeds)"
+  val gt_hyps = "hyp_embeds"
   fun load_tactics tacs ps = 
     fold
      (fn (str, tac) => PSGraph.update_atomics (StrName.NTab.doadd (str, tac)))
@@ -154,14 +164,14 @@ ML{*
   val pssimp = PSComb.LIFT ([gt_not_embeds],[]) (simp);
 
 (* setup up fertlisation, maybe we can use asm_lr_simp_tac to implement weak fert *)
-  val fert_tac = (fn _ => Simplifier.asm_simp_tac Simplifier.empty_ss) 
+  val fert_tac = (fn _ => Simplifier.asm_simp_tac HOL_simps) 
   val fert = RTechn.id
             |> RTechn.set_name (RT.mk "fert")
             |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "fert"));
-  val psfert = PSComb.LIFT ([gt_rippled],[]) (fert);
+  val psfert = PSComb.LIFT ([gt],[]) (fert);
 
 (* setup up induct *)
-  val induct_tac = fn _ => InductRTechn.induct_on_first_var_tac;
+  val induct_tac = fn _ => InductRTechn.induct_on_first_var_tac(*induct_on_first_var_tac*)(*induct_tac*);
   val induct = RTechn.id
               |> RTechn.set_name (RT.mk "induct")
               |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "induct"));
@@ -173,12 +183,25 @@ ML{*
                |> RTechn.set_name (RT.mk "rippling")
                |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "rippling"));
 
-  val psrippling' =  PSComb.LIFT ([gt_ripple, gt_ripple],[gt_rippled,gt_ripple]) (rippling);
+  val psrippling' =  PSComb.LIFT ([gt_hyps, gt_ripple],[gt_rippled,gt_ripple]) (rippling);
   val psrippling = PSComb.LOOP_WITH psrippling' gt_ripple;
+  val psrippling0 =  PSComb.LIFT ([gt_ripple],[gt_ripple]) (rippling);
+  val psrippling1 =  PSComb.LIFT ([gt_ripple],[gt]) (rippling);
+
+(* setup dummy, do nothing, just return the same goal, for debug uses *)
+    fun dummy_tac _ _ thm  = Seq.single(thm) 
+    val dummy = RTechn.id
+               |> RTechn.set_name (RT.mk "dummy")
+               |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "dummy"));
+    val psdummy = PSComb.LIFT ([gt_ripple], [gt]) (dummy);
   
   val psf = psinduct THENG psrippling THENG psfert THENG pssimp
 
-  val tacs = [("simp",simp_tac), ("induct", induct_tac), ("fert",fert_tac), ("rippling", ripple_tac)];
+  val psf = (* psinduct THENG pssimp THENG*) psrippling0 THENG psrippling0 THENG psrippling1 THENG psfert
+  val psf0 = psrippling0 THENG psfert
+  val psf0 = psdummy THENG psdummy
+
+  val tacs = [("simp",simp_tac), ("induct", induct_tac), ("fert",fert_tac), ("rippling", ripple_tac), ("dummy", dummy_tac)];
   val psgraph = psf PSGraph.empty |> load_tactics tacs;
   val graph = PSGraph.get_graph psgraph;
   PSGraph.PSTheory.write_dot (path ^ "rippling.dot") graph;
@@ -187,26 +210,40 @@ ML{*
 lemma rev_cons: "rev (x # xs) = rev xs @ [x]"
 by auto
 
+lemma buggy: "a @ b = b @ a"
+oops
+
+lemmas demosThms =  List.append_Cons List.rev.simps(2) List.append_assoc
+thm demosThms
+thm  List.append_assoc[symmetric]
+
 lemma "rev (l1 @ l2) = rev l2 @ rev l1"
 apply (induct l1)
 apply simp
-apply (subst List.append_Cons)
-apply (subst rev_cons)
-apply (subst rev_cons)
-
-thm List.append_Cons List.rev.simps(2)
+apply (simp (no_asm) only: List.append_Cons List.rev.simps(2) List.append_assoc)
 oops
 
 (* setup wrules db*)
 ML{* 
- val thms = [ ("app_cons", @{thm "List.append_Cons"}), ("rev_cons", @{thm "rev_cons"})];
+ 
+
+ val thms = [("app_cons", @{thm "List.append_Cons"}), 
+             ("rev_cons", @{thm "rev_cons"}), 
+             ("List.append_assoc", @{thm "List.append_assoc"}),
+             ("app_cons(sym)", Substset.mk_sym_thm @{thm "List.append_Cons"}), 
+             ("rev_cons(sym)", Substset.mk_sym_thm @{thm "rev_cons"}), 
+             ("List.append_assoc(sym)", Substset.mk_sym_thm @{thm "List.append_assoc"})
+             ];
  BasicRipple.init_wrule_db();
  BasicRipple.add_wrules thms;
 *}
 
 (* create a new proof node *)     
-ML{*
-val edata0 = EVal.init psgraph @{context} @{prop "rev (l1 @ l2) = rev l2 @ rev l1"} |> hd; 
+ML{*   
+val g =     
+(*@{prop "rev (l1 @ l2) = rev l2 @ rev l1"};*)
+@{prop " rev (l1 @ l2) = rev l2 @ rev l1 \<Longrightarrow> rev ((a # l1) @ l2) = rev l2 @ rev (a # l1)"};
+val edata0 = EVal.init psgraph @{context} g |> hd; 
 PSGraph.PSTheory.write_dot (path ^"ripple0.dot") (EData.get_graph edata0); 
 *}
 
@@ -214,6 +251,71 @@ ML{*
 val (EVal.Cont edata1) = EVal.evaluate_any edata0;
 val edata1 = EVal.normalise_gnode edata1;
 PSGraph.PSTheory.write_dot (path ^"ripple1.dot") (EData.get_graph edata1)   
+
+*}
+
+
+ML{*
+val (EVal.Cont edata2) = EVal.evaluate_any edata1;
+val edata2 = EVal.normalise_gnode edata2;
+PSGraph.PSTheory.write_dot (path ^"ripple2.dot") (EData.get_graph edata2)   
+*}
+
+
+ML{*
+val (EVal.Cont edata3) = EVal.evaluate_any edata2;
+val edata3 = EVal.normalise_gnode edata3;
+PSGraph.PSTheory.write_dot (path ^"ripple3.dot") (EData.get_graph edata3)   
+*}
+
+
+ML{*
+val (EVal.Cont edata4) = EVal.evaluate_any edata3;
+val edata4 = EVal.normalise_gnode edata4;
+PSGraph.PSTheory.write_dot (path ^"ripple4.dot") (EData.get_graph edata4)   
+*}
+
+ML{*
+val (EVal.Cont edata5) = EVal.evaluate_any edata4;
+val edata5 = EVal.normalise_gnode edata5;
+PSGraph.PSTheory.write_dot (path ^"ripple5.dot") (EData.get_graph edata5)   
+*}
+
+
+lemma
+--
+ML{* 
+edata0; 
+EVal.has_terminated edata0; 
+val vl = EVal.EGraph.Util.all_rtechns (EData.get_graph edata0);
+val ve  = hd (vl); 
+val vd = hd (tl vl);
+val va = hd (tl (tl vl)); 
+tracing "rock";
+val rt = EVal.EGraph.Util.lookup_rtechn (EData.get_graph edata0) va |>( fn (SOME x) => x);
+val lhs_seq = EVal.EGraph.matched_lhs (EData.get_graph edata0) va |> Seq.hd ; (* should be [] for those havn;t got goals to update *)
+val lhs = snd lhs_seq;
+      val out_edges = 
+        EVal.GComb.boundary_outputs (snd lhs_seq) 
+        |> map (fn (_,(x,_),_) => x);
+      val out_types =  map (EVal.EGraph.Util.gtyp_of  (snd lhs_seq) ) out_edges;
+      val [gnode_name] = EVal.EGraph.Util.all_gnodes lhs;
+      val gnode =  EVal.EGraph.Util.single_gnode_of lhs gnode_name;
+
+val result_seq = EVal.EAtom.apply_atomic edata0 gnode rt out_types |> Seq.hd;
+
+(*val rhs_seq = ((EVal.mk_atomic_rhs edata0 rt) o snd) lhs_seq ;*)
+
+(*val atomiv_avl = EVal.eval_atomic edata0 va rt |> Seq.pull; *)
+tracing "here";
+
+*}
+ML{**}
+--
+ML{*
+val (EVal.Cont edata1) = EVal.evaluate_any edata0;
+val edata1 = EVal.normalise_gnode edata1;
+PSGraph.PSTheory.write_dot (path ^"ripple2.dot") (EData.get_graph edata1)   
 *}
 
 ML{*

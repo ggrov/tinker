@@ -35,6 +35,8 @@ sig
   val name_of_rule : rule -> StrName.name
   val thm_of_rule : rule -> Thm.thm
 
+  val mk_sym_thm : Thm.thm -> Thm.thm
+
   (* lookup: changed due to it's more easier to apply it as tactics, but it might be less efficient *)
   val match : theory -> T -> term -> (int * rule) list
 end;
@@ -57,6 +59,8 @@ struct
   fun thm_of_rule (Rule rep) = #thm rep;
 
   fun rule_eq (a,b) = Thm.eq_thm ((thm_of_rule a), (thm_of_rule b));
+
+  fun mk_sym_thm thm = Thm.symmetric (safe_mk_meta_eq thm);
 
   val global_ctxt_of_rule = Proof_Context.init_global o (fn _ => @{theory});
 
@@ -84,12 +88,12 @@ struct
   fun remove rule net = 
       let val t = lhs_of_rule rule in Net.delete_term rule_eq (t, rule) net end;
 
-  fun strip_lhs_rhs thm = Logic.dest_equals (Thm.concl_of (mk_meta_eq thm))
+  fun strip_lhs_rhs thm = Logic.dest_equals (Thm.concl_of (safe_mk_meta_eq thm))
 
   fun rule_of_thm (name, thm) = 
     let val (lhs, _) = strip_lhs_rhs thm in
     SOME (Rule {lhs = lhs, name = name, thm = thm})end
-    handle _ => NONE;
+    handle _ => (tracing ("[eqrule: " ^ name ^ "not valid for wrules!]"); NONE);
 
   fun merge (n1,n2) = Net.merge rule_eq (n1,n2);
 

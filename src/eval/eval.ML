@@ -112,7 +112,7 @@ struct
     lhs_seq 
     |> Seq.maps ((mk_atomic_rhs edata rt) o snd) 
     |> Seq.maps update 
-   end;   
+   end; 
 
   val normalise_gnode = EData.update_graph EGraph.normalise_gnode;
 
@@ -202,7 +202,7 @@ struct
      | (x::xs) => 
          Cont (edata 
                |> EData.set_current x 
-               |> EData.update_branches (fn ys => ys @ xs))
+               |> EData.update_branches (fn ys => ys @ xs)) 
 
    fun pick_first_branch edata [] = Bad
     |  pick_first_branch edata (x::xs) = 
@@ -219,7 +219,8 @@ struct
      EGraph.Util.all_rtechns (EData.get_graph edata)
      |> Seq.of_list
      |> Seq.maps (evaluate edata)
-     |> update_branches edata;
+     |> update_branches edata
+
 
    (* similar to evaluate_any, but only evaluate a single one *)
    fun evaluate_arbitrary edata =
