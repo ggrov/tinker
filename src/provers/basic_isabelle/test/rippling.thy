@@ -143,6 +143,19 @@ is_subterm @{theory} t2 t1;
 is_subterm @{theory} t2 t2;
 *}
 
+(* test fert*)
+ML{*
+fun mk_meta_eq_trm thry t = Thm.cterm_of thry t 
+  |> Thm.trivial |> safe_mk_meta_eq |> Thm.concl_of;
+fun get_lhs_rhs thry trm = Logic.dest_equals (mk_meta_eq_trm thry trm) |> SOME
+  handle _ => NONE;
+fun weak_fert goal hyp = 
+case get_lhs_rhs @{theory} hyp of NONE => (tracing "err" ; false)
+| SOME(l,r) => (TermFeatures.is_subterm @{theory} goal l orelse TermFeatures.is_subterm @{theory} goal r);
+
+weak_fert @{prop "a + (b + c) = d + f + g"} @{prop "a + c = d + f"};
+*}
+
 (* more debug codes *)
 ML{*
 (* func to get teh symmetric thm, see thm0 as belows *)

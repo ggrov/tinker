@@ -146,7 +146,6 @@ ML{*
   val gt_induct = "inductable";
   val gt_ripple = "rippling";
   val gt_rippled = "rippled"
-  val gt_rippled = "(rimppling)"
   val gt_not_embeds = "not(hyp_embeds)"
   val gt_hyps = "hyp_embeds"
   fun load_tactics tacs ps = 
@@ -155,9 +154,10 @@ ML{*
      tacs ps;
 
   val HOL_simps = Simplifier.simpset_of (Proof_Context.init_global @{theory "HOL"});
+  val simps =  Simplifier.simpset_of (Proof_Context.init_global @{theory});
 
 (* setup simp *)
-  val simp_tac = (fn _ => Simplifier.simp_tac HOL_simps);
+  val simp_tac = (fn _ => Simplifier.simp_tac simps);
   val simp = RTechn.id
             |> RTechn.set_name (RT.mk "simp")
             |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "simp"));
@@ -168,7 +168,7 @@ ML{*
   val fert = RTechn.id
             |> RTechn.set_name (RT.mk "fert")
             |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "fert"));
-  val psfert = PSComb.LIFT ([gt],[]) (fert);
+  val psfert = PSComb.LIFT ([gt_rippled],[]) (fert);
 
 (* setup up induct *)
   val induct_tac = fn _ => InductRTechn.induct_on_first_var_tac(*induct_on_first_var_tac*)(*induct_tac*);
@@ -183,28 +183,28 @@ ML{*
                |> RTechn.set_name (RT.mk "rippling")
                |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "rippling"));
 
-  val psrippling' =  PSComb.LIFT ([gt_hyps, gt_ripple],[gt_rippled,gt_ripple]) (rippling);
+  val psrippling' =  PSComb.LIFT ([gt_ripple, gt_ripple],[gt_rippled,gt_ripple]) (rippling);
   val psrippling = PSComb.LOOP_WITH psrippling' gt_ripple;
   val psrippling0 =  PSComb.LIFT ([gt_ripple],[gt_ripple]) (rippling);
   val psrippling1 =  PSComb.LIFT ([gt_ripple],[gt]) (rippling);
 
 (* setup dummy, do nothing, just return the same goal, for debug uses *)
-    fun dummy_tac _ _ thm  = Seq.single(thm) 
-    val dummy = RTechn.id
-               |> RTechn.set_name (RT.mk "dummy")
-               |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "dummy"));
-    val psdummy = PSComb.LIFT ([gt_ripple], [gt]) (dummy);
-  
+  fun dummy_tac _ _ thm  = Seq.single(thm) 
+  val dummy = RTechn.id 
+            |> RTechn.set_name (RT.mk "dummy")
+            |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "dummy"));
+  val psdummy' = PSComb.LIFT ([gt_ripple, gt_ripple], [gt_ripple, gt_rippled]) (dummy);
+  val psdummy = PSComb.LOOP_WITH psdummy' gt_ripple;
   val psf = psinduct THENG psrippling THENG psfert THENG pssimp
 
-  val psf = (* psinduct THENG pssimp THENG*) psrippling0 THENG psrippling0 THENG psrippling1 THENG psfert
-  val psf0 = psrippling0 THENG psfert
+  val psf0 = (* psinduct THENG pssimp THENG*) psrippling0 THENG psrippling0 THENG psrippling1 THENG psfert
+  val psf0 = psrippling THENG psfert
   val psf0 = psdummy THENG psdummy
 
   val tacs = [("simp",simp_tac), ("induct", induct_tac), ("fert",fert_tac), ("rippling", ripple_tac), ("dummy", dummy_tac)];
   val psgraph = psf PSGraph.empty |> load_tactics tacs;
   val graph = PSGraph.get_graph psgraph;
-  PSGraph.PSTheory.write_dot (path ^ "rippling.dot") graph;
+  PSGraph.PSTheory.write_dot (path ^ "rippling.dot") graph; 
 *}
 
 lemma rev_cons: "rev (x # xs) = rev xs @ [x]"
@@ -240,9 +240,9 @@ ML{*
 
 (* create a new proof node *)     
 ML{*   
-val g =     
-(*@{prop "rev (l1 @ l2) = rev l2 @ rev l1"};*)
-@{prop " rev (l1 @ l2) = rev l2 @ rev l1 \<Longrightarrow> rev ((a # l1) @ l2) = rev l2 @ rev (a # l1)"};
+val g = @{prop "rev (l1 @ l2) = rev l2 @ rev l1"};
+val g0 = @{prop " rev (l1 @ l2) = rev l2 @ rev l1 \<Longrightarrow> rev ((a # l1) @ l2) = rev l2 @ rev (a # l1)"};
+val g0 = @{prop "\<And>a l1. rev (l1 @ l2) = rev l2 @ rev l1 \<Longrightarrow> rev ((a # l1) @ l2) = rev l2 @ rev (a # l1)"};
 val edata0 = EVal.init psgraph @{context} g |> hd; 
 PSGraph.PSTheory.write_dot (path ^"ripple0.dot") (EData.get_graph edata0); 
 *}
@@ -278,9 +278,27 @@ PSGraph.PSTheory.write_dot (path ^"ripple4.dot") (EData.get_graph edata4)
 ML{*
 val (EVal.Cont edata5) = EVal.evaluate_any edata4;
 val edata5 = EVal.normalise_gnode edata5;
-PSGraph.PSTheory.write_dot (path ^"ripple5.dot") (EData.get_graph edata5)   
+PSGraph.PSTheory.write_dot (path ^"ripple5.dot") (EData.get_graph edata5);
 *}
 
+
+ML{*
+val (EVal.Cont edata6) = EVal.evaluate_any edata5;
+val edata6 = EVal.normalise_gnode edata6;
+PSGraph.PSTheory.write_dot (path ^"ripple6.dot") (EData.get_graph edata6);
+*}
+
+ML{*
+val (EVal.Cont edata7) = EVal.evaluate_any edata6;
+val edata7 = EVal.normalise_gnode edata7;
+PSGraph.PSTheory.write_dot (path ^"ripple7.dot") (EData.get_graph edata7);
+*}
+
+
+ML{*
+val (EVal.Good edata7) = EVal.evaluate_any edata7;
+*}
+-- "proof complete !"
 
 lemma
 --

@@ -167,8 +167,7 @@ struct
 
   fun fo_au_match th patt t = Pattern.matches th (patt,t);
 
-(* Hi G, you might not like this and get furious ;-p, but I feel it would be interesting to do so. 
-   We can revert it if it turns out to be useless --by LYH
+(* Currently NOT in use ! but maybe interesting to try and improve efficiency
 
    To centerlise the feature testing, we need a buffer to store some info, i.e. sharing some data.
    Because some features are related, e.g. embedding and measurement decreasing (sharing skeleon info),
@@ -264,8 +263,8 @@ struct
       val l = get_decreased_measure_params ctxt skel matches gtrm;
       (*val _ = Data.update_subst_params l*)  (* TODO: in some future, maybe enable it to improve efficiency *)
     in
-      case l of [] => (tracing "no decreased measures"; false)
-        | _ => (tracing "found decreased measures"; true)
+      case l of [] => ((*tracing "no decreased measures";*) false)
+        | _ => ((*tracing "found decreased measures";*) true)
     end;
 
   (*fun has_measure_decreasing_rules' ctxt = has_measure_decreasing_rules ctxt (Data.get_skel())*)

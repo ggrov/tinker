@@ -12,7 +12,7 @@ begin
 (* induction *)
  ML_file "../../isabelle/rtechn/induct.ML"
 
- ML_file "../simple_goaltyp.ML" 
+ ML_file "../simple_goaltyp.ML"
                             
 
 
