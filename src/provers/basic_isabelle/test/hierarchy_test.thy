@@ -204,7 +204,12 @@ ML{*
   val tacs = [("simp",simp_tac), ("induct", induct_tac), ("fert",fert_tac), ("rippling", ripple_tac), ("dummy", dummy_tac)];
   val psgraph = psf PSGraph.empty |> load_tactics tacs;
   val graph = PSGraph.get_graph psgraph;
+
+(* output *)
   PSGraph.PSTheory.write_dot (path ^ "rippling.dot") graph; 
+
+  PSGraph.PSTheory.write_json_file (path ^ "rippling.json") graph;
+
 *}
 
 lemma rev_cons: "rev (x # xs) = rev xs @ [x]"
@@ -244,7 +249,9 @@ val g = @{prop "rev (l1 @ l2) = rev l2 @ rev l1"};
 val g0 = @{prop " rev (l1 @ l2) = rev l2 @ rev l1 \<Longrightarrow> rev ((a # l1) @ l2) = rev l2 @ rev (a # l1)"};
 val g0 = @{prop "\<And>a l1. rev (l1 @ l2) = rev l2 @ rev l1 \<Longrightarrow> rev ((a # l1) @ l2) = rev l2 @ rev (a # l1)"};
 val edata0 = EVal.init psgraph @{context} g |> hd; 
+
 PSGraph.PSTheory.write_dot (path ^"ripple0.dot") (EData.get_graph edata0); 
+PSGraph.PSTheory.write_json_file (path ^ "rippling0.json") (EData.get_graph edata0);
 *}
 
 ML{*

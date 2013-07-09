@@ -29,7 +29,8 @@ ML{*
 ML{*
  Theory.PS_TheoryIO.OutputGraphJSON.output g
   |> Json.pretty
-  |> Pretty.writeln;
+  |> Pretty.writeln
+
 *}
 
 

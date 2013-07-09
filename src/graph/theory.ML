@@ -12,6 +12,7 @@ sig
   val out_json : PS_Theory.Graph.T -> Json.json
   val dot_graph : PS_Theory.Graph.T -> string
   val write_dot : string -> PS_Theory.Graph.T -> unit
+  val write_json_file: string -> PS_Theory.Graph.T  -> unit
 
   (* structure PS_TheoryIO :*)
 end (* signature *)
@@ -93,6 +94,11 @@ struct
        open JsonInputUtils
        type data = vdata;
 
+       fun get_gnode_name (GraphSubstData.GN_Node gn) = GoalTyp.goal_name gn
+       |   get_gnode_name (GraphSubstData.GN_Var v) = v
+       |   get_gnode_name (GraphSubstData.GN_Empty) = "Empty"
+       |   get_gnode_name _ = "Unknown"
+
        fun out_gnode (GraphSubstData.GN_Node gn) =
              Json.mk_object [("gtype", Json.String "GN_Node"), ("gdata", GoalTyp.gnode_to_json gn)]
         |  out_gnode (GraphSubstData.GN_Var v) =
@@ -101,10 +107,11 @@ struct
         (* fixme: should be like a linked list -> or turn to list and just use array? *)
         |  out_gnode (GraphSubstData.GN_Pair _) =Json.mk_object [("gtype", Json.String "GN_Empty")]
 
-       fun output (GraphSubstData.RT rt) =
-              Json.mk_object [("type", Json.String "RT"), ("data", RTechnJSON.rtechn_to_json rt)] 
+       fun output (GraphSubstData.RT rt) = RTechnJSON.rtechn_to_json rt 
          | output (GraphSubstData.GN gn) = 
-              Json.mk_object [("type", Json.String "GN"), ("data", out_gnode gn)] 
+              Json.mk_object [("type", Json.String "GN"), 
+                              ("gn_name", Json.String (get_gnode_name gn)), 
+                              ("gdata", out_gnode gn)] 
          | output (GraphSubstData.TVar tv) =
              Json.mk_object [("type", Json.String "TVar"), ("data", Json.String tv)]
 
@@ -134,10 +141,10 @@ struct
       type data = edata;
       fun output (GraphSubstData.EVar var) =
             Json.mk_object [("type", Json.String "EVar"), ("data", Json.String var)]
-       |  output (GraphSubstData.GT gt)  = GoalTyp.to_json gt
+       |  output (GraphSubstData.GT gt) = GoalTyp.to_json gt
             (*Json.mk_object [("type", Json.String "GT"), ("data",GoalTyp.to_json gt)];*)
     end; (* struct *)
-
+ 
     structure DotStyle : DOT_STYLE =
     struct
       type vdata = vdata;
@@ -221,6 +228,17 @@ struct
  val dot_graph = GraphDot.output;
  val write_dot = GraphDot.write_dot_to_file;
 
+  (* always rewrite the opened file *)
+ fun write_json_file path g =
+   let 
+     val output = TextIO.openOut path;
+     val str = out_json g |> Json.encode;
+     val _ = TextIO.output (output, str) 
+   in
+     TextIO.closeOut output
+   end;
+
+    
 end (* end functor *)
 
 
