@@ -51,7 +51,7 @@ struct
   | update_new_eval_result (EVal.Bad) = (tracing "Returned a Bad evel status" ; Json.Null)
 
   fun ui_eval_current _ = 
-    let val el = get_data (); val _ = tracing "called eval cur" in
+    let val el = get_data () in
     (case el of SOME el' => FocusList.focus el'
                             |> EData.get_graph
                             |> PSGraph.PSTheory.out_json
@@ -77,7 +77,9 @@ struct
         =>  FocusList.focus el 
             |> EVal.evaluate_any 
             |> update_new_eval_result       
-       | SOME el' => PSGraph.PSTheory.out_json (EData.get_graph (FocusList.focus el')) 
+       | SOME el' => 
+          (update_data el';
+           PSGraph.PSTheory.out_json (EData.get_graph (FocusList.focus el')))
     end
   handle _ => (tracing "No edata is set-up"; Json.Null);
   
@@ -86,7 +88,7 @@ struct
     let 
       val edata_fl = FocusList.of_single edata
       val _ = update_data (edata_fl)
-      val sock = TextSocket.local_connect (4230)
+      val sock = TextSocket.local_connect (4234)
       val (input, output) = TextSocket.get_io_stream sock
     in
       (server (input, output);

@@ -1,6 +1,6 @@
 theory ui_socket_test
 imports "../build/BIsaP"  
-begin
+begin  
  
 (* socket *)
 ML_file "../../../interface/text_socket.ML"
@@ -12,6 +12,10 @@ ML_file "../../../interface/json_protocol/controller_module.ML"
 ML_file "../../../interface/json_protocol/modules/psgraph.ML"
 ML_file "../../../interface/json_protocol/controller_registry.ML"
 ML_file "../../../interface/json_protocol/protocol.ML"
+
+ML{*
+  val path = "/Users/yuhuilin/Desktop/" (*"/u1/staff/gg112/"*);
+*}
 
 (* simple example *)
 ML{*
@@ -42,7 +46,8 @@ ML{*
   val psfg3 = psconjI0 THENG  psconjI THENG psimpI THENG psasm2;
   val psgraph = psfg3 PSGraph.empty |> PSGraph.load_atomics [("atac",K atac)];
 
-  val edata0 = EVal.init psgraph @{context} @{prop "A \<Longrightarrow>(A \<and> A)  \<and> (A \<longrightarrow> A)"} |> hd; 
+  val edata0 = EVal.init psgraph @{context} @{prop "A \<Longrightarrow>(A \<and> A)  \<and> (A \<longrightarrow> A)"} |> hd;
+ 
 *}
 
 ML{*   -

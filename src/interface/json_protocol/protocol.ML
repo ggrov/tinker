@@ -80,9 +80,9 @@ let
     val rid = arg_int json "request_id"
     val json_output = dispatch system rid json
     val output = (optarg_json json_output "output") |> (fn (SOME x) => x)
-    val _ = Json.string_of output |> tracing;
+    (*val _ = Json.string_of output |> tracing;*)
   in 
-    (case output of Json.String "REQUEST_CLOSE" => (tracing "server is closing" ; ())
+    (case output of Json.String "REQUEST_CLOSE" => ((*tracing "server is closing" ;*) ())
         | _ =>
            (TextIO.output (outstream, Json.encode json_output);
            TextIO.flushOut outstream;
