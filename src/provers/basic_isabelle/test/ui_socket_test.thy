@@ -47,10 +47,9 @@ ML{*
   val psgraph = psfg3 PSGraph.empty |> PSGraph.load_atomics [("atac",K atac)];
 
   val edata0 = EVal.init psgraph @{context} @{prop "A \<Longrightarrow>(A \<and> A)  \<and> (A \<longrightarrow> A)"} |> hd;
+
  
 *}
 
-ML{*   -
-  UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams edata0
-*}
+
 end

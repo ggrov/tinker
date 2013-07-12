@@ -43,7 +43,7 @@ val ftab = ftab |> register
   input  = S json_t,
   output = S json_t
 } (fn x => (
-  (tracing " send close command" ; Json.String "REQUEST_CLOSE")
+  ((*tracing " send close command" ; *)Json.String "REQUEST_CLOSE")
 ))
 
 end

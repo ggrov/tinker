@@ -50,6 +50,8 @@ struct
   | update_new_eval_result (EVal.Good _) = Json.String "SUCCESS"
   | update_new_eval_result (EVal.Bad) = (tracing "Returned a Bad evel status" ; Json.Null)
 
+  fun ui_eval_close _ = init_data();
+
   fun ui_eval_current _ = 
     let val el = get_data () in
     (case el of SOME el' => FocusList.focus el'
@@ -93,8 +95,10 @@ struct
     in
       (server (input, output);
       TextSocket.close sock;
-      (get_data () |> (fn x => case x of NONE => raise ui_socket_exp
-                        | SOME e => FocusList.last e)))
+      (get_data () 
+        |> (fn x => case x of NONE => raise ui_socket_exp
+                        | SOME e => FocusList.last e)
+        |> (fn x => (init_data(); x))))
     end
 
 end (* end of struct *)
