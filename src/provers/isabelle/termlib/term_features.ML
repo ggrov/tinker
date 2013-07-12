@@ -263,8 +263,8 @@ struct
       val l = get_decreased_measure_params ctxt skel matches gtrm;
       (*val _ = Data.update_subst_params l*)  (* TODO: in some future, maybe enable it to improve efficiency *)
     in
-      case l of [] => ((*tracing "no decreased measures";*) false)
-        | _ => ((*tracing "found decreased measures";*) true)
+      case l of [] => ((*isar_tracing "no decreased measures";*) false)
+        | _ => ((*isar_tracing "found decreased measures";*) true)
     end;
 
   (*fun has_measure_decreasing_rules' ctxt = has_measure_decreasing_rules ctxt (Data.get_skel())*)

@@ -88,7 +88,7 @@ struct
   end;
 
   fun apply_rule name thm (pnode,pplan) = 
-    (tracing ("rule " ^ name);
+    (isar_tracing ("rule " ^ name);
     rtac thm (get_index pnode pplan) (#goal pplan) 
     |> Seq.map (update (pnode,pplan)));
 
@@ -98,7 +98,7 @@ struct
 
   (* only second *)
   fun apply_frule (n1,fst_thm) (n2,snd_thm) (pnode,pplan) = 
-    (tracing ("frule with " ^ n1 ^ " and " ^ n2); 
+    (isar_tracing ("frule with " ^ n1 ^ " and " ^ n2); 
     (* Seq.append (ftac fst_thm (get_index pnode pplan) (#goal pplan)) *)
                (ftac snd_thm (get_index pnode pplan) (#goal pplan))
     |> Seq.map (update (pnode,pplan)));

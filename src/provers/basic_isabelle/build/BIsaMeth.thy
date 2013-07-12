@@ -12,10 +12,14 @@ begin
   {* Scan.lift (Scan.succeed (fn ctxt => SIMPLE_METHOD (PSGraphMethod.psgraph_tac ctxt))) *}
   "application of active psgraph"
 
+ method_setup interactive_psgraph =
+  {* Scan.lift (Scan.succeed (fn ctxt => SIMPLE_METHOD (PSGraphMethod.ic_psgraph_tac ctxt))) *}
+  "application of active psgraph"
+
+
  -- "set active strategy"
  declare [[psgraph = "unknown"]]
-
-
+ 
 end
 
 

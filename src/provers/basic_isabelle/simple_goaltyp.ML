@@ -63,13 +63,13 @@ struct
          val ctxt = #pctxt pn
          val (hyps, goal) = get_hyps_and_goal (#ptrm pn)
          (*val _ = Pretty.chunks ([Pretty.str "hyps in hyp_embed: "] @ (map (Syntax.pretty_term @{context}) hyps)) 
-                 |> Pretty.string_of |> tracing
+                 |> Pretty.string_of |> isar_tracing
          val _ = Pretty.chunks ([Pretty.str "goal in hyp_embed: "] @ [((Syntax.pretty_term @{context} goal))]) 
-                 |> Pretty.string_of |> tracing*)
+                 |> Pretty.string_of |> isar_tracing*)
       in 
         exists (fn hyp => TF.ctxt_embeds ctxt hyp goal) hyps 
-        (*|> (fn x => if x then (tracing "find embeddings !"; x) 
-            else  (tracing "no embeddings !"; x))*)
+        (*|> (fn x => if x then (isar_tracing "find embeddings !"; x) 
+            else  (isar_tracing "no embeddings !"; x))*)
       end;
 
     fun goal_embeds pn =
@@ -109,8 +109,8 @@ struct
          val wrules = BasicRipple.get_matched_wrules thy goal
       in
         TF.has_measure_decreasing_rules ctxt embedd_hyp wrules goal
-        (*|> (fn x => if x then (tracing "find decreased measure !"; x) 
-            else  (tracing "no decreased measure !"; x))*)
+        (*|> (fn x => if x then (isar_tracing "find decreased measure !"; x) 
+            else  (isar_tracing "no decreased measure !"; x))*)
       end
 
     (* embedding is a subterm of goal, or if the embedding is eq type then 
@@ -137,8 +137,8 @@ struct
     end
     
     fun debug_trace str b = 
-      if b then (tracing (str ^ " is good !"); b) 
-      else (tracing (str ^ " fails !"); b);
+      if b then (isar_tracing (str ^ " is good !"); b) 
+      else (isar_tracing (str ^ " fails !"); b);
 
     fun lift_list pn [] = false
      |  lift_list pn (x::xs) =
@@ -161,10 +161,10 @@ struct
    fun init_lift str pn =
      let 
         val ls = String.tokens (fn c => c = #";") str
-        val _ = tracing (("init goal " ^  (#pname pn) ^  " with goal type: " ^ str ))
+        val _ = isar_tracing (("init goal " ^  (#pname pn) ^  " with goal type: " ^ str ))
     in 
      case ls of 
-       [] => (tracing "warning; No goal types !"; NONE)
+       [] => (isar_tracing "warning; No goal types !"; NONE)
       | _ => ls |> map (lift' pn)
                 |> forall I 
                 |> liftp pn

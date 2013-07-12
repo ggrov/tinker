@@ -8,7 +8,9 @@ uses
   "../../../../rtechn/rtechn_json.ML"                                        
   (*"../../../rtechn/rtechn_env.ML"*)      
 begin
-
+ML{*
+  val rtechn_tracing = (*tracing*) (fn _ => ());
+*}
 end
 
 

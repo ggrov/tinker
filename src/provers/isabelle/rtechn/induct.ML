@@ -88,7 +88,7 @@ struct
   (* apply induction on the all applicable vars *)
   fun induct_tac i thm = 
     let 
-      val _ = tracing "call induct_tac";
+      val _ = rtechn_tracing "call induct_tac";
       val (vars, _) = inductable_things_in_sg i thm 
       val ivars = map (fn (x, _) => [x]) vars |> Seq.of_list
     in 

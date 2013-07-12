@@ -297,7 +297,7 @@ fun set_searchf (s, (db : T)) =
 
 
 fun add_eq_wrule ctxt (wr,db : T) = 
-    let val _ = tracing ("Adding wave rule: " ^ 
+    let val _ = rtechn_tracing ("Adding wave rule: " ^ 
                          (Pretty.string_of (pretty_wrule_sml ctxt wr))) in
       {eqrule_net = WRNet.insert (wr, get_eqrule_net db),
        inv_eqrule_net =  #inv_eqrule_net db,
@@ -312,7 +312,7 @@ fun add_eq_wrules ctxt (wrs, db) =
 
 (* Add 'invalid' wrules to separate net *)
 fun add_inv_wrule ctxt (wr,db : T) = 
-    let val _ = tracing ("Adding wave rule (invalid): " ^ 
+    let val _ = rtechn_tracing ("Adding wave rule (invalid): " ^ 
                          (Pretty.string_of (pretty_wrule_sml ctxt wr))) in
       {eqrule_net = (#eqrule_net db),
        searchf = #searchf db,
@@ -327,7 +327,7 @@ fun add_inv_wrules ctxt (wrs, db) =
     List.foldr (fn (x,db) => (add_inv_wrule ctxt) (x,db)) db wrs;
 
 fun add_impwrule ctxt (impr,db : T) = 
-    let val _ = tracing ("Adding implication wave rule: " ^
+    let val _ = rtechn_tracing ("Adding implication wave rule: " ^
                            (Pretty.string_of (pretty_impwrule_sml ctxt impr))) in
       {eqrule_net = #eqrule_net db,
        inv_eqrule_net =  #inv_eqrule_net db,
@@ -348,7 +348,7 @@ fun add_prems net rule =
   end
 
 fun add_fwd_impwrule ctxt (fwd_impr,db : T) =
-  let val _ = tracing ("Adding forward implication wave rule: " ^
+  let val _ = rtechn_tracing ("Adding forward implication wave rule: " ^
                         (Pretty.string_of (pretty_fwd_impwrule_sml ctxt fwd_impr)))
   in
        {eqrule_net = #eqrule_net db,
@@ -364,7 +364,7 @@ fun add_fwd_impwrules ctxt (rs, db : T) =
 
 fun add_partwrule ctxt (pwr,db : T) =
   let
-    val _ = tracing ("Adding partial wave rule: " ^ (Pretty.string_of (pretty_partwrule ctxt pwr)))
+    val _ = rtechn_tracing ("Adding partial wave rule: " ^ (Pretty.string_of (pretty_partwrule ctxt pwr)))
   in
     {  eqrule_net = #eqrule_net db,
        inv_eqrule_net =  #inv_eqrule_net db,

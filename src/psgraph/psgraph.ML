@@ -35,10 +35,18 @@ sig
        ((PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T 
        -> (PSTheory.PS_Theory.Graph.T * PSTheory.PS_Theory.Graph.T) StrName.NTab.T) 
        -> T -> T 
-  val update_atomics : (PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic StrName.NTab.T -> PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic StrName.NTab.T) -> T -> T 
+  val update_atomics : 
+  (PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic StrName.NTab.T 
+  -> PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic StrName.NTab.T) -> T -> T 
 
   (* fresh name generation *)
   val fresh_name : T -> StrName.name -> StrName.name
+  
+  (* load a list of atomics *)
+  val load_atomics : 
+  (StrName.NTab.name *
+    PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic) list 
+  -> T -> T
 
 end
 
@@ -112,5 +120,10 @@ struct
    fun fresh_name ps = StrName.NSet.new (all_names ps);
 
    fun combine ps1 ps2 = ps1; (* fixme *)
+
+   fun load_atomics tacs ps = 
+     fold
+     (fn (str, tac) => update_atomics (StrName.NTab.doadd (str, tac)))
+     tacs ps;
 
 end
