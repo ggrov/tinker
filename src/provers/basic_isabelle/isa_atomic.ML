@@ -11,6 +11,7 @@ struct
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term } 
     (* could also hold the thm? *)
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
+
   type tactic = Proof.context -> int -> Tactical.tactic
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
@@ -123,11 +124,20 @@ struct
   fun get_all_assms _ = []
 
   fun get_all_named_facts_pair _ = []
- 
+  fun get_open_pnodes (pplan : pplan) = (#opengs pplan)
+
   fun get_pnode_name (pnode:pnode) = #pname pnode;
   fun get_pnode_ctxt (pnode:pnode) = #pctxt pnode;
 
   fun get_pnode_concl (pnode:pnode) = #ptrm pnode;
+  
+  fun pretty_concl pnode = 
+    Pretty.block
+     [Pretty.str "[ Goal ",
+     Pretty.str (get_pnode_name pnode),
+     Pretty.str " : ",
+     Syntax.pretty_term (get_pnode_ctxt pnode) (get_pnode_concl pnode),
+     Pretty.str " ]"]
 
   structure Sharing =
   struct

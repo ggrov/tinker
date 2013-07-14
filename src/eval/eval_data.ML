@@ -81,6 +81,9 @@ sig
   val push_bactive : PSGraph.PSTheory.PS_Theory.Graph.T -> PSGraph.PSTheory.PS_Theory.Graph.T -> V.name list -> branch -> branch
 
   val next_branch : T -> (branch * T) option (* moves to next branch *)
+  
+  val pretty_goals : T -> Pretty.T
+
 
 end (* signature *)
 
@@ -242,6 +245,12 @@ struct
     case get_branches edata of
          []    => NONE
      | (x::xs) => SOME (get_current edata,edata |> set_current x |> set_branches xs);
+
+  fun pretty_goals edata = 
+    Pretty.chunks
+      ([Pretty.str "Open goals in the current psgraph :{"] @
+      (get_pplan edata |> Atomic.get_open_pnodes |> map Atomic.pretty_concl) @
+      [Pretty.str "}"])
      
 end; (* functor *)
 

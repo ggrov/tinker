@@ -46,8 +46,9 @@ struct
          |> FocusList.move_next
          |> strip_some
          |> update_data);
+       Pretty.writeln (EData.pretty_goals e') ; 
        PSGraph.PSTheory.out_json (EData.get_graph e')) end
-  | update_new_eval_result (EVal.Good _) = Json.String "SUCCESS"
+  | update_new_eval_result (EVal.Good _) = (writeln "No Goal left" ; Json.String "SUCCESS")
   | update_new_eval_result (EVal.Bad) = (tracing "Returned a Bad evel status" ; Json.Null)
 
   fun ui_eval_close _ = init_data();
@@ -55,6 +56,7 @@ struct
   fun ui_eval_current _ = 
     let val el = get_data () in
     (case el of SOME el' => FocusList.focus el'
+                            |> (fn e => (Pretty.writeln (EData.pretty_goals e) ; e))
                             |> EData.get_graph
                             |> PSGraph.PSTheory.out_json
     | NONE => (tracing "No edata is set-up"; Json.Null)) end
@@ -67,6 +69,7 @@ struct
       case FocusList.move_prev el of NONE => Json.String "TOP"
       | SOME el' => 
         (update_data el';
+         Pretty.writeln (EData.pretty_goals (FocusList.focus el'));
          PSGraph.PSTheory.out_json (EData.get_graph (FocusList.focus el')))
     end
   handle _ => (tracing "No edata is set-up"; Json.Null);
@@ -81,6 +84,7 @@ struct
             |> update_new_eval_result       
        | SOME el' => 
           (update_data el';
+           (fn x => (Pretty.writeln (EData.pretty_goals x) ; x));
            PSGraph.PSTheory.out_json (EData.get_graph (FocusList.focus el')))
     end
   handle _ => (tracing "No edata is set-up"; Json.Null);
