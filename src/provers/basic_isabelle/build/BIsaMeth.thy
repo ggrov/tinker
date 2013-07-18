@@ -15,7 +15,7 @@ ML_file "../../../interface/json_protocol/modules/psgraph.ML"
 ML_file "../../../interface/json_protocol/controller_registry.ML"
 ML_file "../../../interface/json_protocol/protocol.ML"
 
-ML_file "../psgraph_method.ML" 
+ML_file "../psgraph_method.ML"
 
  -- "method to apply proof strategy"
  (* to do: add support for arguments, e.g. proof_strategy <strategy name> *)
@@ -24,9 +24,13 @@ ML_file "../psgraph_method.ML"
   "application of active psgraph"
 
  method_setup interactive_psgraph =
-  {* Scan.lift (Scan.succeed (fn ctxt => SIMPLE_METHOD (PSGraphMethod.ic_psgraph_tac ctxt))) *}
+  {* (Scan.succeed (fn ctxt => SIMPLE_METHOD (PSGraphMethod.ic_psgraph_tac ctxt))) *}
   "application of active psgraph"
 
+ML{*
+Scan.succeed;
+ (Scan.succeed (fn ctxt => SIMPLE_METHOD (PSGraphMethod.ic_psgraph_tac ctxt)))
+*}
 
  -- "set active strategy"
  declare [[psgraph = "unknown"]]

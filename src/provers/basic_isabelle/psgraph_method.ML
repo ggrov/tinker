@@ -50,4 +50,33 @@ struct
       |> Seq.single
    end
 
+  fun ipsgraph_tac name ctxt thm = 
+    let
+      val (ps,pp) = init_prf ctxt thm
+      val th = Proof_Context.theory_of ctxt
+      val psgraph = get_graph th name
+      val edata = EVal.init_of psgraph (ps,pp) |> hd (* FIXME: only handle the first goal *)
+    in
+      UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams edata
+      |> EVal.EData.get_pplan 
+      |> thm_of_pplan 
+      |> Seq.single
+   end
+
+  fun ipsgraph_method str ctxt =  SIMPLE_METHOD (ipsgraph_tac str ctxt);
+
+(* a dummy tac for test use *)
+  fun dummy_tac str  _ thm = 
+    let val _ = if str = "dummy" then writeln "yes" else writeln "no" 
+    in Seq.single thm end
+
+  fun dummy_method str ctxt = SIMPLE_METHOD (dummy_tac str ctxt);
+
+  val str_parser : string context_parser = (Scan.lift (Args.name));
+
+(* setup methods in isabelle *)
+  val _ = Context.>> (Context.map_theory
+    ((Method.setup (Binding.name "dummy") (str_parser >> dummy_method) "this is a dummy one") #> 
+     (Method.setup (Binding.name "ipsgraph") (str_parser >> ipsgraph_method) "interactive psgraph tactic")));
+
 end (* structure *)
