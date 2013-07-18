@@ -23,7 +23,7 @@ ML_file "../psgraph_method.ML"
   {* Scan.lift (Scan.succeed (fn ctxt => SIMPLE_METHOD (PSGraphMethod.psgraph_tac ctxt))) *}
   "application of active psgraph"
 
- method_setup interactive_psgraph =
+ method_setup ipsgraph =
   {* Scan.lift (Scan.succeed (fn ctxt => SIMPLE_METHOD (PSGraphMethod.ic_psgraph_tac ctxt))) *}
   "application of active psgraph"
 
