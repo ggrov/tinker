@@ -10,6 +10,7 @@ sig
   sharing PS_Comb.Graph.EData = PS_Theory.Graph.SharingBasicGraph.Param.EData
 
   val out_json : PS_Theory.Graph.T -> Json.json
+  val in_json : Json.json -> PS_Theory.Graph.T
   val dot_graph : PS_Theory.Graph.T -> string
   val write_dot : string -> PS_Theory.Graph.T -> unit
   val write_json_file: string -> PS_Theory.Graph.T  -> unit
@@ -162,6 +163,7 @@ struct
      structure GraphComponentDataIO = PS_ComponentDataIO );
 
   val out_json = PS_TheoryIO.OutputGraphJSON.output;
+  val in_json = PS_TheoryIO.InputGraphJSON.input;
 
  structure GraphDot =
  struct

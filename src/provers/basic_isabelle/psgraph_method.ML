@@ -18,6 +18,17 @@ struct
   val add_graph = Data.map o StrName.NTab.ins;
   val add_graph_list =  Data.map o (fold StrName.NTab.ins);
 
+  fun read_graph (gname,fname) =
+   let 
+     val json = Json.read_file fname
+     val graph = PSGraph.PSTheory.in_json json
+     val psgraph = PSGraph.empty
+                   |> PSGraph.set_graph graph
+                   |> PSGraph.load_atomics [("atac",K atac)];
+   in
+     add_graph (gname,psgraph)
+   end;
+
   val psgraph = (Attrib.setup_config_string @{binding "psgraph"} (K "unknown"));
   
   local open BIsaAtomic_DB in

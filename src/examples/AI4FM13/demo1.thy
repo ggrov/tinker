@@ -54,32 +54,15 @@ ML{*
 
 setup {* PSGraphMethod.add_graph ("ps",ps_imp_asm) *}
 
+setup {* PSGraphMethod.read_graph ("test","/Users/ggrov/test.psgraph") *}  
+
+
+  (* todo: one with branching? *)
 
   lemma "A \<longrightarrow> A \<longrightarrow> A \<longrightarrow> A"
-   apply (ipsgraph ps)
+   apply (ipsgraph test) 
   oops
 
-
-
-
-  
-  declare [[psgraph = induct_ripple]]
-  lemma "rev (l1 @ l2) = rev l2 @ rev l1"
-  apply ipsgraph    
-  
-
-
-
-
-
-
-
-
-(* Demo 4: hierarchical*)
-  declare [[psgraph = hierarchical]]
-  lemma "A \<longrightarrow> A \<and> A"
-  (*apply interactive_psgraph*)
-  oops
 end
 
 
