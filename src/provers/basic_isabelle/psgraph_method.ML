@@ -54,7 +54,10 @@ struct
     let
       val (ps,pp) = init_prf ctxt thm
       val th = Proof_Context.theory_of ctxt
-      val psgraph = get_graph th name
+      val psgraph = 
+        if name = "default"
+        then get_graph th (Config.get ctxt psgraph)
+        else get_graph th name
       val edata = EVal.init_of psgraph (ps,pp) |> hd (* FIXME: only handle the first goal *)
     in
       UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams edata
@@ -73,10 +76,11 @@ struct
   fun dummy_method str ctxt = SIMPLE_METHOD (dummy_tac str ctxt);
 
   val str_parser : string context_parser = (Scan.lift (Args.name));
+  val opt_str_parser : string context_parser = Scan.lift (Scan.optional (Args.name) "default");
 
 (* setup methods in isabelle *)
   val _ = Context.>> (Context.map_theory
     ((Method.setup (Binding.name "dummy") (str_parser >> dummy_method) "this is a dummy one") #> 
-     (Method.setup (Binding.name "ipsgraph") (str_parser >> ipsgraph_method) "interactive psgraph tactic")));
+     (Method.setup (Binding.name "ipsgraph") (opt_str_parser >> ipsgraph_method) "interactive psgraph tactic")));
 
 end (* structure *)

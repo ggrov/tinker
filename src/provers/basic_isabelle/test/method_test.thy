@@ -139,8 +139,7 @@ setup {* PSGraphMethod.add_graph ("hierarchical",psgraph_nest) *}
 (* DEMO2: a slightly life-like example *)
   declare [[psgraph = simple]]
   lemma "A \<Longrightarrow> (A \<and> A)  \<and> (A \<longrightarrow> A)"
-  (*apply (ipsgraph simple)*)
-  (*apply interactive_psgraph*) 
+  (*apply ipsgraph*)
   oops
 
 (* DEMO3: induct and rippling *)
@@ -152,7 +151,7 @@ setup {* PSGraphMethod.add_graph ("hierarchical",psgraph_nest) *}
 (* Demo 4: hierarchical*)
   declare [[psgraph = hierarchical]]
   lemma "A \<longrightarrow> A \<and> A"
-  (*apply interactive_psgraph*)
+  (*apply ipsgraph*)
   oops
 end
 
