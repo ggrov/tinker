@@ -17,7 +17,7 @@ ML{*
 (* setup some basic tacs *)
   val asm = RTechn.id
             |> RTechn.set_name (RT.mk "assumption")
-            |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "atac"));
+            |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "assumption"));
 
   val impI = RTechn.id
           |> RTechn.set_name (RT.mk "rule impI")
@@ -59,8 +59,8 @@ setup {* PSGraphMethod.read_graph ("test","/Users/ggrov/test.psgraph") *}
 
   (* todo: one with branching? *)
 
-  lemma "A \<longrightarrow> A \<longrightarrow> A \<longrightarrow> A"
-   apply (ipsgraph test) 
+  lemma "A \<longrightarrow> A \<longrightarrow> A "
+  - apply (ipsgraph test) 
   oops
 
 end

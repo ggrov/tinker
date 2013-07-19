@@ -158,7 +158,7 @@ local open RTechn Json in
       mk_object [("rt_name", String (RT.string_of_name (get_name rtechn))), ("appf", appf_obj), ("type", Json.String "RT")]
     end
   
-  fun rtechn_from_json  (Object jobj) =
+  fun rtechn_from_json' (Object jobj) =
     let 
       val appf = get jobj "appf";
       val (String name) = get jobj "rt_name";
@@ -166,6 +166,47 @@ local open RTechn Json in
       RTechn.id
       |> RTechn.set_name (RT.mk name)
       |> RTechn.set_appf (appfn_from_json appf)
+    end
+    | rtechn_from_json' _ = raise EXP_PARSING_JSON "Not a Json array type."
+  
+  fun of_str str = 
+    let 
+      val splitstr =  String.tokens (member (op =) [#" "]);
+      val l = splitstr str;
+    in
+      case hd l 
+        of "rule"  => 
+          RTechn.id
+          |> RTechn.set_name (RT.mk str)
+          |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list (tl l)))
+        |  "erule" =>
+          RTechn.id
+          |> RTechn.set_name (RT.mk str)
+          |> RTechn.set_atomic_appf (RTechn.ERule (StrName.NSet.of_list (tl l)))
+        |  "subst" => 
+          RTechn.id
+          |> RTechn.set_name (RT.mk str)
+          |> RTechn.set_atomic_appf (RTechn.Subst (StrName.NSet.of_list (tl l)))
+        | "frule" =>
+          RTechn.id
+          |> RTechn.set_name (RT.mk str)
+          |> RTechn.set_atomic_appf (RTechn.FRule (C.mk "any", StrName.NSet.of_list (tl l)))
+        | "substasm" =>
+          RTechn.id
+          |> RTechn.set_name (RT.mk str)
+          |> RTechn.set_atomic_appf (RTechn.SubstAsm (C.mk "any", StrName.NSet.of_list (tl l)))
+        |   _      =>            
+          RTechn.id
+          |> RTechn.set_name (RT.mk str)
+          |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm,(str)))
+    end;
+
+  fun rtechn_from_json (Object jobj) =
+    let 
+      val (String rtechn) = get jobj "rt_name";
+      val _ = tracing rtechn 
+    in
+      of_str rtechn
     end
     | rtechn_from_json _ = raise EXP_PARSING_JSON "Not a Json array type."
 

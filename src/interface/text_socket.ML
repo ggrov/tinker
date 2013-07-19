@@ -5,6 +5,9 @@ sig
   val write : T -> string -> unit (* write to stream *)
   val read : T -> string (* read from stream *)
   val close : T -> unit (* close stream *)
+  (* donesn't work currently*)
+  val safe_connect : int -> T (* connects to port *)
+  val safe_close : T -> unit (* close stream *)
 
   val get_instream : T -> TextIO.instream
   val get_outstream : T -> TextIO.outstream
@@ -150,5 +153,59 @@ fun init_server_socket port =
       TextIO.closeIn (#sin data) handle e => warning ("can't close input stream");
       Socket.close (#sock data) handle e => warning ("can't close active socket");
       Socket.close (#passive data) handle _ =>  warning ("can't close passive socket"));
+
+ val last_sock :
+   { sock : Socket.active INetSock.stream_sock option,
+     passive : Socket.passive INetSock.stream_sock option,
+     sin : TextIO.instream option,
+     sout : TextIO.outstream option
+   } Synchronized.var
+   = Synchronized.var "last sock" {sock = NONE, passive = NONE, sin= NONE, sout = NONE};
+
+  fun clear_last_sock _ =
+    let
+      val {sock, passive, sin, sout} = Synchronized.value last_sock
+    in 
+      ((case sout of (SOME s) => TextIO.closeOut s | NONE => ());
+      (case sin of (SOME s) => TextIO.closeIn s | NONE => ());
+      (case sock of (SOME s) => Socket.close s | NONE => ());
+      (case passive of (SOME s) =>  Socket.close s | NONE => ());
+      Synchronized.change last_sock 
+        (fn _ =>  {sock = NONE, passive = NONE, sin = NONE, sout = NONE}))
+    end
+  handle _ =>  
+    (Synchronized.change last_sock 
+      (fn _ =>  {sock = NONE, passive = NONE, sin = NONE, sout = NONE}) ;
+    warning ("faile to clear up last socket "))
+
+  fun safe_connect port = 
+    let  
+      val _ = tracing "start safe connect"
+      val passive_sock = init_server_socket port;
+      val _ = 
+        Synchronized.change 
+          last_sock 
+          (fn {sock, passive, sin, sout} =>  {sock = NONE, passive = SOME passive_sock, sin = NONE, sout = NONE});
+      val (sock0, _)= Socket.accept passive_sock;
+      val _ = 
+        Synchronized.change 
+          last_sock 
+          (fn {sock, passive, sin, sout} =>  {sock = SOME sock0, passive = passive, sin = sin, sout = sout})
+      val (sin0, sout0) = make_streams sock0;
+      val _ = 
+        Synchronized.change 
+          last_sock 
+          (fn {sock, passive, sin, sout} =>  {sock = sock, passive = passive, sin = SOME sin0, sout = SOME sout0})
+    in
+      SockData { sock = sock0, passive = passive_sock, sin = sin0, sout = sout0}
+    end
+  handle _ => (clear_last_sock () ; safe_connect port);
+
+  fun safe_close data = 
+    (close data;
+     Synchronized.change 
+      last_sock 
+      (fn _ =>  {sock = NONE, passive = NONE, sin = NONE, sout = NONE}))
+
 
 end (* struct *)

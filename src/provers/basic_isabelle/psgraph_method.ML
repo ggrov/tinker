@@ -24,9 +24,9 @@ struct
      val graph = PSGraph.PSTheory.in_json json
      val psgraph = PSGraph.empty
                    |> PSGraph.set_graph graph
-                   |> PSGraph.load_atomics [("atac",K atac)];
+                   |> PSGraph.load_atomics [("assumption",K atac)];
    in
-     add_graph (gname,psgraph)
+      add_graph (gname,psgraph)
    end;
 
   val psgraph = (Attrib.setup_config_string @{binding "psgraph"} (K "unknown"));

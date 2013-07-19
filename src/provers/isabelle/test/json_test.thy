@@ -23,14 +23,20 @@ val r = RTechn.id
    val r = RTechn.id
            |> RTechn.set_name (RT.mk "myname") 
            |> RTechn.set_appf test_src;
+
+   val r' = RTechn.id
+           |> RTechn.set_name (RT.mk "rule impI") 
 *}
 
 ML{*
  rtechn_to_json r
+ |> Json.string_of;
+
+ rtechn_to_json r'
+ |> rtechn_from_json
+ |>rtechn_to_json
  |> Json.string_of
 *}
-
-
 (* goal type *)
 ML{*
 structure GoalTypData : GOALTYP_DATA = GoalTypDataFun (IsaProver);

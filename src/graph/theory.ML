@@ -83,11 +83,11 @@ struct
 
            fun input (Object jobj) = 
              (case get jobj "type" of
-                (String "RT") => GraphSubstData.RT (RTechnJSON.rtechn_from_json (Object jobj)(*(get jobj "data")*))
+                (String "RT") => (tracing "called input" ; GraphSubstData.RT (RTechnJSON.rtechn_from_json (Object jobj)(*(get jobj "data")*)))
               | (String "GN") => GraphSubstData.GN (inp_gnode (Object jobj))
               | (String "TVar") => GraphSubstData.TVar (case get jobj "data" of (String n) => n))
       end; (* local open *)
-        fun input _ = GraphSubstData.RT RTechn.id; (* RTechnJSON.rtechn_from_json *)
+       
      end; (* struct *)
 
      structure IVDataOutputJSON : OUTPUT_JSON =
