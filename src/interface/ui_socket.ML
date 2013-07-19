@@ -49,7 +49,7 @@ struct
        Pretty.writeln (EData.pretty_goals e') ; 
        PSGraph.PSTheory.out_json (EData.get_graph e')) end
   | update_new_eval_result (EVal.Good _) = (writeln "No Goal left" ; Json.String "SUCCESS")
-  | update_new_eval_result (EVal.Bad) = (tracing "Returned a Bad evel status" ; Json.Null)
+  | update_new_eval_result (EVal.Bad) = (tracing "Err - Returned a Bad eval status" ; Json.Null)
 
   fun ui_eval_close _ = init_data();
 
@@ -59,8 +59,8 @@ struct
                             |> (fn e => (Pretty.writeln (EData.pretty_goals e) ; e))
                             |> EData.get_graph
                             |> PSGraph.PSTheory.out_json
-    | NONE => (tracing "No edata is set-up"; Json.Null)) end
-  handle _ => (tracing "No edata is set-up"; Json.Null);
+    | NONE => (tracing "Err - No edata is set-up: edata is empty, err in lifting"; Json.Null)) end
+  handle _ => (tracing "Err - No edata is set-up: err in lift a graph"; Json.Null);
   
   fun ui_eval_prev _ = 
     let 
@@ -72,7 +72,7 @@ struct
          Pretty.writeln (EData.pretty_goals (FocusList.focus el'));
          PSGraph.PSTheory.out_json (EData.get_graph (FocusList.focus el')))
     end
-  handle _ => (tracing "No edata is set-up"; Json.Null);
+  handle _ => (tracing "Err: No edata is set-up in backtracking"; Json.Null);
 
   fun ui_eval_next _ =
     let 
@@ -87,7 +87,7 @@ struct
            (fn x => (Pretty.writeln (EData.pretty_goals x) ; x));
            PSGraph.PSTheory.out_json (EData.get_graph (FocusList.focus el')))
     end
-  handle _ => (tracing "No edata is set-up"; Json.Null);
+  handle _ => (tracing "Err - No edata is set-up: err in eval next prrof step "; Json.Null);
   
   
   fun ui_eval server edata = 
