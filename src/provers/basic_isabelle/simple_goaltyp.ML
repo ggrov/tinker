@@ -152,6 +152,7 @@ struct
            | "rippled" => (is_rippled pn) |> debug_trace x
            | "not"        => not (lift_list pn xs) 
            | "any"       => true (* default *)
+           | "anything"       => true (* default *)
            | _           => false)
         handle _ => false);
 
