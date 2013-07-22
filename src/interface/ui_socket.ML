@@ -29,9 +29,17 @@ struct
   
   (* internal data to store temp status *)
   val edata : FocusList.T option Unsynchronized.ref = Unsynchronized.ref NONE 
+  val fn_init_edata : 
+    (PSGraph.PSTheory.PS_Theory.Graph.T 
+      -> FocusList.data) option Unsynchronized.ref
+    = Unsynchronized.ref NONE
+
   fun init_data () = edata := NONE
+  fun init_fn () = fn_init_edata := NONE
   fun get_data () = !edata
+  fun get_fn () = !fn_init_edata
   fun update_data d = edata := SOME (d)
+  fun update_fn d = fn_init_edata := SOME (d)
 
   exception ui_socket_exp
 
@@ -51,7 +59,9 @@ struct
   | update_new_eval_result (EVal.Good _) = (writeln "No Goal left" ; Json.String "SUCCESS")
   | update_new_eval_result (EVal.Bad) = (tracing "Err - Returned a Bad eval status" ; Json.Null)
 
-  fun ui_eval_close _ = init_data();
+  fun ui_mode_choice _ = 
+    case get_data () of NONE => Json.Bool false 
+    | _ => Json.Bool true
 
   fun ui_eval_current _ = 
     let val el = get_data () in
@@ -89,11 +99,24 @@ struct
     end
   handle _ => (tracing "Err - No edata is set-up: err in eval next prrof step "; Json.Null);
   
+  fun ui_passive_init json = 
+    let val f = get_fn () in
+      case f of SOME f'=> 
+        ((f' (PSGraph.PSTheory.in_json json)  (* init edata *)
+          |> (fn x => update_data(FocusList.of_single x)));(* store edata *)
+         ui_eval_current ())
+        | NONE  => (tracing "Err: No init_fn is setup in passive mode !"; Json.Null) end;
+ 
+  fun ui_eval_close _ = init_data();
+
+  val ui_active_init = ui_eval_current
   
-  fun ui_eval server edata = 
+  fun ui_eval server edata fn_init = 
     let 
-      val edata_fl = FocusList.of_single edata
-      val _ = update_data (edata_fl)
+      val _ = 
+        case edata 
+          of SOME e => update_data(FocusList.of_single e) (* active mode *)
+          | NONE => (init_data(); (update_fn fn_init)); (* passive mode *)
       val sock = TextSocket.local_connect (4234)
       val (input, output) = TextSocket.get_io_stream sock
     in
@@ -102,7 +125,7 @@ struct
       (get_data () 
         |> (fn x => case x of NONE => raise ui_socket_exp
                         | SOME e => FocusList.last e)
-        |> (fn x => (init_data(); x))))
+        |> (fn x => (init_data();init_fn(); x))))
     end
 
 end (* end of struct *)

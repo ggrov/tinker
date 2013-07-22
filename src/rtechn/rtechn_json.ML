@@ -204,7 +204,7 @@ local open RTechn Json in
   fun rtechn_from_json (Object jobj) =
     let 
       val (String rtechn) = get jobj "rt_name";
-      val _ = tracing rtechn 
+      (*val _ = tracing rtechn *)
     in
       of_str rtechn
     end

@@ -133,7 +133,7 @@ setup {* PSGraphMethod.add_graph ("hierarchical",psgraph_nest) *}
 (* DEMO1: a extremely trivial example *)
   declare [[psgraph = asm]]
   lemma "A \<Longrightarrow> A" 
-  (*apply interactive_psgraph*)
+  (*apply (ipsgraph passive)*)
   oops
 
 (* DEMO2: a slightly life-like example *)

@@ -18,13 +18,16 @@ struct
   val add_graph = Data.map o StrName.NTab.ins;
   val add_graph_list =  Data.map o (fold StrName.NTab.ins);
 
+  fun of_graph graph = 
+        PSGraph.empty
+        |> PSGraph.set_graph graph
+        |> PSGraph.load_atomics [("assumption",K atac)]; (* need to load more default tactics *)
+
   fun read_graph (gname,fname) =
    let 
      val json = Json.read_file fname
      val graph = PSGraph.PSTheory.in_json json
-     val psgraph = PSGraph.empty
-                   |> PSGraph.set_graph graph
-                   |> PSGraph.load_atomics [("assumption",K atac)];
+     val psgraph = of_graph graph
    in
       add_graph (gname,psgraph)
    end;
@@ -48,34 +51,30 @@ struct
    end
 
 
-  fun ic_psgraph_tac ctxt thm = 
-    let
-      val (ps,pp) = init_prf ctxt thm
-      val th = Proof_Context.theory_of ctxt
-      val psgraph = get_graph th (Config.get ctxt psgraph)
-      val edata = EVal.init_of psgraph (ps,pp) |> hd (*FIXME: only handle the first goal *)
-    in
-      UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams edata
-      |> EVal.EData.get_pplan 
-      |> thm_of_pplan 
-      |> Seq.single
-   end
-
   fun ipsgraph_tac name ctxt thm = 
     let
       val (ps,pp) = init_prf ctxt thm
+      fun init_edata psgraph = 
+        EVal.init_of psgraph (ps,pp) 
+        |> hd (* FIXME: only handle the first goal *);
+      fun init_edata_with_graph graph = 
+        of_graph graph
+        |> init_edata
       val th = Proof_Context.theory_of ctxt
-      val psgraph = 
-        if name = "default"
-        then get_graph th (Config.get ctxt psgraph)
-        else get_graph th name
-      val edata = EVal.init_of psgraph (ps,pp) |> hd (* FIXME: only handle the first goal *)
+      val edata = 
+        case name 
+          of "passive" => NONE
+            (* request psgraph, parse psgraph *)
+          |  "default" => (get_graph th (Config.get ctxt psgraph) |> init_edata |> SOME)
+          |   _ => (get_graph th name |> init_edata |> SOME)
+             
     in
-      UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams edata
+      UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams edata init_edata_with_graph
       |> EVal.EData.get_pplan 
       |> thm_of_pplan 
       |> Seq.single
    end
+  (* handle _ => raise no_psgraph_exp ("Err: no such a strategy: " ^ name))*)
 
   fun ipsgraph_method str ctxt =  SIMPLE_METHOD (ipsgraph_tac str ctxt);
 
