@@ -133,7 +133,8 @@ setup {* PSGraphMethod.add_graph ("hierarchical",psgraph_nest) *}
 (* DEMO1: a extremely trivial example *)
   declare [[psgraph = asm]]
   lemma "A \<Longrightarrow> A" 
-  (*apply (ipsgraph passive)*)
+  (*apply (psgraph (passive) )*)
+  (*apply (ipsgraph)*)
   oops
 
 (* DEMO2: a slightly life-like example *)
@@ -152,6 +153,20 @@ setup {* PSGraphMethod.add_graph ("hierarchical",psgraph_nest) *}
   declare [[psgraph = hierarchical]]
   lemma "A \<longrightarrow> A \<and> A"
   (*apply ipsgraph*)
+  oops
+
+(*
+  some ideal argument shapes: 
+  apply simp (no_asm) add: 
+  apply psgraph 
+  apply (psgraph (interactive) graphname)
+  apply (psgraph (passive,interactive)
+
+*)
+
+(* Demo 5: passsive mode *)
+  lemma "A \<longrightarrow> (A \<and> A) " 
+  (*apply (ipsgraph passive) *)
   oops
 end
 
