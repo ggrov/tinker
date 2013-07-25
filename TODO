@@ -1,4 +1,4 @@
-TO DO:
+TO DO: (need to update this)
 
 1) order function for data. Rule.mk not terminated - the following hack in 
        quantomatic/core/rewriting/rule.ML for Rule.mk required:
