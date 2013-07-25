@@ -204,11 +204,14 @@ struct
                |> EData.set_current x 
                |> EData.update_branches (fn ys => ys @ xs)) 
 
+   (* fixme: only normalise goal nodes for picked branched *)
    fun pick_first_branch edata [] = Bad
     |  pick_first_branch edata (x::xs) = 
          case update_branches edata x of 
            Bad => pick_first_branch edata xs
-         | res => res;
+(*         | res => res; *)
+         | Good res => Good (normalise_gnode res)
+         | Cont res => Cont (normalise_gnode res);
 
    fun evaluate_any edata =
     if has_terminated edata then
@@ -233,7 +236,7 @@ struct
      |> map (evaluate edata)
      |> pick_first_branch edata;
     
-   (* depth first search *)
+   (* depth first search  *)
    fun evaluate_full edata = 
      case evaluate_arbitrary edata of
        Good edata' =>
@@ -245,6 +248,16 @@ struct
             NONE => []
            | SOME (_,edata'') => evaluate_full edata'')
        | Cont edata' => evaluate_full edata';
+
+   (* depth first search  *)
+   fun evaluate_full_one edata = 
+     case evaluate_arbitrary edata of
+       Good edata' => [EData.get_pplan edata']
+     | Bad => (case EData.next_branch edata of
+            NONE => []
+           | SOME (_,edata') => evaluate_full_one (normalise_gnode edata'))
+     | Cont edata' => evaluate_full_one edata';
+    
     
 
 (* 

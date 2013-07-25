@@ -96,7 +96,7 @@ struct
   | top_level_str ((Const ("all",_)) $ f) = top_level_str f
   | top_level_str ((Const ("HOL.Trueprop",_)) $ f) = top_level_str f
   | top_level_str ((Const ("Trueprop",_)) $ f) = top_level_str f
-  | top_level_str ((Const ("==>",_)) $ f) = top_level_str f
+  | top_level_str ((Const ("==>",_)) $ _ $ f) = top_level_str f
   | top_level_str (f $ _) = top_level_str f
   | top_level_str (Abs (_,_,t)) = top_level_str t
   | top_level_str _ = NONE;

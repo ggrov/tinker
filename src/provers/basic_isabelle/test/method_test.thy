@@ -3,6 +3,19 @@ theory method_test
 imports       
   "../build/BIsaMeth"    
 begin
+
+ML{*
+
+  val default_tacs = 
+    [("atac",K atac), (* assumption *)
+     ("simp",Simplifier.simp_tac o Simplifier.simpset_of), (* simp *) 
+     ("clarsimp",clarsimp_tac), (* clarsimp *)
+     ("all",K (K all_tac)), (* always succeeds *)
+     ("no",K (K all_tac)) (* always fails *)
+    ] 
+    |> StrName.NTab.of_list;
+*}
+
 (* Pre-setup: some init for rippling *)
 lemma rev_cons: "rev (x # xs) = rev xs @ [x]"
 by auto
