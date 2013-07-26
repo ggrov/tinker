@@ -104,10 +104,10 @@ ML{*
   val gt_imp = "top_symbol(HOL.implies)";
   val gt_conj = "top_symbol(HOL.conj)";
   val gt_induct = "inductable";
-  val gt_ripple = "hyp_embeds;measure_decreased";
-  val gt_rippled = "not(measure_decreased);or(hyp_unif,hyp_subst)";
-  val gt_weak_fert = "not(hyp_unif);hyp_subst;hyp_embeds"
-  val gt_strong_fert = "hyp_unif;hyp_embeds"
+  val gt_ripple = "hyp_embeds;measure_reduces";
+  val gt_rippled = "not(measure_reduces);or(hyp_bck_res,hyp_subst)";
+  val gt_weak_fert = "not(hyp_bck_res);hyp_subst;hyp_embeds"
+  val gt_strong_fert = "hyp_bck_res;hyp_embeds"
   val gt_embeds = "hyp_embeds"
   val gt_not_embeds = "not(hyp_embeds)"
   val gt_hyps = "hyp_embeds"
@@ -184,7 +184,7 @@ setup {* PSGraphMethod.add_graph ("hierarchical",psgraph_nest) *}
 (* DEMO3: induct and rippling *)
   declare [[psgraph = induct_ripple]]
   lemma "rev (l1 @ l2) = rev l2 @ rev l1"
-  (*apply (ipsgraph induct_ripple)*)
+  -apply (ipsgraph induct_ripple)
   oops
 
 (* Demo 3.a : rippling with strong fert*)

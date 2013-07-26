@@ -88,7 +88,7 @@ struct
         TF.is_inductable_structural thy goal
       end
 (* leave it for later
-    fun measure_decreased pn =
+    fun measure_reduces pn =
       let
          val ctxt = #pctxt pn 
          val thy = #pctxt pn |> Proof_Context.theory_of
@@ -98,7 +98,7 @@ struct
         TF.has_measure_decreasing_rules ctxt wrules goal
       end
 *)
-    fun measure_decreased pn =
+    fun measure_reduces pn =
       let
          val ctxt = #pctxt pn 
          val thy = #pctxt pn |> Proof_Context.theory_of
@@ -131,7 +131,7 @@ struct
           case get_lhs_rhs thy trm of NONE => false
              | SOME(l,r) => (TF.is_subterm thy goal l orelse TF.is_subterm thy goal r)
       in
-        if (TF.is_subterm thy goal embedd_hyp) orelse (not(measure_decreased pn) andalso (weak_fert embedd_hyp))
+        if (TF.is_subterm thy goal embedd_hyp) orelse (not(measure_reduces pn) andalso (weak_fert embedd_hyp))
         then true
         else false            
     end
@@ -155,7 +155,7 @@ struct
         (weak_fert embedd_hyp)         
     end
 
-    fun hyp_unifiable pn = 
+    fun hyp_bck_res pn = 
       let 
         val ctxt = #pctxt pn
         val thy = #pctxt pn |> Proof_Context.theory_of
@@ -178,7 +178,7 @@ struct
       else (isar_tracing (str ^ " fails !"); b);
 
     val keywords = ["top_symbol", "has_symbol", "goal_embeds", "hyp_embeds", "inductable",
-                      "measure_decreased", "hyp_unifiable", "hyp_subst", "not", "or", "any", "anything"];
+                      "measure_reduces", "hyp_bck_res", "hyp_subst", "not", "or", "any", "anything"];
     fun is_keyword x = exists (fn y => x = y) keywords
 
     fun get_args (x :: xs) = 
@@ -201,9 +201,9 @@ struct
            (*| "goal_embeds" => goal_embeds pn  to be tested *)
            | "hyp_embeds" => (hyp_embeds pn)  |> debug_trace x
            | "inductable" => is_inductable pn  |> debug_trace x
-           | "rippling" => ((hyp_embeds pn) andalso (measure_decreased pn)) |> debug_trace x
-           | "measure_decreased" => (measure_decreased pn)  |> debug_trace x
-           | "hyp_unif" => hyp_unifiable pn  |> debug_trace x
+           | "rippling" => ((hyp_embeds pn) andalso (measure_reduces pn)) |> debug_trace x
+           | "measure_reduces" => (measure_reduces pn)  |> debug_trace x
+           | "hyp_bck_res" => hyp_bck_res pn  |> debug_trace x
            | "hyp_subst" => hyp_subst pn  |> debug_trace x
            | "rippled" => (is_rippled pn) |> debug_trace x
            | "not"       => not (lift_list pn xs) 
