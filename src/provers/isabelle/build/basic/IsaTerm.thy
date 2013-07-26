@@ -4,7 +4,7 @@ imports
  "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                                                          
 begin         
 ML{*
-  val isar_tracing = (*tracing*) (fn _ => ());
+  val isar_tracing = (tracing) (*fn _ => ()*);
 *}
 
 (* wrapping trm with name structure *)

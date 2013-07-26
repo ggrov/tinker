@@ -274,8 +274,9 @@ struct
       val ctrm = (Thm.cterm_of thy src);
       val maxid = (#maxidx (rep_cterm ctrm))
       val searchinfo = (thy, maxid, Zipper.mktop src) 
+      val sub' = case sub of ((Const ("HOL.Trueprop",_)) $ f) => f | _ => sub
     in 
-      EqSubst.searchf_lr_unify_valid searchinfo sub
+      EqSubst.searchf_lr_unify_valid searchinfo sub'
       |> Seq.flat |> Seq.pull
       |> (fn x => (case x of NONE => false | _ => true))
     end;

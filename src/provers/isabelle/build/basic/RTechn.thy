@@ -9,7 +9,7 @@ uses
   (*"../../../rtechn/rtechn_env.ML"*)      
 begin
 ML{*
-  val rtechn_tracing = (*tracing*) (fn _ => ());
+  val rtechn_tracing = (tracing) (*fn _ => ()*);
 *}
 end
 

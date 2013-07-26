@@ -97,7 +97,7 @@ struct
            (fn x => (Pretty.writeln (EData.pretty_goals x) ; x));
            PSGraph.PSTheory.out_json (EData.get_graph (FocusList.focus el')))
     end
-  handle _ => (tracing "Err - No edata is set-up: err in eval next prrof step "; Json.Null);
+  handle _ => (tracing "Err - No edata is set-up: err in eval next proof step "; Json.Null);
   
   fun ui_passive_init json = 
     let val f = get_fn () in

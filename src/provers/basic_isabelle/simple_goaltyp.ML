@@ -71,7 +71,7 @@ struct
         (*|> (fn x => if x then (isar_tracing "find embeddings !"; x) 
             else  (isar_tracing "no embeddings !"; x))*)
       end;
-
+(*
     fun goal_embeds pn =
       let 
          val ctxt = #pctxt pn
@@ -79,7 +79,7 @@ struct
       in
         exists (fn hyp => TF.ctxt_embeds ctxt goal hyp) hyps
       end;
-
+*)
     fun is_inductable pn =
       let
          val thy = #pctxt pn |> Proof_Context.theory_of
@@ -135,24 +135,81 @@ struct
         then true
         else false            
     end
+
+    fun hyp_subst pn = 
+      let 
+        val ctxt = #pctxt pn
+        val thy = #pctxt pn |> Proof_Context.theory_of
+        val (hyps, goal) = get_hyps_and_goal (#ptrm pn)
+        val embedd_hyp =
+          filter (fn hyp => TF.ctxt_embeds ctxt hyp goal) hyps
+          |> hd (* only get the first embedding *)
+        fun mk_meta_eq_trm thry t = Thm.cterm_of thry t 
+          |> Thm.trivial |> safe_mk_meta_eq |> Thm.concl_of;
+        fun get_lhs_rhs thry trm = Logic.dest_equals (mk_meta_eq_trm thry trm) |> SOME
+        handle _ => NONE;
+        fun weak_fert trm = 
+          case get_lhs_rhs thy trm of NONE => false
+             | SOME(l,r) => (TF.is_subterm thy goal l orelse TF.is_subterm thy goal r)
+      in
+        (weak_fert embedd_hyp)         
+    end
+
+    fun hyp_unifiable pn = 
+      let 
+        val ctxt = #pctxt pn
+        val thy = #pctxt pn |> Proof_Context.theory_of
+        val (hyps, goal) = get_hyps_and_goal (#ptrm pn)
+        val embedd_hyp =
+          filter (fn hyp => TF.ctxt_embeds ctxt hyp goal) hyps
+          |> hd (* only get the first embedding *)
+        val _ = Pretty.chunks ([Pretty.str "unif goal: "] @ 
+                               [((Syntax.pretty_term @{context} goal))] @ 
+                               [Pretty.str "with embeds: "] @
+                               [((Syntax.pretty_term @{context} embedd_hyp))]
+                               ) 
+        |> Pretty.string_of |> isar_tracing
+      in
+        TF.is_subterm thy goal embedd_hyp
+      end
     
     fun debug_trace str b = 
       if b then (isar_tracing (str ^ " is good !"); b) 
       else (isar_tracing (str ^ " fails !"); b);
+
+    val keywords = ["top_symbol", "has_symbol", "goal_embeds", "hyp_embeds", "inductable",
+                      "measure_decreased", "hyp_unifiable", "hyp_subst", "not", "or", "any", "anything"];
+    fun is_keyword x = exists (fn y => x = y) keywords
+
+    fun get_args (x :: xs) = 
+      if is_keyword x then ([], x::xs) 
+      else (
+        let val (p1,p2) = get_args xs in
+       ( x ::p1,p2) end )
+      | get_args [] = ([],[]);
+
+    fun split_args xs = 
+      let val (args, l) = get_args (tl xs) in 
+      if l = [] then [(hd xs) :: args]
+      else ((hd xs) :: args) :: (split_args l) end;
 
     fun lift_list pn [] = false
      |  lift_list pn (x::xs) =
           ((case x of 
              "top_symbol" => exists I (top_level xs pn)
            | "has_symbol" => has_symbol xs pn
-           | "goal_embeds" => goal_embeds pn (* to be tested *)
-           | "hyp_embeds" => (hyp_embeds pn) |> debug_trace x
-           | "inductable" => is_inductable pn |> debug_trace x
+           (*| "goal_embeds" => goal_embeds pn  to be tested *)
+           | "hyp_embeds" => (hyp_embeds pn)  |> debug_trace x
+           | "inductable" => is_inductable pn  |> debug_trace x
            | "rippling" => ((hyp_embeds pn) andalso (measure_decreased pn)) |> debug_trace x
+           | "measure_decreased" => (measure_decreased pn)  |> debug_trace x
+           | "hyp_unif" => hyp_unifiable pn  |> debug_trace x
+           | "hyp_subst" => hyp_subst pn  |> debug_trace x
            | "rippled" => (is_rippled pn) |> debug_trace x
-           | "not"        => not (lift_list pn xs) 
+           | "not"       => not (lift_list pn xs) 
+           | "or"        => exists I (map (lift_list pn) (split_args xs)) |> debug_trace x
            | "any"       => true (* default *)
-           | "anything"       => true (* default *)
+           | "anything"   => true (* default *)
            | _           => false)
         handle _ => false);
 
