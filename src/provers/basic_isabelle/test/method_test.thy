@@ -93,7 +93,7 @@ ML{*
             |> RTechn.set_name (RT.mk "fert_checker")
             |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "fert_checker"));
 
-  val default_tacs = 
+  val default_tacs = PSGraphMethod.default_tacs @
     [("assumption",K atac), ("simp",simp_tac), ("induct", induct_tac), 
       ("weak_fert",fert_tac), ("strong_fert", fert_tac), ("rippling", ripple_tac), ("fert_checker", id_tac)];
 *}
