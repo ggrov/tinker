@@ -1,5 +1,26 @@
 structure PSGraphMethod =
 struct
+  (* Tactics *)
+
+  val default_tacs = 
+    [("assumption",K atac),("atac",K atac), (* assumption *)
+     ("simp",Simplifier.simp_tac o Simplifier.simpset_of), (* simp *) 
+     ("clarsimp",clarsimp_tac), (* clarsimp *)
+     ("all",K (K all_tac)), (* always succeeds *)
+     ("no",K (K all_tac)) (* always fails *)
+    ];
+
+ structure TacticData = Theory_Data(struct 
+    type T = (Proof.context -> int -> tactic) StrName.NTab.T
+    val empty =  StrName.NTab.of_list default_tacs;
+    val extend = I;
+    fun merge (m1,_) = m1; (* or fail? *)
+  end);
+
+ val add_tac = TacticData.map o StrName.NTab.ins;
+ val get_tacs = TacticData.get;
+
+ (* Graphs *)
 
  structure Data = Theory_Data(struct 
     type T = PSGraph.T StrName.NTab.T
@@ -18,18 +39,24 @@ struct
   val add_graph = Data.map o StrName.NTab.ins;
   val add_graph_list =  Data.map o (fold StrName.NTab.ins);
 
-  fun of_graph graph = 
+  fun add_tacs th =
+   PSGraph.update_atomics 
+     (StrName.NTab.merge_joint  
+       (K false) (* ignores equality *)
+       (get_tacs th));
+
+  fun of_graph th graph = 
         PSGraph.empty
         |> PSGraph.set_graph graph
-        |> PSGraph.load_atomics [("assumption",K atac)]; (* need to load more default tactics *)
+        |> add_tacs th (* loads tactics in theory *)
 
-  fun read_graph (gname,fname) =
+  fun read_graph (gname,fname) th =
    let 
      val json = Json.read_file fname
      val graph = PSGraph.PSTheory.in_json json
-     val psgraph = of_graph graph
+     val psgraph = of_graph th graph 
    in
-      add_graph (gname,psgraph)
+      add_graph (gname,psgraph) th
    end;
 
   val psgraph = (Attrib.setup_config_string @{binding "psgraph"} (K "unknown"));
@@ -54,13 +81,13 @@ struct
   fun ipsgraph_tac name ctxt thm = 
     let
       val (ps,pp) = init_prf ctxt thm
+      val th = Proof_Context.theory_of ctxt
       fun init_edata psgraph = 
         EVal.init_of psgraph (ps,pp) 
         |> hd (* FIXME: only handle the first goal *);
       fun init_edata_with_graph graph = 
-        of_graph graph
+        of_graph th graph
         |> init_edata
-      val th = Proof_Context.theory_of ctxt
       val edata = 
         case name 
           of "passive" => NONE
@@ -87,7 +114,8 @@ struct
         of "default" 
           => get_graph th (Config.get ctxt psgraph)
         | _ => get_graph th name
-     val get_thm_seq = Seq.of_list o map thm_of_pplan o maps (EVal.evaluate_full)
+     (* to do: very slow so no backtracking! *)
+     val get_thm_seq = Seq.of_list o map thm_of_pplan o maps (EVal.evaluate_full_one)
    in
      EVal.init_of psgraph (ps,pp)
      |> get_thm_seq
@@ -96,13 +124,13 @@ struct
   fun ipsgraph_tac' name ctxt thm = 
     let
       val (ps,pp) = init_prf ctxt thm
+      val th = Proof_Context.theory_of ctxt
       fun init_edata psgraph = 
         EVal.init_of psgraph (ps,pp) 
         |> hd (* FIXME: only handle the first goal *);
       fun init_edata_with_graph graph = 
-        of_graph graph
+        of_graph th graph
         |> init_edata
-      val th = Proof_Context.theory_of ctxt
       val edata = 
         case name 
           of "passive" => NONE
