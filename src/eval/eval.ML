@@ -149,13 +149,17 @@ struct
        case RTechn.get_searchf rtechn of
          NONE => branch
         | SOME str => EData.set_bsearchf str branch; 
+     fun update_evalf branch = 
+       case RTechn.get_evalf rtechn of
+         NONE => branch
+        | SOME str => EData.set_bevalf str branch; 
      val name = rtechn
               |> RTechn.get_name
               |> RT.dest
      val unfrule = StrName.NTab.get (EData.PSGraph.get_g_tacs (EData.get_psgraph edata)) name
      fun upd (_,lhs) = EGraph.Util.rewrite_lazy unfrule lhs
                      |> Seq.map (fn rhs => EData.push_bactive rhs lhs [] (EData.get_current edata)
-                                           |> update_searchf )
+                                           |> update_searchf |> update_evalf)
    in
      Seq.maps upd lhs_seq
    end
@@ -186,6 +190,20 @@ struct
      |> Seq.map (fn g => EData.set_bgraph g branch)
    end;
 
+  (* for evaluation *)
+  fun next_tactic_vertex graph v = 
+    case EGraph.Util.lookup_ivertex_data graph v of
+      SOME _ => if EGraph.Util.is_rtechn graph v then SOME v else NONE
+      | NONE => (case (EGraph.Util.out_edges graph v) of 
+                  [] => (* output edge *) NONE
+                  | [e] => next_tactic_edge graph e
+                  | _ => (* should never happen *) NONE)
+  and next_tactic_edge graph edge =
+    next_tactic_vertex graph (EGraph.Util.edge_dest graph edge)
+
+  (* project goal node  and call next_tactic_vertex *)
+  fun next_tactic graph node = NONE
+    
   fun evaluate edata v = 
     case EGraph.Util.lookup_rtechn (EData.get_graph edata) v of
       NONE => raise evaluate_exp (SOME v, "Vertex not a reasoning technique")
