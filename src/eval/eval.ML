@@ -140,15 +140,22 @@ struct
      EGraph.Util.all_gnodes (EData.get_graph edata)
      |> forall (is_some o (try_get_out (EData.get_graph edata)));
 
+  (* to do: set eval properties properties *)
   fun unfold_nested edata v = 
    let 
      val lhs_seq = EGraph.matched_lhs (EData.get_graph edata) v
-     val name = EGraph.Util.rtechn_of (EData.get_graph edata) v
+     val rtechn = EGraph.Util.rtechn_of (EData.get_graph edata) v
+     fun update_searchf branch = 
+       case RTechn.get_searchf rtechn of
+         NONE => branch
+        | SOME str => EData.set_bsearchf str branch; 
+     val name = rtechn
               |> RTechn.get_name
               |> RT.dest
      val unfrule = StrName.NTab.get (EData.PSGraph.get_g_tacs (EData.get_psgraph edata)) name
      fun upd (_,lhs) = EGraph.Util.rewrite_lazy unfrule lhs
-                     |> Seq.map (fn rhs => EData.push_bactive rhs lhs [] (EData.get_current edata))
+                     |> Seq.map (fn rhs => EData.push_bactive rhs lhs [] (EData.get_current edata)
+                                           |> update_searchf )
    in
      Seq.maps upd lhs_seq
    end
@@ -196,13 +203,21 @@ struct
 
    datatype result = Good of EData.T | Bad | Cont of EData.T
 
+   (* to do : add this into contxt to allow users to define their own functions *)
+   fun searchf new old "breath-first" = old @ new
+    |  searchf new old "depth-first" = new @ old
+    |  searchf new old _ = new @ old;
+
    fun update_branches edata branches =
      case Seq.list_of branches of
        [] => Bad
-     | (x::xs) => 
-         Cont (edata 
-               |> EData.set_current x 
-               |> EData.update_branches (fn ys => ys @ xs)) 
+     | xs => (* to do: replace by search data *)
+          (case searchf xs (EData.get_branches edata) (EData.get_searchf edata) of
+             [] => Bad (* should never happen *)
+           | (x::xs) => (* fixme: this should be based on the search strategy *)
+               Cont (edata 
+                     |> EData.set_current x 
+                     |> EData.set_branches xs));
 
    (* fixme: only normalise goal nodes for picked branched *)
    fun pick_first_branch edata [] = Bad

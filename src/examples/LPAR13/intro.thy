@@ -2,7 +2,7 @@ theory intro
 imports   "../../provers/basic_isabelle/build/BIsaMeth"  
 begin
 ML{*
- val path = "/Users/ggrov/"
+ val path = "/u1/staff/gg112/" (* /Users/ggrov/" *)
 *}
 setup {* PSGraphMethod.read_graph ("intro",path ^ "psgraph/src/examples/LPAR13/intro.psgraph") *}      
 
