@@ -121,7 +121,7 @@ struct
      |> get_thm_seq
    end
 
-  fun ipsgraph_tac' name ctxt thm = 
+  fun ipsgraph_tac' mode_name ctxt thm = 
     let
       val (ps,pp) = init_prf ctxt thm
       val th = Proof_Context.theory_of ctxt
@@ -132,11 +132,11 @@ struct
         of_graph th graph
         |> init_edata
       val edata = 
-        case name 
-          of "passive" => NONE
+        case mode_name 
+          of ("passive",_) => NONE
             (* request psgraph, parse psgraph *)
-          |  "default" => (get_graph th (Config.get ctxt psgraph) |> init_edata |> SOME)
-          |   _ => (get_graph th name |> init_edata |> SOME)
+          |  (_,"default") => (get_graph th (Config.get ctxt psgraph) |> init_edata |> SOME)
+          |  _  => (get_graph th (snd mode_name) |> init_edata |> SOME)
              
     in
       UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams edata init_edata_with_graph
@@ -148,8 +148,8 @@ struct
   fun full_psgraph_tac (mode, name) = 
     case mode
     of "auto" => psgraph_tac' name
-    | "interactive" => ipsgraph_tac' name
-    | "passive" => ipsgraph_tac' mode
+    | "interactive" => ipsgraph_tac' (mode, name)
+    | "passive" => ipsgraph_tac' (mode, name)
 
   fun full_psgraph_method arg ctxt =  SIMPLE_METHOD (full_psgraph_tac arg ctxt);
 
