@@ -90,7 +90,7 @@ struct
         |> init_edata
       val edata = 
         case name 
-          of "passive" => NONE
+          of "current" => NONE
             (* request psgraph, parse psgraph *)
           |  "default" => (get_graph th (Config.get ctxt psgraph) |> init_edata |> SOME)
           |   _ => (get_graph th name |> init_edata |> SOME)
@@ -135,7 +135,7 @@ struct
         |> init_edata
       val edata = 
         case (mode,name) 
-          of ("passive", _) => NONE
+          of ("current", _) => NONE
             (* request psgraph, parse psgraph *)
           |  (_, "default") => (get_graph th (Config.get ctxt psgraph) |> init_edata |> SOME)
           |  _  => (get_graph th name |> init_edata |> SOME)
@@ -166,7 +166,7 @@ struct
 
   val mode_str_parser: (string * string) context_parser = 
     Scan.lift (
-      (fn m => (Args.$$$ "(" |-- Args.$$$ "passive" --|  Args.$$$ ")") m 
+      (fn m => (Args.$$$ "(" |-- Args.$$$ "current" --|  Args.$$$ ")") m 
             |> (fn x => ( (fst x, "dummy"), snd x)))
       || (Args.$$$ "(" |-- Args.$$$ "interactive" --|  Args.$$$ ")" -- Scan.optional Args.name "default") 
       || (fn m => Scan.optional Args.name "default" m
@@ -175,7 +175,7 @@ struct
 
   val args_str_parser: (((string * string) * string) * string) context_parser = 
     Scan.lift (
-      ((fn m => (Args.$$$ "(" |-- Args.$$$ "passive" --|  Args.$$$ ")") m 
+      ((fn m => (Args.$$$ "(" |-- Args.$$$ "current" --|  Args.$$$ ")") m 
             |> (fn x => ( (fst x, "dummy"), snd x)))
       || (Args.$$$ "(" |-- Args.$$$ "interactive" --|  Args.$$$ ")" -- Scan.optional Args.name "default") 
       || (fn m => Scan.optional Args.name "default" m

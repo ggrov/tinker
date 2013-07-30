@@ -184,7 +184,7 @@ setup {* PSGraphMethod.add_graph ("hierarchical",psgraph_nest) *}
 (* DEMO3: induct and rippling *)
   declare [[psgraph = induct_ripple]]
   lemma "rev (l1 @ l2) = rev l2 @ rev l1"
-  -apply (ipsgraph induct_ripple)
+  (*apply(psgraph (interactive) induct_ripple)*)
   oops
 
 (* Demo 3.a : rippling with strong fert*)
@@ -200,7 +200,7 @@ setup {* PSGraphMethod.add_graph ("hierarchical",psgraph_nest) *}
  
 (* Demo 5: passsive mode *)
   lemma "A \<longrightarrow> (A \<and> A) " 
-  (*apply (ipsgraph passive)*) 
+  (*apply (ipsgraph current)*)
   oops
 
 end
