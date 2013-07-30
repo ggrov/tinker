@@ -105,8 +105,9 @@ struct
 
   fun ipsgraph_method str ctxt =  SIMPLE_METHOD (ipsgraph_tac str ctxt);
 
-  fun psgraph_tac' name ctxt thm  =
+  fun psgraph_tac' ((name, eval), search) ctxt thm  =
    let 
+     val _ = tracing (eval ^ " & " ^ search^"in psgraph")
      val (ps,pp) = init_prf ctxt thm
      val th = Proof_Context.theory_of ctxt
      val psgraph = 
@@ -121,8 +122,9 @@ struct
      |> get_thm_seq
    end
 
-  fun ipsgraph_tac' mode_name ctxt thm = 
+  fun ipsgraph_tac'  (((mode, name), eval), search) ctxt thm = 
     let
+      val _ = tracing (eval ^ " & " ^ search ^ "in ipsgraph")
       val (ps,pp) = init_prf ctxt thm
       val th = Proof_Context.theory_of ctxt
       fun init_edata psgraph = 
@@ -132,11 +134,11 @@ struct
         of_graph th graph
         |> init_edata
       val edata = 
-        case mode_name 
-          of ("passive",_) => NONE
+        case (mode,name) 
+          of ("passive", _) => NONE
             (* request psgraph, parse psgraph *)
-          |  (_,"default") => (get_graph th (Config.get ctxt psgraph) |> init_edata |> SOME)
-          |  _  => (get_graph th (snd mode_name) |> init_edata |> SOME)
+          |  (_, "default") => (get_graph th (Config.get ctxt psgraph) |> init_edata |> SOME)
+          |  _  => (get_graph th name |> init_edata |> SOME)
              
     in
       UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams edata init_edata_with_graph
@@ -145,11 +147,10 @@ struct
       |> Seq.single
    end
    
-  fun full_psgraph_tac (mode, name) = 
+  fun full_psgraph_tac (((mode, name), eval), search)= 
     case mode
-    of "auto" => psgraph_tac' name
-    | "interactive" => ipsgraph_tac' (mode, name)
-    | "passive" => ipsgraph_tac' (mode, name)
+    of "auto" => psgraph_tac' ((name, eval), search)
+    | _  => ipsgraph_tac' (((mode, name), eval), search)
 
   fun full_psgraph_method arg ctxt =  SIMPLE_METHOD (full_psgraph_tac arg ctxt);
 
@@ -172,10 +173,21 @@ struct
           |> (fn x => ( ("auto", fst x), snd x))
       ));
 
+  val args_str_parser: (((string * string) * string) * string) context_parser = 
+    Scan.lift (
+      ((fn m => (Args.$$$ "(" |-- Args.$$$ "passive" --|  Args.$$$ ")") m 
+            |> (fn x => ( (fst x, "dummy"), snd x)))
+      || (Args.$$$ "(" |-- Args.$$$ "interactive" --|  Args.$$$ ")" -- Scan.optional Args.name "default") 
+      || (fn m => Scan.optional Args.name "default" m
+          |> (fn x => ( ("auto", fst x), snd x))))
+      -- Scan.optional (Args.$$$ "eval" -- Args.$$$ ":"  |-- Args.name) "dummy_eval"
+      -- Scan.optional (Args.$$$ "search" -- Args.$$$ ":" |-- Args.name) "dummy_search"
+      );
+
 (* setup methods in isabelle *)
   val _ = Context.>> (Context.map_theory
     ((Method.setup (Binding.name "dummy") (str_parser >> dummy_method) "this is a dummy one") #> 
      (Method.setup (Binding.name "ipsgraph") (opt_str_parser >> ipsgraph_method) "interactive psgraph tactic")#>
-     (Method.setup (Binding.name "psgraph") (mode_str_parser >> full_psgraph_method) "full psgraph tactic")));
+     (Method.setup (Binding.name "psgraph") (args_str_parser >> full_psgraph_method) "full psgraph tactic")));
 
 end (* structure *)
