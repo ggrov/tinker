@@ -20,8 +20,11 @@ sig
   val get_pplan : T -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan
   val get_goals : T -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T
   val get_vertices : T -> V.name list
+  val get_searchf : T -> string
+  val get_evalf : T -> string
   val get_graph : T -> PSGraph.PSTheory.PS_Theory.Graph.T
   val get_current : T -> branch
+  val get_branches : T -> branch list
 
 
   (* more get methods *)
@@ -35,6 +38,8 @@ sig
   val set_pplan : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan -> T -> T
   val set_goals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T -> T -> T
   val set_vertices : V.name list -> T -> T
+  val set_searchf : string -> T -> T
+  val set_evalf : string -> T -> T
   val set_graph : PSGraph.PSTheory.PS_Theory.Graph.T -> T -> T
   val set_current : branch -> T -> T
   val set_branches : branch list -> T -> T
@@ -45,6 +50,8 @@ sig
   val update_goals : (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T)  -> T -> T
   val update_graph : (PSGraph.PSTheory.PS_Theory.Graph.T -> PSGraph.PSTheory.PS_Theory.Graph.T) -> T -> T
   val update_vertices : (V.name list -> V.name list) -> T -> T
+  val update_searchf : (string -> string) -> T -> T
+  val update_evalf : (string -> string) -> T -> T
   val update_current : (branch -> branch) -> T -> T
   val update_branches : (branch list -> branch list) -> T -> T
 
@@ -60,6 +67,10 @@ sig
   val set_bactive : active -> branch -> branch 
   val set_bpplan : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan -> branch -> branch
   val set_bgoals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T -> branch -> branch
+ 
+  val set_bvertices : V.name list -> branch -> branch
+  val set_bsearchf : string -> branch -> branch
+  val set_bevalf : string -> branch -> branch
 
   val get_bgraph : branch -> PSGraph.PSTheory.PS_Theory.Graph.T 
   val set_bgraph : PSGraph.PSTheory.PS_Theory.Graph.T -> branch -> branch
@@ -97,7 +108,9 @@ struct
 
   datatype active = Active of {
      graph : PSGraph.PSTheory.PS_Theory.Graph.T, 
-     vertices : V.name list,
+     vertices : V.name list, (* should change to gnodes *)
+     searchf : string,
+     evalf : string, 
      parent : (active * PSGraph.PSTheory.PS_Theory.Graph.T) option  
   }
   datatype branch = Branch of {
@@ -115,6 +128,8 @@ struct
   fun get_agraph (Active rep) = #graph rep;
   fun get_avertices (Active rep) = #vertices rep;
   fun get_aparent (Active rep) = #parent rep;
+  fun get_asearchf (Active rep) = #searchf rep;
+  fun get_aevalf (Active rep) = #evalf rep;
 
   fun get_bactive (Branch rep) = #active rep;
   fun get_bpplan (Branch rep) = #pplan rep;
@@ -131,21 +146,36 @@ struct
   val get_graph = get_agraph o get_active;
   val get_parent = get_aparent o get_active;
   val get_vertices = get_avertices o get_active;
+  val get_searchf = get_asearchf o get_active;
+  val get_evalf = get_aevalf o get_active;
 
   val get_bparent = get_aparent o get_bactive;
   val get_bvertices = get_avertices o get_bactive;
   val get_bgraph = get_agraph o get_bactive;
+  val get_bsearchf = get_asearchf o get_bactive;
+  val get_bevalf = get_aevalf o get_bactive;
 
   fun update_agraph f (Active rep) =
-    Active {graph = f (#graph rep), vertices = #vertices rep, parent = #parent rep};
+    Active {graph = f (#graph rep), vertices = #vertices rep, 
+            searchf = #searchf rep, evalf = #evalf rep, parent = #parent rep};
   fun update_avertices f (Active rep) =
-    Active {graph = (#graph rep), vertices = f (#vertices rep), parent = #parent rep};
+    Active {graph = (#graph rep), vertices = f (#vertices rep),
+            searchf = #searchf rep, evalf = #evalf rep, parent = #parent rep};
   fun update_aparent f (Active rep) =
-    Active {graph = (#graph rep), vertices = #vertices rep, parent = f (#parent rep)};
+    Active {graph = (#graph rep), vertices = #vertices rep, 
+            searchf = #searchf rep, evalf = #evalf rep, parent = f (#parent rep)};
+  fun update_asearchf f (Active rep) =
+    Active {graph = #graph rep, vertices = #vertices rep, 
+            searchf = f (#searchf rep), evalf = #evalf rep, parent = #parent rep};
+  fun update_aevalf f (Active rep) =
+    Active {graph = #graph rep, vertices = #vertices rep, 
+            searchf = #searchf rep, evalf = f (#evalf rep), parent = #parent rep};
 
   val set_agraph = update_agraph o K;
   val set_avertices = update_avertices o K;
   val set_aparent = update_aparent o K;
+  val set_asearchf = update_asearchf o K;
+  val set_aevalf = update_aevalf o K;
 
   fun update_bactive f (Branch rep) =
     Branch {active = f (#active rep), pplan = #pplan rep, goals = #goals rep};
@@ -173,10 +203,14 @@ struct
   val update_goals = update_current o update_bgoals;
   val update_pplan = update_current o update_bpplan;
   val update_vertices =  update_active o update_avertices;
+  val update_searchf =  update_active o update_asearchf;
+  val update_evalf =  update_active o update_aevalf;
   val update_parent =  update_active o update_aparent;
   val update_graph = update_active o update_agraph;
 
   val set_vertices = update_vertices o K;
+  val set_searchf = update_searchf o K;
+  val set_evalf = update_evalf o K;
   val set_graph = update_graph o K;
   val set_pplan = update_pplan o K;
   val set_goals = update_goals o K;
@@ -191,9 +225,13 @@ struct
   val set_bparent = set_option_bparent o SOME;
   val update_bvertices =  update_bactive o update_avertices;
   val set_bvertices = update_bvertices o K;
+  val update_bsearchf =  update_bactive o update_asearchf;
+  val set_bsearchf = update_bsearchf o K;
+  val update_bevalf =  update_bactive o update_aevalf;
+  val set_bevalf = update_bevalf o K;
 
   fun init_active graph vs =
-     Active {graph = graph, vertices = vs, parent = NONE}
+     Active {graph = graph, vertices = vs, searchf = "depth-first", evalf = "depth-first", parent = NONE}
 
   fun init_branch prf graph goals vs  =
     Branch {active = init_active graph vs, pplan = prf, goals = goals};

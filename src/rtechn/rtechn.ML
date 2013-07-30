@@ -5,7 +5,7 @@ sig
   type T
   exception rtechn_exp of string * T;
 
-  datatype EvalData = EData of string
+  datatype EvalData = EData of { searchf :  string, evalf : string };  (* "best" or "depth" *)
   datatype tac_assms = TNoAsm | TAllAsm | TClass of C.NSet.T
 
   datatype atomic =
@@ -49,6 +49,9 @@ sig
   val get_atomic : T -> atomic option
   val get_tactic : T -> string option 
 
+  val get_searchf : T -> string option
+  val get_evalf : T -> string option
+
   val id : T 
   val merge : T
   val id_str : RT.name -> T
@@ -73,7 +76,7 @@ structure RTechn
 
  (* idea: we just look up a string with the relevant info. 
     TO DO: add more information  *)
- datatype EvalData = EData of string
+  datatype EvalData = EData of { searchf :  string, evalf : string };  (* "best" or "depth" *)
 
  datatype tac_assms = TNoAsm | TAllAsm | TClass of RT.NSet.T
 
@@ -151,6 +154,17 @@ structure RTechn
      case get_atomic rt of 
       SOME (Tactic (_,n)) => SOME n
      | _ => NONE;
+
+  fun get_searchf rt = 
+    case get_appf rt 
+    of (HGraph (SOME (EData edata))) => SOME (#searchf edata)
+    | _ => NONE;
+
+  fun get_evalf rt = 
+    case get_appf rt 
+    of (HGraph (SOME (EData edata))) => SOME (#evalf edata)
+    | _ => NONE;
+
 
   val id = RTechn {name = RT.mk "id", appf = Identity};
 
