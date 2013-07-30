@@ -42,9 +42,6 @@ struct
         []
     end;
 
-
-
-
     fun edge_dest g e = Graph.get_edge g e |> (snd o snd);
     fun edge_src g e = Graph.get_edge g e |> (fst o snd);
     fun edge_data g e = Graph.get_edge g e |> fst |> snd;
@@ -130,6 +127,16 @@ struct
    fun all_gnodes graph = 
      map fst (Graph.get_vertex_list graph)
      |> filter (is_gnode graph);
+
+   fun prj_single_gnodes (GData.GN_Node gn) = [gn]
+    |  prj_single_gnodes (GData.GN_Pair (g1,g2)) =
+         prj_single_gnodes g1 @ prj_single_gnodes g2
+    |  prj_single_gnodes _ = []
+
+   fun all_single_gnodes graph = 
+     all_gnodes graph
+     |> map (gnode_of graph)
+     |> maps prj_single_gnodes;
 
   end (* structure Util *)
  

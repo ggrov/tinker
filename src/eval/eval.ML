@@ -16,6 +16,23 @@ struct
 
  exception evaluate_exp of V.name option * string;
 
+ (* working with evaluation strategy *)
+
+ (* should not be required as you should really only work on first goal node! *)
+ fun delete_gnode gnode [] = []
+  |  delete_gnode gnode (g::gs) = 
+       if GoalTyp.gnode_eq(gnode,g) 
+        then delete_gnode gnode gs
+        else g::(delete_gnode gnode gs)
+
+  val delete_gnodes = fold delete_gnode;
+
+  (* to do : add this into contxt to allow users to 
+      define their own functions, maybe more information required? *)
+  fun evalf new old "breath-first" = old @ new
+   |  evalf new old "depth-first" = new @ old
+   |  evalf new old _ = new @ old;
+
  (* fixme: may loose goals! *)
  fun init_goal pnode edata  = 
    let
@@ -26,11 +43,13 @@ struct
      fun new_graph (e,gt) = 
        case GoalTyp.init_lift gt pnode of
          NONE => []
-         | SOME gn => [EGraph.Util.insert_node_on_edge 
-                           (EGraph.Util.mk_single_gnode gn) e graph] 
+         | SOME gn => [(gn,EGraph.Util.insert_node_on_edge 
+                           (EGraph.Util.mk_single_gnode gn) e graph)] 
      val new_graphs = maps new_graph in_edges
-   in
-       map (fn g => EData.set_graph g edata) new_graphs
+   in  (* fixme: this should be updated according to strategy *)
+       map (fn (gn,g) => edata |> EData.update_gnodes (fn gs => gn::gs) 
+                               |> EData.set_graph g) 
+           new_graphs
    end;
 
  fun init_goals edata pnodes = 
@@ -105,8 +124,21 @@ struct
    let
      val graph = EData.get_graph edata
      val lhs_seq = EGraph.matched_lhs (EData.get_graph edata) v
+     fun upd_edata_gnode (lhs,rhs) branch = 
+       let
+         val left_gs = EGraph.Util.all_single_gnodes lhs
+         val right_gs = EGraph.Util.all_single_gnodes rhs
+         val current = EData.get_bgnodes branch
+         val updated = 
+           evalf right_gs 
+                 (delete_gnodes left_gs current) 
+                 (EData.get_evalf edata)
+       in
+         EData.set_bgnodes updated branch
+       end
+      (* delete input node(s) *)
      fun update (branch,(lhs,rhs)) =
-       Seq.map (fn g => EData.set_bgraph g branch)
+       Seq.map (fn g => EData.set_bgraph g branch |> upd_edata_gnode (lhs,rhs))
                (EGraph.Util.rewrite_lazy (Theory.Rule.mk (lhs,rhs)) graph);
    in 
     lhs_seq 
@@ -141,6 +173,7 @@ struct
      |> forall (is_some o (try_get_out (EData.get_graph edata)));
 
   (* to do: set eval properties properties *)
+  (* note: input gnode removed from parent, but will be added on folding *)
   fun unfold_nested edata v = 
    let 
      val lhs_seq = EGraph.matched_lhs (EData.get_graph edata) v
@@ -156,9 +189,12 @@ struct
      val name = rtechn
               |> RTechn.get_name
               |> RT.dest
+     fun rm_gnodes lhs = 
+      EData.update_gnodes 
+        (delete_gnodes (EGraph.Util.all_single_gnodes lhs))
      val unfrule = StrName.NTab.get (EData.PSGraph.get_g_tacs (EData.get_psgraph edata)) name
      fun upd (_,lhs) = EGraph.Util.rewrite_lazy unfrule lhs
-                     |> Seq.map (fn rhs => EData.push_bactive rhs lhs [] (EData.get_current edata)
+                     |> Seq.map (fn rhs => EData.push_bactive rhs lhs [] (EData.get_current (rm_gnodes lhs edata))
                                            |> update_searchf |> update_evalf)
    in
      Seq.maps upd lhs_seq
@@ -185,9 +221,19 @@ struct
     val rhs = fold (move_gnode res) out_gnodes lhs'
     val rule = EGraph.Theory.Rule.mk (lhs,rhs);
     val branch = EData.pop_bactive (EData.get_current edata);
+    fun upd_gnodes branch =
+     let
+       val gnodes = 
+             evalf (EGraph.Util.all_single_gnodes res)   
+                   (EData.get_bgnodes branch)
+                   (EData.get_bevalf branch)
+    in 
+      EData.set_bgnodes gnodes branch
+    end
    in (* to do: update active? *)
      EGraph.Util.rewrite_lazy rule (EData.get_bgraph branch)
      |> Seq.map (fn g => EData.set_bgraph g branch)
+     |> Seq.map upd_gnodes 
    end;
 
   (* for evaluation *)
@@ -201,8 +247,23 @@ struct
   and next_tactic_edge graph edge =
     next_tactic_vertex graph (EGraph.Util.edge_dest graph edge)
 
-  (* project goal node  and call next_tactic_vertex *)
-  fun next_tactic graph node = NONE
+  (* project goal node  and call next_tactic_vertex -
+      a lot of optimizations possible: store gnode for one... *)
+  fun next_tactic graph node = 
+    let 
+      fun check_gnode v =
+        GoalTyp.gnode_eq (EGraph.Util.single_gnode_of graph v,node)
+        handle _ => false
+      fun getvertex [] = NONE
+       |  getvertex (v::vs) = 
+           if check_gnode v
+            then SOME v
+            else getvertex vs
+    in
+      case getvertex (EGraph.Util.all_gnodes graph) of
+         NONE => NONE
+       | SOME v => next_tactic_vertex graph v
+    end;
     
   fun evaluate edata v = 
     case EGraph.Util.lookup_rtechn (EData.get_graph edata) v of
@@ -257,6 +318,22 @@ struct
      |> Seq.maps (evaluate edata)
      |> update_branches edata
 
+   fun get_tactic [] _ = raise evaluate_exp (NONE,"No applicable tactic")
+    |  get_tactic (x::xs) edata =
+         case next_tactic (EData.get_graph edata) x of
+           SOME v => v
+         | NONE => get_tactic xs edata;
+
+   (* follows evaluation strategy *)
+   fun evaluate_next edata =
+    if has_terminated edata then
+     (case EData.parent_lhs edata of
+       NONE => Good edata
+       | _ =>  update_branches edata (fold_nested edata))
+    else
+     evaluate edata (get_tactic (EData.get_gnodes edata) edata)
+     |> update_branches edata
+
 
    (* similar to evaluate_any, but only evaluate a single one *)
    fun evaluate_arbitrary edata =
@@ -284,7 +361,7 @@ struct
 
    (* depth first search  *)
    fun evaluate_full_one edata = 
-     case evaluate_arbitrary edata of
+     case evaluate_next edata of
        Good edata' => [EData.get_pplan edata']
      | Bad => (case EData.next_branch edata of
             NONE => []

@@ -7,19 +7,20 @@ sig
   type active
   type T
 
+  type gnode = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode
    (* initialisations *)
   val init : 
     PSGraph.T 
     -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan 
     -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T 
-    -> V.name list
+    -> gnode list
     -> T
 
   (* get methods *)
   val get_psgraph : T -> PSGraph.T  
   val get_pplan : T -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan
   val get_goals : T -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T
-  val get_vertices : T -> V.name list
+  val get_gnodes : T -> gnode list
   val get_searchf : T -> string
   val get_evalf : T -> string
   val get_graph : T -> PSGraph.PSTheory.PS_Theory.Graph.T
@@ -37,7 +38,7 @@ sig
   val set_psgraph : PSGraph.T -> T -> T
   val set_pplan : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan -> T -> T
   val set_goals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T -> T -> T
-  val set_vertices : V.name list -> T -> T
+  val set_gnodes : gnode list -> T -> T
   val set_searchf : string -> T -> T
   val set_evalf : string -> T -> T
   val set_graph : PSGraph.PSTheory.PS_Theory.Graph.T -> T -> T
@@ -49,7 +50,7 @@ sig
   val update_pplan : (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan) -> T -> T
   val update_goals : (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T)  -> T -> T
   val update_graph : (PSGraph.PSTheory.PS_Theory.Graph.T -> PSGraph.PSTheory.PS_Theory.Graph.T) -> T -> T
-  val update_vertices : (V.name list -> V.name list) -> T -> T
+  val update_gnodes : (gnode list -> gnode list) -> T -> T
   val update_searchf : (string -> string) -> T -> T
   val update_evalf : (string -> string) -> T -> T
   val update_current : (branch -> branch) -> T -> T
@@ -68,9 +69,12 @@ sig
   val set_bpplan : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan -> branch -> branch
   val set_bgoals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T -> branch -> branch
  
-  val set_bvertices : V.name list -> branch -> branch
+  val set_bgnodes : gnode list -> branch -> branch
+  val get_bgnodes : branch -> gnode list
   val set_bsearchf : string -> branch -> branch
+  val get_bsearchf : branch -> string
   val set_bevalf : string -> branch -> branch
+  val get_bevalf : branch -> string
 
   val get_bgraph : branch -> PSGraph.PSTheory.PS_Theory.Graph.T 
   val set_bgraph : PSGraph.PSTheory.PS_Theory.Graph.T -> branch -> branch
@@ -86,10 +90,10 @@ sig
   (* push and pop methods for parent *)
   val parent_lhs : T -> PSGraph.PSTheory.PS_Theory.Graph.T option
   val pop_active : T -> T (* identify if it fails *)
-  val push_active : PSGraph.PSTheory.PS_Theory.Graph.T -> PSGraph.PSTheory.PS_Theory.Graph.T -> V.name list -> T -> T
+  val push_active : PSGraph.PSTheory.PS_Theory.Graph.T -> PSGraph.PSTheory.PS_Theory.Graph.T -> gnode list -> T -> T
 
   val pop_bactive : branch -> branch (* identify if it fails *)
-  val push_bactive : PSGraph.PSTheory.PS_Theory.Graph.T -> PSGraph.PSTheory.PS_Theory.Graph.T -> V.name list -> branch -> branch
+  val push_bactive : PSGraph.PSTheory.PS_Theory.Graph.T -> PSGraph.PSTheory.PS_Theory.Graph.T -> gnode list -> branch -> branch
 
   val next_branch : T -> (branch * T) option (* moves to next branch *)
   
@@ -106,9 +110,11 @@ struct
   structure PSGraph = PSGraph;
   structure Atomic = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic;
 
+  type gnode = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode
+
   datatype active = Active of {
      graph : PSGraph.PSTheory.PS_Theory.Graph.T, 
-     vertices : V.name list, (* should change to gnodes *)
+     gnodes : gnode list, (* should change to gnodes *)
      searchf : string,
      evalf : string, 
      parent : (active * PSGraph.PSTheory.PS_Theory.Graph.T) option  
@@ -126,7 +132,7 @@ struct
   }
 
   fun get_agraph (Active rep) = #graph rep;
-  fun get_avertices (Active rep) = #vertices rep;
+  fun get_agnodes (Active rep) = #gnodes rep;
   fun get_aparent (Active rep) = #parent rep;
   fun get_asearchf (Active rep) = #searchf rep;
   fun get_aevalf (Active rep) = #evalf rep;
@@ -145,34 +151,34 @@ struct
 
   val get_graph = get_agraph o get_active;
   val get_parent = get_aparent o get_active;
-  val get_vertices = get_avertices o get_active;
+  val get_gnodes = get_agnodes o get_active;
   val get_searchf = get_asearchf o get_active;
   val get_evalf = get_aevalf o get_active;
 
   val get_bparent = get_aparent o get_bactive;
-  val get_bvertices = get_avertices o get_bactive;
+  val get_bgnodes = get_agnodes o get_bactive;
   val get_bgraph = get_agraph o get_bactive;
   val get_bsearchf = get_asearchf o get_bactive;
   val get_bevalf = get_aevalf o get_bactive;
 
   fun update_agraph f (Active rep) =
-    Active {graph = f (#graph rep), vertices = #vertices rep, 
+    Active {graph = f (#graph rep), gnodes = #gnodes rep, 
             searchf = #searchf rep, evalf = #evalf rep, parent = #parent rep};
-  fun update_avertices f (Active rep) =
-    Active {graph = (#graph rep), vertices = f (#vertices rep),
+  fun update_agnodes f (Active rep) =
+    Active {graph = (#graph rep), gnodes = f (#gnodes rep),
             searchf = #searchf rep, evalf = #evalf rep, parent = #parent rep};
   fun update_aparent f (Active rep) =
-    Active {graph = (#graph rep), vertices = #vertices rep, 
+    Active {graph = (#graph rep), gnodes = #gnodes rep, 
             searchf = #searchf rep, evalf = #evalf rep, parent = f (#parent rep)};
   fun update_asearchf f (Active rep) =
-    Active {graph = #graph rep, vertices = #vertices rep, 
+    Active {graph = #graph rep, gnodes = #gnodes rep, 
             searchf = f (#searchf rep), evalf = #evalf rep, parent = #parent rep};
   fun update_aevalf f (Active rep) =
-    Active {graph = #graph rep, vertices = #vertices rep, 
+    Active {graph = #graph rep, gnodes = #gnodes rep, 
             searchf = #searchf rep, evalf = f (#evalf rep), parent = #parent rep};
 
   val set_agraph = update_agraph o K;
-  val set_avertices = update_avertices o K;
+  val set_agnodes = update_agnodes o K;
   val set_aparent = update_aparent o K;
   val set_asearchf = update_asearchf o K;
   val set_aevalf = update_aevalf o K;
@@ -202,13 +208,13 @@ struct
   val update_active = update_current o update_bactive; 
   val update_goals = update_current o update_bgoals;
   val update_pplan = update_current o update_bpplan;
-  val update_vertices =  update_active o update_avertices;
+  val update_gnodes =  update_active o update_agnodes;
   val update_searchf =  update_active o update_asearchf;
   val update_evalf =  update_active o update_aevalf;
   val update_parent =  update_active o update_aparent;
   val update_graph = update_active o update_agraph;
 
-  val set_vertices = update_vertices o K;
+  val set_gnodes = update_gnodes o K;
   val set_searchf = update_searchf o K;
   val set_evalf = update_evalf o K;
   val set_graph = update_graph o K;
@@ -223,15 +229,15 @@ struct
   val update_bparent = update_bactive o update_aparent;
   val set_option_bparent = update_bparent o K;
   val set_bparent = set_option_bparent o SOME;
-  val update_bvertices =  update_bactive o update_avertices;
-  val set_bvertices = update_bvertices o K;
+  val update_bgnodes =  update_bactive o update_agnodes;
+  val set_bgnodes = update_bgnodes o K;
   val update_bsearchf =  update_bactive o update_asearchf;
   val set_bsearchf = update_bsearchf o K;
   val update_bevalf =  update_bactive o update_aevalf;
   val set_bevalf = update_bevalf o K;
 
   fun init_active graph vs =
-     Active {graph = graph, vertices = vs, searchf = "depth-first", evalf = "depth-first", parent = NONE}
+     Active {graph = graph, gnodes = vs, searchf = "depth-first", evalf = "depth-first", parent = NONE}
 
   fun init_branch prf graph goals vs  =
     Branch {active = init_active graph vs, pplan = prf, goals = goals};
@@ -263,10 +269,10 @@ struct
         NONE => edata
        | SOME (p,_) => set_active p edata
 
-  fun push_active graph lhs (vnms:V.name list) edata = 
+  fun push_active graph lhs (vnms:gnode list) edata = 
     edata |> set_parent (get_active edata,lhs)
           |> set_graph graph
-          |> set_vertices vnms;
+          |> set_gnodes vnms;
   
   (* for working with branches *)
   fun pop_bactive branch = 
@@ -274,10 +280,10 @@ struct
         NONE => branch
        | SOME (p,_) => set_bactive p branch
 
-  fun push_bactive graph lhs (vnms:V.name list) branch = 
+  fun push_bactive graph lhs (vnms:gnode list) branch = 
     branch |> set_bparent (get_bactive branch,lhs)
            |> set_bgraph graph
-           |> set_bvertices vnms;
+           |> set_bgnodes vnms;
 
   fun next_branch edata =
     case get_branches edata of
