@@ -1,69 +1,95 @@
-TO DO short term
- - check that hierarchies work
- - try to compute "valid" strategy graph subgraphs 
-     start with singleton sets - add neighbours until no changes
- - look for identical/generalisable subgraphs ~> generalise
- - parsing 
- - look for identical (after gen) output branches and combine!
- - evaluation of technique, including matching for features [not sure if I am doing this]
- - evaluation beyond a single box
- - see if theory has to be moved back into context!
- - identify problems with the gui
- - fix problem with using Unix.execute to generate pdf from the dot file
+TO DO: (need to update this)
+
+1) order function for data. Rule.mk not terminated - the following hack in 
+       quantomatic/core/rewriting/rule.ML for Rule.mk required:
+
+      in (Rule { lhs = lhs, rhs = rhs',
+                lhs_aut = lhsauts,
+                selfapps = [] (* GG: filterorbits lhsba [] *),
+                order = [] (* GG: gen_order lhs lhsauts
+                                  V.NSet.empty V.NSet.empty *) },
+          (vrn,ern))
+
+1) eval data [hard] -- GG started
+    -> started generalised into ATOMIC.ML signature (combined with prf?)
+    -> have done eval_data and eval_appf
+   TO DO:
+    - figure out how to distribute the code between working on graph 
+       and independent of graph   
+    - combine output and nested into a single functor for updating the 
+      graph eval_graph.ML
+      - may require more matching into somewhere, and unifying prf/atomic/goaltype
+        better
+    - make a single eval.ML file that uses all subcomponents
+         - this should probably also handle the nested case (or maybe a separate structure
+           is required)
+    - make rule for delete node with empty list
+    - make rule for unfold and fold lists
+
+2) move socket stuff into isaplib [GG]
+    -> still need to be tested and array stuff checked.
+
+3) update rtechn [make it independent of wires] [medium]
+     - fix HGraph data [later]
+     - complete appfn, ord and eq [medium]
+
+6) rtechn_env -> how can we store such data in proof power? [hard]
+     -> is it supported in isaplib?
+     -> develop a notion of theory or context independent of isabelle?
+     -> we can store this as part of the graph!
+     -> maybe we don't need it? (used at least to store map from name to tactic and 
+           feature functions, but this could be done statically!)
+     -> generalise tactics: make a atomic.ml structure which has to be instantiated
+        for each theorem prover!
+
+7) goalnode  [hard]
+     -> change to use list of goals in a goal node
+     -> need to generalise this indpendent of isabelle 
+     -> maybe leave this for now, as it requires eval stuff and proof representation to
+        be done first -> e.g. just use a string
+     - make Json representation
 
 
--------------------------------------------------------------------------
-  List of project things we would like
-  Gudmund Grov
--------------------------------------------------------------------------
-Goals:
- 1) be able to draw techniques in a GUI which can be executed
- 2) execute techniques as Isabelle methods/tactics (e.g. apply my_technique)
-  2a) create Isabelle rippling method/tactic [Yuhui]
- 3) develop analogy method in Isabelle
-     e.g. apply (analogy: thm1), meaning we apply the proof strategy derived 
-     from proof of thm1 to prove current goal. Here, the anti-unification (if
-     required) to generalise object level details (such as shape) can combine
-     the goal of thm1 with the current open proof state.
-     If we have more than one proofs then apply (analogy: thm1 thm2 ...) will 
-     find a generalisation of all. Note that in a structure proof this can also
-     be used for "local" analogies since each subgoal is named (use this name instead
-     of thm)
-  4) A GUI combining Isabelle, quanto(graph) and a separate "Isaplanner" window
-  5) Data mining for new proof strategies
-      use technique in 3 to come up with new strategies (which we may try automatically).
-      this will probably be from a different interface[?]
-  6) Better integration with NCL
-      - learn search strategies (full process is captured there)?
-      - use failed branches to check for patterns (e.g. a failed branch in the interactive
-        proof may be in the family of another, although the actual end is not) 
-      - use of user-provided annotations. e.g. for grouping?
-
-  - make a BNF grammar for features. 
-
-------
-Requirements to fulfil goals:
- 1) - Quanto needs support for edges 
-    - Unless we rely on all methods are just names, we need to add more structure
-      to data on vertices + add support for edit them (see 4).
- 2) Change goal representation to be closer to Isabelle
- 3) FIRST: ignore hypothesis unless explicit fwd proof
-   a) parsing of [all required] proofs into graphs
-       status: started/intermediate rep currently supported!
-   b) automatic feature detection, meaning features on wires
-   c) combining "common" edges
-   d) combining "common" graphs
-   e) discover/replace "patterns"
-   f) discover/replace equivalences
-   g) generalise two graphs into one (as little OR as possible)
-   h) change goal representation to be closer to Isabelle
- 4) 
-   a) get quanto into eclipse
-   b) change the user-interaction
-   c) 
- 5) a) ability to learn new features (new ILP)    
-    b) ability to spot what to generalise (clustering into families) [Katya?]
- 6) Decide upon
+ 
 
 
----
+
+10) make a theory functor [easy]
+     -> combines all the above to create a uniform interface
+
+11) instantiate Isabelle for generic [easy]
+
+12) instantiate proof power for generic [easy]
+
+13) link with GUI [easy] [YL to start]
+
+COMPLETED:
+
+8) graphs [medium]
+   -> we need to support variables in both edge and vertices, so same subst env has to be held
+   -> turn a graph into it's json representation
+   -> change to use list of goals in goal node as in ITP paper
+
+1) graph combinators [easy] -- G started -- see psgraph_comb.ML
+    -> should be straightforward for a given graph
+    -> try to generalise for all graphs certain operators
+
+1) fix quantomatic/isabelle loading for Isabelle 2013 [easy] [GG]
+
+
+3) update rtechn [make it independent of wires] [easy]
+     - fix typed_rtechn.ML and make morphism to rtechn.ML [YL]
+     - complete rtechn_json.ML[YL]
+
+4) goal types -> rename from wires [clear] [GG started]
+     -> make it fit with CICM paper [YL & GG]
+     -> suggest the following files
+        - class.ml -> to hold class properties [YL & GG]
+        - link.ml -> to hold link properties [YL & GG]
+        - goaltyp.ml -> to hold a goal type [YL & GG]
+     - make json representation [YL & GG]
+
+5) generalise goal type with functors [hard] [YL to start]
+    -> make a gtrm structure [YL]
+    -> functorise goaltyp over this structure (should then be independent of TP system) [YL]
+

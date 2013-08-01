@@ -1,103 +1,102 @@
-structure DB_EdgeData
+signature PS_EDGE =
+sig
+  include UNIFIABLE_DATA;
+  structure GraphSubstData : GRAPH_SUBST_DATA
+  structure EComponentData_Param : ELEMENT_COMPONENT_DATA_PARAM 
+   sharing type data = GraphSubstData.edata
+
+end
+
+functor PSEdgeDataFun(GraphSubstData : GRAPH_SUBST_DATA) : PS_EDGE
 = struct
+  structure GraphSubstData = GraphSubstData;
+  structure GSD = GraphSubstData; 
+  structure GoalTyp = GSD.GoalTyp;
 
-  datatype data =  W of Wire.T
-                 | EVar of string (* variable of goalnode *)
+  type data = GSD.edata;
+  val data_ord = GSD.edata_ord;
+  val data_eq = GSD.edata_eq;
 
-  (* ordering is used for building tables, sorting, etc *)
-  fun data_ord (EVar v1,EVar v2) = String.compare (v1,v2)
-    | data_ord (EVar v1,_) = LESS
-    | data_ord (W _,EVar _) = GREATER
-    | data_ord (W w1,W w2) = Wire.ord (w1,w2)
+  val pretty_data = GSD.pretty_edata;
+  val print_data = GSD.print_edata;
 
-  (* equality check (should agree with order):
-     data_eq(x,y) <=> data_ord (x,y) = EQUAL *)
-  fun data_eq (xy as (x, y)) = 
-      (case data_ord xy of EQUAL => true
-          | _ => false);
- 
-  fun pretty_data (W w) = SStrName.pretty_name (Wire.get_name w)
-   |  pretty_data (EVar v) = Pretty.str ("?" ^ v)
+  type subst = GSD.subst;
+  val empty_subst = GSD.empty_subst;
+  val compose_subst = GSD.compose_subst
 
-  val print_data = Pretty.writeln o pretty_data;
-  
-  fun pretty_node (W w) = Wire.pretty w
-   |  pretty_node (EVar v) = Pretty.str ("?" ^ v)
+  fun match_data (GSD.EVar v1,e) subst =
+      (case GSD.lookup_esubst subst v1 of
+            NONE => SOME (GSD.add_esubst (v1,e) subst)
+          | SOME e2 => if GSD.edata_eq(e,e2) then SOME subst else NONE)
+   |  match_data (GSD.GT gt1,GSD.GT gt2) subst = if 
+         GoalTyp.eq(gt1,gt2) then SOME subst else NONE
+   |  match_data (GSD.GT _,GSD.EVar _) _ = NONE
 
+  fun unify_data xy subst = if GSD.edata_eq xy then SOME subst else NONE;
 
-  (* FIXME: allow for substitution *)
-  type subst = DB_VertexData.subst;
-  val empty_subst = DB_VertexData.empty_subst;
-  val compose_subst = DB_VertexData.compose_subst
-  fun match_data (EVar v1,e) subst = NONE
-   |  match_data (W w1,W w2) subst = if Wire.eq(w1,w2) then SOME subst else NONE
-   |  match_data (W w,EVar v) subst = NONE
-  fun unify_data xy subst = if data_eq xy then SOME subst else NONE;
-  fun subst_in_data subst (W w) = (W w)
-   |  subst_in_data subst (EVar v) =  (EVar v);
-  
-  val pretty_subst = DB_VertexData.pretty_subst;
-  val print_subst = Pretty.writeln o pretty_subst; 
-
-(* TO DO: Fix sub to allow substitution in both Vertex and Edge *)
-(*
-  type subst = data StrName.NTab.T;
-
-  val empty_subst = StrName.NTab.empty;
-  
-  fun compose_subst (u1,u2) = StrName.NTab.merge_joint data_eq u1 u2;
-
-  fun match_data (EVar v1,e) subst =
-      (case StrName.NTab.lookup subst v1 of
-            NONE => SOME (StrName.NTab.ins (v1,e) subst)
-          | SOME e2 => if data_eq(e,e2) then SOME subst else NONE)
-   |  match_data (W w1,W w2) subst = if Wire.eq(w1,w2) then SOME subst else NONE
-   |  match_data (W w,EVar v) subst = NONE
-
-  fun unify_data xy subst = if data_eq xy then SOME subst else NONE;
-
-
-  fun subst_in_data subst (W w) = (W w)
-   |  subst_in_data subst (EVar v) = 
-        (case StrName.NTab.lookup subst v of
-          NONE => (EVar v)
+  fun subst_in_data subst (GSD.GT gt) = (GSD.GT gt)
+   |  subst_in_data subst (GSD.EVar v) = 
+        (case GSD.lookup_esubst subst v of
+          NONE => (GSD.EVar v)
         | (SOME d) => d);
   
+  (* pretty printing for subst *)
+  val pretty_subst = GSD.pretty_subst;
+  val print_subst = GSD.print_subst; 
 
-  fun pretty_subst subst =
-    Pretty.block [Pretty.str "edge subst: ",StrName.NTab.pretty pretty_data subst];
-  val print_subst = Pretty.writeln o pretty_subst; 
-*)
-  val default_data = (W Wire.default_wire);
+  val default_data = GSD.EVar "v";
   
-  structure Sharing = struct type data = data; type subst = subst; end;  
+  structure Sharing = struct type data = data; type subst = subst; end; 
+
+  structure EComponentData_Param 
+    : ELEMENT_COMPONENT_DATA_PARAM where type data = GSD.edata
+  = struct
+
+     type data = GSD.edata;
+     exception unknown_type_exp of string;
+     exception unexpected_data_exp;
+
+    fun type_of (GSD.GT _) = "GT"
+      | type_of (GSD.EVar _) = "EVar";
+
+    fun cdata_of d = 
+      ComponentData.String (Pretty.string_of (pretty_data d));
+  
+    fun default_data "GT" = GSD.GT (GoalTyp.default)
+      | default_data "EVar" = GSD.EVar "v"
+      | default_data s = raise unknown_type_exp s;
+
+    fun update upd (GSD.GT gt) = GSD.GT gt
+      | update upd (GSD.EVar v)   = GSD.EVar v;     
+
+  end (* struct EComponentData_Param *)
 end;
 
-structure Strategy_EdgeData : UNIFIABLE_DATA = DB_EdgeData;
+(* structure PS_EdgeData : UNIFIABLE_DATA = DB_EdgeData; *)
 
-(*  *)
-structure Strategy_EdgeComponentData_Param
-: ELEMENT_COMPONENT_DATA_PARAM where type data = Strategy_EdgeData.data
+(*  
+structure PS_EdgeComponentData_Param
+: ELEMENT_COMPONENT_DATA_PARAM where type data = PS_EdgeData.data
 = struct 
-  type data = Strategy_EdgeData.data;
+  type data = PS_EdgeData.data;
   exception unknown_type_exp of string;
   exception unexpected_data_exp;
 
-  structure ED = DB_EdgeData
+  structure GSD = GraphSubstData;
 
-  fun type_of (ED.W _) = "W"
-    | type_of (ED.EVar _) = "EVar";
+  fun type_of (GSD.GT _) = "GT"
+    | type_of (GSD.EVar _) = "EVar";
 
   fun cdata_of d = 
-    ComponentData.String (Pretty.string_of (DB_EdgeData.pretty_node d));
+    ComponentData.String (Pretty.string_of (DB_EdgeData.pretty_data d));
   
-  (* New nodes are by default RTechnNodes *)
-  fun default_data "W" = ED.W (Wire.default_wire)
-    | default_data "EVar" = ED.EVar "v"
+  fun default_data "GT" = GSD.GT (GoalTyp.top)
+    | default_data "EVar" = GSD.EVar "v"
     | default_data s = raise unknown_type_exp s;
 
 
-  fun update upd (ED.W w) = ED.W w
-    | update upd (ED.EVar v)   = ED.EVar v;   
+  fun update upd (GSD.GT gt) = GSD.GT gt
+    | update upd (GSD.EVar v)   = GSD.EVar v;   
 
 end;
+*)

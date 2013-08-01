@@ -1,0 +1,60 @@
+**** INSTALLATION *****
+-----------------------------------
+Downloading and Installing ProofPower
+-----------------------------------
+
+Go to 
+
+ http://www.lemma-one.com/ProofPower/getting/versions/
+
+and install ProofPower
+
+------------------------------------
+Downloading and Installing required Libraries 
+-----------------------------------
+Go to the parent directory of psgraph, 
+  cd ..
+
+Get the isaplib library (requires git)
+
+  git clone git://github.com/Quantomatic/isaplib.git
+
+Next, get the quantomatic library (requires git)
+
+  git clone git://github.com/Quantomatic/quantomatic.git
+  cd quantomatic
+  git checkout scala-frontend
+  git pull
+  
+
+------------------------------------
+Building isaplib + quanto + psgraph on the top of pp
+-----------------------------------  
+
+Create a pp db/heap based on zed theory
+  pp_make_database -p zed $PPHOME/db/zed_psgraph
+
+clean up previous bulid
+  find . -type d -name .polysave | xargs rm -rf
+  find . -type f -name *.heap | xargs rm -rf
+  
+go to the build direcory:
+  cd PSGRAPHDIR/src/provers/proofpower/build
+
+start pp
+  pp -d zed_psgraph
+
+in the poly ml interface: 
+build isap + quanto + psgraph
+  use "PRELOAD.ml";
+load the built heap
+  PolyML.SaveState.loadState "zed_psgraph.heap";
+run testing, should be no exceptions or any error messages:
+  use "test.ml"
+save and exit pp;
+  save_and_exit 0;
+
+
+
+
+

@@ -1,189 +1,243 @@
-(*
-   contains functionality linking the proof/tactic with the strategy graph (eval into rewriting)
-*)
-structure EvalGraph =
+signature EVAL_GRAPH =
+sig
+  structure GoalTyp : BASIC_GOALTYPE
+  structure Atomic : ATOMIC
+
+end
+
+functor EvalGraphFun(EData : EVAL_DATA) =
 struct
+  structure EData = EData;
+  structure Atomic = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic;
+  structure Theory = EData.PSGraph.PSTheory.PS_Theory;
+  structure Graph = Theory.Graph;
+  structure GData = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData;
 
-  structure EData = EvalD_DF;
+  (* move into separate/different file? *) 
+  structure Util =
+  struct
+      (* actual rewriting *)
+    fun rewrite_lazy rule graph = 
+      let 
+        val graph' = Graph.normalise graph;
+        val (rule',matches) = Theory.Rewriter.find_matches rule graph';
+        fun rewr match = 
+          Theory.Rewriter.rewrite_at rule' match
+          |> snd
+      in
+        Seq.map rewr matches
+      end;
+    val rewrite = Seq.list_of oo rewrite_lazy;
 
-  (* actual rewriting *)
-  fun rewrite_lazy rule graph = 
-    let 
-      val graph' = Strategy_Theory.Graph.normalise graph;
-      val (rule',matches) = Strategy_Theory.RulesetRewriter.rule_matches rule graph';
-      fun rewr match = 
-        Strategy_Theory.GraphSubst.do_rewrite match (Strategy_Theory.Rule.get_rhs rule')
-    in
-      Seq.map rewr matches
+  fun input_boundary g = 
+    let val bvertexes = Graph.get_boundary g (* Vertex.NSet.T *)
+        fun dest_name bv e = let val ((_,ed),(_,v)) = Graph.get_edge g e in (bv,(e,ed),v) end
+        fun mk_pairs v = Graph.out_enames g v 
+                  |> E.NSet.list_of
+                  |> map (fn e => dest_name v e)
+    in  
+      V.NSet.fold
+        (fn v => fn xs => xs @ (mk_pairs v))
+        bvertexes
+        []
     end;
 
-  val rewrite = Seq.list_of oo rewrite_lazy;
+    fun edge_dest g e = Graph.get_edge g e |> (snd o snd);
+    fun edge_src g e = Graph.get_edge g e |> (fst o snd);
+    fun edge_data g e = Graph.get_edge g e |> fst |> snd;
 
-   (* begin simple output gnode *)
+   (* checks data *)
+    fun lookup_ivertex_data g v = 
+      Graph.get_vertex_data g v 
+      |> Graph.OVData.idata_of 
 
-  fun try_add_one_output_gnode gnode pnode edata graph edge = 
+   val vertex_data = the oo lookup_ivertex_data;
+
+   fun out_edges graph v = 
+      Graph.out_enames graph v 
+      |> E.NSet.list_of;
+
+   fun in_edges graph v = 
+      Graph.in_enames graph v 
+      |> E.NSet.list_of;
+
+    fun insert_node_on_edge node edge graph0 =
+      let val (l,graph') = Graph.add_vertex (Graph.OVData.NVert node) graph0
+          val from = edge_src graph' edge
+          val to = edge_dest graph' edge
+          val edata = edge_data graph' edge
+      in
+        graph' |> Graph.delete_edge edge 
+               |> Graph.doadd_edge (Graph.Directed,edata) from l
+               |> Graph.doadd_edge (Graph.Directed,edata) l to
+      end;
+
+    (* assumes: 1/1 - so just replace by wire node *)
+    val del_gnode = Graph.update_vertex_data (K Graph.OVData.WVert);
+
+   fun mk_binput edata dest graph =
+     graph |> Graph.add_vertex Graph.OVData.WVert
+           |> (fn (n,g) => (n,Graph.add_to_boundary n g))
+           |> (fn (n,g) => Graph.doadd_edge (Graph.Directed, edata) n dest g);
+
+   fun mk_boutput edata source graph =
+     graph |> Graph.add_vertex Graph.OVData.WVert
+           |> (fn (n,g) => (n,Graph.add_to_boundary n g))
+           |> (fn (n,g) => Graph.doadd_edge (Graph.Directed, edata) source n g);
+
+   (* checks type *)
+   fun is_gtyp graph e = 
+     case edge_data graph e of (GData.GT _) => true | _ => false;
+   fun is_rtechn graph v = 
+     case lookup_ivertex_data graph v of 
+         SOME (GData.RT _) => true
+       | _ => false; 
+   fun is_gnode graph v = 
+     case lookup_ivertex_data graph v of 
+         SOME (GData.GN _) => true
+       | _ => false; 
+
+   (* lookup node *)
+   fun lookup_rtechn graph v = 
+     case lookup_ivertex_data graph v of 
+         SOME (GData.RT rt) => SOME rt
+       | _ => NONE; 
+   fun lookup_gnode graph v = 
+     case lookup_ivertex_data graph v of 
+         SOME (GData.GN gn) => SOME gn
+       | _ => NONE; 
+
+   (* projects goal types - exception if not existing *)
+   fun gtyp_of graph e = 
+     case edge_data graph e of (GData.GT g) => g   (* |  _ => raise error *);
+   fun rtechn_of graph v = 
+     case vertex_data graph v of (GData.RT rt) => rt; 
+   fun gnode_of graph v = 
+     case vertex_data graph v of (GData.GN gn) => gn
+   fun single_gnode_of graph v = 
+     case vertex_data graph v of (GData.GN (GData.GN_Node gnode)) => gnode;
+
+   fun mk_single_gnode gnode = GData.GN (GData.GN_Node gnode);
+
+   (* projects *)
+   fun all_rtechns graph = 
+     map fst (Graph.get_vertex_list graph)
+     |> filter (is_rtechn graph);
+
+   fun all_gnodes graph = 
+     map fst (Graph.get_vertex_list graph)
+     |> filter (is_gnode graph);
+
+   fun prj_single_gnodes (GData.GN_Node gn) = [gn]
+    |  prj_single_gnodes (GData.GN_Pair (g1,g2)) =
+         prj_single_gnodes g1 @ prj_single_gnodes g2
+    |  prj_single_gnodes _ = []
+
+   fun all_single_gnodes graph = 
+     all_gnodes graph
+     |> map (gnode_of graph)
+     |> maps prj_single_gnodes;
+
+  end (* structure Util *)
+ 
+  (* FIXME: makes one for each input - can be generalised by vars on the edges
+     instead - then we only need on lhs per rule  *)
+  fun mk_lhs graph v =
     let 
-      val wire = case GraphEnv.edge_data graph edge of
-                    (DB_EdgeData.W wire) => wire
-                  | _ => raise EvalOutput.gnode_exp ("edge not a valid wire");
-      val maybe_gnode = EvalOutput.upd_by_wire (EData.get_fmatch edata) gnode pnode wire
-    in
-      case maybe_gnode of
-         NONE => []
-       | (SOME (_,gn)) => [GraphEnv.insert_vertex (edge,graph) (DB_VertexData.GN gn)]
-    end;
-
-  fun add_one_output_gnode v_rt gnode pnode edata graph = 
-   let 
-     val gnode' = gnode
-                |> GNode.set_prev (SOME gnode)
-                |> GNode.set_goal (PNode.get_name pnode)
-   in
-     GraphEnv.Graph.out_enames graph v_rt
-     |> E.NSet.list_of
-     |> maps (try_add_one_output_gnode gnode' pnode edata graph)
-   end;
-
-  fun add_outputs gnode pnds edata graph = 
-    let
-      val v_rt = (case V.NSet.tryget_singleton (GraphEnv.get_rtechns_of_graph graph)
-                    of NONE => raise EvalOutput.gnode_exp ("graph does not have exactly one rtechn")
-                     | SOME v => v)
-      fun add_one' pnode g = add_one_output_gnode v_rt gnode pnode edata g
-      fun add_one pnode g = case add_one' pnode g of
-                            [] => raise EvalOutput.gnode_exp ("nothing matches node: " ^ PNode.get_name pnode)
-                          | [x] => [x]
-                          | xs => (warning "many outputs matches for node .."; xs)
-    in
-      fold (fn pn => maps (add_one pn)) pnds [graph]
-    end;
-
-   (* end simple output gnode *)
-
-  (* consume of input and generation of output nodes *)  
-
-  fun mk_delete_input_rule w node = 
-    let
-      val (inp,g0) = Strategy_Theory.Graph.empty
-                   |> Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert
-                   |> (fn (n,g) => (n,Strategy_Theory.Graph.add_to_boundary n g));
-      val (outp,g1) = g0
-                    |> Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert
-                    |> (fn (n,g) => (n,Strategy_Theory.Graph.add_to_boundary n g));
-      val rhs = g1
-             |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) inp outp
-             |> snd
-      val (v,g2) = g1
-                 |> Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert node) 
-      val lhs = g2 
-              |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) inp v
-              |> snd
-              |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) v outp
-              |> snd
-    in
-      Strategy_Theory.Rule.mk (lhs,rhs)
-    end;  
-
-  fun delete_inputvar_rule w = mk_delete_input_rule w (DB_VertexData.GVar "g");
-
-  fun delete_inputgnode_rule (gnode,w) = mk_delete_input_rule w (DB_VertexData.GN gnode);
-
-
-  (* I don't understand this! *)
-  fun output_gnode (wr,rtechn) (w,gnode) = 
-    let
-      val (v_rt,g0) = Strategy_Theory.Graph.empty
-                   |> Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.RT rtechn))
-      val (outp,g1) = g0
-                    |> GraphEnv.add_boundary_to (DB_EdgeData.W wr) v_rt (* input edge *)
-                    |> Strategy_Theory.Graph.add_vertex Strategy_OVData.WVert
-                    |> (fn (n,g) => (n,Strategy_Theory.Graph.add_to_boundary n g));
-      val lhs = g1
-             |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) v_rt outp
-             |> snd
-      val (v,g2) = g1
-                 |> Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.GN gnode)) 
-      val rhs = g2 
-              |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) v_rt v
-              |> snd
-              |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W w) v outp
-              |> snd
-    in
-      Strategy_Theory.Rule.mk (lhs,rhs)
-    end;     
-
-  (* finds and instantiates the goal node *)
-  (* was  eval_var_mk_rule_aux *)
-  fun eval_match_and_instantiate_rhs graph graph_pat =
-   let 
-   (* match - FIXME: must be a better way than creating a dummy rule *)
-    val subst = Strategy_Theory.RulesetRewriter.rule_matches 
-                   (Strategy_Theory.Rule.mk(graph_pat,graph_pat))
-                   graph
-                |> snd
-                |> Seq.map Strategy_Theory.Match.get_match_subst
-    val gvars = GraphEnv.get_gvars_of_graph graph_pat;
-    fun inst sub v g = 
-      (case StrName.NTab.lookup sub (GraphEnv.v_to_gvar g v)
-             of NONE => g
-             | (SOME vdata) => Strategy_Theory.Graph.update_vertex_data 
-                                (K (Strategy_OVData.NVert vdata)) v g)    
-  in
-    subst |> Seq.map (fn sub => V.NSet.fold (inst sub) gvars graph_pat)
-  end 
-
-  fun mk_eval_merge_rule_of_size edge n =
-    let 
-      val (v,g) = GraphEnv.lift_edgemerge_vertex n edge
-      val in_edge = Strategy_Theory.Graph.in_enames g v  
-                  |> E.NSet.get_local_bot
-                  |> the (* should always succeed *)
-      val out_edge = Strategy_Theory.Graph.out_enames g v
-                  |> E.NSet.get_local_bot
-                  |> the (* should always succeed *)
-      val lhs = GraphEnv.insert_vertex (in_edge,g) (DB_VertexData.GVar "g");
-      val rhs = GraphEnv.insert_vertex (out_edge,g) (DB_VertexData.GVar "g");
-    in
-      Strategy_Theory.Rule.mk (lhs,rhs)
-    end;
-
-  fun mk_eval_merge_rule_of edge =
-    let 
-      val g = GraphEnv.lift_edgemerge 2 edge;
-      val (bb,g) = Strategy_Theory.Graph.add_bbox_named_like (B.mk "omerge") g;
-      val [(ivb1,(ie1,_),_),(ivb2,_,_)] = GraphEnv.get_boundary_inputs g;
-      (* assume no renaming of vertices *)
-      val (vs,g) = Strategy_Theory.Graph.add_to_bbox bb (V.NSet.single ivb2) g;
-      val [(_,(oe,_),_)] = GraphEnv.get_boundary_outputs g;
-      val lhs = GraphEnv.insert_vertex (ie1,g) (DB_VertexData.GVar "g");
-      val rhs = GraphEnv.insert_vertex (oe,g) (DB_VertexData.GVar "g");
-    in
-      Strategy_Theory.Rule.mk (lhs,rhs)
-    end;
-
-  (* creates a graph to match *)
-  fun mk_match_graph graph v =
-    let 
-     val ins = Strategy_Theory.Graph.in_enames graph v  
-     val outs = Strategy_Theory.Graph.out_enames graph v
-     val get_wire = GraphEnv.e_to_wire graph
-     val rtechn = GraphEnv.v_to_rtechn graph v
+     val ins = Graph.in_enames graph v  
+     val outs = Graph.out_enames graph v
+     val gtyp = Util.gtyp_of
+     val gnode = Graph.OVData.NVert (GData.GN ((GData.GN_Var "g")))
+     val rtechn  = Util.rtechn_of graph v
      (* graph with rtechn *)
-     val (v_rt,g) = Strategy_Theory.Graph.empty
-               |> Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.RT rtechn))
+     val (v_rt,g) = Graph.empty
+               |> Graph.add_vertex (Graph.OVData.NVert (GData.RT rtechn))
      (* adding goalnode variable *)
-     val (v_gvar,g) = 
-            Strategy_Theory.Graph.add_vertex (Strategy_OVData.NVert (DB_VertexData.GVar "g")) g
-     fun mk_match_graph' inp = g
-         |> Strategy_Theory.Graph.add_edge (Strategy_Theory.Graph.Directed,DB_EdgeData.W (get_wire inp)) v_gvar v_rt
-         |> snd
-         |> GraphEnv.add_boundary_to (DB_EdgeData.W (get_wire inp)) v_gvar
-         |> E.NSet.fold (fn outp => GraphEnv.add_boundary_from (DB_EdgeData.W (get_wire outp)) v_rt) outs
-         (* empty input for remaining input (so rewriting works) *)
-         |> E.NSet.fold (fn o_inp => GraphEnv.add_boundary_from (DB_EdgeData.W (get_wire o_inp)) v_rt) 
+     val (v_gvar,g) = Graph.add_vertex gnode g 
+     (* one lhs for each input node *)
+     fun mk_lhs' inp = g
+         |> Graph.doadd_edge (Graph.Directed,GData.GT (gtyp graph inp)) v_gvar v_rt
+         |> Util.mk_binput (GData.GT (gtyp graph inp)) v_gvar
+         |> E.NSet.fold (fn outp => Util.mk_boutput (GData.GT (gtyp graph outp)) v_rt) outs
+         |> E.NSet.fold (fn o_inp => Util.mk_binput (GData.GT (gtyp graph o_inp)) v_rt) 
                         (E.NSet.delete' inp ins) 
-   in
-     map mk_match_graph' (E.NSet.list_of ins)
+    in 
+     map mk_lhs' (E.NSet.list_of ins)      (* one match per input *)
    end;
-    
-end (* structure *)
+
+  (* Should be one rtechn and one graph *)
+  fun match_lhs graph lhs =
+     Theory.Rewriter.find_matches
+           (Theory.Rule.mk(lhs,lhs)) (* make a dummy rule *)
+           graph
+     |> snd
+     |> Seq.map (fn m => (Theory.Match.get_match_subst m, Graph.apply_data_subst (Theory.Match.get_match_subst m) lhs));
+        
+  fun matched_lhs graph v = Seq.maps (match_lhs graph) (mk_lhs graph v |> Seq.of_list)
+
+ (* vertex list -> partition -> graph -> graph *)
+ fun add_outs [] [] graph = graph
+  |  add_outs  (i::is) (p::ps) graph = 
+       add_outs is ps (Util.insert_node_on_edge p i graph);
+
+  (* RULES FOR REWRITING *)
+
+ val split_gnode_pairs = 
+  let
+    val edge = GData.EVar "e";
+    val bnode = GData.GN (GData.GN_Pair (GData.GN_Var "h",GData.GN_Var "t"));
+    val fnode = GData.GN (GData.GN_Var "h");
+    val snode = GData.GN (GData.GN_Var "t");
+    val (inp,g0) = Graph.add_vertex Graph.OVData.WVert Graph.empty;
+    val (outp,g0) = Graph.add_vertex Graph.OVData.WVert g0;
+    val (bn,left) = Graph.add_vertex (Graph.OVData.NVert bnode) g0; 
+    val left = left |> Graph.doadd_edge (Graph.Directed,edge) inp bn
+                    |> Graph.doadd_edge (Graph.Directed,edge) bn outp;
+    val (fno,right) = Graph.add_vertex (Graph.OVData.NVert fnode) g0; 
+    val (sno,right) = Graph.add_vertex (Graph.OVData.NVert snode) right;
+    val right = right |> Graph.doadd_edge (Graph.Directed,edge) inp sno
+                      |> Graph.doadd_edge (Graph.Directed,edge) sno fno
+                      |> Graph.doadd_edge (Graph.Directed,edge) fno outp;
+  in
+     Theory.Rule.mk (left,right)
+  end;
+
+ fun symmetric_rule rule = Theory.Rule.mk (Theory.Rule.get_rhs rule,Theory.Rule.get_lhs rule);
+
+ val combine_gnodes_to_pair = symmetric_rule split_gnode_pairs;
+
+ val del_empty_gnode = 
+  let
+    val edge = GData.EVar "e";
+    val node = GData.GN (GData.GN_Empty);
+    val (inp,g0) = Graph.add_vertex Graph.OVData.WVert Graph.empty;
+    val (outp,g0) = Graph.add_vertex Graph.OVData.WVert g0;
+    val (bn,left) = Graph.add_vertex (Graph.OVData.NVert node) g0; 
+    val left = left |> Graph.doadd_edge (Graph.Directed,edge) inp bn
+                    |> Graph.doadd_edge (Graph.Directed,edge) bn outp;
+    val right = Graph.doadd_edge (Graph.Directed,edge) inp outp g0
+  in
+     Theory.Rule.mk (left,right)
+  end;
+
+ val gnode_rs = Theory.Ruleset.empty
+            |> Theory.Ruleset.add_fresh_rule (R.mk "del_empty",del_empty_gnode)
+            |> (fn (rn,rs) => Theory.Ruleset.activate_rule rn rs)
+            |> Theory.Ruleset.add_fresh_rule (R.mk "split_pair",split_gnode_pairs)
+            |> (fn (rn,rs) => Theory.Ruleset.activate_rule rn rs)
+
+ val gnode_one_step  = Theory.RulesetRewriter.apply gnode_rs
+                     #> Seq.map snd;
+
+ fun normalise_gnode g = 
+   case Seq.pull (gnode_one_step g) of
+      NONE => g
+     | SOME (g',_) => normalise_gnode g';
+
+ fun normalise_combine_gnodes g = 
+   case Seq.pull (Util.rewrite_lazy combine_gnodes_to_pair g) of
+     NONE => g
+   | SOME (g',_) => normalise_combine_gnodes g';
+
+      
+end (* functor *)
