@@ -57,6 +57,7 @@ struct
   
   fun induct_tac' rule vars ith goalthm = 
       let
+        val _ = rtechn_tracing ("apply induction on: " ^ (hd vars))
           (*Dummy context for the sake of Isar*)
         val ctxt = Proof_Context.init_global (Thm.theory_of_thm goalthm);
         val (ithings, non_ithings) = inductable_things_in_sg ith goalthm;
@@ -80,11 +81,19 @@ struct
   fun induct_on_first_var_tac i thm = 
     let 
       val (vars, _) = inductable_things_in_sg i thm;
-      val var = (fst o hd)  vars
+      val var = (fst o hd) vars
     in 
       induct_tac' NONE  [var] i thm 
     end
   
+  fun induct_on_nth_var_tac n i thm = 
+    let 
+      val (vars, _) = inductable_things_in_sg i thm;
+      val var = fst (nth vars n)
+    in 
+      induct_tac' NONE  [var] i thm 
+    end
+
   (* apply induction on the all applicable vars *)
   fun induct_tac i thm = 
     let 

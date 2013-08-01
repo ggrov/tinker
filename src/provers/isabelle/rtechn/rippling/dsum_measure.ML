@@ -280,6 +280,41 @@ val pretty = pretty_short;
 
 val print = Pretty.writeln o pretty;
 
+
+(*
+  some interfaces
+*)
+(*
+fun get_mestr (Mes rep) = #mestr rep;
+fun get_dsum (Mes rep) = #dsum rep;
+*)
+
+fun is_better_mes new_es old_es =
+  let 
+    fun ord x y = if (not(snd y) andalso snd x) orelse (fst x) < (fst y) then true else false
+    fun get_min base (x :: xs) = 
+      if ord x base
+      then get_min x xs 
+      else get_min base xs
+    | get_min base [] = base;
+    fun has_sink e = (Embed.contains_sink o Embed.get_eterm) e
+    fun get_dsum_of_mes es =     
+      maps (fn y => (init y |> map (fn x => (x, has_sink y)))) es 
+      |> map (fn x => ((get_dsum o fst) x, snd x))
+      |> get_min (999, false) ;
+    val new_dsum = get_dsum_of_mes new_es
+    val old_dsum = get_dsum_of_mes old_es
+    val _ = Pretty.block [Pretty.str "new dsum: ", 
+                          Pretty.str(if snd new_dsum then "(yes, " else "(no, "), 
+                          Pretty.str (Int.toString (fst new_dsum)), 
+                          Pretty.str ") "] |> Pretty.writeln
+    val _ = Pretty.block [Pretty.str "old dsum: ", 
+                          Pretty.str(if snd old_dsum then "(yes, " else "(no, "), 
+                          Pretty.str (Int.toString (fst old_dsum)), 
+                          Pretty.str ") "] |> Pretty.writeln
+  in
+    ord new_dsum old_dsum
+  end
 end;
 
 

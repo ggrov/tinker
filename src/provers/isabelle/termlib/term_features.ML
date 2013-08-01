@@ -217,20 +217,27 @@ struct
 (* measurment for rippling *)
   fun gen_occl' l  i = if i > 0 then gen_occl' ([i] :: l)  (i - 1)  else l;
   val gen_occl = gen_occl' [];
-   
-  fun get_decreased_measures ctxt skel old_gterm new_gterm = 
+
+  fun is_measure_decreased ctxt skel old_gterm new_gterm = 
     let
       val ienv = (InstEnv.init ctxt);
       val ectxt = Embed.Ectxt.init ienv ParamRGraph.empty;
-      val old_embeding = Embed.embed ectxt skel old_gterm |> Seq.list_of;
-      val new_embedding = Embed.embed ectxt skel new_gterm |> Seq.list_of
+      val old_embeddings = Embed.embed ectxt skel old_gterm |> Seq.list_of;
+      val new_embeddings = Embed.embed ectxt skel new_gterm |> Seq.list_of;
+(*
+      fun pretty_dsum (a,b) = 
+        if a = NONE then Pretty.block [Pretty.str(Int.toString b), Pretty.str"_", Pretty.str "NONE"]
+        else Pretty.block [Pretty.str(Int.toString b), Pretty.str"_", Pretty.str "SOME sink"];
+*)
+      val _ = Pretty.block [Pretty.str " next g - ",
+                            (Syntax.pretty_term ctxt new_gterm)] |> Pretty.writeln;
+      val _ = Pretty.block [Pretty.str " cur g - ", 
+                            (Syntax.pretty_term ctxt old_gterm)] |>  Pretty.writeln;
     in
-      FlowMeasure.better_next_measures (FlowMeasure.init_measures old_embeding) new_embedding
-    end;
-    
-  fun is_measure_decreased ctxt skel old_gterm new_gterm =  
-    case get_decreased_measures ctxt skel old_gterm new_gterm |> FlowMeasure.Col.list_of of [] => false
-      | _ => true;
+      DB_DSumMeasure.is_better_mes new_embeddings old_embeddings
+    end
+
+
  
   (* return a list of pair of rule and occ to subst *)
   fun get_decreased_measure_params ctxt skel matches gtrm = 
@@ -250,7 +257,8 @@ struct
             occL;
         in
          filter 
-         (fn (_,y) => (is_measure_decreased ctxt skel gtrm y))
+         (fn ((_,r),y) => ((tracing ("Test measure on rule : "^ (Substset.name_of_rule r)))
+          ;is_measure_decreased ctxt skel gtrm y))
          possL
         end
     in

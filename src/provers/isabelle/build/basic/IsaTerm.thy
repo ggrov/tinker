@@ -4,7 +4,7 @@ imports
  "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                                                          
 begin         
 ML{*
-  val isar_tracing = (tracing) (*fn _ => ()*);
+  val isar_tracing = (*tracing*) (fn _ => ());
 *}
 
 (* wrapping trm with name structure *)
@@ -21,8 +21,9 @@ ML{*
  
 (* measure and skeleton *)
   ML_file "../../rtechn/rippling/measure_traces.ML"
-  ML_file "../../rtechn/rippling/measure.ML" 
-  ML_file "../../rtechn/rippling/flow_measure.ML"
+  ML_file "../../rtechn/rippling/measure.ML"
+  (*ML_file "../../rtechn/rippling/flow_measure.ML"*)
+  ML_file "../../rtechn/rippling/dsum_measure.ML" 
 
 (* wave rule set *)
   ML_file  "../../rtechn/rippling/rulesets/substs.ML"
@@ -30,7 +31,7 @@ ML{*
 (* don't think this is the right place to place them ? 
    need to further refactor the rippling and induct, i.e. seperate the feature with tac*)
                           
-  ML_file "../../termlib/term_fo_au.ML"
-  ML_file "../../termlib/term_features.ML"    
+  ML_file "../../termlib/term_fo_au.ML"  
+  ML_file "../../termlib/term_features.ML"  
 
 end

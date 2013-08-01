@@ -77,7 +77,7 @@ ML{*
             |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "strong_fert"));
 
 (* setup up induct *)
-  val (induct_tac : Proof.context -> int -> tactic)  = fn _ => InductRTechn.induct_on_first_var_tac;
+  val (induct_tac : Proof.context -> int -> tactic)  = fn _ => (*InductRTechn.induct_on_first_var_tac*)InductRTechn.induct_tac;
   val induct = RTechn.id
               |> RTechn.set_name (RT.mk "induct")
               |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "induct"));
@@ -178,7 +178,7 @@ setup {* PSGraphMethod.add_graph ("hierarchical",psgraph_nest) *}
 (* DEMO2: a slightly life-like example *)
   declare [[psgraph = simple]]
   lemma "A \<Longrightarrow> (A \<and> A)  \<and> (A \<longrightarrow> A)"
-  (*apply (ipsgraph simple)*)
+  apply (psgraph simple goalf : depth_first searchf : depth_first)
   oops
 
 (* DEMO3: induct and rippling *)

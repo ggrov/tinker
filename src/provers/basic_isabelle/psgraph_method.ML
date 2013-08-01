@@ -105,9 +105,9 @@ struct
 
   fun ipsgraph_method str ctxt =  SIMPLE_METHOD (ipsgraph_tac str ctxt);
 
-  fun psgraph_tac' ((name, eval), search) ctxt thm  =
+  fun psgraph_tac' ((name, goalf), searchf) ctxt thm  =
    let 
-     val _ = tracing (eval ^ " & " ^ search^"in psgraph")
+     (*val _ = tracing (goalf ^ " & " ^ searchf^" in psgraph")*)
      val (ps,pp) = init_prf ctxt thm
      val th = Proof_Context.theory_of ctxt
      val psgraph = 
@@ -115,21 +115,40 @@ struct
         of "default" 
           => get_graph th (Config.get ctxt psgraph)
         | _ => get_graph th name
+      fun set_goalf edata =
+        case goalf of 
+          "dummy" => edata
+        | str =>  EData.set_evalf str edata
+      fun set_searchf edata =
+        case searchf of 
+          "dummy" => edata
+        | str =>  EData.set_searchf str edata
      (* to do: very slow so no backtracking! *)
      val get_thm_seq = Seq.of_list o map thm_of_pplan o maps (EVal.evaluate_full_one)
    in
      EVal.init_of psgraph (ps,pp)
+     |> map (set_goalf o set_searchf)
      |> get_thm_seq
    end
-
-  fun ipsgraph_tac'  (((mode, name), eval), search) ctxt thm = 
+ 
+  (* to do: check that goalf and searchf are defined *)
+  fun ipsgraph_tac'  (((mode, name), goalf), searchf) ctxt thm = 
     let
-      val _ = tracing (eval ^ " & " ^ search ^ "in ipsgraph")
+      (*val _ = tracing (eval ^ " & " ^ search ^ "in ipsgraph")*)
       val (ps,pp) = init_prf ctxt thm
       val th = Proof_Context.theory_of ctxt
+      fun set_goalf edata =
+        case goalf of 
+          "dummy" => edata
+        | str =>  EData.set_evalf str edata
+      fun set_searchf edata =
+        case searchf of 
+          "dummy" => edata
+        | str =>  EData.set_searchf str edata
       fun init_edata psgraph = 
         EVal.init_of psgraph (ps,pp) 
-        |> hd (* FIXME: only handle the first goal *);
+        |> map (set_goalf o set_searchf)
+        |> hd (* FIXME: only handle the first branch *);
       fun init_edata_with_graph graph = 
         of_graph th graph
         |> init_edata
@@ -147,10 +166,10 @@ struct
       |> Seq.single
    end
    
-  fun full_psgraph_tac (((mode, name), eval), search)= 
+  fun full_psgraph_tac (((mode, name), goalf), searchf)= 
     case mode
-    of "auto" => psgraph_tac' ((name, eval), search)
-    | _  => ipsgraph_tac' (((mode, name), eval), search)
+    of "auto" => psgraph_tac' ((name, goalf), searchf)
+    | _  => ipsgraph_tac' (((mode, name), goalf), searchf)
 
   fun full_psgraph_method arg ctxt =  SIMPLE_METHOD (full_psgraph_tac arg ctxt);
 
@@ -180,8 +199,8 @@ struct
       || (Args.$$$ "(" |-- Args.$$$ "interactive" --|  Args.$$$ ")" -- Scan.optional Args.name "default") 
       || (fn m => Scan.optional Args.name "default" m
           |> (fn x => ( ("auto", fst x), snd x))))
-      -- Scan.optional (Args.$$$ "eval" -- Args.$$$ ":"  |-- Args.name) "dummy_eval"
-      -- Scan.optional (Args.$$$ "search" -- Args.$$$ ":" |-- Args.name) "dummy_search"
+      -- Scan.optional (Args.$$$ "goalf" -- Args.$$$ ":"  |-- Args.name) "dummy_goalf"
+      -- Scan.optional (Args.$$$ "searchf" -- Args.$$$ ":" |-- Args.name) "dummy_searchf"
       );
 
 (* setup methods in isabelle *)

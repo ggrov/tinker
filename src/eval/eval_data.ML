@@ -237,7 +237,7 @@ struct
   val set_bevalf = update_bevalf o K;
 
   fun init_active graph vs =
-     Active {graph = graph, gnodes = vs, searchf = "depth-first", evalf = "depth-first", parent = NONE}
+     Active {graph = graph, gnodes = vs, searchf = "depth_first", evalf = "depth_first", parent = NONE}
 
   fun init_branch prf graph goals vs  =
     Branch {active = init_active graph vs, pplan = prf, goals = goals};

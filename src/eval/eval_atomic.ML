@@ -222,14 +222,18 @@ struct
    let 
      fun appf atom = apply_appf edata gnode atom
      fun apply_one (pnds,pplan) =
-        (EData.get_current edata
+         Seq.single (EData.get_current edata
            |> EData.set_bpplan pplan
-           |> EData.add_bgoals pnds ,
+           |> EData.add_bgoals pnds,
          partition pnds gnode goal_typs)
+      handle partition_exp _ => Seq.empty
    in
     case (RTechn.get_appf rtechn) of
        RTechn.Appf atom => appf atom 
-                       |> Seq.map apply_one
+                       (*|> Seq.list_of
+                       |> map apply_one
+                       |> Seq.of_list*)
+                       |> Seq.maps apply_one
       | _ => Seq.empty (* TODO: raise exception *)
   end
 

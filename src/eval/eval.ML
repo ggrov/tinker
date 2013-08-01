@@ -29,8 +29,8 @@ struct
 
   (* to do : add this into contxt to allow users to 
       define their own functions, maybe more information required? *)
-  fun evalf new old "breath-first" = old @ new
-   |  evalf new old "depth-first" = new @ old
+  fun evalf new old "breath_first" = old @ new
+   |  evalf new old "depth_first" = new @ old
    |  evalf new old _ = new @ old;
 
  (* fixme: may loose goals! *)
@@ -283,8 +283,8 @@ struct
    datatype result = Good of EData.T | Bad | Cont of EData.T
 
    (* to do : add this into contxt to allow users to define their own functions *)
-   fun searchf new old "breath-first" = old @ new
-    |  searchf new old "depth-first" = new @ old
+   fun searchf new old "breath_first" = old @ new
+    |  searchf new old "depth_first" = new @ old
     |  searchf new old _ = new @ old;
 
    fun update_branches edata branches =
@@ -344,8 +344,8 @@ struct
     else
      EGraph.Util.all_rtechns (EData.get_graph edata)
      |> map (evaluate edata)
-     |> pick_first_branch edata;
-    
+     |> pick_first_branch edata
+
    (* depth first search  *)
    fun evaluate_full edata = 
      case evaluate_arbitrary edata of
@@ -361,7 +361,7 @@ struct
 
    (* depth first search  *)
    fun evaluate_full_one edata = 
-     case evaluate_next edata of
+     case evaluate_arbitrary edata of
        Good edata' => [EData.get_pplan edata']
      | Bad => (case EData.next_branch edata of
             NONE => []
