@@ -1,0 +1,50 @@
+fun conj_tac (GOAL as (asmlist, goal))= 
+  let 
+     val (conj1, conj2) = dest_%and% goal 
+  in
+    ([(asmlist,conj1), (asmlist,conj2)],
+     fn [th1, th2] => %and%_intro th1 th2) 
+  end ;
+
+val g = ([%<%A:BOOL%>%, %<%B:BOOL%>%, %<%C:BOOL%>%], %<% A %and% B %and% C%>%);
+
+bc_thm_tac %and%_intro ;
+
+val goal = set_goal g;
+top_goal_state();
+print_goal_state (top_goal_state()) ;
+top_goal_state();
+print_goal_state (top_goal_state()) ;
+apply_tactic(conj_tac);
+top_goal_state();
+print_goal_state (top_goal_state()) ;
+set_labelled_goal "2";
+apply_tactic(conj_tac);
+top_goal_state();
+print_goal_state (top_goal_state()) ;
+set_labelled_goal "2.2";
+a strip_tac;
+top_goal_state();
+print_goal_state (top_goal_state()) ;
+a strip_tac;
+top_goal_state();
+print_goal_state (top_goal_state()) ;
+
+asms (top_goal_state_thm ());
+top_goals();
+
+plus_assoc_thm;
+Seq.single;
+
+top_goal();
+get_asms;
+asm_rule;
+
+get_axiom "hol" "ext";
+get_thm "hol" "conj_rule";
+print_theory "hol";
+
+Seq.empty;
+
+OS.FileSys.getDir();
+use "setup";
