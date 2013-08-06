@@ -1,9 +1,8 @@
-theory eval_defs                                          
-imports L
+theory ThyRippling                                          
+imports BIsaMEth
 begin
 
 ML{*
-
 (* setup simp tac *) 
   fun simp_tac (ctxt: Proof.context)  = 
     let
@@ -93,6 +92,12 @@ ML{*
   val psgraph_induct_ripple = psf PSGraph.empty |> PSGraph.load_atomics default_tacs;
 
 *}
+lemma test: "l = l@ []" by auto;
+ML{*
+Thm.derivation_name @{thm "test"};
+*}
+(* setup wrule attribute *)
+attribute_setup wrule = {* Attrib.add_del wrule_add wrule_del *} "maintaining a list of wrules"
 
 setup {* PSGraphMethod.add_graph ("induct_ripple",psgraph_induct_ripple) *}
 declare [[psgraph = induct_ripple]]

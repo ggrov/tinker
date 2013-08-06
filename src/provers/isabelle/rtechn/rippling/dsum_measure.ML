@@ -291,7 +291,8 @@ fun get_dsum (Mes rep) = #dsum rep;
 
 fun is_better_mes new_es old_es =
   let 
-    fun ord x y = if (not(snd y) andalso snd x) orelse (fst x) < (fst y) then true else false
+    (*fun ord x y = if (not(snd y) andalso snd x) orelse (fst x) < (fst y) then true else false*)
+    fun ord x y = if  (fst x) < (fst y) then true else false
     fun get_min base (x :: xs) = 
       if ord x base
       then get_min x xs 
@@ -304,14 +305,14 @@ fun is_better_mes new_es old_es =
       |> get_min (999, false) ;
     val new_dsum = get_dsum_of_mes new_es
     val old_dsum = get_dsum_of_mes old_es
-    val _ = Pretty.block [Pretty.str "new dsum: ", 
+(*    val _ = Pretty.block [Pretty.str "new dsum: ", 
                           Pretty.str(if snd new_dsum then "(yes, " else "(no, "), 
                           Pretty.str (Int.toString (fst new_dsum)), 
                           Pretty.str ") "] |> Pretty.writeln
     val _ = Pretty.block [Pretty.str "old dsum: ", 
                           Pretty.str(if snd old_dsum then "(yes, " else "(no, "), 
                           Pretty.str (Int.toString (fst old_dsum)), 
-                          Pretty.str ") "] |> Pretty.writeln
+                          Pretty.str ") "] |> Pretty.writeln*)
   in
     ord new_dsum old_dsum
   end

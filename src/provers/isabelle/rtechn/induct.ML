@@ -55,7 +55,7 @@ struct
         (Thm.theory_of_thm th) 
         (Library.nth (prems_of th) (i - 1));
   
-  fun induct_tac' rule vars ith goalthm = 
+  fun induct_tac' rule vars ith goalthm ifArbitrary= 
       let
         val _ = rtechn_tracing ("apply induction on: " ^ (hd vars))
           (*Dummy context for the sake of Isar*)
@@ -66,10 +66,11 @@ struct
                                             (* FIXME: Each variable paired with false? *)
                                             SOME (NONE : Binding.binding option,(Free v,true)))
                            inductfrees];
+        val otherVars = if ifArbitrary then [non_ithings @ otherfrees] else []
            (* Throw away Isar related stuff and only take the Thm.thm seq *)
         val nw_thms = 
             Seq.map snd (Induct.induct_tac
-                           ctxt false insts [non_ithings @ otherfrees] [] rule [] 1 goalthm)
+                           ctxt false insts otherVars [] rule [] 1 goalthm)
         in
          (* the freezeT is a hack to correct a bug/feature in 
             InductTac that changes type frees into meta-type vars: 
@@ -101,6 +102,13 @@ struct
       val (vars, _) = inductable_things_in_sg i thm 
       val ivars = map (fn (x, _) => [x]) vars |> Seq.of_list
     in 
-      Seq.maps (fn var => induct_tac' NONE var i thm) ivars
+      (* only consider the case with all arbitrary vars *)
+      Seq.maps 
+        (fn var => induct_tac' NONE var i thm true) ivars 
+      (*Seq.append
+      (Seq.maps 
+        (fn var => induct_tac' NONE var i thm true) ivars)
+      (Seq.maps 
+        (fn var => induct_tac' NONE var i thm false) ivars)*)
     end
 end (*end of struct induct *)

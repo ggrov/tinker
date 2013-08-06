@@ -1,6 +1,6 @@
 (* simple test of proof representation *)
 theory IsaTerm                                                                                                                                                                                             
-imports           
+imports         
  "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                                                          
 begin         
 ML{*
@@ -21,7 +21,7 @@ ML{*
  
 (* measure and skeleton *)
   ML_file "../../rtechn/rippling/measure_traces.ML"
-  ML_file "../../rtechn/rippling/measure.ML"
+  ML_file "../../rtechn/rippling/measure.ML" 
   (*ML_file "../../rtechn/rippling/flow_measure.ML"*)
   ML_file "../../rtechn/rippling/dsum_measure.ML" 
 
@@ -30,7 +30,7 @@ ML{*
 
 (* don't think this is the right place to place them ? 
    need to further refactor the rippling and induct, i.e. seperate the feature with tac*)
-                          
+                         
   ML_file "../../termlib/term_fo_au.ML"  
   ML_file "../../termlib/term_features.ML"  
 

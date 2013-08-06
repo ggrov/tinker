@@ -1,5 +1,5 @@
 (* simple test of proof representation *)
-theory BIsaMeth                                             
+theory BIsaMeth                                              
 imports       
   BIsaP                                                                             
 begin
@@ -17,6 +17,7 @@ ML_file "../../../interface/json_protocol/protocol.ML"
 
 ML_file "../psgraph_method.ML"        
 
+lemma test: "a = ((a::nat) * 1)" by auto
 
  -- "method to apply proof strategy"
 

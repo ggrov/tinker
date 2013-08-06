@@ -52,8 +52,9 @@ struct
     fun get_hyps_and_goal ptrm = 
       let
         val sg = ptrm |> TF.fix_alls_in_term
-        val hyps  = Logic.strip_imp_prems sg |> map TF.fix_alls_in_term
-        val goal = Logic.strip_imp_concl sg |> TF.fix_alls_in_term
+        val hyps  = Logic.strip_imp_prems sg |> map TF.fix_alls_as_var 
+        val goal = Logic.strip_imp_concl sg (*|> TF.fix_alls_as_var*)
+ (* TODO: this may cause some problem due to the same binding and name in both hyps and goal *)
       in
         (hyps, goal)
       end
@@ -104,9 +105,9 @@ struct
          val thy = #pctxt pn |> Proof_Context.theory_of
          val (hyps, goal) = get_hyps_and_goal (#ptrm pn)
          val embedd_hyp =
-          filter (fn hyp => TF.ctxt_embeds ctxt hyp goal) hyps
+          filter (fn hyp => TF.ctxt_embeds ctxt  hyp goal) hyps (* use the hyp with no bindings *)
           |> hd (* only get the first embedding *)
-         val wrules = BasicRipple.get_matched_wrules thy goal
+         val wrules = BasicRipple.get_matched_wrules ctxt goal
       in
         TF.has_measure_decreasing_rules ctxt embedd_hyp wrules goal
         (*|> (fn x => if x then (isar_tracing "find decreased measure !"; x) 

@@ -220,7 +220,7 @@ struct
 
   fun is_measure_decreased ctxt skel old_gterm new_gterm = 
     let
-      val ienv = (InstEnv.init ctxt);
+      val ienv = (InstEnv.of_trm ctxt skel);
       val ectxt = Embed.Ectxt.init ienv ParamRGraph.empty;
       val old_embeddings = Embed.embed ectxt skel old_gterm |> Seq.list_of;
       val new_embeddings = Embed.embed ectxt skel new_gterm |> Seq.list_of;
@@ -229,12 +229,19 @@ struct
         if a = NONE then Pretty.block [Pretty.str(Int.toString b), Pretty.str"_", Pretty.str "NONE"]
         else Pretty.block [Pretty.str(Int.toString b), Pretty.str"_", Pretty.str "SOME sink"];
 *)
+   (*   val _ =  Pretty.block [Pretty.str " skel - ",
+                            (Syntax.pretty_term ctxt skel)] |> Pretty.writeln;
       val _ = Pretty.block [Pretty.str " next g - ",
                             (Syntax.pretty_term ctxt new_gterm)] |> Pretty.writeln;
       val _ = Pretty.block [Pretty.str " cur g - ", 
                             (Syntax.pretty_term ctxt old_gterm)] |>  Pretty.writeln;
+*)
     in
       DB_DSumMeasure.is_better_mes new_embeddings old_embeddings
+      (*FlowMeasure.better_next_measures  (FlowMeasure.init_measures old_embeddings) new_embeddings
+      |> FlowMeasure.Col.list_of 
+      |> length 
+      |> (fn x => if x > 0 then (writeln (Int.toString x );writeln "is better! "; true) else ("NOT better! ";false))*)
     end
 
 
@@ -257,8 +264,8 @@ struct
             occL;
         in
          filter 
-         (fn ((_,r),y) => ((tracing ("Test measure on rule : "^ (Substset.name_of_rule r)))
-          ;is_measure_decreased ctxt skel gtrm y))
+         (fn ((_,r),y) => ((*writeln ("Test measure on rule : "^ (Substset.name_of_rule r));*)
+          is_measure_decreased ctxt skel gtrm y))
          possL
         end
     in
@@ -299,7 +306,23 @@ struct
       val fvs = map Free 
                     (Name.variant_list names (map fst alls)
                        ~~ (map snd alls));
-    in ((subst_bounds (fvs,t))(*, fvs uncomment it, as it's not useful here -- LYH*)) end;
+    in ((subst_bounds (fvs,t))) end;
+
+  fun fix_alls_as_var alledt = 
+    let
+      val t = Term.strip_all_body alledt;
+      val alls = rev (Term.strip_all_vars alledt);
+      val varnames = map (fst o fst o Term.dest_Var) (Misc_Legacy.term_vars t)
+      val names = Misc_Legacy.add_term_names (t,varnames);
+      val vars = Name.variant_list names (map fst alls);
+      fun gen_idx_l 0 = []
+        | gen_idx_l n = (n -1)  :: (gen_idx_l (n-1)) 
+      val idx_list = gen_idx_l (length vars)
+      val fvs = map Var 
+                    ((vars
+                     ~~ (idx_list))
+                       ~~ (map snd alls))
+    in ((subst_bounds (fvs,t))) end;
 
 end (* struct *)
 

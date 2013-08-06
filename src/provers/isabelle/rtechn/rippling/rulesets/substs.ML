@@ -129,5 +129,11 @@ struct
 
 end;
 
+structure WRule = Named_Thms
+  (val name = @{binding "wrule"}
+   val description = "Theorems for rippling");
+val wrule_add = Thm.declaration_attribute WRule.add_thm
+val wrule_del = Thm.declaration_attribute WRule.del_thm
+
 structure Substset: SUBSTS_RULES = SubstsetDB;
 
