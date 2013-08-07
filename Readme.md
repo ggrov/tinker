@@ -62,13 +62,13 @@ This is illustrate under `Example 1` in the `example.thy` file with the asm grap
 Interactive proof session with the GUI
 ---------------------------------------------------------------------------
 
-To use the interactive GUI, go to the `contrib` directly of your Isabelle installation and execute
+To use the interactive GUI, go to the `contrib` directory of your Isabelle installation and execute
 the following commands:
     
     cd quantomatic/scala
     sbt run
     
-You will then be given a set of options. Here, chose the option for `quanto.gui.GraphEditor`.
+You will then be given a set of options. Here, choose the option for `quanto.gui.GraphEditor`.
 Please note that you may need an internet in order to fetch dependent libraries when you run
 `sbt` for the first time.
     
