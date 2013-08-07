@@ -199,8 +199,8 @@ struct
       || (Args.$$$ "(" |-- Args.$$$ "interactive" --|  Args.$$$ ")" -- Scan.optional Args.name "default") 
       || (fn m => Scan.optional Args.name "default" m
           |> (fn x => ( ("auto", fst x), snd x))))
-      -- Scan.optional (Args.$$$ "goalf" -- Args.$$$ ":"  |-- Args.name) "dummy_goalf"
       -- Scan.optional (Args.$$$ "searchf" -- Args.$$$ ":" |-- Args.name) "dummy_searchf"
+      -- Scan.optional (Args.$$$ "goalf" -- Args.$$$ ":"  |-- Args.name) "dummy_goalf"
       );
 
 (* setup methods in isabelle *)

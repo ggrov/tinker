@@ -2,7 +2,7 @@ theory intro
 imports   "../../provers/basic_isabelle/build/BIsaMeth"  
 begin
 ML{*
- val path = "" (* set your path here *)
+ val path = "" (* set your path of Proof Strategy language first !! *)
 *}
 setup {* PSGraphMethod.read_graph ("intro",path ^ "psgraph/src/examples/LPAR13/intro.psgraph") *}      
 

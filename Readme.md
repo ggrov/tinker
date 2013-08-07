@@ -38,16 +38,17 @@ If you wish to use GUI in the interactive proof session, you'll need the Scala B
 
 Usage
 =====
-To demonstrate the usage, go into the psgraph/src/examples/LAPR13 directory and load the file intro.thy from Isabelle 2013. Please set the path of the Proof Strategy language accordingly.
-
+To demonstrate the usage, go into the psgraph/src/examples/LAPR13 directory and load the file 'example.thy' from Isabelle 2013. 
 
 Automated proof session with Proof Strategy language in Isabelle
 ----------------------------------------------------------------
-To run the proof strategy (e.g. the intro tactic from LPAR'13) in the automated mode 
+To run the proof strategy in the automated mode by using the command: 
 
-Uncomment the line
-
-	apply (psgraph intro)
+	apply (psgraph <name of the psgraph>)
+	
+in the Example 1, it is
+ 
+	apply (psgraph asm)
 
 
 Interactive proof session with Proof Strategy language in Isabelle and GUI
@@ -64,9 +65,9 @@ please note that Internet is required to fetch dependent libraries when it runs 
     
 - Run in the interactive mode:
 
-	1. In Isabelle 2013, uncomment the following line to setup an interactive session:
+	1. In Isabelle 2013, uncomment the following line in the Example 2 to setup an interactive session:
 
-			apply(psgraph (interactive) intro)
+			apply(psgraph (interactive) conj_impI)
 		
 	  If you got an error message in Isabelle 2013, i.e. 
 	  		
@@ -86,6 +87,6 @@ please note that Internet is required to fetch dependent libraries when it runs 
 
 			apply(psgraph (current))
 	
-	2. In GUI, open the file intro.psgraph, then click the button 'Connect' to display the graph. The buttons 'Next' and 'Backtracking' are now available to execute the graph.
+	2. In GUI, open the file 'example_current.psgraph', then click the button 'Connect' to display the graph. The buttons 'Next' and 'Backtracking' are now available to execute the graph.
 	
 	3. To end the current interactive session, click 'Finish' in the GUI.
