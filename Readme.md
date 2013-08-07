@@ -1,92 +1,110 @@
 Installation
 ============
 
-
 Downloading and Installing Isabelle
 -----------------------------------
 
-This code is designed to run on Isabelle2013. Get it [here](http://www.cl.cam.ac.uk/research/hvg/Isabelle/installation.html).
+To use PSGraph with Isabelle, you first need to download and install Isabelle 2013. 
+
+Details of how to do this can be found [here](http://www.cl.cam.ac.uk/research/hvg/Isabelle/installation.html).
 
 
 Downloading and Installing required Libraries 
 ---------------------------------------------
 
-Go to the installation directory of Isabelle. On a Mac this is
+You then need to install some required libraries. First you need to find the 
+installation directory of Isabelle. On a Mac this is typically
 
     cd /Applications/Isabelle2013.app/Isabelle/
 
-Go to the contrib directory:
+Then go to the contrib directory:
 
     cd contrib 
 
-Grab the isaplib and quantomatic libraries with:
+and grab the isaplib and quantomatic libraries with:
 
     git clone -b master git://github.com/Quantomatic/isaplib.git
     git clone -b ps-graph git://github.com/Quantomatic/quantomatic.git
 
+Note that this assumed that you have `git` installed.
 
-Downloading and Installing the Proof Strategy language
+Downloading and Installing PSGraph
 -------------------------------------------------------
+
+You can then download the `psgraph` tool in any folder you like with the command:
 
     git clone -b lpar13 https://github.com/ggrov/psgraph.git
 
 
-Downloading and Installing GUI
+Installing the GUI
 ---------------------------------------------------
-If you wish to use GUI in the interactive proof session, you'll need the Scala Build Tool ([SBT](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html)).
+If you wish to use GUI in the interactive proof session, you'll need the 
+Scala Build Tool ([SBT](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html)).
 
 
 Usage
 =====
-To demonstrate the usage, go into the psgraph/src/examples/LAPR13 directory and load the file 'example.thy' from Isabelle 2013. 
 
-Automated proof session with Proof Strategy language in Isabelle
+The `src/examples/LPAR13` directory of the `psgraph` installation contains a set of example. To
+illustrate open the `example.thy` file in Isabelle 2013 (using the Isabelle/PIDE interface). 
+
+Automated proof session
 ----------------------------------------------------------------
-To run the proof strategy in the automated mode by using the command: 
+You can run the psgraph method in the automated mode with the command: 
 
 	apply (psgraph <name of the psgraph>)
 	
-in the Example 1, it is
+This is illustrate under `Example 1` in the `example.thy` file with the asm graph:
  
 	apply (psgraph asm)
 
 
-Interactive proof session with Proof Strategy language in Isabelle and GUI
+Interactive proof session with the GUI
 ---------------------------------------------------------------------------
 
-To use the interactive GUI, go to the installation directory of Quantomatic (in contrib) and run:
+To use the interactive GUI, go to the `contrib` directly of your Isabelle installation and execute
+the following commands:
     
-    cd scala
+    cd quantomatic/scala
     sbt run
-    # select the option for quanto.gui.GraphEditor
     
-please note that Internet is required to fetch dependent libraries when it runs at the first time.
+You will then be given a set of options. Here, chose the option for `quanto.gui.GraphEditor`.
+Please note that you may need an internet in order to fetch dependent libraries when you run
+`sbt` for the first time.
     
+Then return to the Isabelle GUI, go to `Example 2` of the `example.thy` theory file and uncomment
+the following line
+
+    apply(psgraph (interactive) conj_impI)
     
-- Run in the interactive mode:
+This will open a socket connection to the GUI. This is currently very fragile and if it gets reloaded
+again (e.g. by making any changes to the `example.thy` theory file in Isabelle) it may fail with the 
+error
 
-	1. In Isabelle 2013, uncomment the following line in the Example 2 to setup an interactive session:
+     exception SysErr (Address already in use, SOME EADDRINUSE) raised
+     
+This means that the previous interactive session was closed unexpectedly. You'll need to re-start Isabelle 2013, and
+do this again.
 
-			apply(psgraph (interactive) conj_impI)
-		
-	  If you got an error message in Isabelle 2013, i.e. 
-	  		
-	  		exception SysErr (Address already in use, SOME EADDRINUSE) raised
-	  
-	  it means the previous interactive session was closed unexpectedly. You'll need to re-start Isabelle 2013. 
-	  
-	2. In the GUI, click the button 'Connect' to display the graph. The buttons 'Next' and 'Backtracking' are now available to execute the graph.
+After applying this command go the PSGraph GUI and click the `Connect` button to display the graph. 
+The buttons `Next`, which applies a single evaluation step, and 'Backtrack', which backtracks the last step,
+are now available to execute the graph. 
+
+To end the current interactive session, click the `Finish` button in the GUI, and return to the Isabelle GUI. Here,
+you can see that the sub-goal status has been updated with the result from the evaluation.
+
+There is also a special `current` mode, where the graph which is currently open in GUI is used. `Example 3` of the
+same file illustrates this. Here, uncomment the following line to setup an interactive session:
+
+     apply(psgraph (current))
 	
-	3. To end the current interactive session, click 'Finish' in the GUI.
+In the PSGraph GUI, open the file `example_current.psgraph` (in the same directory as the Isabelle theory file), 
+and click the `Connect` button. You can then interact with the GUI as described above.
+
+More examples
+---------------------------------------------------------------------------
+
+- The `intro.psgraph` (graph) and `intro.thy` (Isabelle theory file using graph) files in the same directory illustrates the intro tactic.
+- The `eval_rippling/rippling.thy` file contains a set of examples for the rippling strategy.
 
 
-
-- There is a special ‘current’ mode, where the graph which is currently open in GUI is used. To run this mode:
-	
-	1. In Isabelle 2013, uncomment the following line to setup an interactive session:
-
-			apply(psgraph (current))
-	
-	2. In GUI, open the file 'example_current.psgraph', then click the button 'Connect' to display the graph. The buttons 'Next' and 'Backtracking' are now available to execute the graph.
-	
-	3. To end the current interactive session, click 'Finish' in the GUI.
