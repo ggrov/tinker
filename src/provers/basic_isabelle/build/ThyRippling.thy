@@ -59,8 +59,8 @@ ML{*
 ML{*
   val gt = SimpleGoalTyp.default;
   val gt_induct = "inductable";
-  val gt_can_ripple = "hyp_embeds;measure_reduces";
-  val gt_rippled = "not(measure_reduces);or(hyp_bck_res,hyp_subst)";
+  val gt_can_ripple = "hyp_embeds;measure_reducible";
+  val gt_rippled = "not(measure_reducible);or(hyp_bck_res,hyp_subst)";
   val gt_weak_fert = "not(hyp_bck_res);hyp_subst;hyp_embeds"
   val gt_strong_fert = "hyp_bck_res;hyp_embeds"
   val gt_not_embeds = "not(hyp_embeds)"

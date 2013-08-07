@@ -203,7 +203,7 @@ struct
            | "hyp_embeds" => (hyp_embeds pn)  |> debug_trace x
            | "inductable" => is_inductable pn  |> debug_trace x
            | "rippling" => ((hyp_embeds pn) andalso (measure_reduces pn)) |> debug_trace x
-           | "measure_reduces" => (measure_reduces pn)  |> debug_trace x
+           | "measure_reducible" => (measure_reduces pn)  |> debug_trace x
            | "hyp_bck_res" => hyp_bck_res pn  |> debug_trace x
            | "hyp_subst" => hyp_subst pn  |> debug_trace x
            | "rippled" => (is_rippled pn) |> debug_trace x
