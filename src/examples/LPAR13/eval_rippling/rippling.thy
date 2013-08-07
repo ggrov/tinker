@@ -5,7 +5,7 @@ begin
 section " Peano Arithmetic Theorems "
 
 lemma add_0_right [simp, wrule]: "a + 0 = (a :: N)"
-apply (induct a, auto)
+apply psgraph
 done
 
 lemma add_suc_right [simp, wrule]: "a + (suc b) = suc (a + b)"
