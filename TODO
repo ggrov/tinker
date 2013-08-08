@@ -14,7 +14,7 @@ TO DO:
 2) move socket stuff into isaplib [GG]
     -> still need to be tested and array stuff checked.
 
-1) eval data [hard] -- GG started
+3) eval data [hard] -- GG started
     -> started generalised into ATOMIC.ML signature (combined with prf?)
     -> have done eval_data and eval_appf
    TO DO:
@@ -30,11 +30,13 @@ TO DO:
     - make rule for delete node with empty list
     - make rule for unfold and fold lists
 
-3) update rtechn [make it independent of wires] [medium]
+4) update rtechn [make it independent of wires] [medium]
      - fix HGraph data [later]
      - complete appfn, ord and eq [medium]
 
-6) rtechn_env -> how can we store such data in proof power? [hard] [???]
+5) rtechn_env 
+     -> add a reference filed in the prf representation, so that proof related data can be  referred to.
+     -> how can we store such data in proof power? [hard] 
      -> is it supported in isaplib?
      -> develop a notion of theory or context independent of isabelle?
      -> we can store this as part of the graph!
@@ -43,41 +45,42 @@ TO DO:
      -> generalise tactics: make a atomic.ml structure which has to be instantiated
         for each theorem prover!
 
-7) goalnode  [hard] [DONE]
+6) instantiate proof power for generic [easy] [DONE yet to test]
+
+
+7) GUI for pp
+
+COMPLETED:
+link with GUI [easy] [YL to start][DONE]
+
+goalnode  [hard] [DONE]
      -> change to use list of goals in a goal node
      -> need to generalise this indpendent of isabelle 
      -> maybe leave this for now, as it requires eval stuff and proof representation to
         be done first -> e.g. just use a string
      - make Json representation
 
-10) make a theory functor [easy] [think is DONE]
+make a theory functor [easy] [think is DONE]
      -> combines all the above to create a uniform interface
 
-11) instantiate Isabelle for generic [easy] [DONE]
+instantiate Isabelle for generic [easy] [DONE]
 
-12) instantiate proof power for generic [easy] [DONE yet to test]
-
-13) link with GUI [easy] [YL to start][DONE]
-
-COMPLETED:
-
-8) graphs [medium]
+graphs [medium]
    -> we need to support variables in both edge and vertices, so same subst env has to be held
    -> turn a graph into it's json representation
    -> change to use list of goals in goal node as in ITP paper
 
-1) graph combinators [easy] -- G started -- see psgraph_comb.ML
+graph combinators [easy] -- G started -- see psgraph_comb.ML
     -> should be straightforward for a given graph
     -> try to generalise for all graphs certain operators
 
-1) fix quantomatic/isabelle loading for Isabelle 2013 [easy] [GG]
+fix quantomatic/isabelle loading for Isabelle 2013 [easy] [GG]
 
-
-3) update rtechn [make it independent of wires] [easy]
+update rtechn [make it independent of wires] [easy]
      - fix typed_rtechn.ML and make morphism to rtechn.ML [YL]
      - complete rtechn_json.ML[YL]
 
-4) goal types -> rename from wires [clear] [GG started]
+goal types -> rename from wires [clear] [GG started]
      -> make it fit with CICM paper [YL & GG]
      -> suggest the following files
         - class.ml -> to hold class properties [YL & GG]
@@ -85,8 +88,6 @@ COMPLETED:
         - goaltyp.ml -> to hold a goal type [YL & GG]
      - make json representation [YL & GG]
 
-5) generalise goal type with functors [hard] [YL to start]
+generalise goal type with functors [hard] [YL to start]
     -> make a gtrm structure [YL]
     -> functorise goaltyp over this structure (should then be independent of TP system) [YL]
-
-
