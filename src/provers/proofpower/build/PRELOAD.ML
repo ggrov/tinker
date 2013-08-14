@@ -2,6 +2,7 @@ structure List = SML97BasisLibrary.List;
 structure Char = SML97BasisLibrary.Char;
 exception backdoor_Fail = Fail;
 exception Fail = RunCall.Fail;
+
 (*Template to deal with the val which has been defined in pp but are used accidentally as fresh variables in isap and quanto 
 val backdoor_ = ;
 val _ = PolyML.Compiler.forgetValue "";
@@ -30,7 +31,11 @@ val backdoor_ORELSE = ORELSE;
 val _ = PolyML.Compiler.forgetValue "ORELSE";
 val _ = PolyML.Compiler.forgetFixity "ORELSE";
 
-use "ROOT.ML";
+use_file "ROOT.ML";
+
+(*Export all files to a heap file*)
+PolyML.Project.ensure_at_latest_heap ();
+PolyML.shareCommonData run; PolyML.fullGC ();
 
 (*restore functions*)
 exception Fail  = backdoor_Fail;
@@ -40,16 +45,15 @@ val ORELSE = backdoor_ORELSE;
 val from = backdoor_from;
 val to = backdoor_to;
 
+val EQUAL = E%Q%UAL;
+
 infix 4 diff;
 infix 4 THEN;
 infix 4 ORELSE;
 infix 5 from;
 infix 5 to;
 
-(*Export all files to a heap file*)
-PolyML.Project.ensure_at_latest_heap ();
-PolyML.shareCommonData run; PolyML.fullGC ();
 PolyML.SaveState.saveState "zed_psgraph.heap";
 
-(*The next step is to use "PolyML.SaveState.loadState" the heap file, and then "save_and_exit" in pp interface so
+(*The next step is to use_file "PolyML.SaveState.loadState" the heap file, and then "save_and_exit" in pp interface so
 * that the isaplib + quanto + psgraph heap will stored in pp*)

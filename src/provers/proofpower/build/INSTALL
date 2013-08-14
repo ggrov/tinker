@@ -41,16 +41,16 @@ clean up previous bulid
 go to the build direcory:
   cd PSGRAPHDIR/src/provers/proofpower/build
 
-start pp
+start pp with the fresh empty db
   pp -d zed_psgraph
 
 in the poly ml interface: 
 build isap + quanto + psgraph
-  use "PRELOAD.ml";
+  use_file "PRELOAD.ml";
 load the built heap
   PolyML.SaveState.loadState "zed_psgraph.heap";
 run testing, should be no exceptions or any error messages:
-  use "test.ml"
+  use_file "test.ml"
 save and exit pp;
   save_and_exit 0;
 

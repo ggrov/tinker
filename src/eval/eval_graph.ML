@@ -63,13 +63,13 @@ struct
 
     fun insert_node_on_edge node edge graph0 =
       let val (l,graph') = Graph.add_vertex (Graph.OVData.NVert node) graph0
-          val from = edge_src graph' edge
-          val to = edge_dest graph' edge
+          val from' = edge_src graph' edge
+          val to' = edge_dest graph' edge
           val edata = edge_data graph' edge
       in
         graph' |> Graph.delete_edge edge 
-               |> Graph.doadd_edge (Graph.Directed,edata) from l
-               |> Graph.doadd_edge (Graph.Directed,edata) l to
+               |> Graph.doadd_edge (Graph.Directed,edata) from' l
+               |> Graph.doadd_edge (Graph.Directed,edata) l to'
       end;
 
     (* assumes: 1/1 - so just replace by wire node *)

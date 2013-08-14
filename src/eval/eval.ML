@@ -173,7 +173,7 @@ struct
      |> forall (is_some o (try_get_out (EData.get_graph edata)));
 
   (* to do: set eval properties properties *)
-  (* note: input gnode removed from parent, but will be added on folding *)
+  (* note: input gnode removed from' parent, but will be added on folding *)
   fun unfold_nested edata v = 
    let 
      val lhs_seq = EGraph.matched_lhs (EData.get_graph edata) v
@@ -201,13 +201,13 @@ struct
    end
 
   (* assume exact same boundary *)
-  fun move_gnode from v to =
+  fun move_gnode from' v to' =
     let 
-      val (SOME b) = try_get_out from v
-      val [edge] = EGraph.Util.in_edges to b
-      val (SOME node) = EGraph.Util.lookup_ivertex_data from v
+      val (SOME b) = try_get_out from' v
+      val [edge] = EGraph.Util.in_edges to' b
+      val (SOME node) = EGraph.Util.lookup_ivertex_data from' v
     in
-      EGraph.Util.insert_node_on_edge node edge to
+      EGraph.Util.insert_node_on_edge node edge to'
     end
 
   (* assumes nested , terminated and exact same boundary *)

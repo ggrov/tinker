@@ -138,6 +138,8 @@ struct
      Pretty.str " : ",
      Syntax.pretty_term (get_pnode_ctxt pnode) (get_pnode_concl pnode),
      Pretty.str " ]"]
+     
+  fun intf_pprint pretty = Pretty.writeln pretty
 
   structure Sharing =
   struct

@@ -1,11 +1,12 @@
-structure PpAtomic : ATOMIC  =
+structure PPAtomic : ATOMIC  =
 struct
-  type fact = PpProver.thm
+  type fact = PPProver.thm
   type tactic = TACTIC
-  type context = PpProver.context
-  type concl = PpProver.term
-  type assm = PpProver.term
+  type context = PPProver.context
+  type concl = PPProver.term
+  type assm = PPProver.term
   
+
   type pnode = {pname : string, pctxt : context, gs: GOAL_STATE, glabel : string} 
   type pplan = {opengs : pnode list, usedgs : StrName.NSet.T }
   
@@ -19,7 +20,7 @@ struct
   fun init_with_assm ctxt asms_trms concl_trm : (pnode * pplan) =
     let
       val (pcs, thy) = ctxt
-      val gs = ((*open_theory thy;*) set_merge_pcs pcs; set_goal (asms_trms, concl_trm) ; top_goal_state());
+      val gs = ((*open_theory thy;*) set_merge_pcs pcs; set_goal (asms_trms, concl_trm); top_goal_state());
       val ctxt = get_current_pc();
       val pname = StrName.NSet.new StrName.NSet.empty "g"
       val pnode = {pname = pname , pctxt = ctxt, gs = gs, glabel = ""};
@@ -116,6 +117,12 @@ struct
   fun get_pnode_concl pnode = (push_goal_state (#gs pnode) ; top_goal()) |> snd
   
   fun get_pnode_ctxt (pnode:pnode) = #pctxt pnode;
+  
+  fun get_open_pnodes pplan = #opengs pplan;
+  
+  fun pretty_concl _ = Pretty.str "pretty_concl - not supported in pp"
+  
+  fun intf_pprint _ = ();
   
   structure Sharing =
   struct

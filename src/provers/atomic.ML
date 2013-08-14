@@ -49,6 +49,7 @@ sig
   val get_pnode_concl : pnode -> concl (* return type concl which would be type term*)
   val get_pnode_ctxt : pnode -> context
   val pretty_concl : pnode -> Pretty.T
+  val intf_pprint : Pretty.T -> unit
 
   structure Sharing : ATOMIC_SHARING
     sharing type Sharing.fact = fact

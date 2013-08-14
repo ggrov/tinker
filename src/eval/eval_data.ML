@@ -97,7 +97,7 @@ sig
 
   val next_branch : T -> (branch * T) option (* moves to next branch *)
   
-  val pretty_goals : T -> Pretty.T
+  val pprint_goals : T -> unit
 
 
 end (* signature *)
@@ -290,11 +290,12 @@ struct
          []    => NONE
      | (x::xs) => SOME (get_current edata,edata |> set_current x |> set_branches xs);
 
-  fun pretty_goals edata = 
+  fun pprint_goals edata = 
     Pretty.chunks
       ([Pretty.str "Open goals in the current psgraph :{"] @
       (get_pplan edata |> Atomic.get_open_pnodes |> map Atomic.pretty_concl) @
       [Pretty.str "}"])
+    |> Atomic.intf_pprint
      
 end; (* functor *)
 
