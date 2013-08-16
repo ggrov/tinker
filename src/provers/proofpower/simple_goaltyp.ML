@@ -69,11 +69,15 @@ struct
       if l = [] then [(hd xs) :: args]
       else ((hd xs) :: args) :: (split_args l) end;
 
+    fun debug_print pn gt ret = 
+      if ret then writeln ("GoalType: " ^ gt ^ " is OK for " ^ (get_pnode_name pn))
+      else writeln ("GoalType: " ^ gt ^ " fails for " ^ (get_pnode_name pn))
+      
     fun lift_list pn [] = false
      |  lift_list pn (x::xs) =
           ((case x of 
-             "top_symbol" => exists I (top_level xs pn)
-           | "has_symbol" => has_symbol xs pn
+             "top_symbol" => exists I (top_level xs pn) |> (fn r => (debug_print pn x r; r))
+           | "has_symbol" => has_symbol xs pn |> (fn r => (debug_print pn x r; r))
            | "not"       => not (lift_list pn xs) 
            | "or"        => exists I (map (lift_list pn) (split_args xs)) 
            | "any"       => true (* default *)
