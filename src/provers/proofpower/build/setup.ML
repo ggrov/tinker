@@ -3,57 +3,57 @@
   fun K x = fn _ => x;
   fun x |> f = f x;
   
-  use_file "../termlib/termlib.ML";
+  use "../termlib/termlib.ML";
   use_file "../termlib/term_feature.ML";
   
-  use_file "../../prover.ML";
-  use_file "../pp_prover.ML";
-  use_file "../../atomic.ML";
-  use_file "../pp_atomic.ML";
+  use "../../prover.ML";
+  use "../pp_prover.ML";
+  use "../../atomic.ML";
+  use "../pp_atomic.ML";
 
-  use_file "../../../rtechn_names.ML";
+  use "../../../rtechn_names.ML";
   
 (* rtechn *)
-  use_file "../../../rtechn_names.ML";
-  use_file "../../../rtechn/rtechn.ML"; 
-  use_file "../../../rtechn/rtechn_json.ML";  
+  use "../../../rtechn_names.ML";
+  use "../../../rtechn/rtechn.ML"; 
+  use "../../../rtechn/rtechn_json.ML";  
   
 (* basic goal type*)
-  use_file "../../../goaltype/basic_goaltyp.ML";    
+  use "../../../goaltype/basic_goaltyp.ML";    
 
 (* graph *)
-  use_file "../../../graph/graph_comb.ML"; (* generic for graphs - move to quantomatic? *)
-  use_file "../../../graph/substdata.ML";        
-  use_file "../../../graph/vertex.ML";                            
-  use_file "../../../graph/edge.ML";  
-  use_file "../../../graph/graph.ML";                     
-  use_file "../../../graph/theory.ML";  
+  use "../../../graph/graph_comb.ML"; (* generic for graphs - move to quantomatic? *)
+  use "../../../graph/substdata.ML";        
+  use "../../../graph/vertex.ML";                            
+  use "../../../graph/edge.ML";  
+  use "../../../graph/graph.ML";                     
+  use "../../../graph/theory.ML";  
   
 (* psgraph *)
-  use_file "../../../psgraph/psgraph.ML";   
-  use_file "../../../psgraph/psgraph_comb.ML";  
+  use "../../../psgraph/psgraph.ML";   
+  use "../../../psgraph/psgraph_comb.ML";  
 
 (* eval *)
-  use_file "../../../eval/eval_data.ML";              
-  use_file "../../../eval/eval_atomic.ML";      
-  use_file "../../../eval/eval_graph.ML";                                    
-  use_file "../../../eval/eval.ML"; 
+  use "../../../eval/eval_data.ML";              
+  use "../../../eval/eval_atomic.ML";      
+  use "../../../eval/eval_graph.ML";                                    
+  use "../../../eval/eval.ML"; 
   
 
 (* full goaltype
 
-  use_file "../../../goaltype/goaltyp_data.ML";
-  use_file "../../match_param.ML";
-  use_file "../../../goaltype/class.ML";  
-  use_file "../../../goaltype/link.ML";
+  use "../../../goaltype/goaltyp_data.ML";
+  use "../../match_param.ML";
+  use "../../../goaltype/class.ML";  
+  use "../../../goaltype/link.ML";
 
-  use_file "../../../goaltype/full/goaltyp.ML";  
-  use_file "../../../goaltype/full/gnode.ML";  
-  use_file "../../../goaltype/full/goaltyp_json.ML";  
-  use_file "../../../goaltype/full/goaltyp_match.ML";
-  use_file "../../../goaltype/full/goaltyp_i.ML";
-  use_file "../../../goaltype/full_goaltyp.ML";
-  use_file "../pp_match_param.ML";
+  use "../../../goaltype/full/goaltyp.ML";  
+  use "../../../goaltype/full/gnode.ML";  
+  use "../../../goaltype/full/goaltyp_json.ML";  
+  use "../../../goaltype/full/goaltyp_match.ML";
+  use "../../../goaltype/full/goaltyp_i.ML";
+  use "../../../goaltype/full_goaltyp.ML";
+  use "../pp_match_param.ML";
   
 structure GoalTypData : GOALTYP_DATA = GoalTypDataFun (PPProver);
 structure Class : CLASS = ClassFun (GoalTypData);
@@ -98,17 +98,17 @@ structure EData = EDataFun(structure Atomic = PPAtomic
 structure EVal = EValFun(EData);
 
 (* socket *)
-  use_file "../../../interface/text_socket.ML";
-  use_file "../../../interface/ui_socket.ML";
+  use "../../../interface/text_socket.ML";
+  use "../../../interface/ui_socket.ML";
 
 (* json protocol, they are alreay in Quantolib *)
-  use_file "../../../interface/json_protocol/controller_util.ML";
-  use_file "../../../interface/json_protocol/controller_module.ML";
-  use_file "../../../interface/json_protocol/modules/psgraph.ML";
-  use_file "../../../interface/json_protocol/controller_registry.ML";
-  use_file "../../../interface/json_protocol/protocol.ML";
+  use "../../../interface/json_protocol/controller_util.ML";
+  use "../../../interface/json_protocol/controller_module.ML";
+  use "../../../interface/json_protocol/modules/psgraph.ML";
+  use "../../../interface/json_protocol/controller_registry.ML";
+  use "../../../interface/json_protocol/protocol.ML";
   
   
-  use_file "../pp_intf.ML";
+  use "../pp_intf.ML";
   
 

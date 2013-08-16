@@ -2,6 +2,7 @@
   
   fun set_psg_goal (assms, goal) mode psg searchf goalf = 
     let
+      val ctxt = get_current_pc()
       fun set_goalf edata =
         case goalf of 
           "dummy" => edata
@@ -23,7 +24,7 @@
           of "current" => NONE
           |  _  => init_edata psg |> SOME
       val (SOME edata') = edata
-      val _ = PSGraph.PSTheory.write_dot ("/Users/yuhuilin/Desktop/eval_ui.dot") (EData.get_graph edata') ;
+      (*val _ = PSGraph.PSTheory.write_dot ("/Users/yuhuilin/Desktop/eval_ui.dot") (EData.get_graph edata') ;*)
     in
       UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams edata init_edata_with_graph ;
       print_goal_state (top_goal_state()) 
