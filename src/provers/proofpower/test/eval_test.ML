@@ -4,6 +4,8 @@
   infixr 6 THENG;
   val op THENG = PSComb.THENG;
   
+  init_symbol_table [("and", "%and%"), ("implies", "%implies%")];
+  
   val gt = GoalTyp.default;
   val gt_imp = "top_symbol(implies)";
   val gt_conj = "top_symbol(and)";
@@ -36,9 +38,15 @@
             |> PSGraph.load_atomics default_tacs; 
   val psgraph_simple = (psstrip_conj0 THENG psstrip_conj THENG psstrip_imp THENG psstrip_asm2) PSGraph.empty  
             |> PSGraph.load_atomics default_tacs;
+  
+  val gt_not_imp = "not top_symbol(%implies%)";
+  val psstrip_conj0 =  PSComb.LIFT ([gt_conj],[gt_not_imp, gt_imp]) (step_strip_conj);
+  val psstrip_asm2 = PSComb.LIFT ([gt_not_imp, gt],[]) (step_assm);  
+  val psgraph_simple' = (psstrip_conj0 THENG psstrip_imp THENG psstrip_asm2) PSGraph.empty  
+            |> PSGraph.load_atomics default_tacs;
             
-  val psgraph_simple' = ( psstrip_conj THENG psstrip_any THENG psstrip_asm) PSGraph.empty  
-            |> PSGraph.load_atomics default_tacs;  
+  val graph = PSGraph.get_graph psgraph_simple ;
+  PSGraph.PSTheory.write_dot (path^"graph.dot") graph;
 
   (*
   
@@ -48,7 +56,20 @@
   use_file "../test/eval_test";
   
   simple:
-  set_psg_goal ([%<% A : BOOL %>%], %<% (A %and% A) %and% (A %implies% A) %>%) "dummy" psgraph_simple "dummy" "dummy";
+top_goals();
+
+  val edata0 = EVal.init_with_assm psgraph_simple (get_current_pc()) 
+[%<% A : BOOL %>%] %<% (A %and% A) %and% (A %implies% A) %>%|> hd;
+  PSGraph.PSTheory.write_dot (path^"eval_test0.dot") (EData.get_graph edata0) ;
+  
+  val (EVal.Cont edata1) = EVal.evaluate_arbitrary edata0;
+  val edata1 = EVal.normalise_gnode edata1;
+  
+  val (EVal.Cont edata2) = EVal.eevaluate_arbitrary edata1;
+  val edata2 = EVal.normalise_gnode edata2;
+  
+  val (EVal.Cont edata3) = EVal.evaluate_arbitrary edata2;
+  val edata3 = EVal.normalise_gnode edata3;
   
   buggy:
   

@@ -31,7 +31,7 @@ val backdoor_ORELSE = ORELSE;
 val _ = PolyML.Compiler.forgetValue "ORELSE";
 val _ = PolyML.Compiler.forgetFixity "ORELSE";
 
-use_file "ROOT.ML";
+use "ROOT.ML";
 
 (*Export all files to a heap file*)
 PolyML.Project.ensure_at_latest_heap ();
@@ -45,7 +45,7 @@ val ORELSE = backdoor_ORELSE;
 val from = backdoor_from;
 val to = backdoor_to;
 
-val EQUAL = E%Q%UAL;
+(*val EQUAL = E%Q%UAL;*)
 
 infix 4 diff;
 infix 4 THEN;

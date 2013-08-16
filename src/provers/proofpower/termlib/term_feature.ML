@@ -7,7 +7,7 @@ struct
       case t' of Var(_,_) => NONE
       | App(a,_) => top_level_const a
       | Const(a,_) => SOME t
-      | Simple%lambda% (_,b) => top_level_const b
+      (*| Simple%lambda% (_,b) => top_level_const b*)
     end
 
   fun top_level_str t = 
@@ -15,7 +15,7 @@ struct
       case t' of Var(_,_) => NONE
       | App(a,_) => top_level_str a
       | Const(a,_) => SOME a
-      | Simple%lambda% (_,b) => top_level_str b
+      (*| Simple%lambda% (_,b) => top_level_str b*)
     end
      
   fun const_pred str (Const (s,_)) = (str = s)

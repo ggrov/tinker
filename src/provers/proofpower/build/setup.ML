@@ -4,7 +4,7 @@
   fun x |> f = f x;
   
   use "../termlib/termlib.ML";
-  use_file "../termlib/term_feature.ML";
+  use "../termlib/term_feature.ML";
   
   use "../../prover.ML";
   use "../pp_prover.ML";
@@ -80,9 +80,9 @@ structure GoalTyp_I = GoalTypIFun (structure GoalTyp = GoalTyp
                                           structure GoalTypMatch : GOALTYP_MATCH = GoalTypMatch);
 structure FullGoalTyp : FULL_GOAL_TYP = GoalTyp_I
 *)
-  
+
 (*  simple goaltyp *)
-  use_file "../simple_goaltyp";
+  use "../simple_goaltyp";
 
 structure GoalTyp : BASIC_GOALTYPE = SimpleGoalTyp;
 
@@ -110,5 +110,4 @@ structure EVal = EValFun(EData);
   
   
   use "../pp_intf.ML";
-  
 

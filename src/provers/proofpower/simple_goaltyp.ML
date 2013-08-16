@@ -1,3 +1,7 @@
+val symbol_table : string StrName.NTab.T Unsynchronized.ref  = Unsynchronized.ref StrName.NTab.empty;
+fun init_symbol_table l = symbol_table := StrName.NTab.of_list l;
+    (*StrName.NTab.of_list [("and", Char.toString(Char.chr 177)), ("implies", Char.toString(Char.chr 180))]*);
+
 structure SimpleGoalTyp : BASIC_GOALTYPE = 
 struct
   structure Atomic = PPAtomic;
@@ -6,9 +10,6 @@ struct
   exception gt_exp of string
   val default = "any";
   val default_gnode = "?";
-  
-  val symbol_table: string StrName.NTab.T = 
-    StrName.NTab.of_list [("and", "%and%"), ("implies", "%implies%")];
 
   val ord = String.compare;
   fun eq (t1,t2) = case ord(t1,t2) of EQUAL => true | _ => false;
@@ -35,17 +36,19 @@ struct
     fun top_level' str pn = 
       case TF.top_level_str (get_pnode_concl pn) of
          NONE => false
-       | SOME v => (v = str);
+       | SOME v => (*v = str*)(
+       let (*val (SOME c) = Char.fromString v ; val _ = writeln (Int.toString (Char.ord c))*) val _ = writeln v  val _ = writeln str in v = str end 
+       );
     
     fun top_level strs pn = 
       map (fn str => top_level' 
-      			(case StrName.NTab.lookup symbol_table str of (SOME str') => str' | _ => str) 
+      			(case StrName.NTab.lookup (!symbol_table) str of (SOME str') => str' | _ => str) 
       			pn) 
       strs;
 
     fun has_symbol strs pn = 
       forall (fn str => TF.has_constant_by_str 
-    			(case StrName.NTab.lookup symbol_table str of (SOME str') => str' | _ => str) 
+    			(case StrName.NTab.lookup (!symbol_table) str of (SOME str') => str' | _ => str) 
     			(get_pnode_concl pn)) 
       strs ;
 
@@ -121,3 +124,4 @@ struct
   end
   
 end;
+

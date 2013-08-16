@@ -46,11 +46,11 @@ start pp with the fresh empty db
 
 in the poly ml interface: 
 build isap + quanto + psgraph
-  use_file "PRELOAD.ml";
+  use "PRELOAD.ml";
 load the built heap
   PolyML.SaveState.loadState "zed_psgraph.heap";
 run testing, should be no exceptions or any error messages:
-  use_file "test.ml"
+  use "test.ml"
 save and exit pp;
   save_and_exit 0;
 

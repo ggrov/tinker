@@ -25,7 +25,7 @@ val psgraphSrc = psgraphDir ^ "/../../../../";
 OS.FileSys.chDir psgraphSrc;
 (* Include quantomatic and isaplib *)
 OS.FileSys.chDir (psgraphSrc ^ "/../quantomatic/core/");
-use_file "ROOT.ML";
+use "ROOT.ML";
 OS.FileSys.chDir psgraphSrc;
 
 (*Descripe dependent files*)
