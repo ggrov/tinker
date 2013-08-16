@@ -5,8 +5,8 @@
   val op THENG = PSComb.THENG;
   
   val gt = GoalTyp.default;
-  val gt_imp = "top_symbol(%implies%)";
-  val gt_conj = "top_symbol(%and%)";
+  val gt_imp = "top_symbol(implies)";
+  val gt_conj = "top_symbol(and)";
   
   val step_strip_any = RTechn.id
             |> RTechn.set_name (RT.mk "step_strip_any_tac") (* z_strip_tac for z, strip_tac for hol*)

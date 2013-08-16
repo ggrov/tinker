@@ -24,8 +24,6 @@ struct
   fun has_constant_by_str str t = 
     term_any (fn x => const_pred str (dest_simple_term x) ) t;
 
-  fun has_constant_by_strs ss t = forall (fn s => has_constant_by_str s t) ss;
-
   fun has_constant subtrm t = term_any (fn x => subtrm ~=$ x) t;
   fun has_constants ss t = forall (fn s => has_constant s t) ss;
 

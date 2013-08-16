@@ -82,7 +82,7 @@ structure FullGoalTyp : FULL_GOAL_TYP = GoalTyp_I
 *)
   
 (*  simple goaltyp *)
-  use "../simple_goaltyp";
+  use_file "../simple_goaltyp";
 
 structure GoalTyp : BASIC_GOALTYPE = SimpleGoalTyp;
 

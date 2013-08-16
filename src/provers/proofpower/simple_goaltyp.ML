@@ -6,6 +6,9 @@ struct
   exception gt_exp of string
   val default = "any";
   val default_gnode = "?";
+  
+  val symbol_table: string StrName.NTab.T = 
+    StrName.NTab.of_list [("and", "%and%"), ("implies", "%implies%")];
 
   val ord = String.compare;
   fun eq (t1,t2) = case ord(t1,t2) of EQUAL => true | _ => false;
@@ -34,9 +37,17 @@ struct
          NONE => false
        | SOME v => (v = str);
     
-    fun top_level strs pn = map (fn str => top_level' str pn) strs;
+    fun top_level strs pn = 
+      map (fn str => top_level' 
+      			(case StrName.NTab.lookup symbol_table str of (SOME str') => str' | _ => str) 
+      			pn) 
+      strs;
 
-    fun has_symbol strs pn = TF.has_constant_by_strs strs (get_pnode_concl pn);
+    fun has_symbol strs pn = 
+      forall (fn str => TF.has_constant_by_str 
+    			(case StrName.NTab.lookup symbol_table str of (SOME str') => str' | _ => str) 
+    			(get_pnode_concl pn)) 
+      strs ;
 
     fun liftp pn pred = 
      if pred then SOME (get_pnode_name pn) else NONE; 
