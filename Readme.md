@@ -39,7 +39,8 @@ You can then download the `psgraph` tool in any folder you like with the command
 Installing the GUI
 ---------------------------------------------------
 If you wish to use GUI in the interactive proof session, you'll need the 
-Scala Build Tool ([SBT](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html)).
+ - Scala Build Tool ([SBT](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html)) and;
+ - Graphviz [here](http://www.graphviz.org/Download.php)
 
 
 Usage
