@@ -32,6 +32,24 @@ ML{*
   val edata0 = EVal.init psgraph @{context} @{prop "A --> A"} |> hd;
   val edata1 = EVal.evaluate_any edata0 ;
 *}
+
+(* socket *)
+ML_file "../../../interface/text_socket.ML"
+ML_file "../../../interface/ui_socket.ML"
+
+(* json protocol, they are alreay in Quantolib *)
+
+ML_file "../../../interface/json_protocol/controller_util.ML"
+ML_file "../../../interface/json_protocol/controller_module.ML"
+ML_file "../../../interface/json_protocol/modules/psgraph.ML"
+ML_file "../../../interface/json_protocol/controller_registry.ML"
+ML_file "../../../interface/json_protocol/protocol.ML"
+
+(*
+ML{*
+UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams (SOME edata0) (K edata0)
+*}
+*)
 end;
 
 
