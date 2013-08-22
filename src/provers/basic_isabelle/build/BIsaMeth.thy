@@ -17,7 +17,6 @@ ML_file "../../../interface/json_protocol/protocol.ML"
 
 ML_file "../psgraph_method.ML"        
 
-lemma test: "a = ((a::nat) * 1)" by auto
 
  -- "method to apply proof strategy"
 

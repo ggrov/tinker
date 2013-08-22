@@ -37,7 +37,7 @@
   val psgraph_buggy = (psstrip_any THENG psstrip_any THENG psstrip_any THENG psstrip_any) PSGraph.empty  
             |> PSGraph.load_atomics default_tacs; 
   val psgraph_simple = (psstrip_conj0 THENG psstrip_conj THENG psstrip_imp THENG psstrip_asm2) PSGraph.empty  
-            |> PSGraph.load_atomics default_tacs;
+            (*|> PSGraph.load_atomics default_tacs*);
   
   val gt_not_imp = "not top_symbol(%implies%)";
   val psstrip_conj0 =  PSComb.LIFT ([gt_conj],[gt_not_imp, gt_imp]) (step_strip_conj);
@@ -54,6 +54,8 @@
   
   use "setup";
   use_file "../test/eval_test";
+  
+  set_psg_goal ([%<% A : BOOL %>%] %<% (A %and% A) %and% (A %implies% A) %>%) mode psg searchf goalf ;
   
   simple:
 top_goals();
@@ -78,5 +80,18 @@ top_goals();
   PSGraph.PSTheory.write_dot (path^"eval_test0.dot") (EData.get_graph edata0) ;
   
   val (EVal.Cont edata1) = EVal.evaluate_any edata0;
+  
+  
+   use "setup";
+ use_file "../test/eval_test";
+
+(* Example: run in the interactive mode *)
+ set_psg_goal ([%<% B : BOOL %>%, %<% A : BOOL %>%], %<% (A %and% B) %and% (A %implies% A) %>%) "interactive" psgraph_simple "dummy" "dummy"; 
+
+(* Exmaple run in interactive-current mode *) 
+set_psg_goal ([], %<%A %implies% (A %and% A) %>%) "current"
+PSGraph.empty "dummy" "dummy";
+
+top_goals();
   
   *)

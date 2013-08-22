@@ -90,7 +90,7 @@ struct
     in
       case FocusList.move_next el of NONE (* need to eval now *)
         =>  FocusList.focus el 
-            |> EVal.evaluate_any 
+            |> EVal.evaluate_arbitrary 
             |> update_new_eval_result       
        | SOME el' => 
           (update_data el';

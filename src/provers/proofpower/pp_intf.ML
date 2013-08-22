@@ -1,4 +1,6 @@
   
+  val default_tacs = [("step_strip_any_tac", step_strip_tac), ("step_strip_conj", step_strip_tac), 
+  		      ("step_strip_imp", step_strip_tac), ("step_assm", step_strip_tac)];
   
   fun set_psg_goal (assms, goal) mode psg searchf goalf = 
     let
@@ -12,7 +14,7 @@
           "dummy" => edata
         | str =>  EData.set_searchf str edata
       fun init_edata psgraph = 
-        EVal.init_with_assm psgraph ctxt assms goal 
+        EVal.init_with_assm (PSGraph.load_atomics default_tacs psgraph) ctxt assms goal 
         |> map (set_goalf o set_searchf)
         |> hd (* FIXME: only handle the first branch *);
       fun init_edata_with_graph graph = 
@@ -23,8 +25,6 @@
         case mode
           of "current" => NONE
           |  _  => init_edata psg |> SOME
-      val (SOME edata') = edata
-      (*val _ = PSGraph.PSTheory.write_dot ("/Users/yuhuilin/Desktop/eval_ui.dot") (EData.get_graph edata') ;*)
     in
       UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams edata init_edata_with_graph ;
       print_goal_state (top_goal_state()) 
