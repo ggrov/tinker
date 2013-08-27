@@ -39,7 +39,9 @@ Downloading and Installing PSGraph
 You can then download the `psgraph` tool in any folder you like with either
 
     git clone -b lpar13 https://github.com/ggrov/psgraph
+
 OR 
+
     git clone -b lpar13 git://github.com/ggrov/psgraph.git
 
 Installing the GUI
