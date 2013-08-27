@@ -21,15 +21,13 @@ Then go to the contrib directory:
 
     cd contrib 
 
-and grab the isaplib and quantomatic libraries either
+and grab the isaplib and quantomatic libraries either over https:
 
-  over https:
     git clone -b master  https://github.com/Quantomatic/isaplib
     git clone -b ps-graph https://github.com/Quantomatic/quantomatic
     
-OR 
+OR over ssh:
 
-  over ssh:
     git clone -b master git://github.com/Quantomatic/isaplib.git
     git clone -b ps-graph git://github.com/Quantomatic/quantomatic.git
 
