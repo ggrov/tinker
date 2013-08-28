@@ -39,11 +39,10 @@
   val psgraph_simple = (psstrip_conj0 THENG psstrip_conj THENG psstrip_imp THENG psstrip_asm2) PSGraph.empty  
             (*|> PSGraph.load_atomics default_tacs*);
   
-  val gt_not_imp = "not top_symbol(%implies%)";
+  val gt_not_imp = "not top_symbol(implies)";
   val psstrip_conj0 =  PSComb.LIFT ([gt_conj],[gt_not_imp, gt_imp]) (step_strip_conj);
   val psstrip_asm2 = PSComb.LIFT ([gt_not_imp, gt],[]) (step_assm);  
   val psgraph_simple' = (psstrip_conj0 THENG psstrip_imp THENG psstrip_asm2) PSGraph.empty  
-            |> PSGraph.load_atomics default_tacs;
             
   val graph = PSGraph.get_graph psgraph_simple ;
   PSGraph.PSTheory.write_dot (path^"graph.dot") graph;
@@ -82,6 +81,7 @@ top_goals();
   val (EVal.Cont edata1) = EVal.evaluate_any edata0;
   
   
+
    use "setup";
  use_file "../test/eval_test";
 

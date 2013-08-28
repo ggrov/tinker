@@ -1,6 +1,7 @@
 val symbol_table : string StrName.NTab.T Unsynchronized.ref  = Unsynchronized.ref StrName.NTab.empty;
-fun init_symbol_table l = symbol_table := StrName.NTab.of_list l;
-    (*StrName.NTab.of_list [("and", Char.toString(Char.chr 177)), ("implies", Char.toString(Char.chr 180))]*);
+fun init_symbol_table l = symbol_table := StrName.NTab.of_list l; 
+(* "use_file" can only be used in the top level, otherwise some strange problem will occur,
+ this hack is to avoid the probelm *)
 
 structure SimpleGoalTyp : BASIC_GOALTYPE = 
 struct
@@ -37,7 +38,7 @@ struct
       case TF.top_level_str (get_pnode_concl pn) of
          NONE => false
        | SOME v => (*v = str*)(
-       let (*val (SOME c) = Char.fromString v ; val _ = writeln (Int.toString (Char.ord c))*) val _ = writeln v  val _ = writeln str in v = str end 
+       (*let val _ = writeln v  val _ = writeln str in v = str end *) v = str
        );
     
     fun top_level strs pn = 

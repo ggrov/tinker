@@ -47,12 +47,12 @@ struct
   fun update (tac : tactic) (pnode : pnode, pplan : pplan)  : (pnode list * pplan) = 
     let 
       fun gen_fresh_psgname nset (g : (string list * GOAL)) = 
-        if (fst g) = [] 
+        if (fst g) = [""] 
         then 
           (StrName.NSet.new nset "g",  g)
         else
           (hd (fst g), g)
-      val _ = writeln "called update"
+      (*val _ = writeln "called update"*)
       val _ = ((if (#glabel pnode) = [] then () else set_labelled_goal (hd (#glabel pnode)));
       		apply_tactic tac); (* set current goal and apply tactic*)
       val sgs = top_goals(); (* string list * (term list * term) list *)
