@@ -21,6 +21,8 @@ sig
 
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
+  val psgraph_prover_i : string (* a hack to fix muli-matching in graph rewriting *)
+
   (* could also make an init version with assumptions? *)
   val init : context -> concl -> pnode * pplan
   val init_with_assm : context -> assm list -> concl -> pnode * pplan

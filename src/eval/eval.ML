@@ -287,17 +287,33 @@ struct
     |  searchf new old "depth_first" = new @ old
     |  searchf new old _ = new @ old;
 
-   fun update_branches edata branches =
+   fun update_branches_all edata branches =
      case Seq.list_of branches of
        [] => Bad
-     | xs => (* to do: replace by search data *)
-          (case searchf xs (EData.get_branches edata) (EData.get_searchf edata) of
+     | ys => (* to do: replace by search data *)(writeln (Int.toString (length ys));
+          (case searchf ys (EData.get_branches edata) (EData.get_searchf edata) of
              [] => Bad (* should never happen *)
            | (x::xs) => (* fixme: this should be based on the search strategy *)
                Cont (edata 
                      |> EData.set_current x 
-                     |> EData.set_branches xs));
+                     |> EData.set_branches xs)));
 
+  fun update_branches_single edata branches =
+     case Seq.pull branches of
+       NONE => Bad
+     | SOME (y,ys) => (* to do: replace by search data *)
+     ((case searchf [y] (EData.get_branches edata) (EData.get_searchf edata) of
+             [] => Bad (* should never happen *)
+           | (x::xs) => (* fixme: this should be based on the search strategy *)
+               Cont (edata 
+                     |> EData.set_current x 
+                     |> EData.set_branches xs)));
+
+  val update_branches = 
+    case Atomic.psgraph_prover_i 
+    of "isabelle" => update_branches_all
+     | "proofpower" => update_branches_single
+                   
    (* fixme: only normalise goal nodes for picked branched *)
    fun pick_first_branch edata [] = Bad
     |  pick_first_branch edata (x::xs) = 
@@ -334,6 +350,17 @@ struct
      evaluate edata (get_tactic (EData.get_gnodes edata) edata)
      |> update_branches edata
 
+
+   (* similar to evaluate_any, but only evaluate a single one *)
+   fun evaluate_single edata =
+    if has_terminated edata then
+     (case EData.parent_lhs edata of
+       NONE => Good edata
+       | _ =>  update_branches edata (fold_nested edata))
+    else
+     EGraph.Util.all_rtechns (EData.get_graph edata)
+     |> map (evaluate edata)
+     |> pick_first_branch edata
 
    (* similar to evaluate_any, but only evaluate a single one *)
    fun evaluate_arbitrary edata =

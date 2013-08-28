@@ -21,7 +21,7 @@ struct
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq (* in pp, tactic is deteminted, seq is always single *)
 
   exception atomic_exp of string
-  
+  val psgraph_prover_i = "proofpower";
   (* there is no interface to init a pnode and pplan ?*)
   (* if paralle evalation then it would be problematic*)
   

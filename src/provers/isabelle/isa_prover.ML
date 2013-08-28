@@ -1,3 +1,5 @@
+val psgraph_prover_i = "isabelle";
+
 structure IsaProver : PROVER =
 struct 
   type pos = int list

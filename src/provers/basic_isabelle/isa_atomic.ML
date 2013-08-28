@@ -6,6 +6,8 @@ struct
   type concl = Term.term 
   type assm = Term.term 
 
+  val psgraph_prover_i = "isabelle";
+
   exception atomic_exp of string
 
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term } 
