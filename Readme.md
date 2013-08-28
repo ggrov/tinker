@@ -21,7 +21,12 @@ Then go to the contrib directory:
 
     cd contrib 
 
-and grab the isaplib and quantomatic libraries with:
+and grab the isaplib and quantomatic libraries either over https:
+
+    git clone -b master  https://github.com/Quantomatic/isaplib
+    git clone -b ps-graph https://github.com/Quantomatic/quantomatic
+    
+OR over ssh:
 
     git clone -b master git://github.com/Quantomatic/isaplib.git
     git clone -b ps-graph git://github.com/Quantomatic/quantomatic.git
@@ -31,10 +36,13 @@ Note that this assumed that you have `git` installed.
 Downloading and Installing PSGraph
 -------------------------------------------------------
 
-You can then download the `psgraph` tool in any folder you like with the command:
+You can then download the `psgraph` tool in any folder you like with either
 
-    git clone -b lpar13 https://github.com/ggrov/psgraph.git
+    git clone https://github.com/ggrov/psgraph
 
+OR 
+
+    git clone git://github.com/ggrov/psgraph.git
 
 Installing the GUI
 ---------------------------------------------------
