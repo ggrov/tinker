@@ -4,7 +4,9 @@ struct
   type goal = term (* this is not part of the structure *)
   type context = Proof.context
   type concl = Term.term 
-  type assm = Term.term 
+  type assm = Thm.thm
+
+  datatype Object =  Fact of fact | Assm of assm | Concl of concl
 
   val psgraph_prover_i = "isabelle";
 
@@ -152,6 +154,7 @@ struct
     type context = context
     type concl = concl
     type assm = assm
+    type Object = Object
   end
 
 end (* struct *)

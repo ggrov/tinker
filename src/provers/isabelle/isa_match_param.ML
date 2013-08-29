@@ -1,9 +1,9 @@
 functor IsaMatchParamFun (structure GoalTypData : GOALTYP_DATA
-                          structure Prover : PROVER
-                          sharing GoalTypData.Sharing.Prover = Prover.Sharing): MATCH_PARAM =
+                          structure Atomic : ATOMIC
+                          ): MATCH_PARAM =
 struct
   structure GoalTypData : GOALTYP_DATA = GoalTypData
-  structure Prover : PROVER = Prover
+  structure Atomic : ATOMIC = Atomic
 
   exception class_match_exp of string * C.name
   exception link_match_exp of string * L.name
@@ -14,7 +14,7 @@ struct
   structure Sharing : MATCH_PARAM_SHARING = 
     struct
       structure GoalTypData = GoalTypData.Sharing
-      structure Prover = Prover.Sharing
+      structure Atomic = Atomic.Sharing
     end
 end;
 

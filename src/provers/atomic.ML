@@ -7,18 +7,24 @@ sig
   type context
   type concl
   type assm
+  type Object
 end
 
 signature ATOMIC =
 sig
+
+
+  type concl
+  type assm
   type fact
+
+  datatype Object =  Fact of fact | Assm of assm | Concl of concl
+
   type tactic 
   type pplan
   type pnode
   type context
-  type concl
-  type assm
-
+  
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
   val psgraph_prover_i : string (* a hack to fix muli-matching in graph rewriting *)
@@ -61,6 +67,7 @@ sig
     sharing type Sharing.context = context
     sharing type Sharing.concl = concl
     sharing type Sharing.assm = assm
+    sharing type Sharing.Object = Object
    
 end;
 

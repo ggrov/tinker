@@ -5,6 +5,8 @@ struct
   type context = PPProver.context
   type concl = PPProver.term
   type assm = PPProver.term
+
+  datatype Object =  Fact of fact | Assm of assm | Concl of concl
   
 
   type pnode = 
@@ -144,6 +146,7 @@ struct
     type context = context
     type concl = concl
     type assm = assm
+    type Object = Object
   end
 
 end

@@ -45,11 +45,11 @@ ML_file "../../../interface/json_protocol/modules/psgraph.ML"
 ML_file "../../../interface/json_protocol/controller_registry.ML"
 ML_file "../../../interface/json_protocol/protocol.ML"
 
-(*
-ML{*
+
+ML{*-
 UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams (SOME edata0) (K edata0)
 *}
-*)
+
 end;
 
 

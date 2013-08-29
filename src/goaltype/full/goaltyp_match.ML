@@ -4,7 +4,7 @@ sig
   structure Link : LINK_SHARING
   structure Class : CLASS_SHARING
   structure GoalTypData : GOALTYP_DATA_SHARING
-  structure Prover : PROVER_SHARING
+  (*structure Prover : PROVER_SHARING*)
   structure MatchParam : MATCH_PARAM_SHARING
   structure Atomic : ATOMIC_SHARING
 end
@@ -15,7 +15,7 @@ sig
   structure Link : LINK
   structure Class : CLASS
   structure GoalTypData : GOALTYP_DATA
-  structure Prover : PROVER
+ (* structure Prover : PROVER *)
   structure Atomic : ATOMIC
   structure MatchParam : MATCH_PARAM
   sharing GoalTypData.Sharing = Link.Sharing.GoalTypData
@@ -23,19 +23,20 @@ sig
   sharing GoalTypData.Sharing = MatchParam.Sharing.GoalTypData
   sharing Link.Sharing = GoalTyp.Sharing.Link
   sharing Class.Sharing = GoalTyp.Sharing.Class
-  sharing Prover.Sharing = GoalTypData.Sharing.Prover
+  sharing MatchParam.Sharing.Atomic = Atomic.Sharing
+  (*sharing Prover.Sharing = GoalTypData.Sharing.Prover
   sharing Prover.Sharing = MatchParam.Sharing.Prover
-  sharing type Atomic.Sharing.context = Prover.Sharing.context
+  sharing GoalTypData.Sharing.Prove = MatchParam.Sharing.Prover
   sharing type Atomic.Sharing.concl = Prover.Sharing.term
-  sharing type Atomic.Sharing.fact = Prover.Sharing.thm
+  sharing type Atomic.Sharing.fact = Prover.Sharing.thm*)
 
   exception class_match_exp of string * C.name
   exception link_match_exp of string * L.name
                      
-  val class_match : Class.T-> Prover.context -> (Prover.term list * Prover.term) -> bool
+  val class_match : Class.T-> Atomic.context -> Atomic.Object -> bool
 
-  val link_data_ll_match : F.name -> Prover.context 
-                              -> (Prover.term list * Prover.term) list -> (Prover.term list * Prover.term) list
+  val link_data_ll_match : F.name -> Atomic.context 
+                              -> Atomic.Object list -> Atomic.Object list
                               -> GoalTypData.data list list -> bool
 
   val match : GNode.T -> GoalTyp.T -> Atomic.pnode -> bool (* dummy *)
@@ -47,7 +48,7 @@ sig
     sharing Sharing.Link = Link.Sharing
     sharing Sharing.Class = Class.Sharing
     sharing Sharing.GoalTypData = GoalTypData.Sharing
-    sharing Sharing.Prover = Prover.Sharing
+    (*sharing Sharing.Prover = Prover.Sharing*)
     sharing Sharing.MatchParam = MatchParam.Sharing
     sharing Sharing.Atomic = Atomic.Sharing
 
@@ -57,7 +58,7 @@ functor GoalTypMatchFun (structure GoalTyp : GOAL_TYP
                          structure Link : LINK
                          structure Class : CLASS
                          structure GoalTypData : GOALTYP_DATA
-                         structure Prover : PROVER
+                        (* structure Prover : PROVER *)
                          structure Atomic : ATOMIC
                          structure MatchParam : MATCH_PARAM
                          sharing GoalTypData.Sharing = Link.Sharing.GoalTypData
@@ -65,11 +66,12 @@ functor GoalTypMatchFun (structure GoalTyp : GOAL_TYP
                          sharing GoalTypData.Sharing = MatchParam.Sharing.GoalTypData
                          sharing Link.Sharing = GoalTyp.Sharing.Link
                          sharing Class.Sharing = GoalTyp.Sharing.Class
-                         sharing Prover.Sharing = GoalTypData.Sharing.Prover
+                         sharing MatchParam.Sharing.Atomic = Atomic.Sharing
+                         (*sharing Prover.Sharing = GoalTypData.Sharing.Prover
                          sharing Prover.Sharing = MatchParam.Sharing.Prover
                          sharing type Atomic.Sharing.context = Prover.Sharing.context
                          sharing type Atomic.Sharing.concl = Prover.Sharing.term
-                         sharing type Atomic.Sharing.fact = Prover.Sharing.thm) : GOALTYP_MATCH =
+                         sharing type Atomic.Sharing.fact = Prover.Sharing.thm*)) : GOALTYP_MATCH =
 struct
 
   structure GoalTyp = GoalTyp;
@@ -77,7 +79,7 @@ struct
   structure Class = Class;
   structure GoalTypData = GoalTypData;
   structure Atomic = Atomic;
-  structure Prover = Prover;  
+  (*structure Prover = Prover;*)
   structure MatchParam = MatchParam;
 
 
@@ -106,7 +108,7 @@ struct
   val link_match' : Link.T -> Prover.context -> Prover.term list -> Prover.term list -> (Prover.term * Prover.term) list
 *)
  
- fun link_data_ll_match' fname (ctxt : Prover.context) tpl1 tpl2 datal =
+ fun link_data_ll_match' fname (ctxt : Atomic.context) tpl1 tpl2 datal =
    let
       fun link_match0 name (t1, t2) =
         let 
@@ -139,17 +141,17 @@ struct
 
   fun lift' gnode gtyp pnode =       
     let
-      val gterm = Atomic.get_pnode_concl pnode 
+      val concl = Atomic.get_pnode_concl pnode 
       val ctxt = Atomic.get_pnode_ctxt pnode
     in
-      if class_match (GoalTyp.get_gclass gtyp) ctxt ([],gterm) (* check if the goal class fits*) 
+      if class_match (GoalTyp.get_gclass gtyp) ctxt (Atomic.Concl concl) (* check if the goal class fits*) 
         then 
           (let 
              val cname_factList = (* a list of pair (cname, facts list), *)
                map (fn cls => (
                                 (filter 
-                                  (fn y => snd y |> class_match cls ctxt)  (* facts list : (name * trm) list*)
-                                  (map (fn (x,y) => (x, (Prover.asms_of_thm y, Prover.concl_of_thm y))) 
+                                  (fn y => snd y |> class_match cls ctxt)  (* facts list : (name * Fact fact) list*)
+                                  (map (fn (x,y) => (x, (Atomic.Fact y))) 
                                     (Atomic.get_all_named_facts_pair pnode))
                                 )
                                 (* a list of facts ((name * trm) list) which fits class c*)
@@ -176,7 +178,7 @@ struct
                                     |> (fn x => case x of NONE => raise link_match_exp 
                                                                   ("can't find matched facts", Link.get_name link)
                                                         | (SOME y) => y)))
-                           |> map (fn x => (Prover.asms_of_thm x, Prover.concl_of_thm x))
+                           |> map (fn x => (Atomic.Fact x))
                         handle _ => raise link_match_exp (" No such a class to match Link", cname);
                         val fact_l1 = get_facts cname1;
                         val fact_l2 = get_facts cname2              
@@ -222,7 +224,6 @@ struct
    structure Link = Link.Sharing
    structure Class = Class.Sharing
    structure GoalTypData = GoalTypData.Sharing
-   structure Prover = Prover.Sharing
    structure MatchParam = MatchParam.Sharing
    structure Atomic = Atomic.Sharing
   end 

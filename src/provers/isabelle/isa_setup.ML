@@ -8,7 +8,7 @@ structure GoalTypJson = GoalTypJsonFun  (structure GoalTyp: GOAL_TYP = GoalTyp
                                          structure GoalTypData : GOALTYP_DATA = GoalTypData
                                          structure Prover : PROVER = IsaProver);
 structure MatchParam = IsaMatchParamFun (structure GoalTypData = GoalTypData
-                                         structure Prover = IsaProver )
+                                         structure Atomic = BIsaAtomic )
 structure GoalTypMatch = GoalTypMatchFun (structure GoalTyp: GOAL_TYP = GoalTyp
                                          structure Link : LINK = Link
                                          structure Class : CLASS = Class
