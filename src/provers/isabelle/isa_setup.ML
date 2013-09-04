@@ -7,8 +7,10 @@ structure GoalTypJson = GoalTypJsonFun  (structure GoalTyp: GOAL_TYP = GoalTyp
                                          structure Class : CLASS = Class
                                          structure GoalTypData : GOALTYP_DATA = GoalTypData
                                          structure Prover : PROVER = IsaProver);
-structure MatchParam = IsaMatchParamFun (structure GoalTypData = GoalTypData
-                                         structure Atomic = BIsaAtomic )
+use "../isa_match_param.ML"; (* note that it should be a relative routine from the bulid directory *)
+
+structure MatchParam : MATCH_PARAM = IsaMatchParam;
+
 structure GoalTypMatch = GoalTypMatchFun (structure GoalTyp: GOAL_TYP = GoalTyp
                                          structure Link : LINK = Link
                                          structure Class : CLASS = Class

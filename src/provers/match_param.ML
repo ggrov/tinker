@@ -16,7 +16,7 @@ sig
                          -> Atomic.Object 
                          -> GoalTypData.data list -> bool
   val link_data_match :  F.name ->  Atomic.context 
-                         -> (Atomic.Object * Atomic.Object)
+                         -> Atomic.Object * Atomic.Object 
                          -> GoalTypData.data list -> bool
   
   structure Sharing : MATCH_PARAM_SHARING

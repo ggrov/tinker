@@ -6,7 +6,7 @@ struct
   type concl = Term.term 
   type assm = Thm.thm
 
-  datatype Object =  Fact of fact | Assm of assm | Concl of concl
+  datatype Object =  Fact of fact | Assm of assm | Concl of concl (*| Pair of (Object * Object) *)
 
   val psgraph_prover_i = "isabelle";
 
