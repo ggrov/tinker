@@ -103,11 +103,7 @@ struct
       |> filter (fn x => x = false)
       |> (fn x => (case x of [] => true | _ => false))
     end
-(*
-  val link_match : Link.T -> Prover.context -> (Prover.term * Prover.term) -> bool
-  val link_match' : Link.T -> Prover.context -> Prover.term list -> Prover.term list -> (Prover.term * Prover.term) list
-*)
- 
+
  fun link_data_ll_match' fname (ctxt : Atomic.context) tpl1 tpl2 datal =
    let
       fun link_match0 name (t1, t2) =

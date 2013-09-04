@@ -6,7 +6,7 @@ struct
   type concl = PPProver.term
   type assm = PPProver.term
 
-  datatype Object =  Fact of fact | Assm of assm | Concl of concl
+  datatype Object =  Fact of fact | Assm of assm | Concl of concl (*| Pair of (Object * Object) *)
   
 
   type pnode = 

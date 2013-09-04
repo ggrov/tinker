@@ -18,7 +18,7 @@ sig
   type assm
   type fact
 
-  datatype Object =  Fact of fact | Assm of assm | Concl of concl
+  datatype Object =  Fact of fact | Assm of assm | Concl of concl(* | Pair of (Object * Object)*)
 
   type tactic 
   type pplan
