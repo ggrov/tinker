@@ -67,9 +67,14 @@ struct
 
   fun get_all_assms _ = []
 
-  fun get_open_pnodes pplan = [] (* ??? list of pnode*)
+  (* will not fail gracefully, but all open nodes should be in pplan *)
+  fun get_open_pnodes pplan = PPlan.get_open_nms pplan
+                             |> StrName.NSet.list_of
+                             |> map (the o PPlan.lookup_node pplan)
 
-  fun get_all_named_facts_pair pnode = [] (* ??? *)
+  fun get_all_named_facts_pair pnode =
+     PNode.get_assms pnode 
+     |> StrName.NTab.list_of;
 
   fun init ctxt thm =
     PPlan.init ctxt (Thm.concl_of thm)
