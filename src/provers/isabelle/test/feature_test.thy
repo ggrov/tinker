@@ -98,11 +98,12 @@ setup {* IsaMatchParam.add_class_feature (F.mk "is_shape",is_shape') *}
 ML{*
   val gt = FullGoalTyp.default;
   val class_topsymb = GoalTyp.Class.add_item (F.mk "top_symbols") [[(GTD.String "HOL.conj")], [(GTD.String "HOL.conj"), (GTD.String "HOL.implies")]] Class.top;
+  val class_hassymb = GoalTyp.Class.add_item (F.mk "has_symbols") [[(GTD.String "HOL.conj")]] Class.top;
   val class_hassymb_topsymb = GoalTyp.Class.add_item (F.mk "has_symbols") [[(GTD.String "HOL.implies")]] class_topsymb;
 
   val gt_demo = 
     GoalTyp.set_gclass class_hassymb_topsymb gt
-    |> GoalTyp.set_facts [class_hassymb_topsymb, ]
+    |> GoalTyp.set_facts [class_topsymb, class_hassymb]
     |> GoalTyp.set_name (G.mk"has_symbol_and_top_symbol");
 
   val auto = RTechn.id
@@ -119,14 +120,15 @@ ML{*
 
 *}
 ML{*
-  val (pn,pp) = IsaAtomic.init @{context} (trm_to_thm @{theory} @{prop "A --> A"});
+  val (pn,pp) = IsaAtomic.init @{context} (trm_to_thm @{theory} @{prop "A \<and> A ==> A \<longrightarrow> A ==> A --> A"});
   val pnode_tab = 
        StrName.NTab.ins
          (IsaAtomic.get_pnode_name pn,pn)
          StrName.NTab.empty;
   val edata_0 = EData.init psgraph pp pnode_tab [];
 
-  val t = Atomic.get_pnode_concl  pn |> Thm.concl_of ; (* todo: has a extrl porp on top ???? *)
+  val t = Atomic.get_all_named_facts_pair pn;
+(* yet to test hyp class and link *)
   
   FullGoalTyp.init_lift gt_demo pn;
 *}
