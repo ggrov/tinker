@@ -2,7 +2,7 @@
 structure IsaMatchParam  =
 struct
   structure GoalTypData : GOALTYP_DATA = GoalTypData
-  structure Atomic : ATOMIC = BIsaAtomic
+  structure Atomic : ATOMIC = IsaAtomic
 
   exception class_match_exp of string * C.name
   exception link_match_exp of string * L.name

@@ -1,11 +1,17 @@
 structure IsaAtomic : ATOMIC =
 struct
+
+  exception atomic_exp of string
+
   type fact = Thm.thm
+  type assm = Thm.thm
   type pplan = PPlan.T
   type pnode = PNode.T
   type context = Proof.context
   type tactic = Proof.context -> Tactical.tactic
   type concl = Thm.thm
+
+  datatype Object =  Fact of fact | Assm of assm | Concl of concl (*| Pair of (Object * Object) *)
 
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
@@ -56,6 +62,30 @@ struct
   val get_pnode_concl = PNode.get_goal;
   val get_pnode_ctxt = PNode.get_ctxt;
 
+  fun init_with_assm _ _ _ =   (* a dummy init which is not used in isabelle by LYH*)
+    raise atomic_exp "init_with_assm should not be used in isabelle"
+
+  fun get_all_assms _ = []
+
+  fun get_open_pnodes pplan = [] (* ??? list of pnode*)
+
+  fun get_all_named_facts_pair pnode = [] (* ??? *)
+
+  fun init ctxt thm =
+    PPlan.init ctxt (Thm.concl_of thm)
+
+  val psgraph_prover_i = "isabelle";
+ 
+  fun intf_pprint pretty = Pretty.writeln pretty
+ 
+  fun pretty_concl pnode = 
+    Pretty.block
+     [Pretty.str "[ Goal ",
+     Pretty.str (get_pnode_name pnode),
+     Pretty.str " : ",
+     Syntax.pretty_term (get_pnode_ctxt pnode) (get_pnode_concl pnode|> Thm.prop_of),
+     Pretty.str " ]"]
+
  
   structure Sharing =
   struct
@@ -65,6 +95,8 @@ struct
     type pnode = pnode
     type context = context
     type concl = concl
+    type assm = assm
+    type Object = Object
   end
 
   (* OLD STUFF *)

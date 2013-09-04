@@ -19,7 +19,7 @@ ML{*
     |> PSGraph.update_atomics (StrName.NTab.doadd ("auto", auto_tac))
 *}
 ML{*
-  val (pn,pp) = BIsaAtomic.init @{context} @{prop "A --> A"};
+  val (pn,pp) = IsaAtomic.init @{context} @{prop "A --> A"};
   val pnode_tab = 
        StrName.NTab.ins
          (BIsaAtomic.get_pnode_name pn,pn)
@@ -32,18 +32,6 @@ ML{*
   val edata0 = EVal.init psgraph @{context} @{prop "A --> A"} |> hd;
   val edata1 = EVal.evaluate_any edata0 ;
 *}
-
-(* socket *)
-ML_file "../../../interface/text_socket.ML"
-ML_file "../../../interface/ui_socket.ML"
-
-(* json protocol, they are alreay in Quantolib *)
-
-ML_file "../../../interface/json_protocol/controller_util.ML"
-ML_file "../../../interface/json_protocol/controller_module.ML"
-ML_file "../../../interface/json_protocol/modules/psgraph.ML"
-ML_file "../../../interface/json_protocol/controller_registry.ML"
-ML_file "../../../interface/json_protocol/protocol.ML"
 
 
 ML{*-
