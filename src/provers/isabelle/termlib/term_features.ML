@@ -94,6 +94,7 @@ struct
 
  fun top_level_str (Const (s,_)) = SOME s
   | top_level_str ((Const ("all",_)) $ f) = top_level_str f
+  | top_level_str ((Const ("prop",_)) $ f) = top_level_str f
   | top_level_str ((Const ("HOL.Trueprop",_)) $ f) = top_level_str f
   | top_level_str ((Const ("Trueprop",_)) $ f) = top_level_str f
   | top_level_str ((Const ("==>",_)) $ _ $ f) = top_level_str f

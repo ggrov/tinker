@@ -1,4 +1,4 @@
-structure IsaAtomic : ATOMIC =
+structure IsaAtomic (*: ATOMIC *) =
 struct
 
   exception atomic_exp of string
@@ -71,6 +71,7 @@ struct
   fun get_open_pnodes pplan = PPlan.get_open_nms pplan
                              |> StrName.NSet.list_of
                              |> map (the o PPlan.lookup_node pplan)
+  handle _ => [];
 
   fun get_all_named_facts_pair pnode =
      PNode.get_assms pnode 
@@ -91,7 +92,6 @@ struct
      Syntax.pretty_term (get_pnode_ctxt pnode) (get_pnode_concl pnode|> Thm.prop_of),
      Pretty.str " ]"]
 
- 
   structure Sharing =
   struct
     type fact = fact

@@ -45,10 +45,16 @@ struct
   val get_link_features = LF_Data.get;
   val get_link_feature = F.NTab.lookup o get_link_features;
 
-  fun class_data_match fname ctxt obj data = 
+  fun class_data_match' fname ctxt obj data = 
     case get_class_feature (Proof_Context.theory_of ctxt) fname of
        NONE => false
      | SOME f => f ctxt obj data;
+  
+  fun class_data_match fname ctxt obj data =  
+  let val tmp =  (class_data_match' fname ctxt obj data)  in
+  if tmp then (writeln ((F.string_of_name fname ) ^" - yes!") ; tmp) 
+  else (writeln ((F.string_of_name fname ) ^" -  no!");tmp)
+  end
 
   fun link_data_match fname ctxt (obj1, obj2) data = 
     case get_link_feature (Proof_Context.theory_of ctxt) fname of
