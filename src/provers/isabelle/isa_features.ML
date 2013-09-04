@@ -48,10 +48,10 @@ struct
  
   val is_shape = thmf false is_shape';
 
-  (* register all features - implicitly orred (only a single list) *)
+  (* register all features *)
   val default = 
-     add_cfeature (F.mk "has_symbols",has_symbols')
-     #> add_cfeature (F.mk "top_symbols",top_symbol')
-     #> add_cfeature (F.mk "is_shape",is_shape');
+     add_cfeature (F.mk "has_symbols",has_symbols)
+     #> add_cfeature (F.mk "top_symbols",top_symbols)
+     #> add_cfeature (F.mk "is_shape",is_shape);
 
 end

@@ -59,6 +59,8 @@ struct
 
   exception term_feature_exp of string
 
+  val ignore_module = List.last o String.tokens (fn ch => #"." = ch) ;
+
  (* projections *)
 
   fun insert_tab tab str = 
@@ -92,7 +94,7 @@ struct
     t |> num_constants 
       |> get_numconstants_table s;
 
- fun top_level_str (Const (s,_)) = SOME s
+ fun top_level_str (Const (s,_)) = SOME (ignore_module s)
   | top_level_str ((Const ("all",_)) $ f) = top_level_str f
   | top_level_str ((Const ("prop",_)) $ f) = top_level_str f
   | top_level_str ((Const ("HOL.Trueprop",_)) $ f) = top_level_str f
@@ -110,9 +112,9 @@ struct
 
  fun is_top_level s t = case top_level_str t of
     NONE => false
-  | (SOME v) => (v = s);
+  | (SOME v) => ((ignore_module v) = (ignore_module s));
 
- fun const_pred str (Const (s,_)) = (str = s)
+ fun const_pred str (Const (s,_)) = ((ignore_module str) = (ignore_module s))
   |  const_pred _ _ = false;
 
  fun has_constant s = Term.exists_subterm (const_pred s);

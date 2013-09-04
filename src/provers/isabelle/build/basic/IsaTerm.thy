@@ -32,6 +32,6 @@ ML{*
    need to further refactor the rippling and induct, i.e. seperate the feature with tac*)
                          
   ML_file "../../termlib/term_fo_au.ML"  
-  ML_file "../../termlib/term_features.ML"  
+  ML_file "../../termlib/term_features.ML"   
 
 end

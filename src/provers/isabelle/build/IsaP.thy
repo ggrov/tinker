@@ -22,10 +22,10 @@ begin
  ML_file "../../../interface/json_protocol/protocol.ML"
 
  (*features *)
- ML_file "../isa_features.ML"  
+ ML_file "../isa_features.ML"    
  setup {* IsaFeatures.default *}
 
-ML_file "../isa_intf.ML"
+ ML_file "../isa_intf.ML"
 end
 
 

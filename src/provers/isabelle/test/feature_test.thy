@@ -44,7 +44,6 @@ fun has_symbols (_:Proof.context) _ [] = false
 val test = has_symbols @{context} (Prover.Concl(trm_to_thm @{theory}  @{prop "a \<and> b \<longrightarrow> c"})) [[(GTD.String "HOL.implies"), (GTD.String "HOL.conj")]];
 val test = has_symbols @{context} (Prover.Concl (trm_to_thm @{theory} @{prop "a \<longrightarrow> b"})) [[(GTD.String "HOL.implies"), (GTD.String "HOL.conj")]];
 *}
-setup {* IsaMatchParam.add_class_object_feature (F.mk "has_symbols",has_symbols) *}
 
 (*
 -- "top symbol"
