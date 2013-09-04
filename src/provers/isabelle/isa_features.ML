@@ -1,6 +1,8 @@
 structure IsaFeatures  =
 struct 
 
+  structure GTD = GoalTypData
+
   (* aux functions *)
   fun gtd_to_string (GTD.String str) = str;
   fun gtds_to_string xs = SOME (map gtd_to_string xs) handle _ => NONE;
@@ -10,8 +12,8 @@ struct
  
   (* abstracts over or list of data - empty is what to do for empty data *)
   fun thmf empty f (_:Proof.context) _ [] = empty
-   |  thmf _ f ctxt thm (x::xs) = 
-        (f ctxt thm x) orelse (thmf f ctxt thm xs);
+   |  thmf empty f ctxt thm (x::xs) = 
+        (f ctxt thm x) orelse (thmf empty f ctxt thm xs);
 
   (* has symbols *)
 
@@ -46,10 +48,10 @@ struct
  
   val is_shape = thmf false is_shape';
 
-  (* register all features *)
-  val register_features = 
-     add_feature (F.mk "has_symbols",has_symbols)
-     #> add_feature (F.mk "top_symbols",top_symbols)
-     #> add_feature (F.mk "is_shape",is_shape);
+  (* register all features - implicitly orred (only a single list) *)
+  val default = 
+     add_cfeature (F.mk "has_symbols",has_symbols')
+     #> add_cfeature (F.mk "top_symbols",top_symbol')
+     #> add_cfeature (F.mk "is_shape",is_shape');
 
 end

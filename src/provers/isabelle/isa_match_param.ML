@@ -28,9 +28,24 @@ struct
   fun mk_term_match f ctxt obj = f ctxt (Thm.prop_of (prj_obj obj)); 
   fun mk_thm_match f ctxt obj = f ctxt (prj_obj obj);
 
-  val add_class_feature = CF_Data.map o F.NTab.ins;
+  val add_class_object_feature = CF_Data.map o F.NTab.ins;
+  fun add_class_thm_feature (name,f) = 
+    add_class_object_feature (name,mk_thm_match f);
+  fun add_class_term_feature (name,f) = 
+    add_class_object_feature (name,mk_thm_match f);
+
   val get_class_features = CF_Data.get;
   val get_class_feature = F.NTab.lookup o get_class_features;
+
+  val print_class_features = 
+   get_class_features
+   #> F.NTab.keys 
+   #> map F.dest
+   #> (fn xs => "Class Features: " :: xs)
+   #> map Pretty.str
+   #> Pretty.separate "\n  "
+   #> Pretty.block
+   #> Pretty.writeln; 
 
  structure LF_Data = Theory_Data(
   type T =  (Proof.context 
@@ -69,4 +84,9 @@ struct
       structure Atomic = Atomic.Sharing
     end
 end;
+
+(* to avoid structure *)
+
+ val add_cfeature = IsaMatchParam.add_class_thm_feature;
+ val print_class_features = IsaMatchParam.print_class_features;
 
