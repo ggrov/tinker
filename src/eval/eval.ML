@@ -12,7 +12,7 @@ struct
  structure Theory = EData.PSGraph.PSTheory.PS_Theory;
  structure GComb = EData.PSGraph.PSTheory.PS_Comb;
  structure GoalTyp = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp;
- structure Atomic = GoalTyp.Atomic;
+ structure Prover = GoalTyp.Prover;
 
  exception evaluate_exp of V.name option * string;
 
@@ -59,10 +59,10 @@ struct
 
  fun init psgraph ctxt goals =
    let
-     val (pnode,pplan) = Atomic.init ctxt goals
+     val (pnode,pplan) = Prover.init ctxt goals
      val pnode_tab = 
        StrName.NTab.ins
-         (Atomic.get_pnode_name pnode,pnode)
+         (Prover.get_pnode_name pnode,pnode)
          StrName.NTab.empty;
      val edata0 = EData.init psgraph pplan pnode_tab []
    in
@@ -74,7 +74,7 @@ struct
    let
      val pnode_tab = 
       fold 
-       (fn pnode => StrName.NTab.ins (Atomic.get_pnode_name pnode,pnode))
+       (fn pnode => StrName.NTab.ins (Prover.get_pnode_name pnode,pnode))
        pnds
        StrName.NTab.empty;
      val edata0 = EData.init psgraph pplan pnode_tab []
@@ -84,10 +84,10 @@ struct
 
  fun init_with_assm psgraph ctxt assms goals =
    let
-     val (pnode,pplan) = Atomic.init_with_assm ctxt assms goals
+     val (pnode,pplan) = Prover.init_with_assm ctxt assms goals
      val pnode_tab = 
        StrName.NTab.ins
-         (Atomic.get_pnode_name pnode,pnode)
+         (Prover.get_pnode_name pnode,pnode)
          StrName.NTab.empty;
      val edata0 = EData.init psgraph pplan pnode_tab []
    in
@@ -310,7 +310,7 @@ struct
                      |> EData.set_branches xs)));
 
   val update_branches = 
-    case Atomic.psgraph_prover_i 
+    case Prover.psgraph_prover_i 
     of "isabelle" => update_branches_all
      | "proofpower" => update_branches_single
                    

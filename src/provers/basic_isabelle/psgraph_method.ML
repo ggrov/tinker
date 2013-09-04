@@ -61,7 +61,7 @@ struct
 
   val psgraph = (Attrib.setup_config_string @{binding "psgraph"} (K "unknown"));
   
-  local open BIsaAtomic_DB in
+  local open IsaProver in
     fun thm_of_pplan (pplan:pplan) = #goal pplan;
     val init_prf = init_of_thm;
   end;

@@ -7,7 +7,7 @@ end
 (* BASIC GOAL TYPE which is used for graph *)
 signature BASIC_GOALTYPE = 
 sig
-  structure Atomic : ATOMIC
+  structure Prover : PROVER
   type T
   type gnode
    
@@ -33,9 +33,9 @@ sig
 
 (* for evaluation *)
 
-  val match : gnode -> T -> Atomic.pnode -> bool
-  val lift :  gnode -> T -> Atomic.pnode -> gnode option
-  val init_lift :  T -> Atomic.pnode -> gnode option
+  val match : gnode -> T -> Prover.pnode -> bool
+  val lift :  gnode -> T -> Prover.pnode -> gnode option
+  val init_lift :  T -> Prover.pnode -> gnode option
 
 (* for type checking *)
 

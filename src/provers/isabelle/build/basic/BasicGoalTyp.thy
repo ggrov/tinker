@@ -2,18 +2,10 @@
 theory BasicGoalTyp   
 imports                
  "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                               
-uses
-  "../../../../rtechn_names.ML" 
-  "../../../prover.ML"  
-  "../../../atomic.ML"
-  "../../../../goaltype/basic_goaltyp.ML"     
-
-(*
- "../isaPrf.ML"
- "../init.ML"
-*)
 begin
-
+  ML_file "../../../../rtechn_names.ML" 
+  ML_file "../../../prover.ML"  
+  ML_file "../../../../goaltype/basic_goaltyp.ML"   
 end
 
 

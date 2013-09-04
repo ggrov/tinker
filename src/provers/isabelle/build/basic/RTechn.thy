@@ -1,5 +1,5 @@
 (* simple test of proof representation *)
-theory RTechn                                                  
+theory RTechn                                                 
 imports          
  "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                    
 uses

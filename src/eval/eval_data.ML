@@ -11,15 +11,15 @@ sig
    (* initialisations *)
   val init : 
     PSGraph.T 
-    -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan 
-    -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T 
+    -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pplan 
+    -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode StrName.NTab.T 
     -> gnode list
     -> T
 
   (* get methods *)
   val get_psgraph : T -> PSGraph.T  
-  val get_pplan : T -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan
-  val get_goals : T -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T
+  val get_pplan : T -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pplan
+  val get_goals : T -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode StrName.NTab.T
   val get_gnodes : T -> gnode list
   val get_searchf : T -> string
   val get_evalf : T -> string
@@ -29,15 +29,15 @@ sig
 
 
   (* more get methods *)
-  val lookup_goal : T -> string -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode option
-  val get_goal : T -> string -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode
-  val lookup_tactic : T -> string -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic option
-  val get_tactic : T -> string -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic
+  val lookup_goal : T -> string -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode option
+  val get_goal : T -> string -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode
+  val lookup_tactic : T -> string -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.tactic option
+  val get_tactic : T -> string -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.tactic
 
   (* set methods *)
   val set_psgraph : PSGraph.T -> T -> T
-  val set_pplan : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan -> T -> T
-  val set_goals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T -> T -> T
+  val set_pplan : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pplan -> T -> T
+  val set_goals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode StrName.NTab.T -> T -> T
   val set_gnodes : gnode list -> T -> T
   val set_searchf : string -> T -> T
   val set_evalf : string -> T -> T
@@ -47,8 +47,8 @@ sig
 
   (* update methods *)
   val update_psgraph : (PSGraph.T -> PSGraph.T) -> T -> T
-  val update_pplan : (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan) -> T -> T
-  val update_goals : (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T)  -> T -> T
+  val update_pplan : (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pplan -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pplan) -> T -> T
+  val update_goals : (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode StrName.NTab.T -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode StrName.NTab.T)  -> T -> T
   val update_graph : (PSGraph.PSTheory.PS_Theory.Graph.T -> PSGraph.PSTheory.PS_Theory.Graph.T) -> T -> T
   val update_gnodes : (gnode list -> gnode list) -> T -> T
   val update_searchf : (string -> string) -> T -> T
@@ -56,18 +56,18 @@ sig
   val update_current : (branch -> branch) -> T -> T
   val update_branches : (branch list -> branch list) -> T -> T
 
-  val add_goals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode list -> T -> T
-  val add_bgoals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode list -> branch -> branch
+  val add_goals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode list -> T -> T
+  val add_bgoals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode list -> branch -> branch
 
 
   (* methods for branches *)
   val get_bactive : branch -> active
-  val get_bpplan : branch -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan
-  val get_bgoals : branch -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T
+  val get_bpplan : branch -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pplan
+  val get_bgoals : branch -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode StrName.NTab.T
 
   val set_bactive : active -> branch -> branch 
-  val set_bpplan : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan -> branch -> branch
-  val set_bgoals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T -> branch -> branch
+  val set_bpplan : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pplan -> branch -> branch
+  val set_bgoals : PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode StrName.NTab.T -> branch -> branch
  
   val set_bgnodes : gnode list -> branch -> branch
   val get_bgnodes : branch -> gnode list
@@ -80,11 +80,11 @@ sig
   val set_bgraph : PSGraph.PSTheory.PS_Theory.Graph.T -> branch -> branch
 
   val update_bactive : (active -> active) -> branch -> branch 
-  val update_bpplan : (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan
-                       -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan)
+  val update_bpplan : (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pplan
+                       -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pplan)
                       -> branch -> branch
-  val update_bgoals : (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T 
-                      -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode StrName.NTab.T)
+  val update_bgoals : (PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode StrName.NTab.T 
+                      -> PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode StrName.NTab.T)
                       -> branch -> branch
 
   (* push and pop methods for parent *)
@@ -108,7 +108,7 @@ functor EDataFun(structure PSGraph : PS_GRAPH) : EVAL_DATA  =
 struct
 
   structure PSGraph = PSGraph;
-  structure Atomic = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic;
+  structure Prover = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover;
 
   type gnode = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode
 
@@ -121,8 +121,8 @@ struct
   }
   datatype branch = Branch of {
     active : active,
-    pplan : Atomic.pplan,
-    goals : Atomic.pnode StrName.NTab.T
+    pplan : Prover.pplan,
+    goals : Prover.pnode StrName.NTab.T
   }
   (* todo : should we keep the previous Edata  too?*)
   datatype T = EData of { 
@@ -245,7 +245,7 @@ struct
   fun init psgraph prf goals vs  =
     EData {psgraph = psgraph, current = init_branch prf (PSGraph.get_graph psgraph) goals vs, branches = []};
 
-  fun ins_tab pnode = StrName.NTab.ins (Atomic.get_pnode_name pnode,pnode);
+  fun ins_tab pnode = StrName.NTab.ins (Prover.get_pnode_name pnode,pnode);
   val lookup_goal = StrName.NTab.lookup o get_goals;
   val get_goal = StrName.NTab.get o get_goals;
   fun add_goal pnode = update_goals (ins_tab pnode)
@@ -293,9 +293,9 @@ struct
   fun pprint_goals edata = 
     Pretty.chunks
       ([Pretty.str "Open goals in the current psgraph :{"] @
-      (get_pplan edata |> Atomic.get_open_pnodes |> map Atomic.pretty_concl) @
+      (get_pplan edata |> Prover.get_open_pnodes |> map Prover.pretty_concl) @
       [Pretty.str "}"])
-    |> Atomic.intf_pprint
+    |> Prover.intf_pprint
      
 end; (* functor *)
 

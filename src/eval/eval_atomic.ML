@@ -2,11 +2,11 @@ signature EVAL_ATOMIC =
 sig
   structure EData : EVAL_DATA
 
-  exception partition_exp of EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode
+  exception partition_exp of EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode
 
   (* generalise *)
   val partition : 
-     EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode list (* new proof nodes *)
+     EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode list (* new proof nodes *)
      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode (* old gnode [parent] *)
      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T list (* output types *)
      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode list list list (* one list for each goal type - outer when non-orthogonal outputs *)
@@ -26,35 +26,35 @@ sig
         EData.T 
       -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode (* the goal node  *)
       -> RTechn.atomic (* application function *)
-      -> (EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode list * EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan) Seq.seq
+      -> (EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode list * EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pplan) Seq.seq
 
   val apply_tactic :
         EData.T 
       -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode (* the goal node *)
       -> string (* the name of the tactic *)
       -> RTechn.tac_assms (* tactic assumption *)
-      -> (EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pnode list * EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.pplan) Seq.seq
+      -> (EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode list * EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pplan) Seq.seq
 
 end
 
 functor EvalAtomicFun(EData : EVAL_DATA) : EVAL_ATOMIC =
 struct
   structure EData = EData;
-  structure Atomic = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic;
+  structure Prover = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover;
   structure GData = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData
   structure GoalTyp = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp;
 
   exception no_such_fact of string
   exception eval_appf_exp of string;
-  exception partition_exp of Atomic.pnode
+  exception partition_exp of Prover.pnode
 
   fun lookup_fact node name = 
-   case Atomic.lookup_fact node name of
+   case Prover.lookup_fact node name of
       NONE => raise no_such_fact name
     | SOME f => (name,f)
 
   fun try_lookup_fact node name = 
-   case Atomic.lookup_fact node name of
+   case Prover.lookup_fact node name of
       NONE => []
     | SOME f => [(name,f)]
 
@@ -78,16 +78,16 @@ struct
          val pplan = EData.get_pplan edata
          val tac = EData.get_tactic edata tac_name
        in 
-         Atomic.apply_tactic tac_name [] tac (pnode,pplan)
+         Prover.apply_tactic tac_name [] tac (pnode,pplan)
        end
    |  apply_tactic edata gnode tac_name RTechn.TAllAsm = 
        let 
          val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
          val pplan = EData.get_pplan edata
          val tac = EData.get_tactic edata tac_name
-         val facts = Atomic.get_all_assms pnode
+         val facts = Prover.get_all_assms pnode
        in 
-         Atomic.apply_tactic tac_name facts tac (pnode,pplan)
+         Prover.apply_tactic tac_name facts tac (pnode,pplan)
        end
    |  apply_tactic edata gnode tac_name (RTechn.TClass class_nms) =
        let 
@@ -105,7 +105,7 @@ struct
          (* get the actual facts *)
          val facts = fact_list pnode fact_nms |> map snd
        in
-         Atomic.apply_tactic tac_name facts tac (pnode,pplan)
+         Prover.apply_tactic tac_name facts tac (pnode,pplan)
        end;
 
   fun apply_appf edata gnode (RTechn.Rule fact_nms) =
@@ -114,7 +114,7 @@ struct
           val pplan = EData.get_pplan edata
           val facts = fact_seq pnode fact_nms
         in
-          Seq.maps (fn (fnm,fact) => Atomic.apply_rule fnm fact (pnode,pplan)) facts
+          Seq.maps (fn (fnm,fact) => Prover.apply_rule fnm fact (pnode,pplan)) facts
         end
     |  apply_appf edata gnode (RTechn.ERule fact_nms) =
         let 
@@ -122,7 +122,7 @@ struct
           val pplan = EData.get_pplan edata
           val facts = fact_seq pnode fact_nms
         in
-          Seq.maps (fn (fnm,fact) => Atomic.apply_erule fnm fact (pnode,pplan)) facts
+          Seq.maps (fn (fnm,fact) => Prover.apply_erule fnm fact (pnode,pplan)) facts
         end
      (* it never fails: it tries of them once (should revisit this though) *)
    |  apply_appf edata gnode (RTechn.FRule (class_nm,fact_nms)) =
@@ -136,7 +136,7 @@ struct
           val facts = fact_list pnode fact_nms
           (* one application of a frule of a fact to a hyp *)
           fun try_apply_as_list hyp fact (pn,pp) = 
-             (case Atomic.apply_frule hyp fact (pn,pp) |> Seq.list_of of
+             (case Prover.apply_frule hyp fact (pn,pp) |> Seq.list_of of
                 [] => [([pn],pp)]
                | xs => xs)
           fun try_apply_frule' hyp fact (pnds,pp) =
@@ -155,7 +155,7 @@ struct
           val pplan = EData.get_pplan edata
           val facts = fact_seq pnode fact_nms
         in
-          Seq.maps (fn (fnm,fact) => Atomic.apply_subst fnm fact (pnode,pplan)) facts
+          Seq.maps (fn (fnm,fact) => Prover.apply_subst fnm fact (pnode,pplan)) facts
         end
    |  apply_appf edata gnode (RTechn.SubstAsm (class_nm,fact_nms)) =  (* why not a wire? *)
          let 
@@ -165,7 +165,7 @@ struct
                      |> fact_seq pnode 
           val eqs = fact_seq pnode fact_nms
           (* one application of subst of a eq to a fact *)
-          fun apply_subst_asm' hyp eq = Atomic.apply_subst_asm hyp eq (pnode,pplan)
+          fun apply_subst_asm' hyp eq = Prover.apply_subst_asm hyp eq (pnode,pplan)
           (* application of all equalities to a hyp *)
           fun apply_subst_asm hyp = Seq.maps (apply_subst_asm' hyp) eqs
         in

@@ -4,7 +4,7 @@ sig
 
   type psgraphfn = PSGraph.T -> PSGraph.T
   type goaltyp = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T 
-  type tactic = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic
+  type tactic = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.tactic
 
  (* working with graph part of a psgraph *)
   val collapse_graph : 
@@ -50,7 +50,7 @@ struct
 
   type psgraphfn = PSGraph.T -> PSGraph.T
   type goaltyp = GraphSubstData.GoalTyp.T 
-  type tactic = GraphSubstData.GoalTyp.Atomic.tactic
+  type tactic = GraphSubstData.GoalTyp.Prover.tactic
 
   infixr 6 THENG;
   infixr 5 TENSOR;

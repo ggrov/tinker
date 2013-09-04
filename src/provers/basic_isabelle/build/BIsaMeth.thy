@@ -1,6 +1,6 @@
 (* simple test of proof representation *)
 theory BIsaMeth                                              
-imports       
+imports        
   BIsaP                                                                             
 begin
   

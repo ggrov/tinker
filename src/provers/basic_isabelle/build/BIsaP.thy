@@ -4,8 +4,7 @@ imports
   "../../isabelle/build/basic/BasicIsaPS"                                                                              
 begin 
 
- ML_file "../isa_prover.ML"   
- ML_file "../isa_atomic.ML"               
+ ML_file "../isa_prover.ML"              
 
 (* rippling *) 
  ML_file "../../isabelle/rtechn/rippling/basic_ripple.ML" 
@@ -19,9 +18,9 @@ begin
 ML{*
 structure Theory = PSTheoryFun(structure GoalTyp = SimpleGoalTyp);
 structure PSGraph = PSGraphFun(structure PSTheory = Theory
-                               structure Atomic = BIsaAtomic);
+                               structure Prover = IsaProver);
 structure PSComb = PSCombFun(PSGraph);
-structure EData = EDataFun(structure Atomic = BIsaAtomic
+structure EData = EDataFun(structure Prover = IsaProver
                            structure PSGraph = PSGraph);
 *}
 ML{*

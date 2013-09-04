@@ -1,5 +1,5 @@
 (* simple test of proof representation *)
-theory IsaTerm                                                                                                                                                                                             
+theory IsaTerm                                                                                                                                                                                            
 imports         
  "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                                                          
 begin         

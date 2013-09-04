@@ -1,6 +1,6 @@
 structure SimpleGoalTyp : BASIC_GOALTYPE = 
 struct
-  structure Atomic = BIsaAtomic;
+  structure Prover = IsaProver;
   type T = string
   type gnode = string (* or with term? *)
   exception gt_exp of string
@@ -33,7 +33,7 @@ struct
   val pretty = Pretty.str;
 
   structure TF = TermFeatures;
-  local open BIsaAtomic in
+  local open IsaProver in
 
     fun top_level' str pn = 
       case TF.top_level_str (Logic.strip_imp_concl (#ptrm pn)) of

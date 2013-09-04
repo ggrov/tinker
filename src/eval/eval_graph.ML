@@ -1,14 +1,14 @@
 signature EVAL_GRAPH =
 sig
   structure GoalTyp : BASIC_GOALTYPE
-  structure Atomic : ATOMIC
+  structure Prover : PROVER
 
 end
 
 functor EvalGraphFun(EData : EVAL_DATA) =
 struct
   structure EData = EData;
-  structure Atomic = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic;
+  structure Prover = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover;
   structure Theory = EData.PSGraph.PSTheory.PS_Theory;
   structure Graph = Theory.Graph;
   structure GData = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData;

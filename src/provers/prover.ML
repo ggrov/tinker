@@ -6,6 +6,10 @@ sig
   type thm
   type context
   type tactic
+
+  type fact
+  type pplan
+  type pnode
 end
 
 signature PROVER =
@@ -17,6 +21,13 @@ sig
   type thm
   type context
   type tactic 
+
+
+  type fact
+  type pplan
+  type pnode
+  type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
+
 
   exception gterm_exp
   
@@ -41,6 +52,36 @@ sig
 
   val concl_of_thm : thm -> term
   val asms_of_thm : thm -> term list
+
+
+  val psgraph_prover_i : string (* a hack to fix muli-matching in graph rewriting *)
+
+  (* could also make an init version with assumptions? *)
+  val init : context -> term -> pnode * pplan
+  val init_with_assm : context -> term list -> term -> pnode * pplan
+
+  (* we assume that prf contains the necessary context if required *)
+  val apply_rule : string -> fact -> appf
+  val apply_erule : string -> fact -> appf
+  (* first assumption, next rule *)
+  val apply_frule : (string * fact) -> (string * fact)  -> appf
+  val apply_subst : string -> fact -> appf
+  (* first assumption, second the equality rule *)
+  val apply_subst_asm : (string * fact) -> (string * fact) -> appf
+  val apply_tactic : string -> fact list -> tactic -> appf
+
+  val lookup_fact : pnode -> string -> fact option
+  val get_all_assms : pnode -> fact list
+  val get_all_named_facts_pair : pnode -> (string * fact) list
+
+  val get_open_pnodes : pplan -> pnode list
+  val get_pnode_name : pnode -> string
+  (*  TODO: can we give the pplan as arguments as well on these? *)
+  (* What does this do? is this specific for one particular goal type? *)
+  val get_pnode_concl : pnode -> term (* return type concl which would be type term*)
+  val get_pnode_ctxt : pnode -> context
+  val pretty_concl : pnode -> Pretty.T
+  val intf_pprint : Pretty.T -> unit
   
  (* val get_goal : context -> T ->  (context * term)*)
   
@@ -51,5 +92,9 @@ sig
     sharing type Sharing.thm = thm
     sharing type Sharing.context = context
     sharing type Sharing.tactic = tactic 
+
+    sharing type Sharing.fact = fact
+    sharing type Sharing.pplan = pplan
+    sharing type Sharing.pnode = pnode
 end;
 
