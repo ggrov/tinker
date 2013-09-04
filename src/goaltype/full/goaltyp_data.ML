@@ -16,11 +16,10 @@ sig
     | Position of Prover.pos
     | Bool of bool
     | DVar of F.name (* variable: not used at the moment but may be required *)
-
+(*
   val match_data : (data * data) -> bool
   val match_data_ll : (data list list * data list list) -> bool
-
-
+*)
   val data_to_json : data -> Json.json
   val data_from_json : Json.json -> data
   val data_ll_to_json : data list list -> Json.json
@@ -45,10 +44,10 @@ struct
     | Position of Prover.pos
     | Bool of bool
     | DVar of F.name (* variable: not used at the moment but may be required *)
-
+(*
   fun match_data ((Int a), (Int b)) = (a = b)
     | match_data ((String a), (String b)) = (case String.compare (a,b) of EQUAL => true | _ => false)
-    | match_data ((Term a), (Term b)) =  Prover.match Prover.current_ctxt (a,b) (*(case String.compare (a,b) of EQUAL => true | _ => false)*)
+    | match_data ((Term a), (Term b)) =  Prover.match Prover.current_ctxt (a,b) 
     | match_data ((Position a), (Position b)) = Prover.eq_pos (a,b)
     | match_data ((Bool a), (Bool b)) =  (a = b)
     | match_data ((DVar a), (DVar b)) = (case F.name_ord (a,b) of EQUAL => true | _ => false)
@@ -75,7 +74,7 @@ struct
     in
       size (union (a,b)) = size (inter (a,b))
     end
-
+*)
 (****************************
 *  for json
 ******************************)

@@ -1,14 +1,13 @@
 (* BASIC GOAL TYPE which is used for graph *)
 
 functor GoalTypIFun (structure GoalTyp : GOAL_TYP 
-                         structure Atomic : ATOMIC
-                         structure GoalTypJson : GOALTYP_JSON
-                         structure GoalTypMatch : GOALTYP_MATCH
-                         sharing GoalTyp.Sharing = GoalTypJson.Sharing.GoalTyp
-                         sharing GoalTypMatch.Sharing.GoalTyp = GoalTypJson.Sharing.GoalTyp
-                         sharing Atomic.Sharing = GoalTypMatch.Sharing.Atomic) = 
+                     structure GoalTypJson : GOALTYP_JSON
+                     structure GoalTypMatch : GOALTYP_MATCH
+                     sharing GoalTyp.Sharing = GoalTypJson.Sharing.GoalTyp
+                     sharing GoalTypMatch.Sharing.GoalTyp = GoalTypJson.Sharing.GoalTyp
+                     ) = 
 struct
-  structure Atomic = Atomic
+  structure Prover = GoalTypMatch.Prover
   structure GoalTyp = GoalTyp
   structure Class = GoalTyp.Class
   structure Link = GoalTyp.Link

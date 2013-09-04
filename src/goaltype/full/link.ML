@@ -25,9 +25,9 @@ sig
 
   val get_name: T -> L.name
   val rename : L.name -> T -> T  
-  
+(*  
   val eq : (T * T) -> bool
-
+*)
   structure Sharing : LINK_SHARING
     sharing type Sharing.T = T
     (*sharing type Sharing.lkey = lkey*)
@@ -74,7 +74,7 @@ struct
 
   val get_name = fst
   fun rename gname (_, link) = (gname, link) 
-  
+(* 
   fun eq ((_,a), (_,b)) = if linkTbl.forall (fn (k, xb) => 
                                           (case (linkTbl.lookup a k) of SOME xa =>  GoalTypData.match_data_ll (xa,xb)
                                              | _ => false))
@@ -84,6 +84,7 @@ struct
                                                               | _ => false))
                                                           a)
                                               else false
+*)
   structure Sharing = 
   struct
     type T = T

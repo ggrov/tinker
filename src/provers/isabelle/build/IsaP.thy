@@ -1,13 +1,12 @@
 (* simple test of proof representation *)
 theory IsaP                                              
-imports       
+imports        
   "GoalTyp" 
 begin     
 
- ML_file "../../basic_isabelle/isa_prover.ML" 
  ML_file "../pplan/isa_pnode.ML"
  ML_file "../pplan/isa_pplan.ML"
- ML_file "../pplan/isa_atomic.ML"      
+ ML_file "../pplan/isa_prover.ML"      
 
  ML_file "../isa_setup.ML"      
 
@@ -22,10 +21,11 @@ begin
  ML_file "../../../interface/json_protocol/controller_registry.ML"
  ML_file "../../../interface/json_protocol/protocol.ML"
 
- (* features *)
+ (*features *)
  ML_file "../isa_features.ML"  
  setup {* IsaFeatures.default *}
 
+ML_file "../isa_intf.ML"
 end
 
 

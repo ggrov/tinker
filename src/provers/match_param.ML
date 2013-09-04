@@ -13,10 +13,10 @@ sig
   exception link_match_exp of string * L.name
 
   val class_data_match : F.name -> Prover.context 
-                         -> Prover.fact 
+                         -> Prover.Object 
                          -> GoalTypData.data list list -> bool
   val link_data_match :  F.name ->  Prover.context 
-                         -> Prover.fact * Prover.fact 
+                         -> Prover.Object * Prover.Object 
                          -> GoalTypData.data list list -> bool
   
   structure Sharing : MATCH_PARAM_SHARING

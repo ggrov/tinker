@@ -8,8 +8,10 @@ sig
   type tactic
 
   type fact
+  type concl
   type pplan
   type pnode
+  type Object
 end
 
 signature PROVER =
@@ -24,10 +26,12 @@ sig
 
 
   type fact
+  type concl
   type pplan
   type pnode
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
+  datatype Object =  Fact of fact | Concl of concl
 
   exception gterm_exp
   
@@ -78,7 +82,7 @@ sig
   val get_pnode_name : pnode -> string
   (*  TODO: can we give the pplan as arguments as well on these? *)
   (* What does this do? is this specific for one particular goal type? *)
-  val get_pnode_concl : pnode -> term (* return type concl which would be type term*)
+  val get_pnode_concl : pnode -> concl (* return type concl which would be type term*)
   val get_pnode_ctxt : pnode -> context
   val pretty_concl : pnode -> Pretty.T
   val intf_pprint : Pretty.T -> unit
@@ -94,7 +98,9 @@ sig
     sharing type Sharing.tactic = tactic 
 
     sharing type Sharing.fact = fact
+    sharing type Sharing.concl = concl
     sharing type Sharing.pplan = pplan
     sharing type Sharing.pnode = pnode
+    sharing type Sharing.Object = Object
 end;
 

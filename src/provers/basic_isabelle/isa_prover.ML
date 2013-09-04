@@ -7,13 +7,16 @@ struct
   type context = Proof.context
 
   type fact = thm
+  type concl = term
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term } 
     (* could also hold the thm? *)
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
 
   type tactic = Proof.context -> int -> Tactical.tactic
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
-  
+
+  datatype Object =  Fact of fact | Concl of concl
+
   exception gterm_exp
 
   val current_ctxt = @{context}
@@ -187,9 +190,11 @@ struct
     type thm = thm
     type context = context
     type tactic = tactic
+    type concl = concl
     type fact = fact
     type pplan = pplan
     type pnode = pnode
+    type Object = Object
   end
 
 end

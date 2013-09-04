@@ -19,9 +19,9 @@ sig
 
   val get_name: T -> C.name
   val rename : C.name -> T -> T  
-
+(*
   val eq : GoalTypData.Prover.context -> (T * T) -> bool
-
+*)
   structure Sharing : CLASS_SHARING
     sharing type Sharing.T = T
     sharing Sharing.GoalTypData = GoalTypData
@@ -52,7 +52,7 @@ struct
 
   val get_name = fst
   fun rename gname (_, class) = (gname, class) 
-
+(*
   fun eq ctxt ((_,a), (_,b)) = if F.NTab.forall (fn (name, xb) => 
                                           (case (F.NTab.lookup a name) of SOME xa => GoalTypData.match_data_ll (xa,xb)
                                              | _ => false))
@@ -62,7 +62,7 @@ struct
                                                               | _ => false))
                                                           a)
                                               else false
-
+*)
   structure Sharing =
   struct
     type T = T

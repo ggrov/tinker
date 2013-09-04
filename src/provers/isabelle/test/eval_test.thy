@@ -34,8 +34,9 @@ ML{*
 *}
 
 
-ML{*-
-UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams;
+ML{*
+fun interface edata = 
+   UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams (SOME edata) (K edata);
 *}
 
 end;

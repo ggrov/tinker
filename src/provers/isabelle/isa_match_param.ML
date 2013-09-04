@@ -2,7 +2,7 @@
 structure IsaMatchParam  =
 struct
   structure GoalTypData : GOALTYP_DATA = GoalTypData
-  structure Atomic : ATOMIC = IsaAtomic
+  structure Prover : PROVER = IsaProver
 
   exception class_match_exp of string * C.name
   exception link_match_exp of string * L.name
@@ -12,17 +12,16 @@ struct
  structure GTD = GoalTyp.Class.GoalTypData;
  structure CF_Data = Theory_Data(
   type T =  (Proof.context 
-            -> Atomic.Object  (* or term? *)
-            -> GTD.data list (* fixme: not sure current class is correct here*)
+            -> Prover.Object  (* or term? *)
+            -> GTD.data list list (* fixme: not sure current class is correct here*)
             -> bool) F.NTab.T
    val empty = F.NTab.empty
    val extend = I
    val merge = fst);
 
   (* for this goal assumptions, facts and goal are all thms *)
-  fun prj_obj (Atomic.Fact thm) = thm
-   |  prj_obj (Atomic.Assm thm) = thm
-   |  prj_obj (Atomic.Concl thm) = thm;
+  fun prj_obj (Prover.Fact thm) = thm
+   |  prj_obj (Prover.Concl thm) = thm;
 
   (* to do - should it still be prop_of?  *)
   fun mk_term_match f ctxt obj = f ctxt (Thm.prop_of (prj_obj obj)); 
@@ -49,8 +48,8 @@ struct
 
  structure LF_Data = Theory_Data(
   type T =  (Proof.context 
-            -> (Atomic.Object * Atomic.Object) 
-            -> GTD.data list (* fixme: not sure current class is correct here*)
+            -> (Prover.Object * Prover.Object) 
+            -> GTD.data list list(* fixme: not sure current class is correct here*)
             -> bool) F.NTab.T
    val empty = F.NTab.empty
    val extend = I
@@ -81,7 +80,7 @@ struct
   structure Sharing : MATCH_PARAM_SHARING = 
     struct
       structure GoalTypData = GoalTypData.Sharing
-      structure Atomic = Atomic.Sharing
+      structure Prover = Prover.Sharing
     end
 end;
 

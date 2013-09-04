@@ -1,19 +1,54 @@
-structure IsaAtomic (*: ATOMIC *) =
+structure IsaProver : PROVER (*: ATOMIC *) =
 struct
-
-  exception atomic_exp of string
-
-  type fact = Thm.thm
-  type assm = Thm.thm
-  type pplan = PPlan.T
-  type pnode = PNode.T
+  type pos = int list
+  type typ = typ
+  type term = Term.term  
+  type thm = Thm.thm
   type context = Proof.context
+
+  type fact = thm
+  type concl = thm
+  type pnode = PNode.T
+    (* could also hold the thm? *)
+  type pplan = PPlan.T
+
   type tactic = Proof.context -> Tactical.tactic
-  type concl = Thm.thm
-
-  datatype Object =  Fact of fact | Assm of assm | Concl of concl (*| Pair of (Object * Object) *)
-
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
+
+  datatype Object =  Fact of fact | Concl of concl
+
+  exception gterm_exp
+
+  val current_ctxt = @{context}
+  val typ_of = Term.type_of
+  fun match ctxt = Pattern.matches (Context.Proof_Context.theory_of ctxt)
+  fun eq_pos (pos1, pos2) = 
+    let 
+      fun if_eq pos1 (x :: xs) = if ( hd pos1 = x) then if_eq (tl pos1) xs else false
+        | if_eq _ [] = true
+    in 
+      if List.length pos1 = List.length pos2 then if_eq pos1 pos2 else false
+    end
+  fun root_of_trm trm = fst (Term.strip_comb trm)
+  fun subtrm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(Term.strip_comb t), x))) pos trm
+  fun trm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(Term.strip_comb t), x))) pos trm 
+                           |> Term.strip_comb 
+                           |> fst;
+
+  (*val trm_of_thm = Thm.prop_of;*)
+
+  val trm_of_string = Syntax.parse_term;
+  val string_of_trm = Syntax.string_of_term;
+  val pretty_trm = Syntax.pretty_term;
+
+  fun intlist_of_pos pos = pos
+  fun pos_of_intlist il = il
+  
+  val asms_of_thm = Thm.prems_of
+  val concl_of_thm = Thm.concl_of
+
+(* Atomi part *)
+  exception atomic_exp of string
 
   fun apply_rule name thm (pnode,pplan) =
     PPlan.apply_tac (K (rtac thm 1)) (PNode.DRule name) (pnode,pplan);
@@ -77,8 +112,7 @@ struct
      PNode.get_assms pnode 
      |> StrName.NTab.list_of;
 
-  fun init ctxt thm =
-    PPlan.init ctxt (Thm.concl_of thm)
+  val init = PPlan.init
 
   val psgraph_prover_i = "isabelle";
  
@@ -92,15 +126,18 @@ struct
      Syntax.pretty_term (get_pnode_ctxt pnode) (get_pnode_concl pnode|> Thm.prop_of),
      Pretty.str " ]"]
 
-  structure Sharing =
+  structure Sharing = 
   struct
-    type fact = fact
+    type pos = pos
+    type typ = typ
+    type term = term
+    type thm = thm
+    type context = context
     type tactic = tactic
+    type concl = concl
+    type fact = fact
     type pplan = pplan
     type pnode = pnode
-    type context = context
-    type concl = concl
-    type assm = assm
     type Object = Object
   end
 

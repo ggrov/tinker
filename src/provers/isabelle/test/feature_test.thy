@@ -6,7 +6,7 @@ begin
 
 ML{* 
   exception feature_test_exp of term
-  structure GTD = GoalTypData;  structure Atomic = IsaAtomic;
+  structure GTD = GoalTypData;  structure Prover = IsaProver;
   structure TF = TermFeatures;
   fun trm_to_thm thy trm = Thm.cterm_of thy trm |>  Thm.trivial
 *}
@@ -25,31 +25,30 @@ fun gtds_to_terms xs = SOME (map gtd_to_term xs) handle _ => NONE;
 -- "has symbols"
 ML{*
 (* we accept non-well-formedness *)
-fun has_symbols' (_:Proof.context)  _ [] = true 
- |  has_symbols' (_:Proof.context) (Atomic.Fact thm) xs = 
+fun has_symbols'   _ [] = true 
+ |  has_symbols' (Prover.Fact thm) xs = 
      (case gtds_to_string xs of
        NONE => false
       | SOME xs' => TermFeatures.has_constants xs' (Thm.prop_of thm))
- | has_symbols' (_:Proof.context) (Atomic.Concl thm) xs = 
+ | has_symbols' (Prover.Concl thm) xs = 
      (case gtds_to_string xs of
        NONE => false
-      | SOME xs' => TermFeatures.has_constants xs' (Thm.prop_of thm))
- | has_symbols' _  _ _ = false;
+      | SOME xs' => TermFeatures.has_constants xs' (Thm.prop_of thm));
 
         
-(*
 fun has_symbols (_:Proof.context) _ [] = false
  |  has_symbols ctxt obj (x::xs) = 
      (has_symbols' obj x) orelse (has_symbols ctxt obj xs);
-*)
 
-val test = has_symbols' @{context} (Atomic.Concl(trm_to_thm @{theory}  @{prop "a \<and> b \<longrightarrow> c"})) [(GTD.String "HOL.implies"), (GTD.String "HOL.conj")];
-val test = has_symbols' @{context} (Atomic.Concl (trm_to_thm @{theory} @{prop "a \<longrightarrow> b"})) [(GTD.String "HOL.implies"), (GTD.String "HOL.conj")];
+
+val test = has_symbols @{context} (Prover.Concl(trm_to_thm @{theory}  @{prop "a \<and> b \<longrightarrow> c"})) [[(GTD.String "HOL.implies"), (GTD.String "HOL.conj")]];
+val test = has_symbols @{context} (Prover.Concl (trm_to_thm @{theory} @{prop "a \<longrightarrow> b"})) [[(GTD.String "HOL.implies"), (GTD.String "HOL.conj")]];
 *}
-setup {* IsaMatchParam.add_class_feature (F.mk "has_symbols",has_symbols') *}
+setup {* IsaMatchParam.add_class_object_feature (F.mk "has_symbols",has_symbols) *}
 
-
+(*
 -- "top symbol"
+
 ML{*
 
 (* will it always be a prop? *)
@@ -92,26 +91,26 @@ fun is_shape' ctxt (Atomic.Fact thm) xs =
      (is_shape' ctxt thm x) orelse (is_shape ctxt thm xs); *)
 *}
 setup {* IsaMatchParam.add_class_feature (F.mk "is_shape",is_shape') *}
-
+*)
 
 (* test matching for some goal types *)
 ML{*
-  val gt = FullGoalTyp.default;
-  val class_topsymb = GoalTyp.Class.add_item (F.mk "top_symbols") [[(GTD.String "HOL.conj")], [(GTD.String "HOL.conj"), (GTD.String "HOL.implies")]] Class.top;
+  val gt = GoalTyp_I.default;
+  (*val class_topsymb = GoalTyp.Class.add_item (F.mk "top_symbols") [[(GTD.String "HOL.conj")], [(GTD.String "HOL.conj"), (GTD.String "HOL.implies")]] Class.top;*)
   val class_hassymb = GoalTyp.Class.add_item (F.mk "has_symbols") [[(GTD.String "HOL.conj")]] Class.top;
-  val class_hassymb_topsymb = GoalTyp.Class.add_item (F.mk "has_symbols") [[(GTD.String "HOL.implies")]] class_topsymb;
+(*  val class_hassymb_topsymb = GoalTyp.Class.add_item (F.mk "has_symbols") [[(GTD.String "HOL.implies")]] class_topsymb;*)
 
   val gt_demo = 
-    GoalTyp.set_gclass class_hassymb_topsymb gt
-    |> GoalTyp.set_facts [class_topsymb, class_hassymb]
-    |> GoalTyp.set_name (G.mk"has_symbol_and_top_symbol");
+    GoalTyp.set_gclass class_hassymb gt
+    |> GoalTyp.set_facts [ class_hassymb]
+    |> GoalTyp.set_name (G.mk"hassymb");
 
   val auto = RTechn.id
             |> RTechn.set_name (RT.mk "auto")
             |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "auto"));
   val auto_tac = fn x => ( Clasimp.auto_tac x);
 
-  val psauto = PSComb.LIFT ([gt_demo],[]) (auto);
+  val psauto = PSComb.LIFT ([gt_demo],[gt]) (auto);
   val psgraph = psauto PSGraph.empty;
 
   val psgraph = 
@@ -120,21 +119,25 @@ ML{*
 
 *}
 ML{*
-  val (pn,pp) = IsaAtomic.init @{context} (trm_to_thm @{theory} @{prop "A \<and> A ==> A \<longrightarrow> A ==> A --> A"});
+  val (pn,pp) = Prover.init @{context} ( @{term "A \<and> A ==> A \<longrightarrow> A ==> A --> A"});
   val pnode_tab = 
        StrName.NTab.ins
-         (IsaAtomic.get_pnode_name pn,pn)
+         (Prover.get_pnode_name pn,pn)
          StrName.NTab.empty;
   val edata_0 = EData.init psgraph pp pnode_tab [];
+*}
 
-  val t = Atomic.get_all_named_facts_pair pn;
-(* yet to test hyp class and link *)
-  
-  FullGoalTyp.init_lift gt_demo pn;
+ML {*
+ pn;
 *}
 
 ML{*
-  val edata0 = EVal.init psgraph @{context} (trm_to_thm @{theory} @{prop "A --> A"}) |> hd;
+val (pp,g) = PPlan.init @{context} @{term "A \<and> A ==> A \<longrightarrow> A ==> A --> A"};
+PNode.pretty pp |> Pretty.writeln;
+*}
+
+ML{*
+  val edata0 = EVal.init psgraph @{context} @{prop "A \<and> A ==> A \<and> A"} |> hd;
   val edata1 = EVal.evaluate_any edata0 ;
 *}
 

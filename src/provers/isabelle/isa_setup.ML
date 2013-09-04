@@ -16,19 +16,17 @@ structure GoalTypMatch = GoalTypMatchFun (structure GoalTyp: GOAL_TYP = GoalTyp
                                          structure Class : CLASS = Class
                                          structure GoalTypData : GOALTYP_DATA = GoalTypData
                                          structure Prover : PROVER = IsaProver
-                                         structure Atomic = IsaAtomic
                                          structure MatchParam = MatchParam);
 structure GoalTyp_I = GoalTypIFun (structure GoalTyp = GoalTyp
-                                          structure Atomic : ATOMIC = IsaAtomic
                                           structure GoalTypJson : GOALTYP_JSON = GoalTypJson
                                           structure GoalTypMatch : GOALTYP_MATCH = GoalTypMatch);
-(* structure BasicGoalTyp : BASIC_GOALTYPE = GoalTyp_I *)
-structure FullGoalTyp : FULL_GOAL_TYP = GoalTyp_I
+structure BasicGoalTyp : BASIC_GOALTYPE = GoalTyp_I 
+(*structure FullGoalTyp : FULL_GOAL_TYP = GoalTyp_I *)
 
-structure Theory = PSTheoryFun(structure GoalTyp = FullGoalTyp);
+structure Theory = PSTheoryFun(structure GoalTyp = BasicGoalTyp);
 structure PSGraph = PSGraphFun(structure PSTheory = Theory
-                               structure Atomic = IsaAtomic);
+                               structure Prover = IsaProver);
 structure PSComb = PSCombFun(PSGraph);
-structure EData = EDataFun(structure Atomic = IsaAtomic
+structure EData = EDataFun(structure Prover = IsaProver
                            structure PSGraph = PSGraph);
 structure EVal = EValFun(EData);
