@@ -19,6 +19,15 @@ struct
    val extend = I
    val merge = fst);
 
+  (* for this goal assumptions, facts and goal are all thms *)
+  fun prj_obj (Atomic.Fact thm) = thm
+   |  prj_obj (Atomic.Assm thm) = thm
+   |  prj_obj (Atomic.Concl thm) = thm;
+
+  (* to do - should it still be prop_of?  *)
+  fun mk_term_match f ctxt obj = f ctxt (Thm.prop_of (prj_obj obj)); 
+  fun mk_thm_match f ctxt obj = f ctxt (prj_obj obj);
+
   val add_class_feature = CF_Data.map o F.NTab.ins;
   val get_class_features = CF_Data.get;
   val get_class_feature = F.NTab.lookup o get_class_features;
@@ -35,10 +44,6 @@ struct
   val add_link_feature = LF_Data.map o F.NTab.ins;
   val get_link_features = LF_Data.get;
   val get_link_feature = F.NTab.lookup o get_link_features;
-
-  (* FIXME: why is the Object required as this level?
-      - all stuff should have been instantiated by now! *)
-  (* F.name -> Atomic.context -> Atomic.Object -> GoalTypData.data list -> bool *)
 
   fun class_data_match fname ctxt obj data = 
     case get_class_feature (Proof_Context.theory_of ctxt) fname of

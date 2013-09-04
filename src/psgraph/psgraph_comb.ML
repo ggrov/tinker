@@ -27,6 +27,11 @@ sig
   val NEST': string -> psgraphfn -> PSGraph.T -> string * PSGraph.T
   val NEST:string -> psgraphfn -> psgraphfn
 
+  (* merges all outputs that are the same *)
+  val MERGE_OUT : psgraphfn -> psgraphfn
+  val THENM: psgraphfn * psgraphfn -> psgraphfn
+  val TENSORM: psgraphfn * psgraphfn -> psgraphfn
+
   val LIFTtac' : goaltyp list * goaltyp list -> (RTechn.T * tactic) -> PSGraph.T
   val LIFTtac : goaltyp list * goaltyp list -> (RTechn.T * tactic) -> psgraphfn  
 
@@ -44,8 +49,11 @@ struct
   structure GraphComb = PSGraph.PSTheory.PS_Comb;
 
   type psgraphfn = PSGraph.T -> PSGraph.T
-  type goaltyp = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T 
-  type tactic = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Atomic.tactic
+  type goaltyp = GraphSubstData.GoalTyp.T 
+  type tactic = GraphSubstData.GoalTyp.Atomic.tactic
+
+  infixr 6 THENG;
+  infixr 5 TENSOR;
 
   (* collapsing of graph into a vertex *)
   fun collapse_graph_vertex rt_typ name g =
@@ -82,7 +90,7 @@ struct
 
   (* graph of a reasoning technique *)
 
-  fun graph_of_node_edges node inedges outedges =  
+  fun graph_of_node_edges_vertex node inedges outedges =  
      let
        val (v,g) = Graph.add_vertex (Graph.OVData.NVert node) Graph.empty 
        fun in_wire edge g =
@@ -100,8 +108,10 @@ struct
              |> fold out_wire outedges)
      end;
 
+  fun graph_of_node_edges node ins outs = graph_of_node_edges_vertex node ins outs |> snd;
+
   fun graph_of_rtechn_vertex rt ins outs =  
-   graph_of_node_edges
+   graph_of_node_edges_vertex
       (GraphSubstData.RT rt) 
       (map GraphSubstData.GT ins)
       (map GraphSubstData.GT outs)
@@ -135,7 +145,7 @@ struct
     let
       val ps1 = psfn ps
       val graph = PSGraph.get_graph ps1
-      val edge = PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GT gt
+      val edge = GraphSubstData.GT gt
       val graph' = GraphComb.LOOP_WITH graph edge
     in
      PSGraph.set_graph graph' ps1
@@ -204,7 +214,50 @@ struct
           PSGraph.of_graph (graph_of_rtechn rt ins outs)
           |> PSGraph.update_atomics (StrName.NTab.doadd (n,tac));
 
- infixr 6 THENG;
+  (* computes list of multiple outputs for merging *)
+
+  (* noneq is used to remove duplicates *)
+  fun mk_merge res [] = res
+   |  mk_merge (c,n,noneq) (x::xs) =
+        if GraphSubstData.edata_eq (c,x)
+          then mk_merge (c,n+1,noneq) xs
+          else mk_merge (c,n,x::noneq) xs;
+
+  fun mk_merges [] = []
+   |  mk_merges (x::xs) = 
+        let
+          val (c,n,xs') = mk_merge (x,1,[]) xs
+        in (* if more than one output of same type *)
+          if n > 1 then (c,n)::mk_merges xs' else mk_merges xs'
+        end;
+
+ (* MERGE *)
+  fun MERGE_OUT psf ps =
+   let 
+     val ps' = psf ps
+     val g = PSGraph.get_graph ps'
+     val outs = GraphComb.boundary_outputs g 
+              |> map (fn (_,(_,d),_) => d)
+     fun mk_in_list e 0 = []
+      |  mk_in_list e n = e :: mk_in_list e (n-1);
+     fun mk_mgraph (e,n) =
+       PSGraph.set_graph 
+         (graph_of_node_edges (GraphSubstData.RT (RTechn.id)) (mk_in_list e n) [e]);
+     val merges = mk_merges outs
+                |> map mk_mgraph
+     (* cannot be empty *)
+     fun merge_tensored (x::[]) = x
+      |  merge_tensored (x::y::[]) = x TENSOR y
+      |  merge_tensored (x::y::ys) = (x TENSOR y) TENSOR (merge_tensored ys)
+  in
+   (case merges of
+        [] => ps'
+      | xs => (psf THENG (merge_tensored xs)) ps)
+  end; 
+
+  fun THENM (x,y) = MERGE_OUT (x THENG y);
+  fun TENSORM (x,y) = MERGE_OUT (x TENSOR y); 
+ 
 
 end; (* end struct *)
 
