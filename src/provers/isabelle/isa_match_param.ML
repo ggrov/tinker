@@ -61,7 +61,7 @@ struct
 
   fun class_data_match' fname ctxt obj data = 
     case get_class_feature (Proof_Context.theory_of ctxt) fname of
-       NONE => false
+       NONE => ((writeln ("warning: the following class feature is noe defined - " ^ (F.string_of_name fname))); false)
      | SOME f => f ctxt obj data;
   
   fun class_data_match fname ctxt obj data =  
@@ -72,7 +72,7 @@ struct
 
   fun link_data_match fname ctxt (obj1, obj2) data = 
     case get_link_feature (Proof_Context.theory_of ctxt) fname of
-       NONE => false
+       NONE => ((writeln ("warning: the following link feature is noe defined - " ^ (F.string_of_name fname))); false)
      | SOME f => f ctxt (obj1, obj2) data;
 
 
