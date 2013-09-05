@@ -175,7 +175,7 @@ struct
     
     fun lift gnode = lift' (SOME gnode) 
     val init_lift = lift' NONE
-    fun match _ _ _  = false 
+    fun match gnode gt pn =  case (lift gnode gt pn) of NONE => false | _ => true
 (*
   exception quick_eval_exp
   fun qfold f_exp d f l b  =  
