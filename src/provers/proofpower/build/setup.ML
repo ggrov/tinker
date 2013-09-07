@@ -8,8 +8,6 @@
   
   use "../../prover.ML";
   use "../pp_prover.ML";
-  use "../../atomic.ML";
-  use "../pp_atomic.ML";
 
   use "../../../rtechn_names.ML";
   
@@ -71,11 +69,11 @@ structure GoalTypMatch = GoalTypMatchFun (structure GoalTyp: GOAL_TYP = GoalTyp
                                          structure Class : CLASS = Class
                                          structure GoalTypData : GOALTYP_DATA = GoalTypData
                                          structure Prover : PROVER = PPProver
-                                         structure Atomic = PPAtomic
+                                         structure Atomic = PPProver
                                          structure MatchParam = MatchParam);
                                           
 structure GoalTyp_I = GoalTypIFun (structure GoalTyp = GoalTyp
-                                          structure Atomic : ATOMIC = PPAtomic
+                                          structure Atomic : ATOMIC = PPProver
                                           structure GoalTypJson : GOALTYP_JSON = GoalTypJson
                                           structure GoalTypMatch : GOALTYP_MATCH = GoalTypMatch);
 structure FullGoalTyp : FULL_GOAL_TYP = GoalTyp_I
@@ -90,9 +88,9 @@ structure GoalTyp : BASIC_GOALTYPE = SimpleGoalTyp;
 structure Theory = PSTheoryFun(structure GoalTyp = GoalTyp);
 structure Theory = PSTheoryFun(structure GoalTyp = GoalTyp);
 structure PSGraph = PSGraphFun(structure PSTheory = Theory
-                               structure Atomic = PPAtomic);
+                               structure Prover = PPProver);
 structure PSComb = PSCombFun(PSGraph);
-structure EData = EDataFun(structure Atomic = PPAtomic
+structure EData = EDataFun(structure Prover = PPProver
                            structure PSGraph = PSGraph);
 
 structure EVal = EValFun(EData);

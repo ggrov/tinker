@@ -89,8 +89,7 @@ top_goals();
  set_psg_goal ([%<% B : BOOL %>%, %<% A : BOOL %>%], %<% (A %and% B) %and% (A %implies% A) %>%) "interactive" psgraph_simple "dummy" "dummy"; 
 
 (* Exmaple run in interactive-current mode *) 
-set_psg_goal ([], %<%A %implies% (A %and% A) %>%) "current"
-PSGraph.empty "dummy" "dummy";
+set_psg_goal ([], %<%A %implies% (A %and% A) %>%) "current" PSGraph.empty "dummy" "dummy";
 
 top_goals();
   

@@ -5,7 +5,7 @@ fun init_symbol_table l = symbol_table := StrName.NTab.of_list l;
 
 structure SimpleGoalTyp : BASIC_GOALTYPE = 
 struct
-  structure Atomic = PPAtomic;
+  structure Prover = PPProver;
   type T = string
   type gnode = string (* or with term? *)
   exception gt_exp of string
@@ -32,7 +32,7 @@ struct
   val pretty = Pretty.str;
 
   structure TF = TermFeature;
-  local open Atomic in
+  local open Prover in
 
     fun top_level' str pn = 
       case TF.top_level_str (get_pnode_concl pn) of
