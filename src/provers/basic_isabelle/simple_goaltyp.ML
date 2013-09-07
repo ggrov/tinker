@@ -38,7 +38,7 @@ struct
     fun top_level' str pn = 
       case TF.top_level_str (Logic.strip_imp_concl (#ptrm pn)) of
          NONE => false
-       | SOME v => (v = str);
+       | SOME v => (let val _ = isar_tracing (v ^ " " ^  (TF.ignore_module str)) in v = (TF.ignore_module str) end);
     
     fun top_level strs pn = map (fn str => top_level' str pn) strs;
 
@@ -197,8 +197,8 @@ struct
     fun lift_list pn [] = false
      |  lift_list pn (x::xs) =
           ((case x of 
-             "top_symbol" => exists I (top_level xs pn)
-           | "has_symbol" => has_symbol xs pn
+             "top_symbol" => exists I (top_level xs pn) |> debug_trace x
+           | "has_symbol" => has_symbol xs pn |> debug_trace x
            (*| "goal_embeds" => goal_embeds pn  to be tested *)
            | "hyp_embeds" => (hyp_embeds pn)  |> debug_trace x
            | "inductable" => is_inductable pn  |> debug_trace x
