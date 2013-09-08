@@ -168,6 +168,7 @@ struct
 
 (* for simplicity we assume all are non-equal! *)
  (* FIXME: need to check that disjoint output is preserved *)
+  (* FIXME: check that both graphs have same boundary *)
   fun OR (psf1,psf2) ps =
    let 
      val ps1 = psf1 ps
@@ -175,10 +176,13 @@ struct
      val ps2 = psf2 ps1
      val g2 = PSGraph.get_graph ps2
      val name' = PSGraph.fresh_name ps2 "orr"
-     val g' = collapse_graph (RTechn.set_appf RTechn.Or) name' g1
+     val g1' = collapse_graph (RTechn.set_appf RTechn.Or) name' g1
+     val g2' = collapse_graph (RTechn.set_appf RTechn.Or) name' g2
+     val rule1 = PS_Theory.Rule.mk (g1',g1);
+     val rule2 = PS_Theory.Rule.mk (g2',g2);
   in
-    ps2 |> PSGraph.set_graph g'
-        |> PSGraph.update_or_tacs (StrName.NTab.ins (name',[g1,g2]))
+    ps2 |> PSGraph.set_graph g1' (* shouldn't matter which if *)
+        |> PSGraph.update_or_tacs (StrName.NTab.ins (name',[rule1,rule2]))
   end;   
 
   fun ORELSE (psf1,psf2) ps =
@@ -188,10 +192,13 @@ struct
      val ps2 = psf2 ps1
      val g2 = PSGraph.get_graph ps2
      val name' = PSGraph.fresh_name ps2 "orelse"
-     val g' = collapse_graph (RTechn.set_appf RTechn.OrElse) name' g1
+     val g1' = collapse_graph (RTechn.set_appf RTechn.OrElse) name' g1
+     val g2' = collapse_graph (RTechn.set_appf RTechn.Or) name' g2
+     val rule1 = PS_Theory.Rule.mk (g1',g1);
+     val rule2 = PS_Theory.Rule.mk (g2',g2);
   in
-    ps2 |> PSGraph.set_graph g'
-        |> PSGraph.update_orelse_tacs (StrName.NTab.ins (name',(g1,g2)))
+    ps2 |> PSGraph.set_graph g1'
+        |> PSGraph.update_orelse_tacs (StrName.NTab.ins (name',(rule1,rule2)))
   end; 
 
   fun LIFT (ins,outs) rt ps = 

@@ -174,31 +174,48 @@ struct
 
   (* to do: set eval properties properties *)
   (* note: input gnode removed from' parent, but will be added on folding *)
-  fun unfold_nested edata v = 
+  fun unfold_nested edata v rtechn unfrule = 
    let 
      val lhs_seq = EGraph.matched_lhs (EData.get_graph edata) v
-     val rtechn = EGraph.Util.rtechn_of (EData.get_graph edata) v
-     fun update_searchf branch = 
+     fun update_searchf branch = (* should maybe be removed for or for optimisations *)
        case RTechn.get_searchf rtechn of
          NONE => branch
         | SOME str => EData.set_bsearchf str branch; 
-     fun update_evalf branch = 
+     fun update_evalf branch = (* should maybe be removed for or for optimisations *)
        case RTechn.get_evalf rtechn of
          NONE => branch
         | SOME str => EData.set_bevalf str branch; 
-     val name = rtechn
-              |> RTechn.get_name
-              |> RT.dest
      fun rm_gnodes lhs = 
       EData.update_gnodes 
         (delete_gnodes (EGraph.Util.all_single_gnodes lhs))
-     val unfrule = StrName.NTab.get (EData.PSGraph.get_g_tacs (EData.get_psgraph edata)) name
      fun upd (_,lhs) = EGraph.Util.rewrite_lazy unfrule lhs
                      |> Seq.map (fn rhs => EData.push_bactive rhs lhs [] (EData.get_current (rm_gnodes lhs edata))
                                            |> update_searchf |> update_evalf)
    in
      Seq.maps upd lhs_seq
    end
+
+  fun eval_nested edata v = 
+   let 
+     val rtechn = EGraph.Util.rtechn_of (EData.get_graph edata) v
+     val name = rtechn
+              |> RTechn.get_name
+              |> RT.dest
+     val unfrule = StrName.NTab.get (EData.PSGraph.get_g_tacs (EData.get_psgraph edata)) name
+   in
+     unfold_nested edata v rtechn unfrule 
+   end
+
+  fun eval_or edata v = 
+   let 
+     val rtechn = EGraph.Util.rtechn_of (EData.get_graph edata) v
+     val name = rtechn
+              |> RTechn.get_name
+              |> RT.dest
+     val unfrules = StrName.NTab.get (EData.PSGraph.get_or_tacs (EData.get_psgraph edata)) name
+   in
+     Seq.maps (unfold_nested edata v rtechn) (Seq.of_list unfrules)
+   end;
 
   (* assume exact same boundary *)
   fun move_gnode from' v to' =
@@ -272,7 +289,7 @@ struct
        if (RTechn.is_atomic rt) then eval_atomic edata v rt 
        else if (RTechn.is_merge rt) then raise evaluate_exp (SOME v, "merge not supported")
        else if (RTechn.is_identity rt) then raise evaluate_exp (SOME v, "identity not supported")
-       else if (RTechn.is_hgraph rt) then unfold_nested edata v
+       else if (RTechn.is_hgraph rt) then eval_nested edata v
        else if (RTechn.is_or rt) then raise evaluate_exp (SOME v, "or not supported")
        else if (RTechn.is_orelse rt) then raise evaluate_exp (SOME v, "orelse not supported")
        else raise evaluate_exp (SOME v, "Unknown reasoning technique type")
