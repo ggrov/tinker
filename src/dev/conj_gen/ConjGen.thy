@@ -1,4 +1,4 @@
-theory prooftest  
+theory ConjGen 
 imports
   "../build/Eval"             
 begin
