@@ -16,9 +16,6 @@ ML{*
  fun right (_ %% A) = A;
 *}
 
--- "classification function tests"
-
-
 
 -- "examples"
 
@@ -123,7 +120,7 @@ done
 full_prf r
 
 lemma r1: "(A \<longrightarrow> B \<longrightarrow> C) \<longrightarrow> (A \<longrightarrow> B) \<longrightarrow> A \<longrightarrow> C"
-  apply (psgraph impI_impE)
+  apply (psgraph  impI_impE)
 oops
 
 ML{*
@@ -215,7 +212,7 @@ ML{*val graph = PTParse.mk_graph (fn top => GoalTyp.top) treeu;
 
 
 lemma u1: "B \<Longrightarrow> B"
-  apply (psgraph asm)
+  apply (psgraph  asm)
 done
 
 lemma v: "A \<longrightarrow> B \<longrightarrow> A"
@@ -223,6 +220,10 @@ lemma v: "A \<longrightarrow> B \<longrightarrow> A"
   apply (rule impI)
   apply assumption
 done
+
+lemma v1: "A \<longrightarrow> B \<longrightarrow> A"
+  apply (psgraph imp_asm)
+oops
 
 full_prf v
 
