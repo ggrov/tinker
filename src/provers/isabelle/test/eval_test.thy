@@ -1,9 +1,12 @@
 theory eval_test 
 imports
-  "../build/IsaP"         
+  "../build/IsaP"
+      
 begin
 
+
 ML{*
+
   val gt = FullGoalTyp.default;
 
   val auto = RTechn.id

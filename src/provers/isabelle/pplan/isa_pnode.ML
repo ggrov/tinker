@@ -167,6 +167,25 @@ struct
             | (DSubstAsm _) => FWD
             | _ => BCK);
 
+
+
+  fun add_named_tagged_asm (name,tagf,trm) node =
+    let 
+     val ctxt  = get_ctxt node;
+     val assms = get_assms node;
+     val lasms = get_lassms node;
+     val ctrm = Thm.cterm_of (Proof_Context.theory_of ctxt) trm;
+     val (new_asms, ctxt') = Assumption.add_assumes [ctrm] ctxt;
+     val new_asm = tagf (hd new_asms); (* should just be one *)
+     val (name',assms') =  StrName.NTab.add (name,new_asm) assms
+     val lassms' = StrName.NSet.ins_fresh name' lasms
+   in
+     node 
+     |> set_assms assms'
+     |> set_ctxt ctxt'
+     |> set_lassms lassms'
+   end;
+
   (* no brackets around! *)
  
   fun pretty_fixes node =

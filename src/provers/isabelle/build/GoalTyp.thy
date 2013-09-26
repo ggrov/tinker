@@ -5,7 +5,7 @@ imports
 begin
 
  ML_file  "../../../goaltype/full/goaltyp_data.ML"
- ML_file "../../match_param.ML"
+ ML_file "../../../goaltype/full/match_param.ML"
  ML_file  "../../../goaltype/full/class.ML"  
  ML_file "../../../goaltype/full/link.ML"
  

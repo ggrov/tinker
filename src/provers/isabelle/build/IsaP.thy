@@ -4,11 +4,11 @@ imports
   "GoalTyp" 
 begin     
 
- ML_file "../pplan/isa_pnode.ML"
- ML_file "../pplan/isa_pplan.ML"
+ ML_file "../pplan/isa_pnode.ML"  
+ ML_file "../pplan/isa_pplan.ML"  
  ML_file "../pplan/isa_prover.ML"      
 
- ML_file "../isa_setup.ML"      
+ ML_file "../isa_setup.ML"          
 
 (* socket *)
  ML_file "../../../interface/text_socket.ML"
@@ -25,7 +25,7 @@ begin
  ML_file "../isa_features.ML"    
  setup {* IsaFeatures.default *}
 
- ML_file "../isa_intf.ML"
+ ML_file "../isa_method.ML"
 end
 
 

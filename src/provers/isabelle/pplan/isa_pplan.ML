@@ -175,6 +175,14 @@ struct
    let val goal = init_goal StrName.NSet.empty ctxt goal 
    in (goal,init_prf |> add_root goal)
    end;
+
+  fun init_named_asms ctxt trm asms =
+   let 
+     val goal0 = init_goal StrName.NSet.empty ctxt trm
+     val goal' = fold PNode.add_named_tagged_asm asms goal0
+   in 
+     (goal',init_prf |> add_root goal')
+   end;    
   
   fun init_gls ctxt [] = ([],init_prf)
    |  init_gls ctxt (x::xs) =
