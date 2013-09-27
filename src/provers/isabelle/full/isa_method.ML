@@ -41,6 +41,9 @@ struct
       (SOME edata0) 
       (K edata0);
 
+ (* to do - make proof method (like for simple!) *)
+ fun init_thm thm graph = EVal.init_goals;
+
 end (* *)
  val eval_interactive = IsaMethod.eval_interactive;
 

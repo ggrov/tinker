@@ -18,6 +18,9 @@ sig
      -> PSGraph.PSTheory.PS_Theory.Graph.T (* old graph *)
      -> V.name * PSGraph.PSTheory.PS_Theory.Graph.T (* new graph with vertex name *)
 
+  (* extracts a subgraph into one node -- FIXME: should return a single but need
+      to change how to get new graph *)
+  val nest_subgraph : string -> V.NSet.T -> PSGraph.T -> PSGraph.T list
 
   val THENG: psgraphfn * psgraphfn -> psgraphfn
   val TENSOR: psgraphfn * psgraphfn -> psgraphfn
@@ -89,7 +92,6 @@ struct
 
 
   (* graph of a reasoning technique *)
-
   fun graph_of_node_edges_vertex node inedges outedges =  
      let
        val (v,g) = Graph.add_vertex (Graph.OVData.NVert node) Graph.empty 
@@ -265,7 +267,36 @@ struct
   fun THENM (x,y) = MERGE_OUT (x THENG y);
   fun TENSORM (x,y) = MERGE_OUT (x TENSOR y); 
  
+    (* TO DO: move somewhere more generic! actual rewriting *)
+    fun rewrite_lazy rule graph = 
+      let 
+        val graph' = Graph.normalise graph;
+        val (rule',matches) = PS_Theory.Rewriter.find_matches rule graph';
+        fun rewr match = 
+          PS_Theory.Rewriter.rewrite_at rule' match
+          |> snd
+      in
+        Seq.map rewr matches
+      end;
+    val rewrite = Seq.list_of oo rewrite_lazy;
 
+  fun nest_subgraph name vnset psgraph = 
+    let 
+     val g = PSGraph.get_graph psgraph;
+     val sub_g = Graph.get_open_subgraph vnset g;
+     val name' = PSGraph.fresh_name psgraph name
+     val new_node = collapse_graph (RTechn.set_appf (RTechn.HGraph NONE)) name' sub_g
+     val fold_rule = PS_Theory.Rule.mk (new_node,sub_g);
+     val unfold_rule = PS_Theory.Rule.mk (sub_g,new_node);
+     (* to do - since we have the actual names this should be done more low-level
+        --> see code used for rewriting! -> or could just filter out those graphs
+            which contains the correct vertices *)
+     val newgs = rewrite unfold_rule g
+     val psgraph' = PSGraph.update_g_tacs (StrName.NTab.ins (name',fold_rule)) psgraph
+    in
+      map (fn g => PSGraph.set_graph g psgraph') newgs
+    end
+ 
 end; (* end struct *)
 
 (* TO DO: this has to be done for each structore of the functor *)
