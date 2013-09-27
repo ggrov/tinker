@@ -1,5 +1,5 @@
 theory ThyRippling                                          
-imports BIsaMEth
+imports BIsaMeth
 begin
 
 ML{*

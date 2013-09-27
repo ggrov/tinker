@@ -34,6 +34,8 @@ struct
       EVal.init_goal pn edata0   
     end;
 
+ val init = EVal.init;
+
  fun eval_interactive edata0 = 
      UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams 
       (SOME edata0) 

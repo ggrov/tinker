@@ -3,11 +3,9 @@ imports
   "../build/IsaP"         
 begin
 
-ML_file   "../isa_method.ML"          
+ML_file   "../isa_method.ML"            
 
 ML{*
-val ctxt = @{context};
-Thm.cterm_of (Proof_Context.theory_of ctxt);
 
   val gt = FullGoalTyp.default;
 
@@ -29,6 +27,7 @@ ML{*
     [("a",Thm.map_tags (Properties.put ("useful","no")),@{prop "A"})]; (* list of named and labeled assms *)
 *} 
 ML{*
+ IsaMethod.init;
  EData.get_pplan ed;
 *}
 

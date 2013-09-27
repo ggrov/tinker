@@ -1,5 +1,5 @@
 theory intro
-imports   "../../provers/basic_isabelle/build/BIsaMeth"  
+imports   "../../provers/isabelle/basic/build/BIsaMeth"  
 begin
 ML{*
  val path = "" (* set your path of Proof Strategy language first !! *)

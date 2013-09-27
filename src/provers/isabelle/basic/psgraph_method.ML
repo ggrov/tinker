@@ -6,7 +6,6 @@ struct
     [("assumption",K atac),("atac",K atac), (* assumption *)
      ("simp",Simplifier.simp_tac o Simplifier.simpset_of), (* simp *) 
      ("clarsimp",clarsimp_tac), (* clarsimp *)
-     ("auto",auto_tac),
      ("all",K (K all_tac)), (* always succeeds *)
      ("no",K (K no_tac)) (* always fails *)
     ];
