@@ -1,5 +1,5 @@
 theory N 
-imports "../../../provers/basic_isabelle/build/ThyRippling"
+imports "../../../provers/isabelle/basic/build/ThyRippling"
 begin
 
 no_notation Groups.zero ("0")

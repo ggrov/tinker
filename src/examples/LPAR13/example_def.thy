@@ -1,5 +1,5 @@
 theory example_def
-imports   "../../provers/basic_isabelle/build/BIsaMeth" 
+imports   "../../provers/isabelle/basic/build/BIsaMeth" 
 begin
 
 ML{*

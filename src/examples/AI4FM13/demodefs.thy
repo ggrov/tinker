@@ -1,6 +1,6 @@
 theory demodefs                                          
 imports       
-  "../../provers/basic_isabelle/build/BIsaMeth"    
+  "../../provers/isabelle/basic/build/BIsaMeth"    
 begin
 
 lemma rev_cons: "rev (x # xs) = rev xs @ [x]"

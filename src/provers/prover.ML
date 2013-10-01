@@ -1,3 +1,6 @@
+(* 
+  to be implemented for a prover
+ *)
 signature PROVER_SHARING =
 sig
   type pos

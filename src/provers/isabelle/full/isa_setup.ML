@@ -21,9 +21,9 @@ structure GoalTyp_I = GoalTypIFun (structure GoalTyp = GoalTyp
                                           structure GoalTypJson : GOALTYP_JSON = GoalTypJson
                                           structure GoalTypMatch : GOALTYP_MATCH = GoalTypMatch);
 structure BasicGoalTyp : BASIC_GOALTYPE = GoalTyp_I 
-(*structure FullGoalTyp : FULL_GOAL_TYP = GoalTyp_I *)
+structure FullGoalTyp : FULL_GOAL_TYP = GoalTyp_I
 
-structure Theory = PSTheoryFun(structure GoalTyp = BasicGoalTyp);
+structure Theory = PSTheoryFun(structure GoalTyp = FullGoalTyp);
 structure PSGraph = PSGraphFun(structure PSTheory = Theory
                                structure Prover = IsaProver);
 structure PSComb = PSCombFun(PSGraph);
