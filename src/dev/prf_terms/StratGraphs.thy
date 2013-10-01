@@ -30,7 +30,7 @@ ML{*
 
   val impE = RTechn.id
           |> RTechn.set_name (RT.mk "erule impE")
-          |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["impE"]));
+          |> RTechn.set_atomic_appf (RTechn.ERule (StrName.NSet.of_list ["impE"]));
 
   val notI = RTechn.id
           |> RTechn.set_name (RT.mk "rule notI")
@@ -38,7 +38,7 @@ ML{*
 
   val notE = RTechn.id
           |> RTechn.set_name (RT.mk "erule notE")
-          |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["notE"]));
+          |> RTechn.set_atomic_appf (RTechn.ERule (StrName.NSet.of_list ["notE"]));
 *}
 
 ML{*
