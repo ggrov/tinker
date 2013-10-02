@@ -1,6 +1,6 @@
 theory prooftest  
 imports
-  "../build/Eval"             
+  "../provers/isabelle/build/basic/Eval"             
 begin
 
 -- "the conjunction wire"
