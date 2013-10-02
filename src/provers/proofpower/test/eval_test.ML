@@ -45,7 +45,7 @@
   val psgraph_simple' = (psstrip_conj0 THENG psstrip_imp THENG psstrip_asm2) PSGraph.empty  
             
   val graph = PSGraph.get_graph psgraph_simple ;
-  PSGraph.PSTheory.write_dot (path^"graph.dot") graph;
+  (*PSGraph.PSTheory.write_dot (path^"graph.dot") graph;*)
 
   (*
   

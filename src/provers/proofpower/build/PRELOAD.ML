@@ -53,7 +53,7 @@ infix 4 ORELSE;
 infix 5 from;
 infix 5 to;
 
-PolyML.SaveState.saveState "zed_psgraph.heap";
+PolyML.SaveState.saveState "supertac_psgraph.heap";
 
 (*The next step is to use_file "PolyML.SaveState.loadState" the heap file, and then "save_and_exit" in pp interface so
 * that the isaplib + quanto + psgraph heap will stored in pp*)
