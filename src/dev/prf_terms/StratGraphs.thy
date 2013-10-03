@@ -1,6 +1,6 @@
 theory StratGraphs
 imports 
-  "../../provers/basic_isabelle/build/BIsaMeth" 
+  "../../provers/isabelle/basic/build/BIsaMeth" 
 begin
 
 ML{*

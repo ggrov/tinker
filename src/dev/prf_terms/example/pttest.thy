@@ -1,6 +1,6 @@
 theory pttest
 imports  
-   "../../../provers/isabelle/build/Parse"
+   "../../../provers/isabelle//full/build/Parse"
    "../StratGraphs"
 begin
 
