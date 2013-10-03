@@ -47,8 +47,10 @@ OR
 Installing the GUI
 ---------------------------------------------------
 If you wish to use GUI in the interactive proof session, you'll need the 
- - Scala Build Tool ([SBT](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html)) and;
+ - Scala Build Tool ([0.12.4](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html)) and;
  - Graphviz [here](http://www.graphviz.org/Download.php)
+ 
+ Note that this assumed that you have java 6 or above installed.
 
 
 Usage
