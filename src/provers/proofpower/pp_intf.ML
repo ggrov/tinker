@@ -1,6 +1,6 @@
   
   val default_tacs = [("step_strip_any_tac", step_strip_tac), ("step_strip_conj", step_strip_tac), 
-  		      ("step_strip_imp", step_strip_tac), ("step_assm", step_strip_tac)];
+  		      ("step_strip_imp", step_strip_tac), ("step_assm", step_strip_tac)(*,  "super_tac", super_tac*)];
   
   fun set_psg_goal (assms, goal) mode psg searchf goalf = 
     let

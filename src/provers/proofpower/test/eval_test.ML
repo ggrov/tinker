@@ -1,4 +1,4 @@
-
+  structure ST = Supertac_11_1a7;
   val path = "/Users/yuhuilin/Desktop/";
   
   infixr 6 THENG;
@@ -22,9 +22,13 @@
   val step_assm = RTechn.id
             |> RTechn.set_name (RT.mk "step_assm") (* z_strip_tac for z, strip_tac for hol*)
             |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "step_assm"));
+  val super_tac = ((writeln "apply super_tac"); ST.super_tac);
+  val psg_super_tac =  RTechn.id
+            |> RTechn.set_name (RT.mk "super_tac") (*top level super tav*)
+            |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "super_tac"));
             
   val default_tacs = [("step_strip_any_tac", step_strip_tac), ("step_strip_conj", step_strip_tac), 
-  		      ("step_strip_imp", step_strip_tac), ("step_assm", step_strip_tac)];
+		      ("step_strip_imp", step_strip_tac), ("step_assm", step_strip_tac), ("super_tac", super_tac)];
   		      
   val psstrip_any = PSComb.LIFT ([gt],[gt]) (step_strip_any);
   val psstrip_conj0 =  PSComb.LIFT ([gt_conj],[gt_conj, gt_imp]) (step_strip_conj);
@@ -32,6 +36,7 @@
   val psstrip_imp = PSComb.LIFT ([gt_imp],[gt]) (step_strip_imp);
   val psstrip_asm = PSComb.LIFT ([gt],[]) (step_assm);
   val psstrip_asm2 = PSComb.LIFT ([gt, gt],[]) (step_assm);  
+  val pssupertac = PSComb.LIFT ([gt], [gt]) psg_super_tac;
   
 (* attendtion: for each eval, strip_any will run 4 times*)
   val psgraph_buggy = (psstrip_any THENG psstrip_any THENG psstrip_any THENG psstrip_any) PSGraph.empty  
@@ -42,9 +47,11 @@
   val gt_not_imp = "not top_symbol(implies)";
   val psstrip_conj0 =  PSComb.LIFT ([gt_conj],[gt_not_imp, gt_imp]) (step_strip_conj);
   val psstrip_asm2 = PSComb.LIFT ([gt_not_imp, gt],[]) (step_assm);  
-  val psgraph_simple' = (psstrip_conj0 THENG psstrip_imp THENG psstrip_asm2) PSGraph.empty  
+  val psgraph_simple' = (psstrip_conj0 THENG psstrip_imp THENG psstrip_asm2) PSGraph.empty ;
+  val psgraph_st = pssupertac PSGraph.empty
+  		   |> PSGraph.load_atomics default_tacs;
             
-  val graph = PSGraph.get_graph psgraph_simple ;
+  (*val graph = PSGraph.get_graph psgraph_simple ;*)
   (*PSGraph.PSTheory.write_dot (path^"graph.dot") graph;*)
 
   (*
@@ -82,7 +89,7 @@ top_goals();
   
   
 
-   use "setup";
+ use "setup";
  use_file "../test/eval_test";
 
 (* Example: run in the interactive mode *)
@@ -92,5 +99,6 @@ top_goals();
 set_psg_goal ([], %<%A %implies% (A %and% A) %>%) "current" PSGraph.empty "dummy" "dummy";
 
 top_goals();
+print_goal_state (top_goal_state()) ;
   
   *)

@@ -109,3 +109,5 @@ structure EVal = EValFun(EData);
   
   use "../pp_intf.ML";
 
+(* enable the subgoal package printing *)
+  reset_flag "subgoal_package_quiet";
