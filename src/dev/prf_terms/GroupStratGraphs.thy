@@ -1,15 +1,22 @@
 theory GroupStratGraphs
 imports 
-  "../../provers/basic_isabelle/build/BIsaMeth" 
+  "../../provers/isabelle/basic/build/BIsaMeth" 
 begin
+
+ML{*
+val (induct_tac : Proof.context -> int -> tactic) = 
+  fn _ => InductRTechn.induct_tac;
+*}
+
+setup {* PSGraphMethod.add_tac ("induct",induct_tac) *}
 
 ML{*
   infixr 6 THENG;
   val op THENG = PSComb.THENG;
   val op LOOP_WITH = PSComb.LOOP_WITH;
   val gt_induct = "inductable";
-  val gt_base = "base case";
-  val gt_step = "step case";
+  val gt_base = "any";
+  val gt_step = "any";
   val gt_sub = "substitution";
   val gt_simp = "simplification"
   val gt_id = "contains identity"
@@ -30,7 +37,7 @@ ML{*
 
   val induct = RTechn.id
               |> RTechn.set_name (RT.mk "induct")
-              |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "induct"));
+              |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TNoAsm, "induct"));
 
   val sub = RTechn.id
            |> RTechn.set_name (RT.mk "axiom substitution")
@@ -55,7 +62,13 @@ val pssimp2 = PSComb.LIFT ([gt_simp], [gt_simp]) (simp_only);
 val psf = psinduct THENG psauto1 THENG psauto2 THENG psid THENG pssub 
               THENG pssimp1 THENG pssimp2;
 
-val psgraph_group = psf PSGraph.empty  |> PSGraph.load_atomics [("assumption",K atac)];
+val psgraph_group = psf PSGraph.empty 
+      |> PSGraph.load_atomics (StrName.NTab.list_of (PSGraphMethod.get_tacs @{theory}));
+*}
+
+(* tactics *)
+ML{*
+StrName.NTab.list_of (PSGraphMethod.get_tacs @{theory});
 *}
 
 setup {* PSGraphMethod.add_graph ("group",psgraph_group) *}
