@@ -159,7 +159,7 @@ struct
     tac (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
     |> Seq.map (update (pnode,pplan));
 
-  fun lookup_fact pnode name =
+  fun lookup_fact (pnode:pnode) name =
     let 
       val ctxt = #pctxt pnode
       val thy = Proof_Context.theory_of ctxt
