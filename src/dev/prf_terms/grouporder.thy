@@ -97,7 +97,6 @@ lemma gexp_order_Suc_alt: "gexp g n ** g = gexp g (Suc n)"
 oops
 
 
-
 (* removing auto/simp - in progress *)
 
 lemma gexp_inv: "inv (gexp g n) = gexp (inv g) n"
@@ -106,7 +105,7 @@ lemma gexp_inv: "inv (gexp g n) = gexp (inv g) n"
   apply (subst gexp.simps(1))
   apply (rule inv_id)
 
-(*  apply (subst Suc_eq_plus1)
+  apply (subst Suc_eq_plus1)
   apply (subst Suc_eq_plus1)
   apply (subst One_nat_def)
   apply (subst One_nat_def)
@@ -115,8 +114,21 @@ lemma gexp_inv: "inv (gexp g n) = gexp (inv g) n"
   apply (subst gexp_order_plus[symmetric])
   apply (subst gexp.simps(1))
   apply (subst id_rev)
-  apply (subst gexp.simps(2)) *)
+  apply (subst gexp.simps(2))
+  apply (subst Suc_eq_plus1)
+  apply (subst gexp_order_plus[symmetric])
+  apply (subst gexp.simps(1))
+  apply (subst id_rev)
+  apply (subst gexp_order_plus[symmetric])
+  
+  
 
+ 
+  
+  
+
+
+sledgehammer
 
   apply simp
   apply (rule inv_id)
