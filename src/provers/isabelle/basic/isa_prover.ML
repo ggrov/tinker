@@ -159,8 +159,13 @@ struct
     tac (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
     |> Seq.map (update (pnode,pplan));
 
-  fun lookup_fact _ name = 
-    SOME (Global_Theory.get_thm @{theory} name) handle _ => NONE
+  fun lookup_fact pnode name =
+    let 
+      val ctxt = #pctxt pnode
+      val thy = Proof_Context.theory_of ctxt
+    in
+      SOME (Global_Theory.get_thm thy name) handle _ => NONE
+    end
 
   fun get_all_assms _ = []
 
