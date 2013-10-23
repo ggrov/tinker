@@ -1,5 +1,7 @@
 structure SimpleGoalTyp : BASIC_GOALTYPE = 
 struct
+  local open DebugHandler in
+
   structure Prover = IsaProver;
   type T = string
   type gnode = string (* or with term? *)
@@ -17,6 +19,7 @@ struct
 
   val gnode_to_json = Json.String;
   fun gnode_from_json (Json.String str) = str
+  | gnode_from_json _ = raise gt_exp "gnode_from_json: ill-formed json structure"
 
 (*
   val to_json = Json.String;
@@ -26,6 +29,7 @@ struct
      Json.mk_object [("type", Json.String "GT"), ("gtyp_name", Json.String str)] 
 
   fun from_json (Json.Object jobj) = Json.get jobj "gtyp_name" |> (fn Json.String x => x)
+  | from_json _ = raise gt_exp "from_json: ill-formed json structure"
 
 
 
@@ -38,7 +42,7 @@ struct
     fun top_level' str pn = 
       case TF.top_level_str (Logic.strip_imp_concl (#ptrm pn)) of
          NONE => false
-       | SOME v => (let val _ = isar_tracing (v ^ " " ^  (TF.ignore_module str)) in v = (TF.ignore_module str) end);
+       | SOME v => (let val _ = debug_print GOALTYP (v ^ " " ^  (TF.ignore_module str)) in v = (TF.ignore_module str) end);
     
     fun top_level strs pn = map (fn str => top_level' str pn) strs;
 
@@ -63,14 +67,14 @@ struct
       let 
          val ctxt = #pctxt pn
          val (hyps, goal) = get_hyps_and_goal (#ptrm pn)
-         (*val _ = Pretty.chunks ([Pretty.str "hyps in hyp_embed: "] @ (map (Syntax.pretty_term @{context}) hyps)) 
-                 |> Pretty.string_of |> isar_tracing
+         val _ = Pretty.chunks ([Pretty.str "hyps in hyp_embed: "] @ (map (Syntax.pretty_term @{context}) hyps)) 
+                 |> Pretty.string_of |> debug_print GOALTYP
          val _ = Pretty.chunks ([Pretty.str "goal in hyp_embed: "] @ [((Syntax.pretty_term @{context} goal))]) 
-                 |> Pretty.string_of |> isar_tracing*)
+                 |> Pretty.string_of |> debug_print GOALTYP
       in 
         exists (fn hyp => TF.ctxt_embeds ctxt hyp goal) hyps 
-        (*|> (fn x => if x then (isar_tracing "find embeddings !"; x) 
-            else  (isar_tracing "no embeddings !"; x))*)
+        |> (fn x => if x then (debug_print GOALTYP "find embeddings !"; x) 
+            else  (debug_print GOALTYP "no embeddings !"; x))
       end;
 (*
     fun goal_embeds pn =
@@ -102,7 +106,7 @@ struct
     fun measure_reduces pn =
       let
          val ctxt = #pctxt pn 
-         val thy = #pctxt pn |> Proof_Context.theory_of
+         (*val thy = #pctxt pn |> Proof_Context.theory_of*)
          val (hyps, goal) = get_hyps_and_goal (#ptrm pn)
          val embedd_hyp =
           filter (fn hyp => TF.ctxt_embeds ctxt  hyp goal) hyps (* use the hyp with no bindings *)
@@ -110,8 +114,8 @@ struct
          val wrules = BasicRipple.get_matched_wrules ctxt goal
       in
         TF.has_measure_decreasing_rules ctxt embedd_hyp wrules goal
-        (*|> (fn x => if x then (isar_tracing "find decreased measure !"; x) 
-            else  (isar_tracing "no decreased measure !"; x))*)
+        |> (fn x => if x then (debug_print GOALTYP "find decreased measure !"; x) 
+            else  (debug_print GOALTYP "no decreased measure !"; x))
       end
 
     (* embedding is a subterm of goal, or if the embedding is eq type then 
@@ -169,14 +173,14 @@ struct
                                [Pretty.str "with embeds: "] @
                                [((Syntax.pretty_term @{context} embedd_hyp))]
                                ) 
-        |> Pretty.string_of |> isar_tracing
+        |> Pretty.string_of |> debug_print GOALTYP
       in
         TF.is_subterm thy goal embedd_hyp
       end
     
     fun debug_trace str b = 
-      if b then (isar_tracing (str ^ " is good !"); b) 
-      else (isar_tracing (str ^ " fails !"); b);
+      if b then (debug_print GOALTYP (str ^ " is good !"); b) 
+      else (debug_print GOALTYP (str ^ " fails !"); b);
 
     val keywords = ["top_symbol", "has_symbol", "goal_embeds", "hyp_embeds", "inductable",
                       "measure_reduces", "hyp_bck_res", "hyp_subst", "not", "or", "any", "anything"];
@@ -194,7 +198,7 @@ struct
       if l = [] then [(hd xs) :: args]
       else ((hd xs) :: args) :: (split_args l) end;
 
-    fun lift_list pn [] = false
+    fun lift_list _ [] = false
      |  lift_list pn (x::xs) =
           ((case x of 
              "top_symbol" => exists I (top_level xs pn) |> debug_trace x
@@ -220,10 +224,10 @@ struct
    fun init_lift str pn =
      let 
         val ls = String.tokens (fn c => c = #";") str
-        val _ = isar_tracing (("init goal " ^  (#pname pn) ^  " with goal type: " ^ str ))
+        val _ = debug_print BASIC_INFO (("init goal " ^  (#pname pn) ^  " with goal type: " ^ str ))
     in 
      case ls of 
-       [] => (isar_tracing "warning; No goal types !"; NONE)
+       [] => (debug_print BASIC_INFO "warning; No goal types !"; NONE)
       | _ => ls |> map (lift' pn)
                 |> forall I 
                 |> liftp pn
@@ -233,7 +237,7 @@ struct
   end; (* local open *)
 
   (* assume gn is the name of pn *)
-  fun match gn gt pn = 
+  fun match _ gt pn = 
     case init_lift gt pn of
      NONE => false
     | SOME _ => true;
@@ -251,5 +255,5 @@ struct
     type T = T
     type gnode = gnode
   end
-  
-end;
+  end (* local open *)
+end(* struct *);

@@ -59,6 +59,7 @@ struct
 
  fun init psgraph ctxt goals =
    let
+     val _ = DebugHandler.clear_debug_msg ();
      val (pnode,pplan) = Prover.init ctxt goals
      val pnode_tab = 
        StrName.NTab.ins
@@ -72,6 +73,7 @@ struct
 
  fun init_of psgraph (pnds,pplan) =
    let
+     val _ = DebugHandler.clear_debug_msg ();
      val pnode_tab = 
       fold 
        (fn pnode => StrName.NTab.ins (Prover.get_pnode_name pnode,pnode))
@@ -80,10 +82,13 @@ struct
      val edata0 = EData.init psgraph pplan pnode_tab []
    in
     init_goals edata0 pnds
+    |> (fn x => case x of [] => (DebugHandler.add_debug_msg (Pretty.str "Fail to init lift") ; DebugHandler.debug_err (); [])
+      | _ => x)
    end;
 
  fun init_with_assm psgraph ctxt assms goals =
    let
+     val _ = DebugHandler.clear_debug_msg ();
      val (pnode,pplan) = Prover.init_with_assm ctxt assms goals
      val pnode_tab = 
        StrName.NTab.ins
@@ -367,7 +372,6 @@ struct
      evaluate edata (get_tactic (EData.get_gnodes edata) edata)
      |> update_branches edata
 
-
    (* similar to evaluate_any, but only evaluate a single one *)
    fun evaluate_single edata =
     if has_terminated edata then
@@ -405,14 +409,12 @@ struct
 
    (* depth first search  *)
    fun evaluate_full_one edata = 
-     case evaluate_arbitrary edata of
+     (case evaluate_arbitrary edata of
        Good edata' => [EData.get_pplan edata']
      | Bad => (case EData.next_branch edata of
             NONE => []
            | SOME (_,edata') => evaluate_full_one (normalise_gnode edata'))
-     | Cont edata' => evaluate_full_one edata';
-    
-    
+     | Cont edata' => evaluate_full_one edata')    
 
 (* 
   and eval_one edata =

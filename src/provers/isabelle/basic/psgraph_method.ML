@@ -129,7 +129,10 @@ struct
      EVal.init_of psgraph (ps,pp)
      |> map (set_goalf o set_searchf)
      |> get_thm_seq
+     |> (fn x => ((case Seq.pull x of NONE => DebugHandler.debug_err()
+                                  | _ => ());x))
    end
+   handle _ => (DebugHandler.debug_err();Seq.empty)
  
   (* to do: check that goalf and searchf are defined *)
   fun ipsgraph_tac'  (((mode, name), goalf), searchf) ctxt thm = 
@@ -170,6 +173,7 @@ struct
     case mode
     of "auto" => psgraph_tac' ((name, goalf), searchf)
     | _  => ipsgraph_tac' (((mode, name), goalf), searchf)
+ 
 
   fun full_psgraph_method arg ctxt =  SIMPLE_METHOD (full_psgraph_tac arg ctxt);
 

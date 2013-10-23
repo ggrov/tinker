@@ -1,5 +1,6 @@
 structure IsaProver (*: PROVER*) =
 struct 
+ local open DebugHandler in
   type pos = int list
   type typ = typ
   type term = Term.term  
@@ -129,36 +130,6 @@ struct
     (newgoals,pplan')
   end;
 
-  fun apply_rule name thm (pnode,pplan) = 
-    (isar_tracing ("rule " ^ name);
-    rtac thm (get_index pnode pplan) (#goal pplan) 
-    |> Seq.map (update (pnode,pplan)));
-
-  fun apply_erule _ thm (pnode,pplan) =
-    etac thm (get_index pnode pplan) (#goal pplan) 
-    |> Seq.map (update (pnode,pplan));
-
-  (* only second *)
-  fun apply_frule (n1,fst_thm) (n2,snd_thm) (pnode,pplan) = 
-    (isar_tracing ("frule with " ^ n1 ^ " and " ^ n2); 
-    (* Seq.append (ftac fst_thm (get_index pnode pplan) (#goal pplan)) *)
-               (ftac snd_thm (get_index pnode pplan) (#goal pplan))
-    |> Seq.map (update (pnode,pplan)));
-
-  fun apply_subst _ thm (pnode,pplan) =
-    EqSubst.eqsubst_tac (#pctxt pnode) [0] [thm] (get_index pnode pplan) (#goal pplan)
-    |> Seq.map (update (pnode,pplan));
-
-  (* is this correct? *)
-  fun apply_subst_asm (_,fst_thm) (_,_) (pnode,pplan) =  
-    EqSubst.eqsubst_asm_tac (#pctxt pnode) [0] [fst_thm] (get_index pnode pplan) (#goal pplan)
-    |> Seq.map (update (pnode,pplan));
-
-  (* FIXME: currently ignores all the assumptions *)
-  fun apply_tactic _ _ tac (pnode,pplan) = 
-    tac (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
-    |> Seq.map (update (pnode,pplan));
-
   fun lookup_fact (pnode:pnode) name =
     let 
       val ctxt = #pctxt pnode
@@ -184,7 +155,37 @@ struct
      Pretty.str " : ",
      Syntax.pretty_term (get_pnode_ctxt pnode) (get_pnode_concl pnode),
      Pretty.str " ]"]
-     
+  
+  fun apply_rule name thm (pnode,pplan) = 
+    (debug_print EVAL ("rule " ^ name);
+    rtac thm (get_index pnode pplan) (#goal pplan) 
+    |> Seq.map (update (pnode,pplan)));
+
+  fun apply_erule _ thm (pnode,pplan) =
+    etac thm (get_index pnode pplan) (#goal pplan) 
+    |> Seq.map (update (pnode,pplan));
+
+  (* only second *)
+  fun apply_frule (n1,fst_thm) (n2,snd_thm) (pnode,pplan) = 
+    (debug_print EVAL ("frule with " ^ n1 ^ " and " ^ n2); 
+    (* Seq.append (ftac fst_thm (get_index pnode pplan) (#goal pplan)) *)
+               (ftac snd_thm (get_index pnode pplan) (#goal pplan))
+    |> Seq.map (update (pnode,pplan)));
+
+  fun apply_subst _ thm (pnode,pplan) =
+    EqSubst.eqsubst_tac (#pctxt pnode) [0] [thm] (get_index pnode pplan) (#goal pplan)
+    |> Seq.map (update (pnode,pplan));
+
+  (* is this correct? *)
+  fun apply_subst_asm (_,fst_thm) (_,_) (pnode,pplan) =  
+    EqSubst.eqsubst_asm_tac (#pctxt pnode) [0] [fst_thm] (get_index pnode pplan) (#goal pplan)
+    |> Seq.map (update (pnode,pplan));
+
+  (* FIXME: currently ignores all the assumptions *)
+  fun apply_tactic _ _ tac (pnode,pplan) = 
+    tac (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
+    |> Seq.map (update (pnode,pplan));
+
   fun intf_pprint pretty = Pretty.writeln pretty
 
   structure Sharing = 
@@ -201,5 +202,5 @@ struct
     type pnode = pnode
     type Object = Object
   end
-
-end
+ end (* local open *)
+end (* struct *)

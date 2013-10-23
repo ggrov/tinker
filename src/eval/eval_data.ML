@@ -255,7 +255,8 @@ struct
 
   val get_tactics = get_psgraph #> PSGraph.get_atomics;
   val lookup_tactic = get_tactics #> StrName.NTab.lookup
-  val get_tactic = get_tactics #> StrName.NTab.get
+  fun get_tactic data tac = StrName.NTab.get (get_tactics data) tac
+  handle x => (DebugHandler.add_debug_msg (Pretty.str ("No such a tac : " ^ tac) );raise x )
 
   (* push and pop of hierarchies *)
 

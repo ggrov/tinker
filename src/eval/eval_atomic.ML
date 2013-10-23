@@ -39,6 +39,7 @@ end
 
 functor EvalAtomicFun(EData : EVAL_DATA) : EVAL_ATOMIC =
 struct
+ local open DebugHandler in
   structure EData = EData;
   structure Prover = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover;
   structure GData = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData
@@ -50,7 +51,7 @@ struct
 
   fun lookup_fact node name = 
    case Prover.lookup_fact node name of
-      NONE => raise no_such_fact name
+      NONE => (add_debug_msg (Pretty.str ("No such a fact/ thm : " ^ name) );raise no_such_fact name)
     | SOME f => (name,f)
 
   fun try_lookup_fact node name = 
@@ -108,6 +109,7 @@ struct
          Prover.apply_tactic tac_name facts tac (pnode,pplan)
        end;
 
+  
   fun apply_appf edata gnode (RTechn.Rule fact_nms) =
         let 
           val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
@@ -115,6 +117,15 @@ struct
           val facts = fact_seq pnode fact_nms
         in
           Seq.maps (fn (fnm,fact) => Prover.apply_rule fnm fact (pnode,pplan)) facts
+          |> (fn x =>
+          (case (Seq.pull x) of NONE  
+           => add_debug_msg 
+                (Pretty.chunks [Pretty.str ("Fail to apply RULES " ^
+                                (StrName.NSet.list_of fact_nms |> map Pretty.str |> Pretty.block |> Pretty.string_of) ^ 
+                                " to "), 
+                                Prover.pretty_concl pnode]) 
+           | _ => ()
+          ;x))
         end
     |  apply_appf edata gnode (RTechn.ERule fact_nms) =
         let 
@@ -123,6 +134,15 @@ struct
           val facts = fact_seq pnode fact_nms
         in
           Seq.maps (fn (fnm,fact) => Prover.apply_erule fnm fact (pnode,pplan)) facts
+          |> (fn x =>
+          (case (Seq.pull x) of NONE  
+           => add_debug_msg 
+                (Pretty.chunks [Pretty.str ("Fail to apply ERULES " ^
+                                (StrName.NSet.list_of fact_nms |> map Pretty.str |> Pretty.block |> Pretty.string_of) ^ 
+                                " to "), 
+                                Prover.pretty_concl pnode]) 
+           | _ => ()
+          ;x))
         end
      (* it never fails: it tries of them once (should revisit this though) *)
    |  apply_appf edata gnode (RTechn.FRule (class_nm,fact_nms)) =
@@ -156,6 +176,15 @@ struct
           val facts = fact_seq pnode fact_nms
         in
           Seq.maps (fn (fnm,fact) => Prover.apply_subst fnm fact (pnode,pplan)) facts
+                    |> (fn x =>
+          (case (Seq.pull x) of NONE  
+           => add_debug_msg 
+                (Pretty.chunks [Pretty.str ("Fail to apply SUBST " ^
+                                (StrName.NSet.list_of fact_nms |> map Pretty.str |> Pretty.block |> Pretty.string_of) ^ 
+                                " to "), 
+                                Prover.pretty_concl pnode]) 
+           | _ => ()
+          ;x))
         end
    |  apply_appf edata gnode (RTechn.SubstAsm (class_nm,fact_nms)) =  (* why not a wire? *)
          let 
@@ -197,9 +226,17 @@ struct
 
   (* raises exception if one proof nodes fails *)
   fun partition_one goal_typs gnode pnode res =
+  let val _ = tracing "ome" in
     case partition_one' goal_typs gnode pnode [] res of
-       [] => raise partition_exp pnode
-     | xs => xs
+       [] => (
+        (Pretty.chunks
+          ([Pretty.str "Fail to lift ",
+            Prover.pretty_concl pnode,
+            Pretty.str ("with GoalTypes: " ^
+            (Pretty.block (map (fn x =>  GoalTyp.pretty x) goal_typs) |> Pretty.string_of))]) 
+        |> DebugHandler.add_debug_msg); raise partition_exp pnode)
+     | xs => xs 
+end
 
   (* return value : outer list - each branch: singleton 
                     middle list - one branch same length as goaltype input list
@@ -236,5 +273,5 @@ struct
                        |> Seq.maps apply_one
       | _ => Seq.empty (* TODO: raise exception *)
   end
-
+ end (* local open *)
 end (* functor *)
