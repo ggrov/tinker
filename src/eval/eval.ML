@@ -312,7 +312,7 @@ struct
    fun update_branches_all edata branches =
      case Seq.list_of branches of
        [] => Bad
-     | ys => (* to do: replace by search data *)(writeln (Int.toString (length ys));
+     | ys => (* to do: replace by search data *)(DebugHandler.debug_print DebugHandler.EVAL ("Eval number of branches: " ^ (Int.toString (length ys)));
           (case searchf ys (EData.get_branches edata) (EData.get_searchf edata) of
              [] => Bad (* should never happen *)
            | (x::xs) => (* fixme: this should be based on the search strategy *)
