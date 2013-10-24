@@ -5,9 +5,6 @@ imports
   "../../../provers/isabelle/basic/build/BIsaMeth"
 begin
 
-ML{*
-@{term "e"}
-*}
 
 -- "path to write graphs to"
 ML{*
@@ -37,12 +34,12 @@ RTechn.id
 
 val simp1a = 
 RTechn.id
-|> RTechn.set_name (RT.mk "rule gexp.simps(1)")
+|> RTechn.set_name (RT.mk "rule l1")
 |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["l1"]));
 
 val simp2b =
 RTechn.id
-|> RTechn.set_name (RT.mk "subst gexp.simps(2)")
+|> RTechn.set_name (RT.mk "subst l2")
 |> RTechn.set_atomic_appf (RTechn.Subst (StrName.NSet.of_list ["l2"]));
 
 val id_revb =
@@ -126,7 +123,7 @@ lemma gexp_id: "gexp e n = e"
   done           
 
 lemma gexp_id_alt: "gexp e n = e"
-  apply (psgraph  idorder)
+  apply (psgraph idorder)
 done
 
 lemma gexp_id_step: "gexp e n = e"
