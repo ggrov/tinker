@@ -226,7 +226,6 @@ struct
 
   (* raises exception if one proof nodes fails *)
   fun partition_one goal_typs gnode pnode res =
-  let val _ = tracing "ome" in
     case partition_one' goal_typs gnode pnode [] res of
        [] => (
         (Pretty.chunks
@@ -236,7 +235,6 @@ struct
             (Pretty.block (map (fn x =>  GoalTyp.pretty x) goal_typs) |> Pretty.string_of))]) 
         |> DebugHandler.add_debug_msg); raise partition_exp pnode)
      | xs => xs 
-end
 
   (* return value : outer list - each branch: singleton 
                     middle list - one branch same length as goaltype input list
