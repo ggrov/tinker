@@ -5,6 +5,10 @@ imports
   "../../../provers/isabelle/basic/build/BIsaMeth"
 begin
 
+ML{*
+@{term "e"}
+*}
+
 -- "path to write graphs to"
 ML{*
 val path = "/home/colin/Documents/phdwork/groupstrat/"
@@ -34,31 +38,42 @@ RTechn.id
 val simp1a = 
 RTechn.id
 |> RTechn.set_name (RT.mk "rule gexp.simps(1)")
-|> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["gexp.simps(1)"]));
+|> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["l1"]));
 
 val simp2b =
 RTechn.id
 |> RTechn.set_name (RT.mk "subst gexp.simps(2)")
-|> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["gexp.simps(2)"]));
+|> RTechn.set_atomic_appf (RTechn.Subst (StrName.NSet.of_list ["l2"]));
 
 val id_revb =
 RTechn.id
 |> RTechn.set_name (RT.mk "subst id_rev")
-|> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["id_rev"]));
+|> RTechn.set_atomic_appf (RTechn.Subst (StrName.NSet.of_list ["id_rev"]));
+
+val refl = 
+RTechn.id
+|> RTechn.set_name (RT.mk "rule refl")
+|> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["refl"]));
 *}
-
-
 -- "Goal Types"
 
 ML{*
  infixr 6 THENG;
  val op THENG = PSComb.THENG;
 
+ infixr 6 LOOP_WITH;
+ val op LOOP_WITH = PSComb.LOOP_WITH
+
  val gt_induct = "inductable"
  val gt = SimpleGoalTyp.default;
- val gt_base = "has_symbol(0)";
- val gt_step = "has_symbol(Suc n)";
+ val gt_base = "has_symbol(zero)";
+ val gt_step = "has_symbol(Suc)";
  val gt_id = "has_symbol(e)";
+ val gt_ref = "any";
+*}
+
+ML{*
+@{term "0 + Suc n"}
 *}
 
 -- "PSGraph"
@@ -79,6 +94,15 @@ val psf2 = psstep THENG psid THENG psasm;
 val psgraph_idorder_step = psf2 PSGraph.empty |> PSGraph.load_atomics (StrName.NTab.list_of (PSGraphMethod.get_tacs @{theory}));
 *}
 
+(* Setting up strategy with loop, need to use full goal type.
+
+ML{*
+val psloop = PSComb.LIFT ([gt_base, gt_step],[gt_base, gt_step, gt_ref]) (simp2b);
+val psref = PSComb.LIFT ([gt_ref],[]) (refl);
+val psf3 = psinduct THENG psloop LOOP_WITH gt_ref THENG psref;
+*}
+*)
+
 setup {* PSGraphMethod.add_graph ("idorder",psgraph_idorder) *}
 setup {* PSGraphMethod.add_graph ("id_step",psgraph_idorder_step) *}
 
@@ -91,28 +115,39 @@ PSGraph.load_atomics
 *}
 -- "examples"
 
-fun
-  gexp :: "G => nat => G"
-where
-  "gexp g 0 = e"
-| "gexp g (Suc n) = (gexp g n) ** g" 
+
 
 lemma gexp_id: "gexp e n = e"         
   apply (induct n)                    
-  apply (rule gexp.simps(1))          
+  apply (rule l1)          
   apply (subst gexp.simps(2))                          
   apply (subst id_rev)                   
   apply assumption
   done           
 
 lemma gexp_id_alt: "gexp e n = e"
-  apply (psgraph idorder)
-oops
+  apply (psgraph  idorder)
+done
 
 lemma gexp_id_step: "gexp e n = e"
    apply (induct n)
    apply (rule gexp.simps(1))
    apply (psgraph id_step)
+done
+
+
+lemma gexp_order_Suc: "gexp g n ** g = gexp g (Suc n)"
+ apply (induct n)
+  apply (subst gexp.simps(2))
+  apply (rule refl)
+  apply (subst gexp.simps(2))
+  apply (subst gexp.simps(2))
+  apply (subst gexp.simps(2))
+  apply (rule refl)
+  done
+
+lemma gexp_order_Suc_alt: "gexp g n ** g = gexp g (Suc n)"
+  apply (psgraph  idorder)
 oops
 
 
@@ -121,12 +156,34 @@ val edata0 = EVal.init psgraph_idorder @{context} @{prop "gexp e n = e"} |> hd;
 PSGraph.PSTheory.write_dot (path ^ "graph0.dot") (EData.get_graph edata0)  
 *}
 
+
 ML{*
 val (EVal.Cont edata1) = EVal.evaluate_any edata0;
 val edata1 = EVal.normalise_gnode edata1;
 PSGraph.PSTheory.write_dot (path ^"graph1.dot") (EData.get_graph edata1)   
 *}
 
+ML{*
+val (EVal.Cont edata2) = EVal.evaluate_any edata1;
+val edata2 = EVal.normalise_gnode edata2;
+PSGraph.PSTheory.write_dot (path ^"graph2.dot") (EData.get_graph edata2)   
+*}
 
+ML{*
+val (EVal.Cont edata3) = EVal.evaluate_any edata2;
+val edata3 = EVal.normalise_gnode edata3;
+PSGraph.PSTheory.write_dot (path ^"graph3.dot") (EData.get_graph edata3)   
+*}
 
+ML{*
+val (EVal.Cont edata4) = EVal.evaluate_any edata3;
+val edata4 = EVal.normalise_gnode edata4;
+PSGraph.PSTheory.write_dot (path ^"graph4.dot") (EData.get_graph edata4)   
+*}
+
+ML{*
+val (EVal.Cont edata5) = EVal.evaluate_any edata4;
+val edata5 = EVal.normalise_gnode edata5;
+PSGraph.PSTheory.write_dot (path ^"graph5.dot") (EData.get_graph edata5)   
+*}
 end

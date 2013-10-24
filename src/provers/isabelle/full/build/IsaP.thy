@@ -21,11 +21,14 @@ begin
  ML_file "../../../../interface/json_protocol/controller_registry.ML"
  ML_file "../../../../interface/json_protocol/protocol.ML"
 
+ (* induction tactic from isaplanner *)
+ ML_file "../../termlib/induct.ML"
+
  (*features *)
  ML_file "../isa_features.ML"    
  setup {* IsaFeatures.default *}
 
- ML_file "../isa_method.ML"
+ ML_file "../isa_method.ML"         
 end
 
 

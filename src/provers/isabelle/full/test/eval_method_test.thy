@@ -3,7 +3,7 @@ imports
   "../build/IsaP"         
 begin
 
-ML_file   "../isa_method.ML"              
+(* ML_file   "../isa_method.ML"             *) 
 
 ML{*
 
