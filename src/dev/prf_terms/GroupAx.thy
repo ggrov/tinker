@@ -15,6 +15,11 @@ where
  ax2:  "(a ** b) ** c = a **(b ** c)" and
  ax3: "inv a ** a = e"
 
+fun
+  gexp :: "G => nat => G"
+where
+  l1: "gexp g 0 = e"
+| l2: "gexp g (Suc n) = (gexp g n) ** g" 
 
 
 lemma inv_rev:   "a ** inv a = e"
