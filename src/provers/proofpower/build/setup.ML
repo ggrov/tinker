@@ -3,6 +3,7 @@
   fun K x = fn _ => x;
   fun x |> f = f x;
   
+  use "../../../debug_handler.ML";
   use "../termlib/termlib.ML";
   use "../termlib/term_feature.ML";
   
