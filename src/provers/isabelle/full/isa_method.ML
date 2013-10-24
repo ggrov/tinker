@@ -47,7 +47,38 @@ struct
       (K edata0);
 
  (* to do - make proof method (like for simple!) *)
- fun init_thm thm graph = EVal.init_goals;
+
+ val root_goal = "g";
+
+ fun mk_init_thm_pplan ctxt thm = 
+  let 
+    val gnode = PNode.mk_goal root_goal ctxt ctxt thm;
+    val prf = PPlan.init_prf |> PPlan.add_root gnode;
+  in 
+   PPlan.apply_prf prf (PNode.DTac ("ignore",[])) gnode thm
+  end;
+
+ fun init_thm ctxt thm psgraph = 
+   let 
+     val (pnds,pp) = mk_init_thm_pplan ctxt thm
+     val pnode_tab = 
+         StrName.NTab.of_list (map (fn pn => (IsaProver.get_pnode_name pn,pn)) pnds)
+     val edata0 = EData.init psgraph pp pnode_tab []
+   in
+     EVal.init_goals edata0 pnds
+   end;
+
+ fun export_res pplan = 
+   (PPExpThm.export_name pplan root_goal
+   |> PPExpThm.prj_thm
+   |> (fn thm => [thm]))
+  handle _ => [];
+
+ fun apply_psgraph_tac psgraph ctxt thm =
+  init_thm ctxt thm psgraph
+  |> maps (EVal.evaluate_full) 
+  |> maps export_res
+  |> Seq.of_list ;
 
 end (* *)
  val eval_interactive = IsaMethod.eval_interactive;

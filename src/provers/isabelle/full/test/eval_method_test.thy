@@ -1,6 +1,6 @@
 theory eval_method_test 
 imports
-  "../build/IsaP"         
+  "../build/IsaP"          
 begin
 
 (* ML_file   "../isa_method.ML"             *) 
@@ -16,7 +16,28 @@ ML{*
   val psauto = PSComb.LIFT ([gt],[]) (auto);
 *}
 
+ML{*
+
+  val gt = FullGoalTyp.default;
+
+  val r1 = RTechn.id
+            |> RTechn.set_name (RT.mk "r1")
+            |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.single "impI"));
+
+  val psr1 = PSComb.LIFT ([gt],[gt]) r1;
+*}
+
 setup {* IsaMethod.add_tac ("dummy",K no_tac) *} 
+
+-- "test of method"
+ML{*
+val psg = IsaMethod.init_psgraph psr1 @{context};
+val mytac = IsaMethod.apply_psgraph_tac psg;
+*}
+
+lemma "A \<longrightarrow> A"
+  apply (tactic "mytac @{context}")
+  oops
 
 ML{*
  val [ed] = 
@@ -27,6 +48,7 @@ ML{*
     [("a",Thm.map_tags (Properties.put ("useful","no")),@{prop "A"})]; (* list of named and labeled assms *)
 *} 
 ML{*
+ PPlan.init_goal;
  IsaMethod.init;
  EData.get_pplan ed;
 *}
