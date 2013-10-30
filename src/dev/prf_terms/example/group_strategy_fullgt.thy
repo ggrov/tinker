@@ -38,15 +38,21 @@ ML{*
   val gt_id = FGT.set_gclass goalclass FGT.default
               |> FGT.set_name (G.mk "id");
 
-  val goalclass = Class.add_item (SStrName.mk "inductable")[[GTD.Term @{term n}]] Class.top
+  val goalclass = Class.add_item (SStrName.mk "has_symbols") [[GTD.String "inv"]] Class.top
+                |> Class.rename (C.mk "goal_inv");
+  val gt_inv = FGT.set_gclass goalclass FGT.default
+              |> FGT.set_name (G.mk "inv");
+
+(*  val goalclass = Class.add_item (SStrName.mk "inductable")[[GTD.Term @{term n}]] Class.top
                 |> Class.rename (C.mk "goal_induct");
   val gt_induct = FGT.set_gclass goalclass FGT.default
                 |> FGT.set_name (G.mk "inductable");
+*)
 
+val gt_induct = FGT.default
 *}
-ML{*
-IsaFeatures.has_symbols'
-*}
+
+
 
 -- "reasoning techniques"
 
@@ -76,10 +82,25 @@ RTechn.id
 |> RTechn.set_name (RT.mk "subst id_rev")
 |> RTechn.set_atomic_appf (RTechn.Subst (StrName.NSet.of_list ["id_rev"]));
 
-val refl = 
+val ax3sb =
 RTechn.id
-|> RTechn.set_name (RT.mk "rule refl")
-|> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["refl"]));
+|> RTechn.set_name (RT.mk "subst ax3s")
+|> RTechn.set_atomic_appf (RTechn.Subst (StrName.NSet.of_list ["ax3s"]));
+
+val ax2sb =
+RTechn.id
+|> RTechn.set_name (RT.mk "subst ax2s")
+|> RTechn.set_atomic_appf (RTechn.Subst (StrName.NSet.of_list ["ax2s"]));
+
+val inv_revb =
+RTechn.id
+|> RTechn.set_name (RT.mk "subst inv_rev")
+|> RTechn.set_atomic_appf (RTechn.Subst (StrName.NSet.of_list ["inv_rev"]));
+
+val ax1a =
+RTechn.id
+|> RTechn.set_name (RT.mk "rule ax1")
+|> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["ax1"]));
 *}
 
 
@@ -88,6 +109,21 @@ RTechn.id
 ML{*
  infixr 6 THENG;
  val op THENG = PSComb.THENG;
+ val NEST = PSComb.NEST;
+*}
+
+(* id_rev sub-strategy *)
+
+ML{*
+val psax3s = PSComb.LIFT ([gt_id],[gt_inv]) (ax3sb)
+val psax2s = PSComb.LIFT ([gt_inv],[gt_inv]) (ax2sb)
+val psinv = PSComb.LIFT ([gt_inv], [gt_id]) (inv_revb)
+val psax1 = PSComb.LIFT ([gt_id], [gt]) (ax1a)
+val psf_idrev = psax3s THENG psax2s THENG psinv THENG psax1;
+*}
+
+ML{*
+val id_rev_h = NEST "ind" psf_idrev;
 *}
 
 ML{*
@@ -96,9 +132,18 @@ val psbase = PSComb.LIFT ([gt_base],[]) (simp1a);
 val psstep = PSComb.LIFT ([gt_step],[gt_id]) (simp2b);
 val psid = PSComb.LIFT ([gt_id],[gt]) (id_revb);
 val psasm = PSComb.LIFT ([gt],[]) (asm);
-val psf = psinduct THENG psbase THENG psstep THENG psid THENG psasm;
+val psf = psinduct THENG psbase THENG psstep THENG psid (*THENG psasm*);
 (*val psgraph_idorder =   psf PSGraph.empty 
       |> PSGraph.load_atomics (StrName.NTab.list_of (IsaMethod.get_tacs @{theory}));*)
+
+val psf_hier = psinduct THENG psbase THENG psstep THENG id_rev_h THENG psasm;
+
+*}
+
+ML{*
+val psf_asm = PSComb.LIFT ([gt],[]) (asm);
+val psg_asm = IsaMethod.init_psgraph psf_asm @{context};
+val psgraph_asm = IsaMethod.apply_psgraph_tac psg_asm;
 *}
 
 ML{*
@@ -106,24 +151,49 @@ val psg_idorder = IsaMethod.init_psgraph psf @{context};
 val psgraph_idorder = IsaMethod.apply_psgraph_tac psg_idorder;
 *}
 
+ML{*
+val psg_idorder_hier = IsaMethod.init_psgraph psf_hier @{context};
+val psgraph_idorder_hier = IsaMethod.apply_psgraph_tac psg_idorder_hier;
+*}
 
 ML{*
-val psf = psstep THENG psid THENG psasm;
-val psg_step = IsaMethod.init_psgraph psf @{context};
+val psf_step = psstep THENG psid (*THENG psasm*);
+val psg_step = IsaMethod.init_psgraph psf_step @{context};
 val psgraph_idstep = IsaMethod.apply_psgraph_tac psg_step;
 *}
 
 -- "Examples"
 
+ML{*
+eval_interactive;
+val [edata] = EVal.init psg_idorder_hier @{context} @{prop "gexp e n = e"};
+*}
+
+ML{*
+EData.get_pplan edata;
+*}
+
 lemma "gexp e n = e"
   apply (induct n)
   apply (rule l1)
   apply (tactic "psgraph_idstep @{context}")
-oops
+  apply assumption
+  apply assumption
+  apply assumption
+done
 
 lemma "gexp e n = e"
   apply (tactic "psgraph_idorder @{context}")
+  apply assumption
+  apply assumption
+  apply assumption
+done
+
+lemma "gexp e n = e"
+  apply (tactic "psgraph_idorder_hier @{context}")
 oops
+
+(* Short strategy *)
 
 ML{*
 val edata0 = EVal.init psg_step @{context} @{prop "gexp e n = e \<Longrightarrow> gexp e (Suc n) = e"} |> hd; 
@@ -142,12 +212,97 @@ val edata2 = EVal.normalise_gnode edata2;
 PSGraph.PSTheory.write_dot (path ^"partgraph2.dot") (EData.get_graph edata2)   
 *}
 
+ML{*
+val (EVal.Cont edata3) = EVal.evaluate_any edata2;
+val edata3 = EVal.normalise_gnode edata3;
+PSGraph.PSTheory.write_dot (path ^"partgraph3.dot") (EData.get_graph edata3)   
+*}
 
+
+(* No hierarchy *)
 
 ML{*
 val edata0 = EVal.init psg_idorder @{context} @{prop "gexp e n = e"} |> hd; 
 PSGraph.PSTheory.write_dot (path ^ "fullgraph0.dot") (EData.get_graph edata0)  
 *}
 
+ML{*
+val (EVal.Cont edata1) = EVal.evaluate_any edata0;
+val edata1 = EVal.normalise_gnode edata1;
+PSGraph.PSTheory.write_dot (path ^"fullgraph1.dot") (EData.get_graph edata1)   
+*}
 
+ML{*
+val (EVal.Cont edata2) = EVal.evaluate_any edata1;
+val edata2 = EVal.normalise_gnode edata2;
+PSGraph.PSTheory.write_dot (path ^"fullgraph2.dot") (EData.get_graph edata2)   
+*}
+
+ML{*
+val (EVal.Cont edata3) = EVal.evaluate_any edata2;
+val edata3 = EVal.normalise_gnode edata3;
+PSGraph.PSTheory.write_dot (path ^"fullgraph3.dot") (EData.get_graph edata3)   
+*}
+
+ML{*
+val (EVal.Cont edata4) = EVal.evaluate_any edata3;
+val edata4 = EVal.normalise_gnode edata4;
+PSGraph.PSTheory.write_dot (path ^"fullgraph4.dot") (EData.get_graph edata4)   
+*}
+
+ML{*
+val (EVal.Cont edata5) = EVal.evaluate_any edata4;
+val edata5 = EVal.normalise_gnode edata5;
+PSGraph.PSTheory.write_dot (path ^"fullgraph5.dot") (EData.get_graph edata5)   
+*}
+
+
+(* With hierarchy *)
+
+ML{*
+val edata0 = EVal.init psg_idorder_hier @{context} @{prop "gexp e n = e"} |> hd; 
+PSGraph.PSTheory.write_dot (path ^ "hiergraph0.dot") (EData.get_graph edata0)  
+*}
+
+ML{*
+val (EVal.Cont edata1) = EVal.evaluate_any edata0;
+val edata1 = EVal.normalise_gnode edata1;
+PSGraph.PSTheory.write_dot (path ^"hiergraph1.dot") (EData.get_graph edata1)   
+*}
+
+ML{*
+val (EVal.Cont edata2) = EVal.evaluate_any edata1;
+val edata2 = EVal.normalise_gnode edata2;
+PSGraph.PSTheory.write_dot (path ^"hiergraph2.dot") (EData.get_graph edata2)   
+*}
+
+ML{*
+val (EVal.Cont edata3) = EVal.evaluate_any edata2;
+val edata3 = EVal.normalise_gnode edata3;
+PSGraph.PSTheory.write_dot (path ^"hiergraph3.dot") (EData.get_graph edata3)   
+*}
+
+ML{*
+val (EVal.Cont edata4) = EVal.evaluate_any edata3;
+val edata4 = EVal.normalise_gnode edata4;
+PSGraph.PSTheory.write_dot (path ^"hiergraph4.dot") (EData.get_graph edata4)   
+*}
+
+ML{*
+val (EVal.Cont edata5) = EVal.evaluate_any edata4;
+val edata5 = EVal.normalise_gnode edata5;
+PSGraph.PSTheory.write_dot (path ^"hiergraph5.dot") (EData.get_graph edata5)   
+*}
+
+ML{*
+val (EVal.Cont edata6) = EVal.evaluate_any edata5;
+val edata6 = EVal.normalise_gnode edata6;
+PSGraph.PSTheory.write_dot (path ^"hiergraph6.dot") (EData.get_graph edata6)   
+*}
+
+ML{*
+val (EVal.Cont edata7) = EVal.evaluate_any edata6;
+val edata7 = EVal.normalise_gnode edata7;
+PSGraph.PSTheory.write_dot (path ^"hiergraph7.dot") (EData.get_graph edata7)   
+*}
 end

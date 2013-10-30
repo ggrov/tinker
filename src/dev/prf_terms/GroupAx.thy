@@ -13,7 +13,11 @@ axiomatization
 where
  ax1: "e ** a = a" and
  ax2:  "(a ** b) ** c = a **(b ** c)" and
- ax3: "inv a ** a = e"
+ ax3: "inv a ** a = e" and
+ ax1s: "a = e ** a" and
+ ax2s: "a ** (b ** c) = (a ** b) ** c" and
+ ax3s: "e = inv a ** a"
+
 
 fun
   gexp :: "G => nat => G"
@@ -36,8 +40,9 @@ lemma inv_rev:   "a ** inv a = e"
   
 full_prf inv_rev 
 
+
 lemma inv_rev1: "a ** inv a = e"
-  
+ 
 oops
  
 lemma id_rev: "a ** e = a"
@@ -51,8 +56,8 @@ qed
 full_prf id_rev
 
 lemma id_rev1: "a ** e = a"
-  apply (subst ax3[symmetric])
-  apply (subst ax2[symmetric])
+  apply (subst ax3s)
+  apply (subst ax2s)
   apply (subst inv_rev)
   apply (rule ax1)
 done
