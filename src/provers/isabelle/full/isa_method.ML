@@ -78,7 +78,10 @@ struct
   init_thm ctxt thm psgraph
   |> maps (EVal.evaluate_full) 
   |> maps export_res
-  |> Seq.of_list ;
+  |> Seq.of_list 
+  |> (fn x => ((case Seq.pull x of NONE => DebugHandler.debug_err()
+                                  | _ => ());x))
+  handle _ => (DebugHandler.debug_err();Seq.empty);
 
 end (* *)
  val eval_interactive = IsaMethod.eval_interactive;

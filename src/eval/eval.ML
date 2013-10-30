@@ -36,6 +36,7 @@ struct
  (* fixme: may loose goals! *)
  fun init_goal pnode edata  = 
    let
+     val _ = DebugHandler.clear_debug_msg ();
      val graph = EData.get_graph edata
      fun to_gt e = [(e,EGraph.Util.gtyp_of graph e)] handle _ => []
      val in_edges = EGraph.Util.input_boundary graph
@@ -97,6 +98,8 @@ struct
      val edata0 = EData.init psgraph pplan pnode_tab []
    in
     init_goal pnode edata0
+    |> (fn x => case x of [] => (DebugHandler.add_debug_msg (Pretty.str "Fail to init lift") ; DebugHandler.debug_err (); [])
+      | _ => x)
    end;
 
  fun mk_atomic_rhs edata rt lhs =
