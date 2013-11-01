@@ -6,6 +6,8 @@ struct
     ALL_INFO | (* print all, for debug_level only *)
     BASIC_INFO | (* will be printed if debug level is not set to NO_INFO*)
     GOALTYP |
+    SUPERGRAPH|
+    TACTIC|
     EVAL
 
   val debug_flag = Unsynchronized.ref NO_INFO;
@@ -29,5 +31,6 @@ struct
 
   fun debug_warning x = writeln ("WARNING: " ^ x);
   fun debug_err () = writeln (get_debug_msg ());
+  
 
 end

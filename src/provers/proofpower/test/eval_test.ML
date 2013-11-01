@@ -27,8 +27,9 @@
             |> RTechn.set_name (RT.mk "super_tac") (*top level super tav*)
             |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "super_tac"));
             
-  val default_tacs = [("step_strip_any_tac", step_strip_tac), ("step_strip_conj", step_strip_tac), 
-		      ("step_strip_imp", step_strip_tac), ("step_assm", step_strip_tac), ("super_tac", super_tac)];
+  (*val default_tacs = [("step_strip_any_tac", step_strip_tac), ("step_strip_conj", step_strip_tac), 
+		      ("step_strip_imp", step_strip_tac), ("step_assm", step_strip_tac), ("super_tac", super_tac)];*)
+  val _ = PPIntf.add_default_tacs [("super_tac", super_tac)];
   		      
   val psstrip_any = PSComb.LIFT ([gt],[gt]) (step_strip_any);
   val psstrip_conj0 =  PSComb.LIFT ([gt_conj],[gt_conj, gt_imp]) (step_strip_conj);
@@ -40,7 +41,7 @@
   
 (* attendtion: for each eval, strip_any will run 4 times*)
   val psgraph_buggy = (psstrip_any THENG psstrip_any THENG psstrip_any THENG psstrip_any) PSGraph.empty  
-            |> PSGraph.load_atomics default_tacs; 
+            (*|> PSGraph.load_atomics default_tacs; *)
   val psgraph_simple = (psstrip_conj0 THENG psstrip_conj THENG psstrip_imp THENG psstrip_asm2) PSGraph.empty  
             (*|> PSGraph.load_atomics default_tacs*);
   
@@ -49,7 +50,7 @@
   val psstrip_asm2 = PSComb.LIFT ([gt_not_imp, gt],[]) (step_assm);  
   val psgraph_simple' = (psstrip_conj0 THENG psstrip_imp THENG psstrip_asm2) PSGraph.empty ;
   val psgraph_st = pssupertac PSGraph.empty
-  		   |> PSGraph.load_atomics default_tacs;
+  		   (*|> PSGraph.load_atomics default_tacs;*)
             
   (*val graph = PSGraph.get_graph psgraph_simple ;*)
   (*PSGraph.PSTheory.write_dot (path^"graph.dot") graph;*)
@@ -88,15 +89,17 @@ top_goals();
   val (EVal.Cont edata1) = EVal.evaluate_any edata0;
   
   
+ val cur_path = OS.FileSys.getDir();
+ OS.FileSys.chDir (cur_path ^ "/psgraph/src/provers/proofpower/build");
 
  use "setup";
  use_file "../test/eval_test";
 
 (* Example: run in the interactive mode *)
- set_psg_goal ([%<% B : BOOL %>%, %<% A : BOOL %>%], %<% (A %and% B) %and% (A %implies% A) %>%) "interactive" psgraph_simple "dummy" "dummy"; 
+ PPIntf.set_psg_goal ([%<% B : BOOL %>%, %<% A : BOOL %>%], %<% (A %and% B) %and% (A %implies% A) %>%) "interactive" psgraph_simple "dummy" "dummy"; 
 
 (* Exmaple run in interactive-current mode *) 
-set_psg_goal ([], %<%A %implies% (A %and% A) %>%) "current" PSGraph.empty "dummy" "dummy";
+PPIntf.set_psg_goal ([], %<%A %implies% (A %and% A) %>%) "current" PSGraph.empty "dummy" "dummy";
 
 top_goals();
 print_goal_state (top_goal_state()) ;

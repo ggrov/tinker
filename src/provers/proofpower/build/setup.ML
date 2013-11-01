@@ -82,6 +82,7 @@ structure FullGoalTyp : FULL_GOAL_TYP = GoalTyp_I
 
 (*  simple goaltyp *)
   use "../simple_goaltyp";
+  use "../supergraph";
 
 structure GoalTyp : BASIC_GOALTYPE = SimpleGoalTyp;
 
