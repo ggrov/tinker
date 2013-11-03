@@ -7,7 +7,8 @@ begin
   by (psgraph asm)
 
 -- "Example 2: run in interactive mode"
-  lemma "A \<Longrightarrow> (A \<and> A)  \<and> (A \<longrightarrow> A)"
+  lemma "A \<Longrightarrow> (A \<and> A) \<and> (A \<longrightarrow> A)"
+
   (* apply (psgraph (interactive) conj_impI) *)
   oops
 

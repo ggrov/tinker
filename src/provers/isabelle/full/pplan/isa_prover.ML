@@ -86,8 +86,7 @@ struct
         handle _ => NONE
 
    fun get_all_facts pnode =
-       (PNode.get_assms pnode) 
-       |> StrName.NTab.values;
+       (PNode.get_all_assms pnode);
 
    fun get_all_name_facts pnode =
        (PNode.get_assms pnode) 
@@ -100,7 +99,7 @@ struct
   fun init_with_assm _ _ _ =   (* a dummy init which is not used in isabelle by LYH*)
     raise atomic_exp "init_with_assm should not be used in isabelle"
 
-  fun get_all_assms _ = []
+  val get_all_assms = get_all_facts;
 
   (* will not fail gracefully, but all open nodes should be in pplan *)
   fun get_open_pnodes pplan = PPlan.get_open_nms pplan

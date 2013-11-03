@@ -419,6 +419,46 @@ struct
            | SOME (_,edata') => evaluate_full_one (normalise_gnode edata'))
      | Cont edata' => evaluate_full_one edata')    
 
+
+  (* FOR DEBUGGING PURPOSES *)
+
+  (* should return (atomic,gnode) pairs (for given vertex) *)
+  fun debug_get_gnodes_input edata v = 
+     EGraph.matched_lhs (EData.get_graph edata) v
+     |> Seq.list_of
+     |> maps (fn (_,g) =>  EGraph.Util.all_single_gnodes g);
+
+  fun debug_get_appf_gnode_vertex edata v =
+    case EGraph.Util.lookup_rtechn (EData.get_graph edata) v of
+      NONE => []
+    | SOME rt => 
+       if (RTechn.is_atomic rt) 
+       then (debug_get_gnodes_input edata v
+             |> maps (fn g => [(rt,case (RTechn.get_appf rt) of RTechn.Appf atom => atom ,g)])) 
+       else []; 
+
+  fun debug_get_appf_gnode edata = 
+     EGraph.Util.all_rtechns (EData.get_graph edata)
+     |> maps (debug_get_appf_gnode_vertex edata);
+ 
+  fun debug_apply_appf edata = 
+    debug_get_appf_gnode edata
+    |> Seq.of_list
+    |> Seq.maps (fn (_,appf,gn) => (EAtom.apply_appf edata gn appf))
+    |> Seq.list_of;
+
+
+  (*
+   fun debug_eval_tac_Vert edata v = 
+    case EGraph.Util.lookup_rtechn (EData.get_graph edata) v of
+      NONE => raise evaluate_exp (SOME v, "Vertex not a reasoning technique")
+    | SOME rt =>
+       if (RTechn.is_atomic rt) 
+  
+then eval_atomic edata v rt 
+*)
+
+
 (* 
   and eval_one edata =
     eval_one_restricted (GraphEnv.get_rtechns_of_graph (EData.get_graph edata)) edata
