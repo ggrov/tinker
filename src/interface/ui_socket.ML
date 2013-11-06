@@ -14,8 +14,6 @@ struct
 
       fun of_single e = ([], e, [])
 
-      fun insert_tl e (h, f ,t) = (h, f, t @[e]) 
-      
       fun move_next (_, _, []) = NONE 
       |   move_next (h, f, (x::xs)) = SOME (h@[f], x, xs)      
       
@@ -25,6 +23,11 @@ struct
 
       fun focus (_, f, _) =  f
       fun last  (h, f, t) = (List.last (h @ [f] @ t))
+      
+      fun insert_tl e (h, f ,t) = (h, f, t @ [e]) |> move_next |> (fn (SOME x) => x)
+      fun replace_tl e (h, f ,[]) = (h, e, [])
+      |   replace_tl e (h, f , t) = (h, e, (fn x => List.take (x, List.length x - 1)) t @ [e])
+      
     end (* end of FocusList *)
   
   (* internal data to store temp status *)
@@ -45,19 +48,17 @@ struct
 
   fun strip_some (SOME x) = x
 
-  fun update_new_eval_result (EVal.Cont e) = 
+  fun update_new_eval_result FocusList_OP (EVal.Cont e)  = 
     let 
       val e' = EVal.normalise_gnode e 
       val (SOME el) = get_data()
     in
-      (((FocusList.insert_tl e' el) 
-         |> FocusList.move_next
-         |> strip_some
+      (((FocusList_OP e' el) 
          |> update_data);
        (EData.pprint_goals e') ; 
        PSGraph.PSTheory.out_json (EData.get_graph e')) end
-  | update_new_eval_result (EVal.Good _) = (writeln "No Goal left" ; Json.String "SUCCESS")
-  | update_new_eval_result (EVal.Bad) = (tracing "Err - Returned a Bad eval status" ; Json.Null)
+  | update_new_eval_result _ (EVal.Good _) = (writeln "No Goal left" ; Json.String "SUCCESS")
+  | update_new_eval_result _ (EVal.Bad) = (tracing "Err - Returned a Bad eval status" ; Json.Null)
 
   fun ui_mode_choice _ = 
     case get_data () of NONE => Json.Bool false 
@@ -91,13 +92,28 @@ struct
       case FocusList.move_next el of NONE (* need to eval now *)
         =>  FocusList.focus el 
             |> EVal.evaluate_arbitrary 
-            |> update_new_eval_result       
+            |> update_new_eval_result FocusList.insert_tl   
        | SOME el' => 
           (update_data el';
            (fn x => ((EData.pprint_goals x) ; x));
            PSGraph.PSTheory.out_json (EData.get_graph (FocusList.focus el')))
     end
   handle _ => (tracing "Err - No edata is set-up: err in eval next proof step "; Json.Null);
+  
+  fun ui_eval_backtrack _ =
+    let 
+      val (SOME el) = get_data ()
+    in
+      case FocusList.move_next el of NONE (* only the the top edata can apply backtracking *)
+        =>  let val edata = FocusList.focus el in
+            case EData.get_branches edata (* get a list branches from current edata *) 
+            of [] => Json.String "TOP" (* no backtracking*)
+            | _ => ( EVal.evaluate_backtrack edata
+                     |> update_new_eval_result FocusList.replace_tl(* replace the top edata *)) end
+       | SOME el' => 
+           (tracing "Err - Backtracking can only apply to the top status ! "; Json.Null)
+    end
+  handle _ => (tracing "Err - No edata is set-up: err in eval backtracking proof step "; Json.Null);
   
   fun ui_passive_init json = 
     let val f = get_fn () in
