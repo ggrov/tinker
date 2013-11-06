@@ -348,6 +348,14 @@ struct
          | Good res => Good (normalise_gnode res)
          | Cont res => Cont (normalise_gnode res);
 
+   fun evaluate_backtrack edata = 
+     case EData.get_branches edata  
+     of [] => Bad
+      | branch  => 
+          Cont( EData.set_current (hd branch) edata 
+                |> EData.set_branches (tl branch) 
+                |> normalise_gnode) 
+    
    fun evaluate_any edata =
     if has_terminated edata then
      (case EData.parent_lhs edata of

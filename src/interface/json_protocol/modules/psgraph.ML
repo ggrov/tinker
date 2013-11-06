@@ -58,6 +58,17 @@ val ftab = ftab |> register
 
 val ftab = ftab |> register
 {
+  name   = "backtrack",
+  doc    = "backtracking",
+  input  = S json_t,
+  output = S json_t
+} (fn x => (
+  UISocket.ui_eval_backtrack x
+))
+
+
+val ftab = ftab |> register
+{
   name   = "close",
   doc    = "shut down current server",
   input  = S json_t,
