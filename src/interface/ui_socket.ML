@@ -133,11 +133,11 @@ struct
         case edata 
           of SOME e => update_data(FocusList.of_single e) (* active mode *)
           | NONE => (init_data(); (update_fn fn_init)); (* passive mode *)
-      val sock = TextSocket.local_connect (4234)
+      val sock = TextSocket.safe_local_connect (4234)
       val (input, output) = TextSocket.get_io_stream sock
     in
       (server (input, output);
-      TextSocket.close sock;
+      TextSocket.safe_close sock;
       (get_data () 
         |> (fn x => case x of NONE => raise ui_socket_exp
                         | SOME e => FocusList.last e)

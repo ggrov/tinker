@@ -6,7 +6,7 @@ sig
   val read : T -> string (* read from stream *)
   val close : T -> unit (* close stream *)
   (* donesn't work currently*)
-  val safe_connect : int -> T (* connects to port *)
+  val safe_local_connect : int -> T (* connects to port *)
   val safe_close : T -> unit (* close stream *)
 
   val get_instream : T -> TextIO.instream
@@ -162,8 +162,11 @@ fun init_server_socket port =
    } Synchronized.var
    = Synchronized.var "last sock" {sock = NONE, passive = NONE, sin= NONE, sout = NONE};
 
+ val socket_tracing = K;
+
   fun clear_last_sock _ =
     let
+      val _ = socket_tracing "clear last sock"
       val {sock, passive, sin, sout} = Synchronized.value last_sock
     in 
       ((case sout of (SOME s) => TextIO.closeOut s | NONE => ());
@@ -176,17 +179,32 @@ fun init_server_socket port =
   handle _ =>  
     (Synchronized.change last_sock 
       (fn _ =>  {sock = NONE, passive = NONE, sin = NONE, sout = NONE}) ;
-    warning ("faile to clear up last socket "))
+    DebugHandler.debug_warning ("faile to clear up last socket "))
 
-  fun safe_connect port = 
+  exception exp_text_socket of string
+  fun safe_local_connect port = 
     let  
-      val _ = tracing "start safe connect"
+      val _ = socket_tracing "start safe connect"
       val passive_sock = init_server_socket port;
       val _ = 
         Synchronized.change 
           last_sock 
-          (fn {sock, passive, sin, sout} =>  {sock = NONE, passive = SOME passive_sock, sin = NONE, sout = NONE});
-      val (sock0, _)= Socket.accept passive_sock;
+          (fn {sock, passive, sin, sout} =>  {sock = sock, passive = SOME passive_sock, sin = sin, sout = sout});
+      (* a time out is working here *)
+      val sock0 = 
+        let 
+          val timer = Timer.startRealTimer ()
+          fun accept_until_timeout t = 
+            if  (Timer.checkRealTimer timer|> Time.toSeconds) > t (* time out *)
+            then raise exp_text_socket "time out for socket: no incoming connection"
+            else 
+              (case Socket.acceptNB passive_sock 
+                of SOME ret => fst ret
+                | _ => accept_until_timeout t)             
+        in
+          accept_until_timeout 5 (* timeout for 5 s *)
+        end
+
       val _ = 
         Synchronized.change 
           last_sock 
@@ -199,13 +217,15 @@ fun init_server_socket port =
     in
       SockData { sock = sock0, passive = passive_sock, sin = sin0, sout = sout0}
     end
-  handle _ => (clear_last_sock () ; safe_connect port);
+  handle exp_text_socket msg => (clear_last_sock () ; raise exp_text_socket msg) (* timeout , stop trying *)
+        | _                  => (clear_last_sock () ; safe_local_connect port) (* address is in used, try again *)
 
   fun safe_close data = 
+    let val _ = socket_tracing"cleaning by it self" in
     (close data;
      Synchronized.change 
       last_sock 
-      (fn _ =>  {sock = NONE, passive = NONE, sin = NONE, sout = NONE}))
+      (fn _ =>  {sock = NONE, passive = NONE, sin = NONE, sout = NONE})) end
 
 
 end (* struct *)

@@ -8,6 +8,7 @@ struct
     GOALTYP |
     SUPERGRAPH|
     TACTIC|
+    SOCKET|
     EVAL
 
   val debug_flag = Unsynchronized.ref NO_INFO;
