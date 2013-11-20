@@ -3,6 +3,7 @@ imports
   "../GroupAx"
   "../../../build/isabelle/Eval"
   "../../../provers/isabelle/full/build/IsaP"
+  "../../../provers/isabelle//full/build/Parse"
 begin
 
 ML{*
@@ -25,39 +26,39 @@ ML{*
   val goalclass = Class.add_item (SStrName.mk "has_symbols") [[GTD.String "zero"]] Class.top
                 |> Class.rename (C.mk "goal_base");
   val gt_base = FGT.set_gclass goalclass FGT.default
-              |> FGT.set_name (G.mk "base");
+              |> FGT.set_name (G.mk "has 0");
 
   val goalclass = Class.add_item (SStrName.mk "has_symbols") [[GTD.String "Suc"]] Class.top
                 |> Class.rename (C.mk "goal_step");
   val gt_step = FGT.set_gclass goalclass FGT.default
-              |> FGT.set_name (G.mk "step");
+              |> FGT.set_name (G.mk "has Suc n");
 
   val goalclass = Class.add_item (SStrName.mk "has_symbols") [[GTD.String "_ + Suc _"]] Class.top
                 |> Class.rename (C.mk "goal_step'");
   val gt_step' = FGT.set_gclass goalclass FGT.default
-                |> FGT.set_name (G.mk "step'");            
+                |> FGT.set_name (G.mk "adds Suc n'");            
 
   val goalclass = Class.add_item (SStrName.mk "has_symbols") [[GTD.String "e"]] Class.top
                 |> Class.rename (C.mk "goal_id");
   val gt_id = FGT.set_gclass goalclass FGT.default
-              |> FGT.set_name (G.mk "id");
+              |> FGT.set_name (G.mk "has identity");
 
   val goalclass = Class.add_item (SStrName.mk "has_symbols") [[GTD.String "inv"]] Class.top
                 |> Class.rename (C.mk "goal_inv");
   val gt_inv = FGT.set_gclass goalclass FGT.default
-              |> FGT.set_name (G.mk "inv");
+              |> FGT.set_name (G.mk "has inverse");
 
-  val gt_induct = FGT.default
+  val gt_induct = FGT.default |> FGT.set_name (G.mk "inductable");
 
   val goalclass = Class.add_item (SStrName.mk "has_symbols") [[GTD.String "="]] Class.top
                 |> Class.rename (C.mk "goal_refl");
   val gt_ref = FGT.set_gclass goalclass FGT.default
-                |> FGT.set_name (G.mk "refl");
+                |> FGT.set_name (G.mk "LHS = RHS");
 
   val goalclass = Class.add_item (SStrName.mk "has_symbols") [[GTD.String "_ ** (_ **_)"]] Class.top
                 |> Class.rename (C.mk "goal_presimp");
   val gt_presimp = FGT.set_gclass goalclass FGT.default
-                |> FGT.set_name (G.mk "presimp");
+                |> FGT.set_name (G.mk "re-bracketing");
 
 (*  val goalclass = Class.add_item (SStrName.mk "inductable")[[GTD.Term @{term n}]] Class.top
                 |> Class.rename (C.mk "goal_induct");
@@ -317,17 +318,27 @@ eval_interactive
 *}
 
 ML{*
-EData.get_pplan edata;
+EData.get_pplan edata ;
 *}
 
 lemma gexp_order_plus: "gexp g n ** gexp g m = gexp g (n + m)"
-apply (tactic "psgraph_plus @{context}")
+apply (tactic "psgraph_combined @{context}")
 oops
 
-lemma "gexp e n = e"
-  apply (tactic "psgraph_combined @{context}")
-oops
+lemma id_pt_test: "gexp e n = e"
+  apply (tactic "psgraph_idorder @{context}")
+  apply assumption+
+done
 
+full_prf id_pt_test
+
+ML{*
+val idtree = PTParse.build_tree (PTParse.prf @{thm id_pt_test});
+
+val graph = PTParse.mk_graph (fn top => GoalTyp.top) idtree;
+
+ PSGraph.PSTheory.write_dot (path ^ "ptidorder") graph
+*}
 
 lemma "gexp e n = e"
   apply (induct n)
