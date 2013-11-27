@@ -43,6 +43,11 @@ ML{*
   val gt_id = FGT.set_gclass goalclass FGT.default
               |> FGT.set_name (G.mk "has identity");
 
+  val goalclass = Class.add_item (SStrName.mk "has_symbols") [[GTD.String "_ ** e"]] Class.top
+                |> Class.rename (C.mk "goal_term_id");
+  val gt_term_id = FGT.set_gclass goalclass FGT.default
+                |> FGT.set_name (G.mk "has term then identity");
+
   val goalclass = Class.add_item (SStrName.mk "has_symbols") [[GTD.String "inv"]] Class.top
                 |> Class.rename (C.mk "goal_inv");
   val gt_inv = FGT.set_gclass goalclass FGT.default
@@ -180,17 +185,18 @@ ML{*
  val NEST = PSComb.NEST;
  val LOOP = PSComb.LOOP_WITH;
  val LIFT = PSComb.LIFT;
- val OR = PSComb.OR;
+ infixr 5 OR;
+ val op OR = PSComb.OR;
 *}
 
 (* id_rev sub-strategy *)
 
 ML{*
 val psax3s = PSComb.LIFT ([gt_id],[gt_inv]) (ax3sb2)
-(*val psback = LIFT ([gt_inv],[gt_inv])(back)
-val psax3s_alt = psax3s THENG psback*)
 val psax2s = PSComb.LIFT ([gt_inv],[gt_inv]) (ax2sb)
 val psinv = PSComb.LIFT ([gt_inv], [gt_id]) (inv_revb)
+(*val psinvchoice = OR (psax2s,psinv)
+val psinvloop = LOOP psinvchoice gt_inv*)
 val psax1a = PSComb.LIFT ([gt_id],[]) (ax1a)
 val psax1b = PSComb.LIFT ([gt_id], [gt]) (ax1b)
 
@@ -289,6 +295,7 @@ val ps_induct = LIFT ([gt_induct],[gt_base,gt_base,gt_step',gt_step]) (induct);
 val ps_prebase =  LIFT ([gt_base],[gt_base]) (add_zerob);
 val ps_basea = LIFT ([gt_base],[]) (simp1a);
 val ps_baseb = LIFT ([gt_base],[gt_id]) (simp1b);
+val ps_baseh = NEST "base hierarchy" (ps_prebase THENG ps_baseb)
 val ps_prestep = LIFT ([gt_step'],[gt_step])(add_Suc_rb);
 val ps_step = LIFT ([gt_step,gt_step,gt_step],[gt_step,gt_ref,gt_id,gt_presimp]) (simp2b);
 val ps_step_loop = LOOP ps_step gt_step;
@@ -297,7 +304,8 @@ val ps_id = LIFT ([gt_id],[gt]) (id_revb);
 val ps_asm = LIFT ([gt],[]) (asm);
 val ps_ax2 = LIFT ([gt_presimp],[gt]) (ax2sb);
 val ps_simp = LIFT ([gt],[]) (simp);
-val psf_combined = ps_induct THENG ps_prebase THENG ps_baseb THENG id_rev_ha THENG
+val ps_or = OR (ps_basea, ps_baseh);
+val psf_combined = ps_induct THENG ps_baseh THENG id_rev_ha THENG
                     ps_basea THENG ps_prestep THENG ps_step_loop THENG id_rev_hb 
                       THENG ps_asm THENG ps_ref THENG ps_ax2 THENG ps_simp;
 val psg_combined = IsaMethod.init_psgraph psf_combined @{context};
@@ -314,7 +322,7 @@ val [edata] = EVal.init psg_combined @{context} @{prop "gexp e n = e"};
 *}
 
 ML{*
-eval_interactive 
+eval_interactive
 *}
 
 ML{*
@@ -324,6 +332,11 @@ EData.get_pplan edata ;
 lemma gexp_order_plus: "gexp g n ** gexp g m = gexp g (n + m)"
 apply (tactic "psgraph_combined @{context}")
 oops
+
+lemma "gexp e n = e"
+  apply (tactic "psgraph_combined @{context}")
+oops
+
 
 lemma id_pt_test: "gexp e n = e"
   apply (tactic "psgraph_idorder @{context}")
