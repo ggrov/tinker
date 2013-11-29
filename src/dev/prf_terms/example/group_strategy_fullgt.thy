@@ -3,8 +3,10 @@ imports
   "../GroupAx"
   "../../../build/isabelle/Eval"
   "../../../provers/isabelle/full/build/IsaP"
-  "../../../provers/isabelle//full/build/Parse"
+  "../../../provers/isabelle/full/build/Parse"
 begin
+
+ML_file  "../../../provers/isabelle/termlib/rippling/basic_ripple.ML"
 
 ML{*
 structure FGT = FullGoalTyp;
@@ -43,7 +45,7 @@ ML{*
   val gt_id = FGT.set_gclass goalclass FGT.default
               |> FGT.set_name (G.mk "has identity");
 
-  val goalclass = Class.add_item (SStrName.mk "has_symbols") [[GTD.String "_ ** e"]] Class.top
+  val goalclass = Class.add_item (SStrName.mk "has_symbols") [[GTD.String "gexp e _ ** e"]] Class.top
                 |> Class.rename (C.mk "goal_term_id");
   val gt_term_id = FGT.set_gclass goalclass FGT.default
                 |> FGT.set_name (G.mk "has term then identity");
@@ -72,7 +74,9 @@ ML{*
 *)
 *}
 
-
+ML{*
+BasicRipple.ripple_tac @{context} 1
+*}
 
 -- "reasoning techniques"
 
@@ -87,17 +91,19 @@ RTechn.id
 |> RTechn.set_name (RT.mk "assumption")
 |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "assumption"));
 
-val simp1a = 
+val ruleset = 
 RTechn.id
-|> RTechn.set_name (RT.mk "rule l1")
-|> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["l1"]));
+|> RTechn.set_name (RT.mk "rule application")
+|> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["l1","l2","id_rev",
+                                        "refl"]));
 
-val simp1b = 
+val substset = 
 RTechn.id
-|> RTechn.set_name (RT.mk "subst l1")
-|> RTechn.set_atomic_appf (RTechn.Subst (StrName.NSet.of_list ["l1"]));
+|> RTechn.set_name (RT.mk "subst application")
+|> RTechn.set_atomic_appf (RTechn.Subst (StrName.NSet.of_list ["l1","l2","id_rev",
+                                        "Nat.add_0_right","add_Suc_right","ax2s"]));
 
-val simp2a = 
+(*val simp2a = 
 RTechn.id
 |> RTechn.set_name (RT.mk "rule l2")
 |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["l2"]));
@@ -105,7 +111,7 @@ RTechn.id
 val simp2b =
 RTechn.id
 |> RTechn.set_name (RT.mk "subst l2")
-|> RTechn.set_atomic_appf (RTechn.Subst (StrName.NSet.of_list ["l2"]));
+|> RTechn.set_atomic_appf (RTechn.Subst (StrName.NSet.of_list ["l2"]));*)
 
 val id_reva = 
 RTechn.id
@@ -172,6 +178,13 @@ RTechn.id
 RTechn.id
 |> RTechn.set_name (RT.mk "back")
 |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TClass, "back"));*)
+
+
+(* setup up rippling *)
+   val ripple_tac = BasicRipple.ripple_tac
+   val rippling = RTechn.id
+               |> RTechn.set_name (RT.mk "rippling")
+               |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "rippling"));
 *}
 
 
@@ -219,8 +232,8 @@ val id_rev_hb = NEST "subst id_rev" psf_idrevb;
 
 ML{*
 val psinduct = PSComb.LIFT ([gt_induct],[gt_base, gt_step]) (induct);
-val psbase = PSComb.LIFT ([gt_base],[]) (simp1a);
-val psstep = PSComb.LIFT ([gt_step],[gt_id]) (simp2b);
+val psbase = PSComb.LIFT ([gt_base],[]) (ruleset);
+val psstep = PSComb.LIFT ([gt_step],[gt_id]) (substset);
 val psid = PSComb.LIFT ([gt_id],[gt]) (id_revb);
 val psasm = PSComb.LIFT ([gt],[]) (asm);
 val psf_idorder = psinduct THENG psbase THENG psstep THENG psid THENG psasm;
@@ -257,10 +270,10 @@ val psgraph_idstep = IsaMethod.apply_psgraph_tac psg_step;
 
 ML{*
 val ps_induct = LIFT ([gt_induct],[gt_base, gt_step]) (induct);
-val ps_base = LIFT ([gt_base],[gt_ref]) (simp2b);
-val ps_step1 = LIFT ([gt_step],[gt_step]) (simp2b);
-val ps_step2 = LIFT ([gt_step],[gt_ref]) (simp2b);
-val ps_step = LIFT ([gt_step, gt_step, gt_base],[gt_step, gt_ref]) (simp2b);
+val ps_base = LIFT ([gt_base],[gt_ref]) (substset);
+val ps_step1 = LIFT ([gt_step],[gt_step]) (substset);
+val ps_step2 = LIFT ([gt_step],[gt_ref]) (substset);
+val ps_step = LIFT ([gt_step, gt_step, gt_base],[gt_step, gt_ref]) (substset);
 val ps_simp_loop = LOOP ps_step gt_step;
 val ps_ref = LIFT ([gt_ref], []) (refla);
 val psf_Suc = ps_induct THENG ps_base THENG ps_ref THENG ps_step1 THENG ps_step1 THENG ps_step2 THENG ps_ref;
@@ -273,10 +286,10 @@ val psgraph_Suc = IsaMethod.apply_psgraph_tac psg_Suc;
 ML{*
 val ps_induct = LIFT ([gt_induct],[gt_base,gt_step']) (induct);
 val ps_base1 = LIFT ([gt_base],[gt_base]) (add_zerob);
-val ps_base2 = LIFT ([gt_base],[gt_id]) (simp1b);
+val ps_base2 = LIFT ([gt_base],[gt_id]) (substset);
 val ps_id = id_rev_ha;
 val ps_step1 = LIFT ([gt_step'],[gt_step])(add_Suc_rb);
-val ps_step_int = LIFT ([gt_step,gt_step],[gt_step,gt_presimp]) (simp2b)
+val ps_step_int = LIFT ([gt_step,gt_step],[gt_step,gt_presimp]) (substset)
 val ps_step2 = LOOP ps_step_int gt_step;
 val ps_ax2 = LIFT ([gt_presimp],[gt]) (ax2sb);
 val ps_simp = LIFT ([gt],[]) (simp);
@@ -292,22 +305,31 @@ val psgraph_plus = IsaMethod.apply_psgraph_tac psg_plus;
 
 ML{*
 val ps_induct = LIFT ([gt_induct],[gt_base,gt_base,gt_step',gt_step]) (induct);
-val ps_prebase =  LIFT ([gt_base],[gt_base]) (add_zerob);
-val ps_basea = LIFT ([gt_base],[]) (simp1a);
-val ps_baseb = LIFT ([gt_base],[gt_id]) (simp1b);
+val ps_prebase =  LIFT ([gt_base],[gt_base]) (substset);
+val ps_basea = LIFT ([gt_base],[]) (ruleset);
+val ps_baseb = LIFT ([gt_base],[gt_id]) (substset);
 val ps_baseh = NEST "base hierarchy" (ps_prebase THENG ps_baseb)
-val ps_prestep = LIFT ([gt_step'],[gt_step])(add_Suc_rb);
-val ps_step = LIFT ([gt_step,gt_step,gt_step],[gt_step,gt_ref,gt_id,gt_presimp]) (simp2b);
+(*val ps_prestep = LIFT ([gt_step'],[gt_step])(substset);*)
+val ps_step = LIFT ([gt_step',gt_step,gt_step,gt_presimp,gt_base,gt_base(*,gt_step*)],
+                    [gt_step,gt_ref,gt_id,gt_presimp,gt,gt_base,gt_id]) (substset);
 val ps_step_loop = LOOP ps_step gt_step;
-val ps_ref = LIFT ([gt_ref],[]) (refla);
-val ps_id = LIFT ([gt_id],[gt]) (id_revb);
+(*val ps_step_loop1 = LOOP ps_step_loop gt_id;*)
+val ps_step_loop1 = LOOP ps_step_loop gt_presimp;
+val ps_step_loop2 = LOOP ps_step_loop1 gt_base;
+val ps_step_loop3 = LOOP ps_step_loop2 gt_term_id;
+val ps_ref = LIFT ([gt_ref],[]) (ruleset);
+val ps_id = LIFT ([gt_id],[gt]) (substset);
 val ps_asm = LIFT ([gt],[]) (asm);
-val ps_ax2 = LIFT ([gt_presimp],[gt]) (ax2sb);
+val ps_ax2 = LIFT ([gt_presimp],[gt]) (substset);
 val ps_simp = LIFT ([gt],[]) (simp);
 val ps_or = OR (ps_basea, ps_baseh);
-val psf_combined = ps_induct THENG ps_baseh THENG id_rev_ha THENG
-                    ps_basea THENG ps_prestep THENG ps_step_loop THENG id_rev_hb 
-                      THENG ps_asm THENG ps_ref THENG ps_ax2 THENG ps_simp;
+val ps_rules = LIFT ([gt_base,gt_ref,gt_id],[]) (ruleset);
+val ps_tops = OR (ps_asm,ps_simp);
+val psf_combined = ps_induct (*THENG ps_baseh  id_rev_ha*) THENG
+                    (*ps_basea THENG ps_prestep THENG*) ps_step_loop2  
+                      THENG id_rev_hb THENG ps_rules
+                      THENG ps_asm (*THENG ps_ref THENG ps_ax2*) THENG 
+                      (*ps_tops*) ps_simp;
 val psg_combined = IsaMethod.init_psgraph psf_combined @{context};
 val psgraph_combined = IsaMethod.apply_psgraph_tac psg_combined;
 *}
@@ -329,6 +351,11 @@ ML{*
 EData.get_pplan edata ;
 *}
 
+ML{*
+BasicRipple.ripple_tac @{context} 1
+*}
+
+
 lemma gexp_order_plus: "gexp g n ** gexp g m = gexp g (n + m)"
 apply (tactic "psgraph_combined @{context}")
 oops
@@ -341,7 +368,7 @@ oops
 lemma id_pt_test: "gexp e n = e"
   apply (tactic "psgraph_idorder @{context}")
   apply assumption+
-done
+oops
 
 full_prf id_pt_test
 
@@ -359,13 +386,13 @@ lemma "gexp e n = e"
   apply (tactic "psgraph_idstep @{context}")
   apply assumption
   apply assumption
-done
+oops
 
 lemma "gexp e n = e"
   apply (tactic "psgraph_idorder @{context}")
   apply assumption
   apply assumption
-done
+oops
 
 lemma "gexp e n = e"
   apply (induct n)
@@ -381,6 +408,19 @@ lemma "gexp e n = e"
 
   apply assumption
 done
+
+lemma ex_working: "gexp e n = e"
+  apply (induct n)
+  apply (rule l1)
+  apply (subst l2)
+  apply (subst id_rev)
+  apply assumption
+done
+
+ML{*
+BasicRipple.ripple_tac @{context} 0 @{thm "ex_working"}
+*}
+
 
 
 lemma "gexp e n = e"
