@@ -298,7 +298,7 @@ struct
        else if (RTechn.is_merge rt) then raise evaluate_exp (SOME v, "merge not supported")
        else if (RTechn.is_identity rt) then raise evaluate_exp (SOME v, "identity not supported")
        else if (RTechn.is_hgraph rt) then eval_nested edata v
-       else if (RTechn.is_or rt) then raise evaluate_exp (SOME v, "or not supported")
+       else if (RTechn.is_or rt) then eval_or edata v
        else if (RTechn.is_orelse rt) then raise evaluate_exp (SOME v, "orelse not supported")
        else raise evaluate_exp (SOME v, "Unknown reasoning technique type")
      ;
