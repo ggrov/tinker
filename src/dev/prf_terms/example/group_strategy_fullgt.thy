@@ -8,6 +8,9 @@ begin
 
 ML_file  "../../../provers/isabelle/termlib/rippling/basic_ripple.ML"
 
+ML_file "goal_type_definition.ML"
+ML_file "rt_definition.ML"
+
 ML{*
 structure FGT = FullGoalTyp;
 structure GTD = GoalTypData;
@@ -45,7 +48,7 @@ ML{*
   val gt_id = FGT.set_gclass goalclass FGT.default
               |> FGT.set_name (G.mk "has identity");
 
-  val goalclass = Class.add_item (SStrName.mk "has_symbols") [[GTD.String "gexp e _ ** e"]] Class.top
+  val goalclass = Class.add_item (SStrName.mk "has_symbols") [[GTD.String "gexp ?a _ ** e"]] Class.top
                 |> Class.rename (C.mk "goal_term_id");
   val gt_term_id = FGT.set_gclass goalclass FGT.default
                 |> FGT.set_name (G.mk "has term then identity");
@@ -180,12 +183,13 @@ RTechn.id
 |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TClass, "back"));*)
 
 
-(* setup up rippling *)
+(* setup rippling *)
    val ripple_tac = BasicRipple.ripple_tac
    val rippling = RTechn.id
                |> RTechn.set_name (RT.mk "rippling")
                |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "rippling"));
 *}
+
 
 
 -- "PSGraph"
@@ -319,21 +323,20 @@ val ps_step_loop2 = LOOP ps_step_loop1 gt_base;
 val ps_step_loop3 = LOOP ps_step_loop2 gt_term_id;
 val ps_ref = LIFT ([gt_ref],[]) (ruleset);
 val ps_id = LIFT ([gt_id],[gt]) (substset);
-val ps_asm = LIFT ([gt],[]) (asm);
+val ps_asm = LIFT ([gt,gt],[]) (asm);
 val ps_ax2 = LIFT ([gt_presimp],[gt]) (substset);
-val ps_simp = LIFT ([gt],[]) (simp);
+val ps_simp = LIFT ([gt,gt],[]) (simp);
 val ps_or = OR (ps_basea, ps_baseh);
 val ps_rules = LIFT ([gt_base,gt_ref,gt_id],[]) (ruleset);
 val ps_tops = OR (ps_asm,ps_simp);
 val psf_combined = ps_induct (*THENG ps_baseh  id_rev_ha*) THENG
                     (*ps_basea THENG ps_prestep THENG*) ps_step_loop2  
                       THENG id_rev_hb THENG ps_rules
-                      THENG ps_asm (*THENG ps_ref THENG ps_ax2*) THENG 
-                      (*ps_tops*) ps_simp;
+                      THENG ps_tops (*THENG ps_ref THENG ps_ax2 THENG 
+                      (*ps_tops*) ps_simp*);
 val psg_combined = IsaMethod.init_psgraph psf_combined @{context};
 val psgraph_combined = IsaMethod.apply_psgraph_tac psg_combined;
 *}
-
 
 
 
@@ -365,51 +368,17 @@ lemma "gexp e n = e"
 oops
 
 
-lemma id_pt_test: "gexp e n = e"
-  apply (tactic "psgraph_idorder @{context}")
-  apply assumption+
-oops
-
-full_prf id_pt_test
-
-ML{*
-val idtree = PTParse.build_tree (PTParse.prf @{thm id_pt_test});
-
-val graph = PTParse.mk_graph (fn top => GoalTyp.top) idtree;
-
- PSGraph.PSTheory.write_dot (path ^ "ptidorder") graph
-*}
-
 lemma "gexp e n = e"
   apply (induct n)
   apply (rule l1)
   apply (tactic "psgraph_idstep @{context}")
   apply assumption
   apply assumption
-oops
-
-lemma "gexp e n = e"
-  apply (tactic "psgraph_idorder @{context}")
-  apply assumption
-  apply assumption
-oops
-
-lemma "gexp e n = e"
-  apply (induct n)
-  apply (rule l1)
-  apply (subst l2)
- 
- (* apply (tactic "psgraph_idrev @{context}")*)
-
-  apply (subst(2) ax3s) 
-  apply (subst ax2s)
-  apply (subst inv_rev)
-  apply (subst ax1)
-
-  apply assumption
 done
 
+
 lemma ex_working: "gexp e n = e"
+  apply (tactic "ripple_tac @{context} 1")
   apply (induct n)
   apply (rule l1)
   apply (subst l2)
@@ -417,31 +386,26 @@ lemma ex_working: "gexp e n = e"
   apply assumption
 done
 
+lemma ex_working2: "gexp g n ** g = gexp g (Suc n)"
+  apply (tactic "ripple_tac @{context} 1")
+  apply (induct n)
+  apply (tactic "ripple_tac @{context} 2")
+  apply (subst l2)
+  apply (rule refl)
+  apply (subst l2)
+  apply (subst l2)
+  apply (subst l2)
+  apply (rule refl)
+done
+
 ML{*
-BasicRipple.ripple_tac @{context} 0 @{thm "ex_working"}
+BasicRipple.ripple_tac @{context} 1 @{thm "ex_working"}
 *}
 
 
 
-lemma "gexp e n = e"
-  apply (induct n)
-  apply (rule l1)
-  apply (subst l2)
-  apply (subst ax3s)
-
-  apply (subst ax2s)
-  apply (subst inv_rev)
-  apply (subst ax1)
-  apply assumption
-oops
-
-
-lemma "gexp e n = e"
-  apply (tactic "psgraph_idorder_hier @{context}")
-oops
-
 lemma "gexp g n ** g = gexp g (Suc n)"
-  apply (tactic "psgraph_Suc @{context}")
+  apply (tactic "psgraph_combined @{context}")
 oops
 
 

@@ -160,7 +160,8 @@ ML{*val graph = PTParse.mk_graph (fn top => GoalTyp.top) trees;
 
 
 lemma mc: "A \<Longrightarrow> B \<Longrightarrow> C \<Longrightarrow> A \<and> B \<and> C"
-  by auto
+  apply auto
+done
 
 full_prf mc
 
@@ -177,8 +178,8 @@ ML{*val graph = PTParse.mk_graph (fn top => GoalTyp.top) treemc;
 lemma ml: "True \<and> True \<and> (True \<and> True)"
   apply (rule mc)
   apply (rule TrueI)
-  apply (rule TrueI)  full_prf
- apply (rule conjI) full_prf
+  apply (rule TrueI)  
+ apply (rule conjI) 
  apply (rule TrueI)
  apply (rule TrueI)
  done
