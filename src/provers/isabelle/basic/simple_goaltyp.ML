@@ -215,6 +215,7 @@ struct
            | "or"        => exists I (map (lift_list pn) (split_args xs)) |> debug_trace x
            | "any"       => true (* default *)
            | "anything"   => true (* default *)
+           | "label" => true
            | _           => false)
         handle _ => false);
 

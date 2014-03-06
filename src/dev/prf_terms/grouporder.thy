@@ -1,6 +1,6 @@
 theory grouporder
 imports GroupAx
-        GroupStratGraphs
+        
 begin
 
 axiomatization
@@ -28,7 +28,7 @@ full_prf gexp_id
 
 lemma gexp_id_alt: "gexp e n = e"
 
- apply (psgraph group)
+ 
 
 oops
 
@@ -50,7 +50,7 @@ full_prf gexp_order_plus
 
 
 lemma gexp_order_plus_alt: "gexp g n ** gexp g m = gexp g (n + m)"
-  apply (psgraph group)
+ 
 
 oops
 
@@ -75,7 +75,7 @@ lemma gexp_order_mult: "gexp (gexp g m) n = gexp g (m * n)"
 done
 
 lemma gexp_order_mult_alt: "gexp (gexp g m) n = gexp g (m * n)"
-  apply (psgraph group)
+  
 oops
 
 lemma gexp_order_mult_comm: "gexp g (m * n) = gexp (gexp g m) n"
@@ -93,7 +93,7 @@ lemma gexp_order_Suc: "gexp g n ** g = gexp g (Suc n)"
   done
 
 lemma gexp_order_Suc_alt: "gexp g n ** g = gexp g (Suc n)"
-  apply (psgraph group)
+ 
 oops
 
 
@@ -128,7 +128,7 @@ lemma gexp_inv: "inv (gexp g n) = gexp (inv g) n"
   
 
 
-sledgehammer
+
 
   apply simp
   apply (rule inv_id)
@@ -140,7 +140,7 @@ sledgehammer
 apply  (metis add_Suc add_Suc_right ax2 gexp.simps(2) gexp_order_plus inv_comm inv_inv inv_rev lat_sq)
 done
 
-full_prf gexp_inv 
+
 
 
 
@@ -160,7 +160,7 @@ lemma iexp_neg_int: "iexp g (-n) = inv (iexp g n)"
   apply (simp only: inv_id)
   apply (metis)
 done
-
+(*
 lemma shows "iexp (iexp g m) n = iexp g (m * n)"
   apply (rule int_induct[where P="\<lambda> m. iexp (iexp g m) n = iexp g (m * n)" and k=1])
   apply auto[1]
@@ -203,7 +203,7 @@ lemma shows "iexp (iexp g m) n = iexp g (m * n)"
 
 oops
 
-
+*)
 lemma  shows "iexp g n ** iexp g (m) = iexp g (n + m)"
   apply (rule int_induct)
   apply auto
@@ -253,4 +253,4 @@ definition
 where
  "order g \<equiv> LEAST k. gexp g k = e"
 
-
+end
