@@ -1,6 +1,6 @@
 TO DO:
 
-1) order function for data. Rule.mk not terminated - the following hack in 
+-[] order function for data. Rule.mk not terminated - the following hack in 
        quantomatic/core/rewriting/rule.ML for Rule.mk required:
 
       in (Rule { lhs = lhs, rhs = rhs',
@@ -11,10 +11,10 @@ TO DO:
           (vrn,ern))
 
 
-2) move socket stuff into isaplib [GG]
+-[] move socket stuff into isaplib [GG]
     -> still need to be tested and array stuff checked.
 
-3) eval data [hard] -- GG started
+-[] eval data [hard] -- GG started
     -> started generalised into ATOMIC.ML signature (combined with prf?)
     -> have done eval_data and eval_appf
    TO DO:
@@ -30,11 +30,11 @@ TO DO:
     - make rule for delete node with empty list
     - make rule for unfold and fold lists
 
-4) update rtechn [make it independent of wires] [medium]
+-[] update rtechn [make it independent of wires] [medium]
      - fix HGraph data [later]
      - complete appfn, ord and eq [medium]
 
-5) rtechn_env 
+-[] rtechn_env 
      -> add a reference filed in the prf representation, so that proof related data can be  referred to.
      -> how can we store such data in proof power? [hard] 
      -> is it supported in isaplib?
@@ -45,10 +45,10 @@ TO DO:
      -> generalise tactics: make a atomic.ml structure which has to be instantiated
         for each theorem prover!
 
-6) instantiate proof power for generic [easy] [DONE yet to test]
+-[] instantiate proof power for generic [easy] [DONE yet to test]
 
 
-7) GUI for pp
+-[] GUI for pp
 
 COMPLETED:
 link with GUI [easy] [YL to start][DONE]
