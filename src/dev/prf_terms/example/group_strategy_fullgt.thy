@@ -8,8 +8,6 @@ begin
 
 ML_file  "../../../provers/isabelle/termlib/rippling/basic_ripple.ML"
 
-ML_file "goal_type_definition.ML"
-ML_file "rt_definition.ML"
 
 ML{*
 structure FGT = FullGoalTyp;
