@@ -214,7 +214,7 @@ setup {* PSGraphMethod.add_graph ("psgraph_autoext",psg_autoext) *}
 
 
 lemma inv_comm_alt: "a ** inv a = inv a ** a"
-  apply (psgraph psgraph_autoext)
+  apply (psgraph  psgraph_autoext)
 done
 
 
@@ -245,7 +245,8 @@ ML{*
 val psinduct = LIFT ([gt],[gt,gt]) (induct);
 val psidrev = LIFT ([gt],[gt]) (id_rev);
 
-val psf_inductauto = psinduct THENG psf_auto THENG psidrev THENG psf_auto;
+val psf_inductauto = psinduct (*THENG psf_auto*) THENG psidrev THENG 
+        TENSOR (psf_auto, psf_auto);
 
 val psg_inductauto  =   psf_inductauto PSGraph.empty 
       |> PSGraph.load_atomics (StrName.NTab.list_of (PSGraphMethod.get_tacs @{theory}));
@@ -254,7 +255,7 @@ val psg_inductauto  =   psf_inductauto PSGraph.empty
 setup {* PSGraphMethod.add_graph ("psgraph_inductauto",psg_inductauto) *}
 
 lemma gexp_id: "gexp e n = e"        
-  apply (psgraph  psgraph_inductauto)
+  apply (psgraph psgraph_inductauto)
   apply (induct n)                    
   apply auto
   apply (subst id_rev)                   
@@ -262,8 +263,8 @@ lemma gexp_id: "gexp e n = e"
   done    
 
 
-(*lemma c: "f x = u \<Longrightarrow> (\<forall> x. P x g \<Longrightarrow> g (f x) = x) \<Longrightarrow> P x \<Longrightarrow> x = g u"
+lemma c: "f x = u \<Longrightarrow> (\<forall> x. P x  \<Longrightarrow>  f(x) = x) \<Longrightarrow> P x \<Longrightarrow> x = g u"
 apply (psgraph psgraph_auto)
 oops
-*)
+
 end

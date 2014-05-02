@@ -8,8 +8,6 @@ begin
 
 ML_file  "../../../provers/isabelle/termlib/rippling/basic_ripple.ML"
 
-ML_file "goal_type_definition.ML"
-ML_file "rt_definition.ML"
 
 ML{*
 structure FGT = FullGoalTyp;
@@ -184,7 +182,7 @@ RTechn.id
 
 
 (* setup rippling *)
-   val ripple_tac = BasicRipple.ripple_tac
+   val ripple_tac = BasicRipple.ripple_tac;
    val rippling = RTechn.id
                |> RTechn.set_name (RT.mk "rippling")
                |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "rippling"));
