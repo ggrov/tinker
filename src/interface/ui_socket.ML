@@ -118,6 +118,12 @@ struct
   fun ui_passive_init json = 
     let val f = get_fn () in
       case f of SOME f'=> 
+(*
+  1) need a protocal to send / receive a list of json !
+  2)
+
+more info: json -> graph, graph -> psgraph   (of_graph)
+*)
         ((f' (PSGraph.PSTheory.in_json json)  (* init edata *)
           |> (fn x => update_data(FocusList.of_single x)));(* store edata *)
          ui_eval_current ())

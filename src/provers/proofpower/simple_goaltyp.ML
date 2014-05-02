@@ -3,7 +3,7 @@ fun init_symbol_table l = symbol_table := StrName.NTab.of_list l;
 (* "use_file" can only be used in the top level, otherwise some strange problem will occur,
  this hack is to avoid the probelm *)
 
-structure SimpleGoalTyp : BASIC_GOALTYPE = 
+structure SimpleGoalTyp (*: BASIC_GOALTYPE *)= 
 struct
   structure Prover = PPProver;
   type T = string
@@ -77,6 +77,17 @@ struct
       if ret then writeln ("GoalType: " ^ gt ^ " is OK for " ^ (get_pnode_name pn))
       else writeln ("GoalType: " ^ gt ^ " fails for " ^ (get_pnode_name pn))
       
+      
+    val (default_GT : ( GOAL -> bool) StrName.NTab.T Unsynchronized.ref) = Unsynchronized.ref StrName.NTab.empty;
+
+    fun add_default_GTs gts = 
+      (fold (fn gt => StrName.NTab.doadd gt) gts (!default_GT)
+       |> (fn x => default_GT := x));
+    
+    fun get_GOAL_from_pnode pn = 
+    	(map Prover.concl_of_thm (Prover.get_all_assms pn),
+    	 Prover.get_pnode_concl pn)
+    	 
     fun lift_list pn [] = false
      |  lift_list pn (x::xs) =
           ((case x of 
@@ -85,8 +96,10 @@ struct
            | "not"       => not (lift_list pn xs) 
            | "or"        => exists I (map (lift_list pn) (split_args xs)) 
            | "any"       => true (* default *)
-           | _           => false)
-        handle _ => false);
+           | others      => case (StrName.NTab.lookup (!default_GT) others) 
+           			of (SOME gt) => gt (get_GOAL_from_pnode pn)
+           			| _ => false)
+        handle _ => (writeln "exception catched when checking goaltypes "; false));
 
    fun lift' pn str = lift_list pn (splitstr str)
    handle _ => raise gt_exp "int lift'";
@@ -111,7 +124,7 @@ struct
      NONE => false
     | SOME _ => true;
 
-  val lift = K init_lift;
+  val lift : gnode -> T -> Prover.pnode -> gnode option = K init_lift;
 
   (* delete *)
   fun lookup_fact_names _ _ = NONE;
