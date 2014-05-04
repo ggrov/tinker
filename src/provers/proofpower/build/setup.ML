@@ -82,7 +82,7 @@ structure FullGoalTyp : FULL_GOAL_TYP = GoalTyp_I
 
 (*  simple goaltyp *)
   use "../simple_goaltyp";
-  use "../supergraph";
+
 
 structure GoalTyp : BASIC_GOALTYPE = SimpleGoalTyp;
 
@@ -110,6 +110,7 @@ structure EVal = EValFun(EData);
   
   
   use "../pp_intf.ML";
-
+  
+  
 (* enable the subgoal package printing *)
   reset_flag "subgoal_package_quiet";
