@@ -4,7 +4,7 @@ Installation
 Downloading and Installing Isabelle
 -----------------------------------
 
-To use PSGraph with Isabelle, you first need to download and install Isabelle 2013. 
+To use Tinker with Isabelle, you first need to download and install Isabelle 2013. 
 
 Details of how to do this can be found [here](http://www.cl.cam.ac.uk/research/hvg/Isabelle/installation.html).
 
@@ -56,7 +56,7 @@ If you wish to use GUI in the interactive proof session, you'll need the
 Usage
 =====
 
-The `src/examples/LPAR13` directory of the `psgraph` installation contains a set of example. To
+The `src/examples/UITP14` directory of the `tinker` installation contains a set of example. To
 illustrate open the `example.thy` file in Isabelle 2013 (using the Isabelle/PIDE interface). 
 
 Automated proof session
@@ -88,18 +88,18 @@ the following line
 
     apply(psgraph (interactive) conj_impI)
     
-This will open a socket connection to the GUI. This is currently very fragile and if it gets reloaded
-again (e.g. by making any changes to the `example.thy` theory file in Isabelle) it may fail with the 
-error
+This will open a socket connection to the GUI. Current we use a timeout mechanise for socket connection to 
+prevent isabelle from reloading the current theory file. Therefore, after applying this command,
+users have to go the Tinker GUI and click the `Connect` button within 5 second to display the graph. Otherwise, 
+it may fail with the error
 
-     exception SysErr (Address already in use, SOME EADDRINUSE) raised
+    exception exp_text_socket time out for socket: no incoming connection raised
      
-This means that the previous interactive session was closed unexpectedly. You'll need to re-start Isabelle 2013, and
+This means that the previous interactive session was closed dueto timeout. You'll need to re-apply the command, and
 do this again.
 
-After applying this command go the PSGraph GUI and click the `Connect` button to display the graph. 
-The buttons `Next`, which applies a single evaluation step, and 'Backtrack', which backtracks the last step,
-are now available to execute the graph. 
+The buttons `Next`, which applies a single evaluation step, `Prev`, which shows previous evaluation steps, 
+and `Backtrack`, which backtracks the last step, are now available to execute the graph. 
 
 To end the current interactive session, click the `Finish` button in the GUI, and return to the Isabelle GUI. Here,
 you can see that the sub-goal status has been updated with the result from the evaluation.
@@ -109,7 +109,7 @@ same file illustrates this. Here, uncomment the following line to setup an inter
 
      apply(psgraph (current))
 	
-In the PSGraph GUI, open the file `example_current.psgraph` (in the same directory as the Isabelle theory file), 
+In the Tinker GUI, open the file `example_current.psgraph` (in the same directory as the Isabelle theory file), 
 and click the `Connect` button. You can then interact with the GUI as described above.
 
 More examples
