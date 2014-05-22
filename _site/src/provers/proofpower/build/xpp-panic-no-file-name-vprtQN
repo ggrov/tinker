@@ -1,0 +1,7 @@
+use "setup";
+use_file "../test/eval_test";
+
+set_psg_goal ([], %<%A %implies% (A %and% A) %>%) "current"
+psgraph_simple "dummy" "dummy";
+
+ set_psg_goal ([%<% B : BOOL %>%, %<% A : BOOL %>%], %<% (A %and% B) %and% (A %implies% A) %>%) "interactive" psgraph_simple "dummy" "dummy"; 
