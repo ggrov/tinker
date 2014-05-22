@@ -1,6 +1,6 @@
-Project Web Page
+Project Web Page - http://ggrov.github.io/tinker/
 ============
-http://ggrov.github.io/tinker/
+
 
 Installation
 ============
