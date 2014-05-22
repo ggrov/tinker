@@ -5,7 +5,7 @@ title: Tinker
 
 ### Tinker Core
 ****
- <center><img src="images/tinker.jpg"  title="The Tinker architecture" width="600" ></center>
+ <center><img src="images/tinker.JPG"  title="The Tinker architecture" width="600" ></center>
 
 TBA
 
