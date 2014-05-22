@@ -1,6 +1,6 @@
-Project Web Page - http://ggrov.github.io/tinker/
+Tinker - A graph based proof strategy language
 ============
-
+Project Web Page - http://ggrov.github.io/tinker/
 
 Installation
 ============
