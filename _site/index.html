@@ -30,27 +30,55 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-    <h3>Tinker Core</h3>
+    <h3>PSGraph</h3>
 
 <hr>
 
-<p><center><img src="images/tinker.png"  title="The Tinker architecture" width="600" ></center></p>
+<p>Proof-strategy graphs (PSGraphs) is a formalism that represents proof strategies as graphs, where tactics appear on nodes in a graph, and are connected by ‘piping’ them together. To prove a goal in such strategies, the goal is wrapped in a particular graph node, called goal node, and put in one of the input pipes of the graph. The tactic at the end of this pipe, will then consume this goal node, apply the tactic to the goal, and send any (wrapped) sub-goals to the output pipes. Properties of the pipes ensure that only the right ‘type’ of goals are accepted. </p>
 
-<p>TBA</p>
+<p><center><img src="images/example.png"  title=" Some goal-nodes (depicted as circles) making their way through a PSGraph" width="600" ></center></p>
 
-<h3>Tinker GUI</h3>
+<h3>Tinker</h3>
+
+<p>The Tinker tool, which is a first implementation of PSGraphs. It adopts a generic theorem prover independent framework. We have currently connected it to both Isabelle and ProofPower. It is important to note that this is an extension of these provers. Users of these systems will still use the existing interface, with an additional graphical interface to step through the evaluation of a PSGraph. </p>
 
 <hr>
 
 <p><center><img src="images/tinker-isa-i.png" title="Tinker GUI with Isabelle" width="600" ></center></p>
 
-<p>TBA</p>
-
-<h3>Publication and Presentation</h3>
+<h3>Publications</h3>
 
 <hr>
 
-<p>TBA</p>
+<ul class="paper-list">
+    
+      
+      
+    
+      
+      
+        
+          <li> 
+            <div class="reference"><p>Gudmund Grov, Aleks Kissinger and Yuhui Lin. <strong>A Graphical Language for Proof Strategies</strong>. In <em>Logic for Programming Artificial Intelligence and Reasoning, LPAR-19th</em>,  in Stellenbosch, South Africa.</p>
+</div>
+          </li>
+      
+    
+</ul>
+
+<h3>Talks</h3>
+
+<hr>
+
+<ul class="paper-list">
+    
+      
+      
+    
+      
+      
+    
+</ul>
 
   </div>
 <div id="footer_wrap" class="outer">

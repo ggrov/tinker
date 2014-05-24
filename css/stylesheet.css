@@ -421,3 +421,33 @@ Small Device Styles
   }
 
 }
+
+/*************** imported ***************/
+
+.quiet, .quiet a {color: #666;}
+
+
+/* Paper listing */
+ul.paper-list {}
+ul.paper-list .authors, ul.paper-list .where, ul.paper-list .contents {
+margin: 0.5em 0;}
+
+ul.paper-list li {
+  padding-bottom: 0.5em;
+}
+
+ul.paper-list .reference {
+  font-size: 15px;
+}
+
+
+/* Paper/item types */
+.type {
+  padding-left: 45px;
+  background-repeat: no-repeat;
+  background-image: url('../img/type-blank.png');
+}
+li[id].type {
+  background-position: 0 60px;
+}
+

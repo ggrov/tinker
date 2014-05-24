@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Tinker : A graph based proof strategy language" />
+
+    <link rel="stylesheet" type="/text/css" media="screen" href="css/stylesheet.css">
+
+    <title>Tinker</title>
+  </head>
+
+  <body>
+  
+   <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/ggrov/tinker">View on GitHub</a>
+
+          <h1 id="project_title">Tinker</h1>
+          <h2 id="project_tagline">A graph based proof strategy language</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/ggrov/tinker/zipball/master">Download the latest version as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/ggrov/tinker/tarball/master">Download this latest version as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+    <h2>A Graphical Language for Proof Strategies</h2>
+<p class="meta">15 Dec 2013</p>
+
+<div class="post">
+<p>Complex automated proof strategies are often difficult to extract, visualise, modify, and debug. 
+Traditional tactic languages, often based on stack-based goal propagation, make it easy to write proofs that obscure the flow of goals between tactics and are fragile to minor changes in input, proof structure or changes to tactics themselves. Here, we address this by introducing a graphical language called PSGraph for writing proof strategies. Strategies are constructed visually by &quot;wiring together&quot; collections of tactics and evaluated by propagating goal nodes through the diagram via graph rewriting. Tactic nodes can have many output wires, and use a filtering procedure based on goal-types (predicates describing the features of a goal) to decide where best to send newly-generated sub-goals. </p>
+
+<p>In addition to making the flow of goal information explicit, the graphical language can fulfil the role of many tacticals using visual idioms like branching, merging, and feedback loops. We argue that this language enables development of more robust proof strategies and provide several examples, along with a prototype implementation in Isabelle.</p>
+
+</div>
+
+  </div>
+<div id="footer_wrap" class="outer">
+      <footer class="inner">
+      <p> Tinker, Tailor, Solver, Proof </p>
+      </footer>
+  </body>
+</html>
+
