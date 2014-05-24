@@ -1,0 +1,20 @@
+---
+layout: post
+category: publications
+tags:
+  - news
+slug: uitp-paper
+
+title: "Tinker, tailor, solver, proof"
+date: 2014-07-17
+reference: "Gudmund Grov, Aleks Kissinger and Yuhui Lin. **Tinker, tailor, solver, proof**. In _User Interfaces for Theorem Provers, UITP 2014_,  in Vienna, Austria."
+
+pdf:
+  url: 
+  ref: local
+links:
+  - title: 
+    url: 
+
+---
+Abstract
