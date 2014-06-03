@@ -21,4 +21,4 @@ links:
     url: http://www.lpar-19.info
 
 ---
-<a href="/talks/lpar13.pdf"> Talk: A Graphical Language for Proof Strategies</a>, Gudmund Grov, 15th December 2013, Presented at _Logic for Programming Artificial Intelligence and Reasoning (LPAR-19th)_. 
+<a href="talks/lpar13.pdf"> Talk: A Graphical Language for Proof Strategies</a>, Gudmund Grov, 15th December 2013, Presented at _Logic for Programming Artificial Intelligence and Reasoning (LPAR-19th)_. 
