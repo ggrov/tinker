@@ -1,0 +1,24 @@
+---
+layout: post
+category: talks
+tags:
+  - news
+slug: lpar13-talk
+publication: lpar13-paper
+
+title: "Talk: A Graphical Language for Proof Strategies"
+author: Gudmund Grov
+type: talk
+event_date: 2013-12-15
+where: "Logic for Programming Artificial Intelligence and Reasoning (LPAR-19th), Stellenbosch, South Africa"
+
+pdf:
+  title: Download slides as PDF
+  url: /talks/lpar13.pdf
+  ref: local
+links:
+  - title: Visit LPAR19(2013) website
+    url: http://www.lpar-19.info
+
+---
+<a href="/talks/lpar13.pdf"> Talk: A Graphical Language for Proof Strategies</a>, Gudmund Grov, 15th December 2013, Presented at _Logic for Programming Artificial Intelligence and Reasoning (LPAR-19th)_. 

@@ -2,7 +2,6 @@
 	{% for post in site.posts %}
 	  {% capture category %}{{ post.category }}{% endcapture %}
   	  {% if category == "publications" %}
-  	    {% capture post_abstract_id %}{{ post.slug }}-abstract{% endcapture %}
           <li> 
 			<div class="reference">{{ post.reference | markdownify }}</div>
           </li>
