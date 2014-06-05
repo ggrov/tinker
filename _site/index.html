@@ -1,105 +1,143 @@
 <!DOCTYPE html>
 <html>
-
   <head>
-    <meta charset='utf-8' />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Tinker : A graph based proof strategy language" />
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
 
-    <link rel="stylesheet" type="/text/css" media="screen" href="/css/stylesheet.css">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
 
-    <title>Tinker</title>
+     <title>Tinker</title>
   </head>
 
-  <body>
+ <body>
+    <header>
+      <div class="inner">
+        <h1>Tinker</h1>
+        <h2>A Graph Based Proof Strategy Language</h2>
+        <a href="https://github.com/ggrov/tinker" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
   
-   <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/ggrov/tinker">View on GitHub</a>
-
-          <h1 id="project_title">Tinker</h1>
-          <h2 id="project_tagline">A graph based proof strategy language</h2>
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/ggrov/tinker/zipball/master">Download the latest version as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/ggrov/tinker/tarball/master">Download this latest version as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-    <h3>PSGraph</h3>
-
+    <div id="content-wrapper">
+<div class="inner clearfix">
+<section id="main-content">
+<h3>
+<span class="octicon octicon-link"></span></a>PSGraph
+</h3>
 <hr>
 
 <p>Proof-strategy graphs (PSGraphs) is a formalism that represents proof strategies as graphs, where tactics appear on nodes in a graph, and are connected by ‘piping’ them together. To prove a goal in such strategies, the goal is wrapped in a particular graph node, called goal node, and put in one of the input pipes of the graph. The tactic at the end of this pipe, will then consume this goal node, apply the tactic to the goal, and send any (wrapped) sub-goals to the output pipes. Properties of the pipes ensure that only the right ‘type’ of goals are accepted. </p>
 
-<p><center><img src="images/example.png"  title=" Some goal-nodes (depicted as circles) making their way through a PSGraph" width="600" ></center></p>
 
-<h3>Tinker</h3>
+ <center><img src="images/example.png"  title=" Some goal-nodes (depicted as circles) making their way through a PSGraph" width="600" ></center>
 
-<p>The Tinker tool, which is a first implementation of PSGraphs. It adopts a generic theorem prover independent framework. We have currently connected it to both Isabelle and ProofPower. It is important to note that this is an extension of these provers. Users of these systems will still use the existing interface, with an additional graphical interface to step through the evaluation of a PSGraph. </p>
-
+<h3>
+<span class="octicon octicon-link"></span></a>Tinker
+</h3>
 <hr>
 
-<p><center><img src="images/tinker-isa-i.png" title="Tinker GUI with Isabelle" width="600" ></center></p>
+<p>The Tinker tool, which is a first implementation of PSGraphs. It adopts a generic theorem prover independent framework. We have currently connected it to both Isabelle and ProofPower. It is important to note that this is an extension of these provers. Users of these systems will still use the existing interface, with an additional graphical interface to step through the evaluation of a PSGraph. 
+</p>
 
-<h3>Publications</h3>
+ <center><img src="images/tinker-isa-i.png" title="Tinker GUI with Isabelle" width="600" ></center>
 
+<h3>
+<span class="octicon octicon-link"></span></a>Publication
+</h3>
 <hr>
-
 <ul class="paper-list">
-    
-      
-      
+	
+	  
+  	  
           <li> 
-            <div class="reference"><p>Gudmund Grov, Aleks Kissinger and Yuhui Lin. <strong>Tinker, tailor, solver, proof</strong>. In <em>User Interfaces for Theorem Provers, UITP 2014</em>,  in Vienna, Austria.</p>
+			<div class="reference"><p>Gudmund Grov, Aleks Kissinger and Yuhui Lin. <strong>Tinker, tailor, solver, proof</strong>. In <em>User Interfaces for Theorem Provers, UITP 2014</em>,  in Vienna, Austria.</p>
 </div>
           </li>
       
     
-      
-      
+	  
+  	  
           <li> 
-            <div class="reference"><p>Gudmund Grov, Aleks Kissinger and Yuhui Lin. <strong>A Graphical Language for Proof Strategies</strong>. In <em>Logic for Programming Artificial Intelligence and Reasoning, LPAR-19th</em>,  in Stellenbosch, South Africa.</p>
+			<div class="reference"><p>Gudmund Grov, Aleks Kissinger and Yuhui Lin. <strong>A Graphical Language for Proof Strategies</strong>. In <em>Logic for Programming Artificial Intelligence and Reasoning, LPAR-19th</em>,  in Stellenbosch, South Africa.</p>
 </div>
           </li>
       
     
-      
-      
+	  
+  	  
     
 </ul>
 
-<h3>Talks</h3>
 
+
+
+
+
+
+
+<h3>
+<span class="octicon octicon-link"></span></a>Talks
+</h3>
 <hr>
-
 <ul class="paper-list">
+	
+	  
+  	  
     
-      
-      
+	  
+  	  
     
-      
-      
-    
-      
-      
+	  
+  	  
           <li> 
-            <div class="reference"><p><a href="talks/lpar13.pdf"> Talk: A Graphical Language for Proof Strategies</a>, Gudmund Grov, 15th December 2013, Presented at <em>Logic for Programming Artificial Intelligence and Reasoning (LPAR-19th)</em>. </p>
+			<div class="reference"><p><a href="talks/lpar13.pdf"> Talk: A Graphical Language for Proof Strategies</a>, Gudmund Grov, 15th December 2013, Presented at <em>Logic for Programming Artificial Intelligence and Reasoning (LPAR-19th)</em>. </p>
  </div> 
           </li>
       
     
 </ul>
 
+
+
+
+
+
+
+</section>
+
+        <aside id="sidebar">
+         <a href="https://github.com/ggrov/tinker/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/ggrov/tinker/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+          
+
+        </aside>
+        
+      </div>
+    </div>
+
+
   </div>
 <div id="footer_wrap" class="outer">
       <footer class="inner">
-      <p> Tinker, Tailor, Solver, Proof </p>
-      </footer>
+    
+
+<p> </p>
+</footer>
   </body>
 </html>
-
