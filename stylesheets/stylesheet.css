@@ -520,9 +520,9 @@ aside#sidebar div {
 
 /* LYH :  add tinkertoy font*/
 @font-face {
-    font-family: tinkertoy;
-    src: url('font/tinkertoy.ttf');
+    font-family: 'tinkertoy';
+    src: url('/font/tinkertoy.ttf');
 }
-header h1, header h2 {
-    font-family: tinkertoy;
+header h1, header h2:before {
+    font-family: 'tinkertoy';
 }
