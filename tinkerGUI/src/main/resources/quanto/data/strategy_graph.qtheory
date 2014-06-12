@@ -1,0 +1,71 @@
+{
+  "name" : "Proof strategy graph",
+  "core_name" : "ps_graph",
+  "vertex_types" : {
+    "RT" : {
+      "value" : {
+        "path" : "$.rt_name",
+        "validate_with_core" : false,
+        "latex_constants" : false,
+        "type" : "string"
+      },
+      "style" : {
+        "label" : {
+          "position" : "inside",
+          "fg_color" : [ 0.0, 0.2, 0.0 ]
+        },
+        "stroke_color" : [ 0.0, 0.2, 0.0 ],
+        "fill_color" : [ 0.9, 1.0, 0.9 ],
+        "shape" : "rectangle"
+      },
+      "default_data" : {
+        "rt_name" : "id",
+        "appf" : {"type" : "Identity"},
+        "type" : "RT"
+      }
+    },
+    "GN" : {
+      "value" : {
+        "path" : "$.gn_name",
+        "validate_with_core" : false,
+        "latex_constants" : false,
+        "type" : "string"
+      },
+      "style" : {
+        "label" : {
+          "position" : "inside",
+          "fg_color" : [ 0.0, 0.2, 0.0 ]
+        },
+        "stroke_color" : [ 0.0, 0.2, 0.0 ],
+        "fill_color" : [ 0.8, 1.0, 1.0 ],
+        "shape" : "circle"
+      },
+      "default_data" : {
+        "gn_name" : "g",
+        "type" : "GN"
+      }
+     }
+  },
+  "edge_types" : {
+    "GT" : {
+      "value" : {
+        "path" : "$.gtyp_name",
+        "validate_with_core" : false,
+        "latex_constants" : false,
+        "type" : "string"
+      },
+      "style" : {
+        "stroke_color" : [ 0.0, 0.0, 0.0 ],
+        "stroke_width" : 1,
+        "label" : {
+          "position" : "center",
+          "fg_color" : [ 0.0, 0.0, 1.0 ],
+          "bg_color" : [ 0.8, 0.8, 1.0, 0.7 ]
+        }
+      },
+      "default_data" : {"gtyp_name" : "any", "type" : "GT"}
+    }
+  },
+  "default_vertex_type" : "RT",
+  "default_edge_type" : "GT"
+}
