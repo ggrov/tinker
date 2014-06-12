@@ -22,6 +22,13 @@ time, mark, audio, video {
 	font: inherit;
 	vertical-align: baseline;
 }
+
+/* LYH :  add tinkertoy font*/
+@font-face {
+    font-family: tinkertoy;
+    src: url('font/tinkertoy.ttf');
+}
+
 /* HTML5 display-role reset for older browsers */
 article, aside, details, figcaption, figure, 
 footer, header, hgroup, menu, nav, section {
@@ -72,6 +79,7 @@ header {
 }
 
 header h1 {
+  font-family: tinkertoy;
   letter-spacing: -1px;
   font-size: 72px;
   color: #fff;
@@ -81,6 +89,7 @@ header h1 {
 }
 
 header h2 {
+  font-family: tinkertoy;
   font-size: 26px;
   color: #9ddcff;
   font-weight: normal;
