@@ -1,7 +1,7 @@
 package tinkerGUI.views
 
 import scala.swing._
-import quantoLib.QuantoLibAPI
+import tinkerGUI.controllers.QuantoLibAPI
 
 object MainGUI extends SimpleSwingApplication {
 	def top = new MainFrame{
