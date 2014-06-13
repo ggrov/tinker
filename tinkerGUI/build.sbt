@@ -28,4 +28,4 @@ libraryDependencies += "org.scala-lang" % "scala-swing" % "2.10.0"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
-mainClass in (Compile, run) := Some("MainGUI")
+mainClass in (Compile, run) := Some("tinkerGUI.views.MainGUI")

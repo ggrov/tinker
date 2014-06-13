@@ -7,6 +7,7 @@ import quanto.data.Names._
 import quanto.gui._
 import quanto.gui.graphview._
 import scala.swing._
+import scala.swing.event.Event
 
 /*
 *
@@ -14,7 +15,11 @@ import scala.swing._
 *
 */
 
-object QuantoLibAPI {
+/** List of events used by this API */
+abstract class APIEvent extends Event
+case class DocumentStatusEvent(status : Boolean) extends APIEvent
+
+object QuantoLibAPI extends Publisher{
 	val graphPanel = new BorderPanel{
 		println("loading theory " + Theory.getClass.getResource("strategy_graph.qtheory"))
 		val theoryFile = new Json.Input(Theory.getClass.getResourceAsStream("strategy_graph.qtheory"))
@@ -27,15 +32,9 @@ object QuantoLibAPI {
 	var graph = graphPanel.graphDoc.graph
 	val theory = graphPanel.theory
 	val view = graphPanel.graphView
+	val document = graphPanel.graphDoc
 
 	def makeGraph = graphPanel
-
-	def loadGraph {
-		
-	}
-	def saveGraph {
-
-	}
 
 	/**
 	  * Method to add a vertex to the graph.
@@ -96,7 +95,7 @@ object QuantoLibAPI {
 
 	/**
 	  * Method to add an edge coming from one element of the graph.
-	  * @param : start, the source
+	  * @param : start, the source element
 	  * @param : endCoord, the coordinates where the edge ends, a boundary will be created as a target element
 	  * @return : 
 	  */
@@ -115,6 +114,50 @@ object QuantoLibAPI {
 		val start = addBoundary(startCoord._1, startCoord._2)
 		val end = addBoundary(endCoord._1, endCoord._2)
 		addEdge(start, end)
+	}
+
+	/**
+	  * Method to create a new document
+	  */
+	def newDoc {
+		if(document.promptUnsaved()) document.clear()
+	}
+
+	/**
+	  * Method to open a document
+	  */
+	def openDoc {
+		document.showOpenDialog()
+	}
+
+	/**
+	  * Method to save a document
+	  */
+	def saveDoc {
+		document.file match {
+			case Some(_) => document.save()
+			case None => document.showSaveAsDialog()
+		}
+	}
+
+	/** listener to document status */
+	listenTo(document)
+	reactions += { case DocumentChanged(_) | DocumentSaved(_) =>
+		publish(DocumentStatusEvent(document.unsavedChanges))
+	}
+
+	/**
+	  * Method to save a document as a new file
+	  */
+	def saveAsDoc {
+		document.showSaveAsDialog()
+	}
+
+	/**
+	  * Method to safely close a document
+	  */
+	def closeDoc : Boolean = {
+		return document.promptUnsaved()
 	}
 
 	def addBBox {

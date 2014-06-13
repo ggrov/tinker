@@ -1,12 +1,14 @@
+package tinkerGUI.views
+
 import scala.swing._
 import quantoLib.QuantoLibAPI
-// import graph._
 
 object MainGUI extends SimpleSwingApplication {
 	def top = new MainFrame{
 		title = "Tinker"
 		size = new Dimension(800,800)
 		minimumSize = new Dimension(400,400)
+		menuBar = new TinkerMenu()
 		contents = QuantoLibAPI.makeGraph
 		QuantoLibAPI.addVertex(100, 100, "GN")
 		QuantoLibAPI.addVertex(200, 200, "RT")
