@@ -1,4 +1,4 @@
-package quantoLib
+package tinkerGUI.controllers
 
 import quanto._
 import quanto.util.json._
@@ -6,18 +6,15 @@ import quanto.data._
 import quanto.data.Names._
 import quanto.gui._
 import quanto.gui.graphview._
+import quanto.layout._
+import quanto.layout.constraint._
 import scala.swing._
-import scala.swing.event.Event
 
 /*
 *
 * API file for the library based on quantomatic
 *
 */
-
-/** List of events used by this API */
-abstract class APIEvent extends Event
-case class DocumentStatusEvent(status : Boolean) extends APIEvent
 
 object QuantoLibAPI extends Publisher{
 	val graphPanel = new BorderPanel{
@@ -33,6 +30,17 @@ object QuantoLibAPI extends Publisher{
 	val theory = graphPanel.theory
 	val view = graphPanel.graphView
 	val document = graphPanel.graphDoc
+
+	/** one undo stack for the view */
+	view.listenTo(document.undoStack)
+	view.reactions += {
+		case UndoPerformed(_) =>
+			view.resizeViewToFit()
+			view.repaint()
+		case RedoPerformed(_) =>
+			view.resizeViewToFit()
+			view.repaint()
+	}
 
 	def makeGraph = graphPanel
 
@@ -140,12 +148,6 @@ object QuantoLibAPI extends Publisher{
 		}
 	}
 
-	/** listener to document status */
-	listenTo(document)
-	reactions += { case DocumentChanged(_) | DocumentSaved(_) =>
-		publish(DocumentStatusEvent(document.unsavedChanges))
-	}
-
 	/**
 	  * Method to save a document as a new file
 	  */
@@ -158,6 +160,54 @@ object QuantoLibAPI extends Publisher{
 	  */
 	def closeDoc : Boolean = {
 		return document.promptUnsaved()
+	}
+
+	/**
+	  * Method to undo an action in the document action stack
+	  */
+	def undo {
+		document.undoStack.undo()
+	}
+
+	/**
+	  * Method to redo an action in the document action stack
+	  */
+	def redo {
+		document.undoStack.redo()
+	}
+
+	/**
+	  * Private method to replace one graph with another
+	  */
+	private def replaceGraph(gr: Graph, desc: String){
+		val oldGraph = graph
+		graphPanel.graphDoc.graph = gr
+		graph = graphPanel.graphDoc.graph
+		document.publish(GraphReplaced(document, clearSelection = false))
+		document.undoStack.register(desc) { replaceGraph(oldGraph, desc) }
+	}
+	/**
+	  * Method to layout the graph
+	  */
+	def layoutGraph {
+		val lo = new ForceLayout with IRanking with VerticalBoundary with Clusters
+		replaceGraph(lo.layout(graph), "Layout Graph")
+	}
+
+	/** listener to document status */
+	listenTo(document)
+	reactions += { case DocumentChanged(_) | DocumentSaved(_) =>
+		publish(DocumentStatusEventAPI(document.unsavedChanges))
+	}
+
+	/** listener to document action stack */
+	listenTo(document.undoStack)
+	reactions += { case _: UndoEvent =>
+		val canUndo = document.undoStack.canUndo
+		val canRedo = document.undoStack.canRedo
+		val undoActionName = document.undoStack.undoActionName.getOrElse("")
+		val redoActionName = document.undoStack.redoActionName.getOrElse("")
+		publish(DocumentActionStackEventAPI(canUndo, canRedo, undoActionName, redoActionName))
 	}
 
 	def addBBox {
