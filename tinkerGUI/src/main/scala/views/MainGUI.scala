@@ -9,7 +9,7 @@ object MainGUI extends SimpleSwingApplication {
 		size = new Dimension(800,800)
 		minimumSize = new Dimension(400,400)
 		menuBar = new TinkerMenu()
-		contents = QuantoLibAPI.makeGraph
+		contents = new GraphEditPanel()
 		QuantoLibAPI.addVertex(100, 100, "GN")
 		QuantoLibAPI.addVertex(200, 200, "RT")
 		QuantoLibAPI.addVertex(60, 200, "RT")

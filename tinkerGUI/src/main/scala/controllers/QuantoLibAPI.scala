@@ -42,7 +42,11 @@ object QuantoLibAPI extends Publisher{
 			view.repaint()
 	}
 
-	def makeGraph = graphPanel
+	/**
+	  * Method to get the graph panel
+	  * @return : a panel component containing the graph
+	  */
+	def getGraph = graphPanel
 
 	/**
 	  * Method to add a vertex to the graph.
@@ -192,6 +196,8 @@ object QuantoLibAPI extends Publisher{
 	def layoutGraph {
 		val lo = new ForceLayout with IRanking with VerticalBoundary with Clusters
 		replaceGraph(lo.layout(graph), "Layout Graph")
+		view.resizeViewToFit()
+		view.repaint()
 	}
 
 	/** listener to document status */
