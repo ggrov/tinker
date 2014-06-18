@@ -1,26 +1,23 @@
 package tinkerGUI.views
 
 import scala.swing._
-import tinkerGUI.controllers.QuantoLibAPI
+import tinkerGUI.controllers.MainGUIController
+import tinkerGUI.controllers.DocumentTitleEvent
 
 object MainGUI extends SimpleSwingApplication {
+	val controller = new MainGUIController()
 	def top = new MainFrame{
-		title = "Tinker"
+		title = "Tinker - " + controller.getTitle
 		size = new Dimension(800,800)
 		minimumSize = new Dimension(400,400)
 		menuBar = new TinkerMenu()
-		contents = new GraphEditPanel()
-		QuantoLibAPI.addVertex(100, 100, "GN")
-		QuantoLibAPI.addVertex(200, 200, "RT")
-		QuantoLibAPI.addVertex(60, 200, "RT")
-		QuantoLibAPI.addVertex(200, 150, "GN")
-		QuantoLibAPI.addVertex(500, 130, "RT")
-		QuantoLibAPI.addVertex(-50, -90, "GN")
-		QuantoLibAPI.addBoundary(150, -30)
-		QuantoLibAPI.addBoundary(60, 210)
-		QuantoLibAPI.addEdge("v0", "v2")
-		QuantoLibAPI.addEdge("v4", "b0")
-		QuantoLibAPI.addEdge((245.0, 160.0), "v4")
-		QuantoLibAPI.addEdge((-75.0, -75.0), (85.0, 85.0))
+		contents = new GraphEditPanel() {
+			preferredSize = new Dimension(800,800)
+		}
+		listenTo(controller)
+		reactions += {
+			case DocumentTitleEvent(t) =>
+				title = "Tinker - " + t
+		}
 	}
 }

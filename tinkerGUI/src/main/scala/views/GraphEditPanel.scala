@@ -6,8 +6,10 @@ import tinkerGUI.controllers.GraphEditController
 class GraphEditPanel() extends BorderPanel {
 	val controller = new GraphEditController()
 	val graphPanel = controller.getGraph
-	val editControls = new EditControlsPanel()
+	val editControls = new EditControlsPanel(controller)
 	val evalControls = new EvalControlsPanel()
-	add(new FlowPanel{contents += editControls.MainToolBar}, BorderPanel.Position.North)
+	add(new BoxPanel(Orientation.Vertical){
+		contents += editControls.MainToolBar
+	}, BorderPanel.Position.North)
 	add(graphPanel, BorderPanel.Position.Center)
 }
