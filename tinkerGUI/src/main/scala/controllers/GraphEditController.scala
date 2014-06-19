@@ -18,21 +18,22 @@ class GraphEditController() extends Publisher {
 		}
 	}
 
-	def changeMouseState(state: String, pt: java.awt.Point) {
-		state match {
-			case "dragVertex" =>
-				mouseState = DragVertex(pt, pt)
-			case "selectionBox" =>
-				val box = SelectionBox(pt, pt)
-				mouseState = box
-				QuantoLibAPI.viewSelectBox(box)
-		}
-	}
-
-	def changeMouseState(state: String, param: String) {
-		state match {
-			case "dragEdge" =>
-				mouseState = DragEdge(param)
+	def changeMouseState(state: String, param: Any) {
+		param match {
+			case s:String =>
+				state match {
+					case "dragEdge" =>
+						mouseState = DragEdge(s)
+				}
+			case pt:java.awt.Point =>
+				state match {
+					case "dragVertex" =>
+						mouseState = DragVertex(pt, pt)
+					case "selectionBox" =>
+						val box = SelectionBox(pt, pt)
+						mouseState = box
+						QuantoLibAPI.viewSelectBox(box)
+				}
 		}
 	}
 
@@ -49,7 +50,7 @@ class GraphEditController() extends Publisher {
 						QuantoLibAPI.editGraphElement(pt)
 					}
 					else {
-						QuantoLibAPI.selectVertex(pt, modifiers, changeMouseState)
+						QuantoLibAPI.selectElement(pt, modifiers, changeMouseState)
 					}
 				case AddEdgeTool() =>
 					QuantoLibAPI.startAddEdge(pt, changeMouseState)
@@ -85,8 +86,7 @@ class GraphEditController() extends Publisher {
 					mouseState = SelectTool()
 					QuantoLibAPI.viewSelectBox()
 				case DragEdge(startV) =>
-					QuantoLibAPI.endAddEdge(startV, pt)
-					mouseState = AddEdgeTool()
+					QuantoLibAPI.endAddEdge(startV, pt, changeMouseState)
 				case AddVertexTool() =>
 					QuantoLibAPI.userAddVertex(pt)
 			}

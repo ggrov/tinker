@@ -12,6 +12,7 @@ import scala.swing._
 import scala.swing.event._
 import scala.swing.event.Key.Modifiers
 import scala.swing.event.Key.Modifier
+import scala.math._
 
 /*
 *
@@ -33,6 +34,11 @@ object QuantoLibAPI extends Publisher{
 	private val theory = graphPanel.theory
 	private var view = graphPanel.graphView
 	private var document = graphPanel.graphDoc
+
+	/** variables used when we are moving an edge */
+	private var movingEdge: Boolean = false
+	private var movingEdgeSource: Boolean = false
+	private var movedEdge: EName = new EName("")
 
 	/** one undo stack for the view */
 	view.listenTo(document.undoStack)
@@ -265,12 +271,12 @@ object QuantoLibAPI extends Publisher{
 	}
 
 	/**
-	  * Method to select a vertex on a graph view
+	  * Method to select an element on a graph view
 	  * @param : pt, the point where the vertex is selected, if no vertex is found we start a selection box
 	  * @param : modifiers, any modifier key to our selection (e.g. Shift key for multiple selection)
 	  * @param : changeMouseStateCallback, a callback function to update the mouse state
 	  */
-	def selectVertex(pt : java.awt.Point, modifiers: Modifiers, changeMouseStateCallback: (String, java.awt.Point) => Unit) {
+	def selectElement(pt : java.awt.Point, modifiers: Modifiers, changeMouseStateCallback: (String, Any) => Unit) {
 		val vertexHit = view.vertexDisplay find { _._2.pointHit(pt) } map { _._1 }
 		val mouseDownOnSelectedVert = vertexHit.exists(view.selectedVerts.contains)
 		if (!mouseDownOnSelectedVert && (modifiers & Modifier.Shift) != Modifier.Shift) {
@@ -282,9 +288,34 @@ object QuantoLibAPI extends Publisher{
 				view.selectedVerts += v
 				changeMouseStateCallback("dragVertex", pt)
 				view.repaint()
-			case None =>
-				changeMouseStateCallback("selectionBox", pt)
-				view.repaint()
+			case _ =>
+				val edgeHit = view.edgeDisplay find { _._2.pointHit(pt) } map { _._1 }
+				edgeHit match {
+					case Some(e) =>
+						view.selectedEdges += e
+						val ptCoord = view.trans fromScreen (pt.getX, pt.getY)
+						val srcCoord = (graph.vdata(graph.source(e))).coord
+						val tgtCoord = (graph.vdata(graph.target(e))).coord
+						val dSrc = hypot((srcCoord._1-ptCoord._1), (srcCoord._2-ptCoord._2))
+						val dTgt = hypot((ptCoord._1-tgtCoord._1), (ptCoord._2-tgtCoord._2))
+						if(view.selectedEdges.size == 1) {
+							if(dSrc<=0.5){
+								movingEdge = true
+								movingEdgeSource = true
+								movedEdge = e
+								changeMouseStateCallback("dragEdge", graph.target(e).s)
+							}
+							else if(dTgt<=0.5){
+								movingEdge = true
+								movedEdge = e
+								changeMouseStateCallback("dragEdge", graph.source(e).s)
+							}
+						}
+						view.repaint()
+					case None =>
+						changeMouseStateCallback("selectionBox", pt)
+						view.repaint()
+				}
 		}
 	}
 
@@ -401,11 +432,11 @@ object QuantoLibAPI extends Publisher{
 	}
 
 	/**
-	  * Method to end adding an edge to the view
-	  * @param : startV, the source vertex
-	  * @param : pt, point where to look for the target vertex, if none we add a boundary
+	  * Method to end adding / moving an edge to the view
+	  * @param : startV, the source vertex (can be the target in case of moving)
+	  * @param : pt, point where to look for the target (or source) vertex, if none we add a boundary
 	  */
-	def endAddEdge(startV: String, pt: java.awt.Point){
+	def endAddEdge(startV: String, pt: java.awt.Point, changeMouseStateCallback: (String) => Unit){
 		var vertexHit = view.vertexDisplay find { _._2.pointHit(pt) } map { _._1 }
 		if(vertexHit == None){
 			val coord = view.trans fromScreen (pt.getX, pt.getY)
@@ -415,8 +446,24 @@ object QuantoLibAPI extends Publisher{
 			vertexHit = Some(vertexName)
 		}
 		vertexHit map { endV =>
-			val defaultData = DirEdge.fromJson(theory.defaultEdgeData, theory)
-			addEdge(graph.edges.fresh, defaultData, (VName(startV), endV))
+			if(movingEdge){
+				val data = graph.edata(movedEdge)
+				if(movingEdgeSource){
+					addEdge(graph.edges.fresh, data, (endV, VName(startV)))
+					movingEdgeSource = false
+				}
+				else {
+					addEdge(graph.edges.fresh, data, (VName(startV), endV))
+				}
+				deleteEdge(movedEdge)
+				movingEdge = false
+				changeMouseStateCallback("select")
+			}
+			else {
+				val defaultData = DirEdge.fromJson(theory.defaultEdgeData, theory)
+				addEdge(graph.edges.fresh, defaultData, (VName(startV), endV))
+				changeMouseStateCallback("addEdge")
+			}
 		}
 		view.edgeOverlay = None
 		view.repaint()
