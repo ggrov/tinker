@@ -41,8 +41,8 @@ object QuantoLibAPI extends Publisher{
 	private var movedEdge: EName = new EName("")
 
 	/** one undo stack for the view */
-	view.listenTo(document.undoStack)
-	view.reactions += {
+	listenTo(document.undoStack)
+	reactions += {
 		case UndoPerformed(_) =>
 			view.resizeViewToFit()
 			view.repaint()
@@ -62,6 +62,15 @@ object QuantoLibAPI extends Publisher{
 	  * @return : the name of the document
 	  */
 	def getTitle = graphPanel.graphDoc.titleDescription
+
+	/**
+	  * Private method to update the local variables
+	  */
+	private def localUpdate() {
+		document = graphPanel.graphDoc
+		graph = graphPanel.graphDoc.graph
+		view = graphPanel.graphView
+	}
 
 	/**
 	  * Private method to change the graph
@@ -123,9 +132,9 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Private method to add an edge between two element of the graph.
-	  * @param : e, the source element
-	  * @param : d, the target element
-	  * @param : vs, the target element
+	  * @param : e, the name of the edge
+	  * @param : d, the data of the edge
+	  * @param : vs, the source and target elements
 	  */
 	private def addEdge(e: EName, d: EData, vs: (VName, VName)) {
 		changeGraph(graph.addEdge(e, d, vs))
@@ -181,13 +190,99 @@ object QuantoLibAPI extends Publisher{
 	}
 
 	/**
+	  * Private method to move an edge.
+	  * @param : startV, the new source vertex
+	  * @param : endV, the new target vertex
+	  */
+	private def moveEdge(startV: VName, endV: VName, edge: EName, moveSource: Boolean){
+		val data = graph.edata(edge)
+		val prevSrc = graph.source(edge)
+		val prevTgt = graph.target(edge)
+		val prevSrcData = graph.vdata(prevSrc)
+		val prevTgtData = graph.vdata(prevTgt)
+		val delPrevSrc = (prevSrcData.isBoundary && (graph.adjacentEdges(prevSrc).size == 1) && moveSource)
+		val delPrevTgt = (prevTgtData.isBoundary && (graph.adjacentEdges(prevTgt).size == 1) && !(moveSource))
+		val prevSrcSelec = if(view.selectedVerts.contains(prevSrc) && delPrevSrc) {
+			view.selectedVerts -= prevSrc; true
+		} else false
+		val prevTgtSelec = if(view.selectedVerts.contains(prevTgt) && delPrevTgt) {
+			view.selectedVerts -= prevTgt; true
+		} else false
+		val selec = if (view.selectedEdges.contains(edge)) {
+			view.selectedEdges -= edge; true
+		} else false
+
+		// we delete the previous edge
+		graph.edgesBetween(prevSrc, prevTgt).foreach { view.invalidateEdge }
+		changeGraph(graph.deleteEdge(edge))
+		if(delPrevSrc){
+			view.invalidateVertex(prevSrc)
+			changeGraph(graph.deleteVertex(prevSrc))
+		}
+		if(delPrevTgt && !(prevSrc == prevTgt)){
+			view.invalidateVertex(prevTgt)
+			changeGraph(graph.deleteVertex(prevTgt))
+		}
+
+		// we create and draw the new edge
+		if(moveSource){
+			changeGraph(graph.addEdge(edge, data, (endV, startV)))
+			graph.edgesBetween(endV, startV).foreach { view.invalidateEdge }
+		}
+		else {
+			changeGraph(graph.addEdge(edge, data, (startV, endV)))
+			graph.edgesBetween(startV, endV).foreach { view.invalidateEdge }
+		}
+		if(selec){
+			view.selectedEdges += edge
+		}
+
+		// we build the undo stack
+		document.undoStack.register("Move Edge") {
+			if(delPrevSrc){
+				changeGraph(graph.addVertex(prevSrc, prevSrcData))
+				if (prevSrcSelec) view.selectedVerts += prevSrc
+			}
+			if(delPrevTgt && !(prevSrc == prevTgt)){
+				changeGraph(graph.addVertex(prevTgt, prevTgtData))
+				if (prevTgtSelec) view.selectedVerts += prevTgt
+			}
+			if(moveSource){
+				moveEdge(prevTgt, prevSrc, edge, moveSource)
+			}
+			else {
+				moveEdge(prevSrc, prevTgt, edge, moveSource)
+			}
+		}
+
+		// we reset the boolean
+		movingEdge = false
+	}
+
+	// private def moveEdge(startV: VName, endV: VName, edge: EName){
+	// 	val data = graph.edata(edge)
+	// 	val prevSrc = graph.source(edge)
+	// 	val prevTgt = graph.target(edge)
+	// 	graph.edgesBetween(prevSrc, prevTgt).foreach { view.invalidateEdge }
+	// 	changeGraph(graph.deleteEdge(edge))
+	// 	if (movingEdgeSource){
+	// 		changeGraph(graph.addEdge(edge, data, (endV, startV)))
+	// 		graph.edgesBetween(endV, startV).foreach { view.invalidateEdge }
+	// 	}
+	// 	else {
+	// 		changeGraph(graph.addEdge(edge, data, (startV, endV)))
+	// 		graph.edgesBetween(startV, endV).foreach { view.invalidateEdge }
+	// 	}
+	// 	movingEdgeSource = false
+	// 	movingEdge = false
+	// }
+
+	/**
 	  * Method to create a new document
 	  */
 	def newDoc {
 		if(document.promptUnsaved()) document.clear()
-		document = graphPanel.graphDoc
-		graph = graphPanel.graphDoc.graph
-		view = graphPanel.graphView
+		localUpdate()
 		publish(DocumentTitleEventAPI(document.titleDescription))
 	}
 
@@ -196,9 +291,7 @@ object QuantoLibAPI extends Publisher{
 	  */
 	def openDoc {
 		document.showOpenDialog()
-		document = graphPanel.graphDoc
-		graph = graphPanel.graphDoc.graph
-		view = graphPanel.graphView
+		localUpdate()
 		publish(DocumentTitleEventAPI(document.titleDescription))
 	}
 
@@ -210,9 +303,7 @@ object QuantoLibAPI extends Publisher{
 			case Some(_) => document.save()
 			case None => document.showSaveAsDialog()
 		}
-		document = graphPanel.graphDoc
-		graph = graphPanel.graphDoc.graph
-		view = graphPanel.graphView
+		localUpdate()
 		publish(DocumentTitleEventAPI(document.titleDescription))
 	}
 
@@ -221,9 +312,7 @@ object QuantoLibAPI extends Publisher{
 	  */
 	def saveAsDoc {
 		document.showSaveAsDialog()
-		document = graphPanel.graphDoc
-		graph = graphPanel.graphDoc.graph
-		view = graphPanel.graphView
+		localUpdate()
 		publish(DocumentTitleEventAPI(document.titleDescription))
 	}
 
@@ -307,6 +396,7 @@ object QuantoLibAPI extends Publisher{
 							}
 							else if(dTgt<=0.5){
 								movingEdge = true
+								movingEdgeSource = false
 								movedEdge = e
 								changeMouseStateCallback("dragEdge", graph.source(e).s)
 							}
@@ -447,16 +537,7 @@ object QuantoLibAPI extends Publisher{
 		}
 		vertexHit map { endV =>
 			if(movingEdge){
-				val data = graph.edata(movedEdge)
-				if(movingEdgeSource){
-					addEdge(graph.edges.fresh, data, (endV, VName(startV)))
-					movingEdgeSource = false
-				}
-				else {
-					addEdge(graph.edges.fresh, data, (VName(startV), endV))
-				}
-				deleteEdge(movedEdge)
-				movingEdge = false
+				moveEdge(VName(startV), endV, movedEdge, movingEdgeSource)
 				changeMouseStateCallback("select")
 			}
 			else {
