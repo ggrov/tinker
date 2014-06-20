@@ -14,13 +14,14 @@ import scala.swing.event.Key.Modifiers
 import scala.swing.event.Key.Modifier
 import scala.math._
 
-/*
-*
-* API file for the library based on quantomatic
-*
-*/
+/**
+  *
+  * API file for the library based on quantomatic
+  *
+  */
 
 object QuantoLibAPI extends Publisher{
+	/** the main object, the graph */
 	val graphPanel = new BorderPanel{
 		println("loading theory " + Theory.getClass.getResource("strategy_graph.qtheory"))
 		val theoryFile = new Json.Input(Theory.getClass.getResourceAsStream("strategy_graph.qtheory"))
@@ -30,6 +31,8 @@ object QuantoLibAPI extends Publisher{
 		val graphScrollPane = new ScrollPane(graphView)
 		add(graphScrollPane, BorderPanel.Position.Center)
 	}
+
+	/** shortcuts for variables of graph */
 	private var graph = graphPanel.graphDoc.graph
 	private val theory = graphPanel.theory
 	private var view = graphPanel.graphView
@@ -39,17 +42,6 @@ object QuantoLibAPI extends Publisher{
 	private var movingEdge: Boolean = false
 	private var movingEdgeSource: Boolean = false
 	private var movedEdge: EName = new EName("")
-
-	/** one undo stack for the view */
-	listenTo(document.undoStack)
-	reactions += {
-		case UndoPerformed(_) =>
-			view.resizeViewToFit()
-			view.repaint()
-		case RedoPerformed(_) =>
-			view.resizeViewToFit()
-			view.repaint()
-	}
 
 	/**
 	  * Method to get the graph panel
@@ -200,8 +192,8 @@ object QuantoLibAPI extends Publisher{
 		val prevTgt = graph.target(edge)
 		val prevSrcData = graph.vdata(prevSrc)
 		val prevTgtData = graph.vdata(prevTgt)
-		val delPrevSrc = (prevSrcData.isBoundary && (graph.adjacentEdges(prevSrc).size == 1) && moveSource)
-		val delPrevTgt = (prevTgtData.isBoundary && (graph.adjacentEdges(prevTgt).size == 1) && !(moveSource))
+		val delPrevSrc = (prevSrcData.isBoundary && (graph.adjacentEdges(prevSrc).size == 1) && moveSource && prevSrc!=prevTgt)
+		val delPrevTgt = (prevTgtData.isBoundary && (graph.adjacentEdges(prevTgt).size == 1) && !(moveSource) && prevSrc!=prevTgt)
 		val prevSrcSelec = if(view.selectedVerts.contains(prevSrc) && delPrevSrc) {
 			view.selectedVerts -= prevSrc; true
 		} else false
@@ -258,24 +250,6 @@ object QuantoLibAPI extends Publisher{
 		// we reset the boolean
 		movingEdge = false
 	}
-
-	// private def moveEdge(startV: VName, endV: VName, edge: EName){
-	// 	val data = graph.edata(edge)
-	// 	val prevSrc = graph.source(edge)
-	// 	val prevTgt = graph.target(edge)
-	// 	graph.edgesBetween(prevSrc, prevTgt).foreach { view.invalidateEdge }
-	// 	changeGraph(graph.deleteEdge(edge))
-	// 	if (movingEdgeSource){
-	// 		changeGraph(graph.addEdge(edge, data, (endV, startV)))
-	// 		graph.edgesBetween(endV, startV).foreach { view.invalidateEdge }
-	// 	}
-	// 	else {
-	// 		changeGraph(graph.addEdge(edge, data, (startV, endV)))
-	// 		graph.edgesBetween(startV, endV).foreach { view.invalidateEdge }
-	// 	}
-	// 	movingEdgeSource = false
-	// 	movingEdge = false
-	// }
 
 	/**
 	  * Method to create a new document
@@ -382,13 +356,28 @@ object QuantoLibAPI extends Publisher{
 				edgeHit match {
 					case Some(e) =>
 						view.selectedEdges += e
+						val rec = (graph.source(e) == graph.target(e))
 						val ptCoord = view.trans fromScreen (pt.getX, pt.getY)
 						val srcCoord = (graph.vdata(graph.source(e))).coord
 						val tgtCoord = (graph.vdata(graph.target(e))).coord
 						val dSrc = hypot((srcCoord._1-ptCoord._1), (srcCoord._2-ptCoord._2))
 						val dTgt = hypot((ptCoord._1-tgtCoord._1), (ptCoord._2-tgtCoord._2))
-						if(view.selectedEdges.size == 1) {
-							if(dSrc<=0.5){
+						if(view.selectedEdges.size == 1){
+							if(rec && dSrc<=0.5) {
+								if(ptCoord._1 > srcCoord._1){
+									movingEdge = true
+									movingEdgeSource = true
+									movedEdge = e
+									changeMouseStateCallback("dragEdge", graph.target(e).s)									
+								}
+								else{
+									movingEdge = true
+									movingEdgeSource = false
+									movedEdge = e
+									changeMouseStateCallback("dragEdge", graph.source(e).s)									
+								}
+							}
+							else if(dSrc<=0.5){
 								movingEdge = true
 								movingEdgeSource = true
 								movedEdge = e
@@ -626,7 +615,7 @@ object QuantoLibAPI extends Publisher{
 		publish(DocumentStatusEventAPI(document.unsavedChanges))
 	}
 
-	/** listener to document action stack */
+	/** listener to document undo stack */
 	listenTo(document.undoStack)
 	reactions += { case _: UndoEvent =>
 		val canUndo = document.undoStack.canUndo
@@ -634,6 +623,17 @@ object QuantoLibAPI extends Publisher{
 		val undoActionName = document.undoStack.undoActionName.getOrElse("")
 		val redoActionName = document.undoStack.redoActionName.getOrElse("")
 		publish(DocumentActionStackEventAPI(canUndo, canRedo, undoActionName, redoActionName))
+	}
+
+	/** listener to undo stack, in order to re draw the graph*/
+	listenTo(document.undoStack)
+	reactions += {
+		case UndoPerformed(_) =>
+			view.resizeViewToFit()
+			view.repaint()
+		case RedoPerformed(_) =>
+			view.resizeViewToFit()
+			view.repaint()
 	}
 
 	/** listener to view mouse clicks and moves */
