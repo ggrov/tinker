@@ -1,197 +1,123 @@
-(* Reasoning technique independent of graph  *)
-
 signature RTECHN = 
 sig
-  type T
+
+(*
+ example Atomic 
+  rule,[[exI]]
+  frule[[exI],[X,Y]]
+  erule(exE,X,Y)
+  simp[["add","a","b"]]
+  auto[["simp add", "a"],["intro","d"]]
+
+Nested
+  use args as input output for variable binding
+*)
+
+  type arg_typ = string list list
+
+  datatype T = Atomic of { name : string, args : arg_typ}
+             | Nested of { name : string, args : arg_typ, is_or : bool}
+             | Identity 
+
   exception rtechn_exp of string * T;
 
-  datatype EvalData = EData of { searchf :  string, evalf : string };  (* "best" or "depth" *)
-  datatype tac_assms = TNoAsm | TAllAsm | TClass of C.NSet.T
+  val get_name : T -> string 
+  val get_args : T -> arg_typ  (* raises rtechn_exp *)
+  val get_is_or :T ->  bool (* raises rtechn_exp *)
 
-  datatype atomic =
-      Rule of StrName.NSet.T (* rules used - what about with wire? *)
-    | ERule of StrName.NSet.T (* rules used *)
-    | FRule of C.name * StrName.NSet.T (* wire + rules used *)
-    | Subst of StrName.NSet.T (* separate rule vs bwire? *)
-    | SubstAsm of C.name * StrName.NSet.T (* class and names of rules (change to class?) *)
-    | Tactic of tac_assms * string (* tactic assumptions + name of tactic *)
+  val update_name : (string -> string) -> T -> T 
+  val update_args : (arg_typ -> arg_typ) -> T -> T  (* raises rtechn_exp *)
+  val update_is_or : (bool -> bool) -> T -> T  (* raises rtechn_exp *)
 
-  datatype appfn = Appf of atomic
-                | HGraph of EvalData option
-                | Merge
-                | Identity
-                | Or (* of EvalData option *)
-                | OrElse (* of EvalData option *)
+  val set_name : string -> T -> T 
+  val set_args : arg_typ -> T -> T  (* raises rtechn_exp *)
+  val set_is_or : bool -> T -> T  (* raises rtechn_exp *)
 
-  val get_name : T -> RT.name
-  val get_appf : T -> appfn
-
-  val update_name : (RT.name -> RT.name) -> T -> T 
-  val update_appf : (appfn -> appfn) -> T -> T
-
-  val set_name : RT.name -> T -> T 
-  val set_appf : appfn -> T -> T
-
-  val set_atomic_appf : atomic -> T -> T 
-  val set_hgraph_appf : T -> T
-  val set_merge_appf : T -> T
-  val set_identity_appf : T -> T
-  val set_or_appf : T -> T
-  val set_orelse_appf : T -> T
+  val identity : T
+  (* val fail : T *)
 
   val is_atomic : T -> bool
-  val is_hgraph : T -> bool
+  val is_nested : T -> bool
   val is_identity : T -> bool
-  val is_merge : T -> bool
-  val is_or : T -> bool
-  val is_orelse : T -> bool
+  val is_or : T -> bool option
+  val is_or' : T -> bool (* false if not nested *)
 
-  val get_atomic : T -> atomic option
-  val get_tactic : T -> string option 
 
-  val get_searchf : T -> string option
-  val get_evalf : T -> string option
-
-  val id : T 
-  val merge : T
-  val id_str : RT.name -> T
-  val fail : T 
-
-  (* equality *)
-  val ord : T * T -> order
-  val eq : T * T -> bool
 
   (* pretty printing *)
   val pretty : T -> Pretty.T
-  val pretty_name : T -> Pretty.T
-  val print : T -> unit
 
 end;
 
 
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *) 
-structure RTechn 
- : RTECHN 
+structure RTechn  : RTECHN 
 = struct
+  type arg_typ = string list list
 
- (* idea: we just look up a string with the relevant info. 
-    TO DO: add more information  *)
-  datatype EvalData = EData of { searchf :  string, evalf : string };  (* "best" or "depth" *)
+  datatype T = Atomic of { name : string, args : arg_typ}
+             | Nested of { name : string, args : arg_typ, is_or : bool}
+             | Identity  (* TODO: should this be in graph only? *)
 
- datatype tac_assms = TNoAsm | TAllAsm | TClass of RT.NSet.T
-
-  datatype atomic =
-      Rule of StrName.NSet.T (* rules used - what about with wire? *)
-    | ERule of StrName.NSet.T (* class + rules used *)
-    | FRule of C.name * StrName.NSet.T (* wire + rules used *)
-    | Subst of StrName.NSet.T (* separate rule vs bwire? *)
-    | SubstAsm of C.name * StrName.NSet.T (* class and names of rules (change to class?) *)
-    | Tactic of tac_assms * string (* tactic assumptions + name of tactic *)
-
- datatype appfn = Appf of atomic
-                | HGraph of EvalData option
-                | Merge
-                | Identity
-                | Or (* of EvalData option *)
-                | OrElse (* of EvalData option *)
-
- datatype T =
-   RTechn of {
-  		name : RT.name,
-  		appf: appfn}
- 
   exception rtechn_exp of string * T;
 
-  fun get_name (RTechn rep) = #name rep;
-  fun get_appf (RTechn rep) = #appf rep;
+  fun get_name (Atomic {name,...}) = name
+   |  get_name (Nested {name,...}) = name
+   |  get_name Identity = "identity"
 
-  fun update_name f (RTechn rep) = 
-      RTechn { name = f (#name rep), appf = #appf rep};
-  fun update_appf f (RTechn rep) = 
-      RTechn { name = #name rep, appf = f(#appf rep)};
+  fun get_args (Atomic {args,...}) = args
+   |  get_args (Nested {args,...}) = args
+   |  get_args Identity = raise rtechn_exp ("identity rtechn",Identity);
 
-  val set_name = update_name o K; 
-  val set_appf = update_appf o K; 
+  fun get_is_or (Nested {is_or,...}) = is_or
+   |  get_is_or T = raise rtechn_exp ("not nested rtechn",T);
 
-  val set_atomic_appf = set_appf o Appf;
-  val set_hgraph_appf = set_appf (HGraph NONE);
-  val set_merge_appf = set_appf Merge;
-  val set_identity_appf = set_appf Identity;
-  val set_or_appf = set_appf Or;
-  val set_orelse_appf = set_appf OrElse;
+  fun update_name f (Atomic rep) = 
+      Atomic { name = f (#name rep), args = #args rep}
+   | update_name f (Nested rep) = 
+      Nested { name = f (#name rep), args = #args rep, is_or = #is_or rep}
+   | update_name _ Identity = Identity
 
-  fun is_atomic_appfn (Appf _) = true
-   |  is_atomic_appfn    _     = false;
+  fun update_args  f (Atomic rep) = 
+        Atomic { name = (#name rep), args = f (#args rep)}
+   |  update_args  f (Nested rep) = 
+       Nested { name = #name rep, args = f (#args rep), is_or = #is_or rep}
+   | update_args  _ Identity =  raise rtechn_exp ("identity rtechn",Identity);
 
-  fun is_hgraph_appfn  (HGraph _) = true
-   |  is_hgraph_appfn    _     = false;
+ fun update_is_or f (Nested rep) = 
+      Nested { name =  (#name rep), args = #args rep, is_or = f (#is_or rep)}
+  | update_is_or _ T = 
+     raise rtechn_exp ("not nested rtechn",T);
 
-  fun is_merge_appfn  Merge = true
-   |  is_merge_appfn    _     = false;
+  val set_name = update_name o K;
+  val set_args = update_args o K;
+  val set_is_or = update_is_or o K;
 
-  fun is_identity_appfn  Identity = true
-   |  is_identity_appfn    _     = false;
+  val identity = Identity;
 
-  fun is_or_appfn  Or      = true
-   |  is_or_appfn    _     = false;
+  (* val fail : T *)
 
-  fun is_orelse_appfn OrElse   = true
-   |  is_orelse_appfn    _     = false;
+  fun is_atomic (Atomic _) = true
+   |  is_atomic _ = false;
 
-  val is_atomic = is_atomic_appfn o get_appf;
-  val is_hgraph = is_hgraph_appfn o get_appf;
-  val is_merge = is_merge_appfn o get_appf;
-  val is_identity = is_identity_appfn o get_appf;
-  val is_or = is_or_appfn o get_appf;
-  val is_orelse = is_orelse_appfn o get_appf;
+  fun is_nested (Nested _) = true
+   |  is_nested _ = false;
 
-  fun get_atomic rt = 
-    case get_appf rt 
-    of (Appf atom) => SOME atom
-    | _ => NONE;
+  fun is_identity Identity = true
+   |  is_identity _ = false;
 
-  fun get_tactic rt = 
-     case get_atomic rt of 
-      SOME (Tactic (_,n)) => SOME n
-     | _ => NONE;
+  fun is_or (Nested {is_or, ...}) = SOME is_or
+   |  is_or _ = NONE
 
-  fun get_searchf rt = 
-    case get_appf rt 
-    of (HGraph (SOME (EData edata))) => SOME (#searchf edata)
-    | _ => NONE;
+  fun is_or' T = 
+    case is_or T of 
+      SOME v => v
+    | NONE => false;
 
-  fun get_evalf rt = 
-    case get_appf rt 
-    of (HGraph (SOME (EData edata))) => SOME (#evalf edata)
-    | _ => NONE;
-
-
-  val id = RTechn {name = RT.mk "id", appf = Identity};
-
-  val merge = RTechn {name = RT.mk "merge", appf = Merge};
-
-  fun id_str str = id |> set_name str;
-
-  val fail = id 
-           |> set_atomic_appf (Tactic (TNoAsm,"no_tac"))
-           |> set_name (RT.mk "fail");
-
-  (* to do: base this on appf function instead *)
-  fun ord (rt1,rt2) = 
-   case RT.name_ord (get_name rt1,get_name rt2) of
-    EQUAL => EQUAL 
-  | x => x (* FIXME *)
-
-  fun eq (rt1,rt2) = (ord (rt1,rt2) = EQUAL)
-
-  fun pretty_name rt = RT.pretty_name (get_name rt);
-
-  (* to do: do this in terms of appf as well *)
-  fun pretty rt = pretty_name rt;
-  
-
-
-  val print = Pretty.writeln o pretty;
+  (* pretty printing [fixme] *)
+ fun pretty (Atomic {name,...}) = Pretty.str name
+   | pretty (Nested {name,...}) = Pretty.str name
+   | pretty Identity = Pretty.str "identity"
 
 end; (* struct *)
 
