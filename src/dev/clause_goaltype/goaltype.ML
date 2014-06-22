@@ -55,8 +55,18 @@ struct
        end;
   val scan_program = explode #> scan_all scan_prog; 
 
+(*
+  evaluation
+   - prolog by unification?
+   - or make it functional - I think the latter!
+*)
 
 (* 
+  add import clause!
+   - develop a module theory?
+  import(filename).
+
+
   grammar: 
     definitions ::= definition [ definitions ]
     definition ::= name [ '(' [ args ] ')' ] [ ':-' body ]

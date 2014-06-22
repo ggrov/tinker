@@ -6,16 +6,99 @@ begin
 
 ML_file "goaltype.ML"        
 
+(* TO DO FOR ISABELLE (before completing implementation):
+    - instantiation env in isabelle
+       -> how to add
+       -> how to reset
+       -> how to check if exists (name only!)
+    - apply an instantion to a term + thm
+*)
+
+(*
+  For simplicitiy 
+   - each hierarchy have a separate instantiation env?
+   - or, somehow to fresh things up?
+*)
+
+(* close to how it is handled in Isabelle! *)
+ML{*
+  type tenv = Type.tyenv * Envir.tenv;
+  val empty_tenv : tenv = (Vartab.empty, Vartab.empty);
+*}
+
 -- "isabelle matching test"
 ML{*
 
 val P = Proof_Context.read_term_pattern @{context} "?F \<and> ?G = (0::nat)";
+Thm.cterm_of @{theory} P;
+val P = Proof_Context.read_term_pattern @{context} "?F \<and> ?G = (0::nat)";
 val P' = @{term "True \<and> 1 = (0::nat)"};
-val P'' = @{term "False \<and> 1 = (0::nat)"};
+val P'' = @{term "True \<and> 1 = (0::nat)"};
 
-val (ty,t) = Pattern.match @{theory} (P,P') (Vartab.empty, Vartab.empty);
-val t = Pattern.match @{theory} (P,P') (ty,t);
+val t1 = Pattern.match @{theory} (P,P') empty_tenv;
+val t2 = Pattern.match @{theory} (P,P'') t1;
 
+Envir.lookup;
+*}
+
+(* exists x. ?P such that subterm(?Y = x,?P) *)
+ML{*
+val t = @{term "\<exists> x. x = 0 \<and> (\<exists> x. 0 = x)"};
+t;
+*}
+
+-- "term instantiation"
+ML{*
+Envir.subst_term;
+t1;
+Envir.subst_term t1 P;
+*}
+
+consts
+ a :: "nat"
+(* TO DO: instantiated variables in thms *)
+ML{*
+@{thm exI};
+val patt = Proof_Context.read_term_pattern @{context} "?x::nat" |> Thm.cterm_of @{theory};
+val x = @{cterm "a"};
+
+Thm.instantiate ([],[(patt,x)]) @{thm exI};
+
+Drule.instantiate_normalize ([],[(patt,x)]) @{thm exI};
+(* this is only for bound variables *)
+Drule.rename_bvars [("x","a")] @{thm exI};
+
+*}
+thm exI
+thm exI[where x = a]
+
+ML{*
+Drule.instantiate_normalize;
+*}
+ML{*
+fun read_instantiate_mixed ctxt mixed_insts thm =
+  let
+    val ctxt' = ctxt
+      |> Variable.declare_thm thm
+      |> fold (fn a => Variable.declare_names (Logic.mk_type (TFree (a, dummyS)))) (add_used thm []);  (* FIXME !? *)
+    val tvars = Thm.fold_terms Term.add_tvars thm [];
+    val vars = Thm.fold_terms Term.add_vars thm [];
+    val insts = Rule_Insts.read_insts ctxt' mixed_insts (tvars, vars);
+  in
+    Drule.instantiate_normalize insts thm
+    |> Rule_Cases.save thm
+  end;
+*}
+
+(* to do: how to look up given variable? or is this actually required? 
+   type is the problem (need to look into indexes for the variables *)
+ML{*
+Envir.lookup ;
+*}
+
+
+ML{*
+type tenv = (typ * term) Vartab.table
 *}
 
 -- "get_subterm"
@@ -54,6 +137,26 @@ type gnode = string;
     (* could also hold the thm? *)
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
 
+*}
+
+
+-- "simple rtechn"
+ML{*
+  (* name and arguments *)
+  (* examples
+      rule(exI,X) or rule exI((P,[A]),(x,[X]))
+  *)
+
+  type arg =  string * (string * string list) list ;
+  datatype EvalProp = Or | Orelse (* to be extended with search strategy etc *)
+  datatype appfn = Appf of arg list (* to allow multiple here *)
+                 | Nested of EvalProp (* or or orelse *)
+                 | Identity
+
+ datatype T =
+   RTechn of {
+  		name : string,
+  		appf: appfn}
 *}
 
 -- "new rtechn"
