@@ -14,12 +14,8 @@ sig
   val default : T
   val default_gnode : gnode
 
-  val ord : (T * T) -> order (* just for printing? *)
   val eq : (T * T) -> bool
-
-  val gnode_ord : (gnode * gnode) -> order
   val gnode_eq : (gnode * gnode) -> bool
-
   val goal_name : gnode -> string
 
   val gnode_to_json : gnode -> Json.json 
@@ -33,17 +29,10 @@ sig
 
 (* for evaluation *)
 
-  val match : gnode -> T -> Prover.pnode -> bool
+  (* val match : gnode -> T -> Prover.pnode -> bool *)
+
   val lift :  gnode -> T -> Prover.pnode -> gnode option
   val init_lift :  T -> Prover.pnode -> gnode option
-
-(* for type checking *)
-
-(*
- val is_subtyp : T -> T -> order option 
- val is_orthogonal : T -> T -> bool
- val is_equal : T -> T -> bool 
-*)
 
 (* To be removed *)
   val lookup_fact_names : C.name -> gnode -> StrName.NSet.T option
