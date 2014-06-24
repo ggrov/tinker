@@ -11,8 +11,12 @@ class GraphEditController() extends Publisher {
 		state match {
 			case "select" =>
 				mouseState = SelectTool()
-			case "addVertex" =>
-				mouseState = AddVertexTool()
+			case "addIDVertex" =>
+				mouseState = AddVertexTool("RT_ID")
+			case "addATMVertex" =>
+				mouseState = AddVertexTool("RT_ATM")
+			case "addNSTVertex" =>
+				mouseState = AddVertexTool("RT_NST")
 			case "addEdge" =>
 				mouseState = AddEdgeTool()
 		}
@@ -39,9 +43,9 @@ class GraphEditController() extends Publisher {
 
 	listenTo(QuantoLibAPI)
 	reactions += {
-		case GraphMousePressedEvent(pt, modifiers, clicks) =>
+		case MouseLeftPressedEvent(pt, modifiers, clicks) =>
 			mouseState match {
-				case AddVertexTool() => // do nothing
+				case AddVertexTool(_) => // do nothing
 				case SelectionBox(_,_) => // do nothing
 				case DragVertex(_,_) => // do nothing
 				case DragEdge(_) => // do nothing
@@ -58,7 +62,7 @@ class GraphEditController() extends Publisher {
 		case GraphMouseDraggedEvent(pt) =>
 			mouseState match {
 				case SelectTool() => // do nothing
-				case AddVertexTool() => // do nothing
+				case AddVertexTool(_) => // do nothing
 				case AddEdgeTool() => //do nothing
 				case DragVertex(start, prev) =>
 					QuantoLibAPI.dragVertex(pt, prev)
@@ -87,8 +91,8 @@ class GraphEditController() extends Publisher {
 					QuantoLibAPI.viewSelectBox()
 				case DragEdge(startV) =>
 					QuantoLibAPI.endAddEdge(startV, pt, changeMouseState)
-				case AddVertexTool() =>
-					QuantoLibAPI.userAddVertex(pt)
+				case AddVertexTool(typ) =>
+					QuantoLibAPI.userAddVertex(pt, typ)
 			}
 	}
 }

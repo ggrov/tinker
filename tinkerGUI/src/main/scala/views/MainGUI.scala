@@ -6,14 +6,32 @@ import tinkerGUI.controllers.DocumentTitleEvent
 
 object MainGUI extends SimpleSwingApplication {
 	val controller = new MainGUIController()
+
+	object FourthSplit extends SplitPane {
+		orientation = Orientation.Horizontal
+		contents_=(new BorderPanel(), new NodeEditPanel().content)
+	}
+
+	object ThirdSplit extends SplitPane {
+		orientation = Orientation.Horizontal
+		contents_=(new BorderPanel(), new BorderPanel())
+	}
+
+	object SecondSplit extends SplitPane {
+		orientation = Orientation.Vertical
+		contents_=(new GraphEditPanel(), FourthSplit)
+	}
+
+	object MainSplit extends SplitPane {
+		orientation = Orientation.Vertical
+		contents_=(ThirdSplit, SecondSplit)
+	}
+
 	def top = new MainFrame{
 		title = "Tinker - " + controller.getTitle
-		size = new Dimension(800,800)
 		minimumSize = new Dimension(400,400)
 		menuBar = new TinkerMenu()
-		contents = new GraphEditPanel() {
-			preferredSize = new Dimension(800,800)
-		}
+		contents = MainSplit
 		listenTo(controller)
 		reactions += {
 			case DocumentTitleEvent(t) =>

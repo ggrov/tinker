@@ -49,7 +49,7 @@ case class SelectionBox(start: Point, end: Point) extends MouseState {
 case class DragVertex(start: Point, end: Point) extends MouseState
 
 /** The AddVertex tool has been selected from the main toolbar */
-case class AddVertexTool() extends MouseState
+case class AddVertexTool(typ: String) extends MouseState
 
 // /** The AddBoundary tool has been selected from the main toolbar */
 // case class AddBoundaryTool() extends MouseState

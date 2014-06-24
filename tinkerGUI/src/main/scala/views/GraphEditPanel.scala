@@ -12,4 +12,5 @@ class GraphEditPanel() extends BorderPanel {
 		contents += editControls.MainToolBar
 	}, BorderPanel.Position.North)
 	add(graphPanel, BorderPanel.Position.Center)
+	preferredSize = new Dimension(800, 800)
 }

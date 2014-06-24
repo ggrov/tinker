@@ -23,8 +23,8 @@ import scala.math._
 object QuantoLibAPI extends Publisher{
 	/** the main object, the graph */
 	val graphPanel = new BorderPanel{
-		println("loading theory " + Theory.getClass.getResource("strategy_graph.qtheory"))
-		val theoryFile = new Json.Input(Theory.getClass.getResourceAsStream("strategy_graph.qtheory"))
+		println("loading theory " + Theory.getClass.getResource("strategy_graph_modified.qtheory"))
+		val theoryFile = new Json.Input(Theory.getClass.getResourceAsStream("strategy_graph_modified.qtheory"))
 		val theory = Theory.fromJson(Json.parse(theoryFile))
 		val graphDoc = new GraphDocument(this, theory)
 		val graphView = new GraphView(theory, graphDoc)
@@ -340,6 +340,7 @@ object QuantoLibAPI extends Publisher{
 	  * @param : changeMouseStateCallback, a callback function to update the mouse state
 	  */
 	def selectElement(pt : java.awt.Point, modifiers: Modifiers, changeMouseStateCallback: (String, Any) => Unit) {
+		publish(NothingSelectedEventAPI())
 		val vertexHit = view.vertexDisplay find { _._2.pointHit(pt) } map { _._1 }
 		val mouseDownOnSelectedVert = vertexHit.exists(view.selectedVerts.contains)
 		if (!mouseDownOnSelectedVert && (modifiers & Modifier.Shift) != Modifier.Shift) {
@@ -349,6 +350,11 @@ object QuantoLibAPI extends Publisher{
 		vertexHit match {
 			case Some(v) =>
 				view.selectedVerts += v
+				if(view.selectedVerts.size == 1 && !(graph.vdata(v).isBoundary)){ 
+					graph.vdata(v) match {
+						case data: NodeV => publish(OneVertexSelectedEventAPI(v.s, data.typ, data.label))
+					}
+				}
 				changeMouseStateCallback("dragVertex", pt)
 				view.repaint()
 			case _ =>
@@ -543,9 +549,9 @@ object QuantoLibAPI extends Publisher{
 	  * Method that add a vertex (strategy type) on user request
 	  * @param : pt, point where to add the vertex
 	  */
-	def userAddVertex(pt: java.awt.Point){
+	def userAddVertex(pt: java.awt.Point, typ: String){
 		val coord = view.trans fromScreen (pt.getX, pt.getY)
-		val vertexData = NodeV(data = theory.vertexTypes("RT").defaultData, theory = theory).withCoord(coord)
+		val vertexData = NodeV(data = theory.vertexTypes(typ).defaultData, theory = theory).withCoord(coord)
 		val vertexName = graph.verts.freshWithSuggestion(VName("v0"))
 		addVertex(vertexName, vertexData.withCoord(coord))
 	}
@@ -608,6 +614,16 @@ object QuantoLibAPI extends Publisher{
 		}
 	}
 
+	/**
+	  * Method to edit a single graph node value (selected one)
+	  * @param : newVal, the new value of the vertex
+	  */
+	def editSelectedNodeValue(newVal: String){
+		if(view.selectedVerts.size == 1){
+			setVertexValue((view.selectedVerts.head), newVal)
+		}
+	}
+
 	/** listener to document status */
 	listenTo(document)
 	reactions += { case DocumentChanged(_) | DocumentSaved(_) =>
@@ -639,9 +655,11 @@ object QuantoLibAPI extends Publisher{
 	/** listener to view mouse clicks and moves */
 	listenTo(view.mouse.clicks, view.mouse.moves)
 	reactions += {
-		case MousePressed(_, pt, modifiers, clicks, _) =>
+		case e :MousePressed =>
 			view.requestFocus()
-			publish(GraphMousePressedEvent(pt, modifiers, clicks))
+			if(e.peer.getButton == 1){
+				publish(MouseLeftPressedEvent(e.point, e.modifiers, e.clicks))
+			}
 		case MouseDragged(_, pt, _) =>
 			publish(GraphMouseDraggedEvent(pt))
 		case MouseReleased(_, pt, modifiers, _, _) =>
