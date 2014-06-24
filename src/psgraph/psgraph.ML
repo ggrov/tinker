@@ -60,11 +60,8 @@ struct
    (* no longer uses underlying storage of data in isabelle? *)
    datatype T = PSGraph of {
         graph : PS_Theory.Graph.T,
-        g_tacs : PS_Theory.Rule.T StrName.NTab.T, (* only name of parent *)
-        or_tacs : (PS_Theory.Rule.T  list) StrName.NTab.T,
-        orelse_tacs : (PS_Theory.Rule.T  * PS_Theory.Rule.T ) StrName.NTab.T, (* (try,orelse) *)
-        (* fixme: should depend on underlying theorem prover *)
-        atomics : Prover.tactic StrName.NTab.T
+        graph_tactics : (PS_Theory.Graph.T list) StrName.NTab.T, (* only name of parent *)
+        atomic_tactics : Prover.tactic StrName.NTab.T
     }
 
    fun update_graph f (PSGraph rep) = PSGraph

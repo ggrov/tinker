@@ -5,7 +5,7 @@ imports
 begin
   ML_file "../../rtechn_names.ML" 
   ML_file "../../provers/prover.ML"  
-  ML_file "../../goaltype/basic_goaltyp.ML"   
+  ML_file "../../goaltype/basic_goaltyp.sig.ML"   
 end
 
 
