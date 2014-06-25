@@ -12,7 +12,7 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 	val orElseRadio = new RadioButton("OR ELSE")
 	val hierTypeRadioGroup = new ButtonGroup(orRadio, orElseRadio)
 	val delButton = new Button("Delete node")
-	ctrl.addListener(nodeValue)
+	ctrl.addValueListener(nodeValue)
 	ctrl.addDeleteListener(delButton, nam)
 	contents += new FlowPanel(){
 		contents += new Label("Node : " + nam)
@@ -44,14 +44,24 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 
 class EdgeEditContent(nam: String, value: String, src: String, tgt: String, ctrl: ElementEditController) extends FlowPanel {
 	val edgeValue = new TextField(value, 10)
+	val edgeSrc = new TextField(src, 3)
+	val edgeTgt = new TextField(tgt, 3)
 	val delButton = new Button("Delete edge")
-	ctrl.addListener(edgeValue)
+	ctrl.addValueListener(edgeValue)
 	ctrl.addDeleteListener(delButton, nam)
+	ctrl.addEdgeListener(nam, edgeSrc, edgeTgt)
 	contents += new FlowPanel(){
 		contents += new Label("Edge : " + nam)
 	}
 	contents += new FlowPanel(){
+		contents += new Label("Goal types :")
 		contents += edgeValue
+	}
+	contents += new FlowPanel(){
+		contents += new Label("From : ")
+		contents += edgeSrc
+		contents += new Label("To : ")
+		contents += edgeTgt
 	}
 	contents += new FlowPanel(){
 		contents += delButton
@@ -62,7 +72,7 @@ class ElementEditPanel() extends BoxPanel(Orientation.Vertical) {
 	val controller = new ElementEditController()
 
 	// val content = new BoxPanel(Orientation.Vertical) {
-		minimumSize = new Dimension(200, 300)
+		minimumSize = new Dimension(220, 250)
 		listenTo(controller)
 		reactions += {
 			case OneVertexSelectedEvent(nam, typ, value) =>

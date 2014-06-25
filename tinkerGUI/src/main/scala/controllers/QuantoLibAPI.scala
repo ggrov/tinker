@@ -650,6 +650,27 @@ object QuantoLibAPI extends Publisher{
 		}
 	}
 
+	/**
+	  * Method that updates the source or target of an edge on user request
+	  * This method firs check if the new source or target exists
+	  * @param e, the edge
+	  * @param src, the new source name
+	  * @param tgt, the new target name
+	  */
+	def userUpdateEdge(e: String, s: String, t: String){
+		val edge = EName(e)
+		val src = VName(s)
+		val tgt = VName(t)
+		if (graph.vdata.contains(src) && graph.vdata.contains(tgt)) {
+			if(graph.source(e) == src && graph.target(e) != tgt) {
+				moveEdge(src, tgt, edge, false)
+			}
+			else if (graph.source(e) != src && graph.target(e) == tgt){
+				moveEdge(tgt, src, edge, true)
+			}
+		}
+	}
+
 	/** listener to document status */
 	listenTo(document)
 	reactions += { case DocumentChanged(_) | DocumentSaved(_) =>

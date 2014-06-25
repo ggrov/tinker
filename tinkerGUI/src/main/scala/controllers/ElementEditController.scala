@@ -7,7 +7,7 @@ import scala.swing.event.Key._
 import scala.swing.event.Key
 
 class ElementEditController() extends Publisher {
-	def addListener(elt: TextField){
+	def addValueListener(elt: TextField){
 		var prevText = elt.text
 		listenTo(elt.keys)
 		reactions += {
@@ -27,6 +27,15 @@ class ElementEditController() extends Publisher {
 					QuantoLibAPI.userDeleteElement(eltName)
 					publish(NothingSelectedEvent())
 				}
+		}
+	}
+
+	def addEdgeListener(e: String, src: TextField, tgt: TextField){
+		listenTo(src.keys)
+		listenTo(tgt.keys)
+		reactions += {
+			case KeyReleased(_, key, _, _) =>
+				QuantoLibAPI.userUpdateEdge(e, src.text, tgt.text)
 		}
 	}
 
