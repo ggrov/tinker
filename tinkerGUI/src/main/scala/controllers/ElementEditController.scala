@@ -2,18 +2,30 @@ package tinkerGUI.controllers
 
 import scala.swing._
 import scala.swing.event.KeyReleased
+import scala.swing.event.ButtonClicked
 import scala.swing.event.Key._
 import scala.swing.event.Key
 
-class NodeEditController() extends Publisher {
+class ElementEditController() extends Publisher {
 	def addListener(elt: TextField){
 		var prevText = elt.text
 		listenTo(elt.keys)
 		reactions += {
 			case KeyReleased(_, key, _, _) =>
 				if(prevText != elt.text){
-					QuantoLibAPI.editSelectedNodeValue(elt.text)
+					QuantoLibAPI.editSelectedElementValue(elt.text)
 					prevText = elt.text
+				}
+		}
+	}
+
+	def addDeleteListener(btn: Button, eltName: String){
+		listenTo(btn)
+		reactions += {
+			case ButtonClicked(b: Button) =>
+				if(b==btn)  {
+					QuantoLibAPI.userDeleteElement(eltName)
+					publish(NothingSelectedEvent())
 				}
 		}
 	}
@@ -28,5 +40,7 @@ class NodeEditController() extends Publisher {
 				case "RT_ATM" => publish(OneVertexSelectedEvent(name, "Atomic", value))
 				case "RT_NST" => publish(OneVertexSelectedEvent(name, "Nested", value))
 			}
+		case OneEdgeSelectedEventAPI(name, value, source, target) =>
+			publish(OneEdgeSelectedEvent(name, value, source, target))
 	}
 }

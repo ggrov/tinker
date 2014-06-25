@@ -45,13 +45,13 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Method to get the graph panel
-	  * @return : a panel component containing the graph
+	  * @return a panel component containing the graph
 	  */
 	def getGraph = graphPanel
 
 	/**
 	  * Method to get the name of the document
-	  * @return : the name of the document
+	  * @return the name of the document
 	  */
 	def getTitle = graphPanel.graphDoc.titleDescription
 
@@ -66,7 +66,7 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Private method to change the graph
-	  * @param : gr, the new graph
+	  * @param gr, the new graph
 	  */
 	private def changeGraph(gr: Graph){
 		graphPanel.graphDoc.graph = gr
@@ -75,8 +75,8 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Private method to add a vertex to the graph.
-	  * @param : v, the name of the vertex
-	  * @param : d, the data of the vertex
+	  * @param v, the name of the vertex
+	  * @param d, the data of the vertex
 	  */
 	private def addVertex(v: VName, d: VData) {
 		changeGraph(graph.addVertex(v, d))
@@ -85,7 +85,7 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Private method to delete a vertex
-	  * @param : v, the name of the vertex
+	  * @param v, the name of the vertex
 	  */
 	private def deleteVertex(v: VName) {
 		document.undoStack.start("Delete Vertex")
@@ -108,25 +108,25 @@ object QuantoLibAPI extends Publisher{
 		}
 	}
 
-	/**
-	  * Private method to add a boundary to the graph.
-	  * @param : x, the x coordinate of the mouse
-	  * @param : y, the y coordinate of the mouse
-	  * @return : the name of the new boundary as a string
-	  */
-	private def addBoundary(x: Double, y: Double) : VName = {
-		val coord = view.trans fromScreen (x, y)
-		val vertexData = WireV(theory = theory, annotation = JsonObject("boundary" -> JsonBool(true)))
-		val vertexName = graph.verts.freshWithSuggestion(VName("b0"))
-		changeGraph(graph.addVertex(vertexName, vertexData.withCoord(coord)))
-		return(vertexName)
-	}
+	// /**
+	//   * Private method to add a boundary to the graph.
+	//   * @param : x, the x coordinate of the mouse
+	//   * @param : y, the y coordinate of the mouse
+	//   * @return : the name of the new boundary as a string
+	//   */
+	// private def addBoundary(x: Double, y: Double) : VName = {
+	// 	val coord = view.trans fromScreen (x, y)
+	// 	val vertexData = WireV(theory = theory, annotation = JsonObject("boundary" -> JsonBool(true)))
+	// 	val vertexName = graph.verts.freshWithSuggestion(VName("b0"))
+	// 	changeGraph(graph.addVertex(vertexName, vertexData.withCoord(coord)))
+	// 	return(vertexName)
+	// }
 
 	/**
 	  * Private method to add an edge between two element of the graph.
-	  * @param : e, the name of the edge
-	  * @param : d, the data of the edge
-	  * @param : vs, the source and target elements
+	  * @param e, the name of the edge
+	  * @param d, the data of the edge
+	  * @param vs, the source and target elements
 	  */
 	private def addEdge(e: EName, d: EData, vs: (VName, VName)) {
 		changeGraph(graph.addEdge(e, d, vs))
@@ -137,7 +137,7 @@ object QuantoLibAPI extends Publisher{
 	/**
 	  * Private Method to delete edges
 	  * If the edge has a boundary source or target, we delete it, if there is no egde coming from or to this boundary
-	  * @param : e, the name of the edge
+	  * @param e, the name of the edge
 	  */
 	private def deleteEdge(e: EName) {
 		val d = graph.edata(e)
@@ -183,8 +183,10 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Private method to move an edge.
-	  * @param : startV, the new source vertex
-	  * @param : endV, the new target vertex
+	  * @param startV, the new source vertex
+	  * @param endV, the new target vertex
+	  * @param edge, the name of the edge
+	  * @param moveSource, boolean to tell if we are moving the source of the edge
 	  */
 	private def moveEdge(startV: VName, endV: VName, edge: EName, moveSource: Boolean){
 		val data = graph.edata(edge)
@@ -292,6 +294,7 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Method to safely close a document
+	  * @return a boolean telling if closing if safe 
 	  */
 	def closeDoc : Boolean = {
 		return document.promptUnsaved()
@@ -313,8 +316,8 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Private method to replace the graph with another, used by layoutGraph method
-	  * @param : gr, the future graph
-	  * @param : desc, the description of the action done
+	  * @param gr, the future graph
+	  * @param desc, the description of the action done
 	  */
 	private def replaceGraph(gr: Graph, desc: String){
 		val oldGraph = graph
@@ -335,9 +338,9 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Method to select an element on a graph view
-	  * @param : pt, the point where the vertex is selected, if no vertex is found we start a selection box
-	  * @param : modifiers, any modifier key to our selection (e.g. Shift key for multiple selection)
-	  * @param : changeMouseStateCallback, a callback function to update the mouse state
+	  * @param pt, the point where the vertex is selected, if no vertex is found we start a selection box
+	  * @param modifiers, any modifier key to our selection (e.g. Shift key for multiple selection)
+	  * @param changeMouseStateCallback, a callback function to update the mouse state
 	  */
 	def selectElement(pt : java.awt.Point, modifiers: Modifiers, changeMouseStateCallback: (String, Any) => Unit) {
 		publish(NothingSelectedEventAPI())
@@ -350,7 +353,7 @@ object QuantoLibAPI extends Publisher{
 		vertexHit match {
 			case Some(v) =>
 				view.selectedVerts += v
-				if(view.selectedVerts.size == 1 && !(graph.vdata(v).isBoundary)){ 
+				if(view.selectedVerts.size == 1 && view.selectedEdges.size == 0 && !(graph.vdata(v).isBoundary)){ 
 					graph.vdata(v) match {
 						case data: NodeV => publish(OneVertexSelectedEventAPI(v.s, data.typ, data.label))
 					}
@@ -362,6 +365,11 @@ object QuantoLibAPI extends Publisher{
 				edgeHit match {
 					case Some(e) =>
 						view.selectedEdges += e
+						if(view.selectedEdges.size == 1 && view.selectedVerts.size == 0){
+							graph.edata(e) match {
+								case data: DirEdge => publish(OneEdgeSelectedEventAPI(e.s, data.label, graph.source(e).s, graph.target(e).s))
+							}
+						}
 						val rec = (graph.source(e) == graph.target(e))
 						val ptCoord = view.trans fromScreen (pt.getX, pt.getY)
 						val srcCoord = (graph.vdata(graph.source(e))).coord
@@ -406,9 +414,9 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Private method to change vertex coordinates
-	  * @param : vs, set of vertices
-	  * @param : p1, source point
-	  * @param : p2, target point
+	  * @param vs, set of vertices
+	  * @param p1, source point
+	  * @param p2, target point
 	  */
 	private def shiftVertsNoRegister(vs: TraversableOnce[VName], p1: Point, p2: Point) {
 		val (dx,dy) = (view.trans scaleFromScreen (p2.getX - p1.getX), view.trans scaleFromScreen (p2.getY - p1.getY))
@@ -420,10 +428,10 @@ object QuantoLibAPI extends Publisher{
 	}
 
 	/**
-	  * Private method to change vertecoordinates and register it to undo stack
-	  * @param : vs, set of vertices
-	  * @param : p1, source point
-	  * @param : p2, target point
+	  * Private method to change vertex coordinates and register it to undo stack
+	  * @param vs, set of vertices
+	  * @param p1, source point
+	  * @param p2, target point
 	  */
 	private def shiftVerts(vs: TraversableOnce[VName], p1: Point, p2: Point) {
 		shiftVertsNoRegister(vs, p1, p2)
@@ -432,8 +440,8 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Method to drag one or more selected vertices
-	  * @param : pt, target point
-	  * @param : prev, origin point
+	  * @param pt, target point
+	  * @param prev, origin point
 	  */
 	def dragVertex(pt: java.awt.Point, prev: java.awt.Point) {
 		shiftVertsNoRegister(view.selectedVerts, prev, pt)
@@ -442,8 +450,8 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Method to add the move of vertices in the undo stack
-	  * @param : start, the origin point
-	  * @param : end, the target point 
+	  * @param start, the origin point
+	  * @param end, the target point 
 	  */
 	def moveVertex(start: java.awt.Point, end: java.awt.Point) {
 		val verts = view.selectedVerts
@@ -453,7 +461,7 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Method to add a selection box to the view
-	  * @param : box, the actual box, default value is null
+	  * @param box, the actual box, default value is null
 	  */
 	def viewSelectBox(box: SelectionBox = null) {
 		if(box == null) { 
@@ -467,9 +475,9 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Method for final computation of selection box
-	  * @param : update, boolean being true if the selection has been updated
-	  * @param : pt, final location of the mouse
-	  * @param : rect, selection box
+	  * @param update, boolean being true if the selection has been updated
+	  * @param pt, final location of the mouse
+	  * @param rect, selection box
 	  */
 	def viewSelectBoxFinal(update: Boolean, pt: java.awt.Point, rect: java.awt.geom.Rectangle2D.Double) {
 		if(update){
@@ -486,8 +494,8 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Method to start adding an edge
-	  * @param : pt, point where to look for a source vertex, if none we add a boundary
-	  * @param : changeMouseStateCallback, a callback function to update the mouse state
+	  * @param pt, point where to look for a source vertex, if none we add a boundary
+	  * @param changeMouseStateCallback, a callback function to update the mouse state
 	  */
 	def startAddEdge(pt: java.awt.Point, changeMouseStateCallback: (String, String) => Unit) {
 		var vertexHit = view.vertexDisplay find { _._2.pointHit(pt) } map { _._1 }
@@ -507,8 +515,8 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Method to drag an edge on the view
-	  * @param : startV, the source vertex
-	  * @param : pt, the current location of the mouse
+	  * @param startV, the source vertex
+	  * @param pt, the current location of the mouse
 	  */
 	def dragEdge(startV: String, pt: java.awt.Point){
 		val vertexHit = view.vertexDisplay find { _._2.pointHit(pt) } map { _._1 }
@@ -518,8 +526,9 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Method to end adding / moving an edge to the view
-	  * @param : startV, the source vertex (can be the target in case of moving)
-	  * @param : pt, point where to look for the target (or source) vertex, if none we add a boundary
+	  * @param startV, the source vertex (can be the target in case of moving)
+	  * @param pt, point where to look for the target (or source) vertex, if none we add a boundary
+	  * @param changeMouseStateCallback, a callback function to update the mouse state
 	  */
 	def endAddEdge(startV: String, pt: java.awt.Point, changeMouseStateCallback: (String) => Unit){
 		var vertexHit = view.vertexDisplay find { _._2.pointHit(pt) } map { _._1 }
@@ -547,7 +556,8 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Method that add a vertex (strategy type) on user request
-	  * @param : pt, point where to add the vertex
+	  * @param pt, point where to add the vertex
+	  * @param typ, string representation of the type of node
 	  */
 	def userAddVertex(pt: java.awt.Point, typ: String){
 		val coord = view.trans fromScreen (pt.getX, pt.getY)
@@ -558,8 +568,8 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Private method to update the value of an edge (goal type)
-	  * @param : e, the name of the edge
-	  * @param : str, the new value
+	  * @param e, the name of the edge
+	  * @param str, the new value
 	  */
 	private def setEdgeValue(e: EName, str: String) {
 		val data = graph.edata(e)
@@ -571,8 +581,8 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Private method to update the value of a vertex (strategy)
-	  * @param : v, the name of the vertex
-	  * @param : str, the new value
+	  * @param v, the name of the vertex
+	  * @param str, the new value
 	  */
 	private def setVertexValue(v: VName, str: String) {
 		graph.vdata(v) match {
@@ -588,7 +598,7 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Method to edit an element value (goal type for edge, strategy for vertex)
-	  * @param : pt, point where to find element to edit
+	  * @param pt, point where to find element to edit
 	  */
 	def editGraphElement(pt: java.awt.Point){
 		val vertexHit = view.vertexDisplay find { case (v, disp) =>
@@ -615,12 +625,28 @@ object QuantoLibAPI extends Publisher{
 	}
 
 	/**
-	  * Method to edit a single graph node value (selected one)
-	  * @param : newVal, the new value of the vertex
+	  * Method to edit a single graph element value (selected one)
+	  * @param newVal, the new value of the element
 	  */
-	def editSelectedNodeValue(newVal: String){
-		if(view.selectedVerts.size == 1){
+	def editSelectedElementValue(newVal: String){
+		if(view.selectedVerts.size == 1 && view.selectedEdges.size == 0){
 			setVertexValue((view.selectedVerts.head), newVal)
+		}
+		else if (view.selectedVerts.size == 0 && view.selectedEdges.size == 1){
+			setEdgeValue((view.selectedEdges.head), newVal)
+		}
+	}
+
+	/**
+	  * Method that delete an element on user request
+	  * @param eltName, the name of the element
+	  */
+	def userDeleteElement(eltName: String){
+		if (graph.vdata.contains(VName(eltName))){
+			deleteVertex(VName(eltName))
+		}
+		else if (graph.edata.contains(EName(eltName))){
+			deleteEdge(EName(eltName))
 		}
 	}
 

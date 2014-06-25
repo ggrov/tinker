@@ -16,3 +16,5 @@ case class NothingSelectedEventAPI() extends Event
 case class NothingSelectedEvent() extends Event
 case class OneVertexSelectedEventAPI(name : String, typ: String, value: String) extends Event
 case class OneVertexSelectedEvent(name : String, typ: String, value: String) extends Event
+case class OneEdgeSelectedEventAPI(name: String, value: String, source: String, target: String) extends Event
+case class OneEdgeSelectedEvent(name: String, value: String, source: String, target: String) extends Event
