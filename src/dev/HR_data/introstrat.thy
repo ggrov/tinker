@@ -118,26 +118,10 @@ val psgraph_shortintro = IsaMethod.apply_psgraph_tac psg_intro;
 *}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 -- "Examples"
 
 ML{*
-val [edata] = EVal.init psg_intro @{context} @{prop "A \<and> B \<longrightarrow> B \<and> A"};
+val [edata] = EVal.init psg_intro @{context} @{prop "A \<longrightarrow> A"};
 *}
 
 ML{*
