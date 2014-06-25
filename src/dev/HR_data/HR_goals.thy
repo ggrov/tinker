@@ -1,80 +1,151 @@
 theory HR_goals
 imports 
-  Main
-  introstrat
+  basicintrostrat
 begin
 
 (* Repository of examples using the intro strategy for development  with the HR tool *)
 
-lemma "A \<longrightarrow> A"
+lemma a1: "A \<longrightarrow> A"
   (*apply (rule impI)*)
-  apply (tactic "psgraph_intro @{context}")
-  apply assumption+
+  apply (psgraph intro_simp)
+  apply assumption
+done
+
+lemma a2: "A \<longrightarrow> A"
+  apply (rule impI)
+  apply assumption
 done
 
 
-lemma "A \<and> B \<longrightarrow> B \<and> A"
+lemma b1: "A \<and> B \<longrightarrow> B \<and> A"
+  (*apply (rule impI)*)
+  apply (psgraph intro_simp)
+  apply (erule conjE)
+  (*apply (rule conjI)*)
+  apply (psgraph  intro_simp)
+  apply assumption+
+done
+
+lemma b2: "A \<and> B \<longrightarrow> B \<and> A"
   apply (rule impI)
   apply (erule conjE)
   apply (rule conjI)
   apply assumption+
 done
 
-lemma "A \<and> B \<longrightarrow> B \<and> A"
+
+lemma c1: "(A \<and> B) \<longrightarrow> (A \<or> B)"
+  (*apply (rule impI)*)
+  apply (psgraph intro_simp)
+  apply (erule conjE)
+ (* apply (rule disjI1)*)
+ apply (psgraph intro_simp)
+  apply assumption
+done
+
+lemma c2: "(A \<and> B) \<longrightarrow> (A \<or> B)"
   apply (rule impI)
   apply (erule conjE)
-  apply (tactic "psgraph_shortintro @{context}")
+  apply (rule disjI1)
   apply assumption
+done
+
+
+(* The next example requires use of the GUI to manually step through the proof and 
+backtrack where necessary. Blindly applying the strategy leads to only disjI1 being 
+used, which leads to the failures shown.*)
+
+lemma d1: "((A \<or> B) \<or> C) \<longrightarrow> A \<or> (B \<or> C)"
+  (*apply (rule impI)*)
+  apply (psgraph intro_simp)
+  apply (erule disjE)
+  apply (erule disjE)
+  (*apply (rule disjI1)*)
+  apply (psgraph  intro_simp)
+  apply assumption
+  (*apply (rule disjI2)*)
+  apply (psgraph  intro_simp)
+  (*apply (rule disjI1)*)
+  apply assumption
+  (*apply (rule disjI2)
+  apply (rule disjI2)*)
+  apply assumption
+(*done*)
 oops
 
+lemma d2: "((A \<or> B) \<or> C) \<longrightarrow> A \<or> (B \<or> C)"
+  apply (rule impI)
+  apply (erule disjE)
+  apply (erule disjE)
+  apply (rule disjI1)
+  apply assumption
+  apply (rule disjI2)
+  apply (rule disjI1)
+  apply assumption
+  apply (rule disjI2)+
+  apply assumption
+done
 
-lemma "(A \<and> B) \<longrightarrow> (A \<or> B)"
-  apply (tactic "psgraph_intro @{context}")
+
+lemma e1: "A \<longrightarrow> B \<longrightarrow> A"
+  (*apply (rule impI)*)
+ (* apply (rule impI)*)
+ apply (psgraph intro_simp)
+ apply (psgraph intro_simp)
+  apply assumption
+done
+
+lemma e2: "A \<longrightarrow> B \<longrightarrow> A"
+  apply (rule impI)+
+  apply assumption
+done
+
+
+lemma f1: "(A \<or> A) = (A \<and> A)"
+  apply (rule iffI)
+  apply (erule disjE)
+(*  apply (rule conjI)*)
+  apply (psgraph intro_simp)
+  apply assumption
+  apply assumption
+  (*apply (rule conjI)*)
+  apply assumption
   apply assumption
   apply (erule conjE)
-  apply (rule disjI1)
+  (*apply (rule disjI1)*)
   apply assumption
 done
 
-
-lemma "((A \<or> B) \<or> C) \<longrightarrow> A \<or> (B \<or> C)"
-  apply (rule impI)
-  apply (erule disjE)
-  apply (erule disjE)
-  apply (rule disjI1)
-  apply assumption
-  apply (rule disjI2)
-  apply (rule disjI1)
-  apply assumption
-  apply (rule disjI2)
-  apply (rule disjI2)
-  apply assumption
-done
-
-
-lemma "A \<longrightarrow> B \<longrightarrow> A"
-  apply (rule impI)
-  apply (rule impI)
-  apply assumption
-done
-
-
-lemma "(A \<or> A) = (A \<and> A)"
+lemma f2: "(A \<or> A) = (A \<and> A)"
   apply (rule iffI)
   apply (erule disjE)
   apply (rule conjI)
-  apply assumption
-  apply assumption
+  apply assumption+
   apply (rule conjI)
-  apply assumption
-  apply assumption
+  apply assumption+
   apply (erule conjE)
   apply (rule disjI1)
   apply assumption
 done
 
 
-lemma "(A \<longrightarrow> B \<longrightarrow> C) \<longrightarrow> (A \<longrightarrow> B) \<longrightarrow> A \<longrightarrow> C"
+lemma g1: "(A \<longrightarrow> B \<longrightarrow> C) \<longrightarrow> (A \<longrightarrow> B) \<longrightarrow> A \<longrightarrow> C"
+ (* apply (rule impI)
+  apply (rule impI)
+  apply (rule impI)*)
+  apply (psgraph intro_simp)
+  apply (psgraph intro_simp)
+  apply (psgraph intro_simp)
+  apply (erule impE)
+  apply assumption
+  apply (erule impE)
+  apply assumption
+  apply (erule impE)
+  apply assumption
+  apply assumption
+done
+
+lemma g2: "(A \<longrightarrow> B \<longrightarrow> C) \<longrightarrow> (A \<longrightarrow> B) \<longrightarrow> A \<longrightarrow> C"
   apply (rule impI)
   apply (rule impI)
   apply (rule impI)
@@ -88,7 +159,21 @@ lemma "(A \<longrightarrow> B \<longrightarrow> C) \<longrightarrow> (A \<longri
 done
 
 
-lemma "(A \<longrightarrow> B) \<longrightarrow> (B \<longrightarrow> C) \<longrightarrow> A \<longrightarrow> C"
+lemma h1: "(A \<longrightarrow> B) \<longrightarrow> (B \<longrightarrow> C) \<longrightarrow> A \<longrightarrow> C"
+  (*apply (rule impI)
+  apply (rule impI)
+  apply (rule impI)*)
+  apply (psgraph intro_simp)
+  apply (psgraph intro_simp)
+  apply (psgraph intro_simp)
+  apply (erule impE)
+  apply assumption
+  apply (erule impE)
+  apply assumption
+  apply assumption
+oops
+
+lemma h2: "(A \<longrightarrow> B) \<longrightarrow> (B \<longrightarrow> C) \<longrightarrow> A \<longrightarrow> C"
   apply (rule impI)
   apply (rule impI)
   apply (rule impI)
@@ -100,7 +185,15 @@ lemma "(A \<longrightarrow> B) \<longrightarrow> (B \<longrightarrow> C) \<longr
 done
 
 
-lemma "\<not>\<not>A \<longrightarrow> A"
+lemma i1: "\<not>\<not>A \<longrightarrow> A"
+  (*apply (rule impI)*)
+  apply (psgraph intro_simp)
+  apply (rule classical)
+  apply (erule notE)
+  apply assumption
+done
+
+lemma i2: "\<not>\<not>A \<longrightarrow> A"
   apply (rule impI)
   apply (rule classical)
   apply (erule notE)
@@ -108,7 +201,15 @@ lemma "\<not>\<not>A \<longrightarrow> A"
 done
 
 
-lemma "A \<longrightarrow> \<not>\<not>A"
+lemma j1: "A \<longrightarrow> \<not>\<not>A"
+  (*apply (rule impI)*)
+  apply (psgraph intro_simp)
+  apply (rule notI)
+  apply (erule notE)
+  apply assumption
+done
+
+lemma j2: "A \<longrightarrow> \<not>\<not>A"
   apply (rule impI)
   apply (rule notI)
   apply (erule notE)
@@ -116,7 +217,19 @@ lemma "A \<longrightarrow> \<not>\<not>A"
 done
 
 
-lemma "(\<not>A \<longrightarrow> B) \<longrightarrow> (\<not>B \<longrightarrow> A)"
+lemma k1: "(\<not>A \<longrightarrow> B) \<longrightarrow> (\<not>B \<longrightarrow> A)"
+  (*apply (rule impI)
+  apply (rule impI)*)
+  apply (psgraph intro_simp)
+  apply (psgraph intro_simp)
+  apply (rule classical)
+  apply (erule impE)
+  apply assumption
+  apply (erule notE)
+  apply assumption
+done
+
+lemma k2: "(\<not>A \<longrightarrow> B) \<longrightarrow> (\<not>B \<longrightarrow> A)"
   apply (rule impI)
   apply (rule impI)
   apply (rule classical)
@@ -127,8 +240,21 @@ lemma "(\<not>A \<longrightarrow> B) \<longrightarrow> (\<not>B \<longrightarrow
 done
 
 
-lemma "((A \<longrightarrow> B) \<longrightarrow> A) \<longrightarrow> A"
-  apply (rule impI)+
+lemma l1: "((A \<longrightarrow> B) \<longrightarrow> A) \<longrightarrow> A"
+  (*apply (rule impI)*)
+  apply (psgraph intro_simp)
+  apply (rule classical)
+  apply (erule impE)
+  (*apply (rule impI)*)
+  apply (psgraph intro_simp)[1]
+  apply (erule notE)
+  apply assumption
+  apply (erule notE)
+  apply assumption
+done
+
+lemma l2: "((A \<longrightarrow> B) \<longrightarrow> A) \<longrightarrow> A"
+  apply (rule impI)
   apply (rule classical)
   apply (erule impE)
   apply (rule impI)
@@ -139,7 +265,21 @@ lemma "((A \<longrightarrow> B) \<longrightarrow> A) \<longrightarrow> A"
 done
 
 
-lemma "A \<or> \<not>A"
+(* Manual backtracking required for first strategy application*)
+
+lemma m1: "A \<or> \<not>A"
+  apply (rule classical)
+  (*apply (rule disjI2)*)
+  apply (psgraph intro_simp)
+  apply (rule notI)
+  apply (erule notE)
+(*  apply (rule disjI1)*)
+  apply (psgraph intro_simp)
+  apply assumption
+(*done*)
+oops
+
+lemma m2: "A \<or> \<not>A"
   apply (rule classical)
   apply (rule disjI2)
   apply (rule notI)
@@ -149,7 +289,7 @@ lemma "A \<or> \<not>A"
 done
 
 
-lemma "(\<not>(A \<and> B)) = (\<not>A \<or> B)"
+lemma n1: "(\<not>(A \<and> B)) = (\<not>A \<or> B)"
   apply (rule iffI)
   apply (rule classical)
   apply (erule notE)
@@ -167,7 +307,7 @@ lemma "(\<not>(A \<and> B)) = (\<not>A \<or> B)"
   apply (erule disjE)
   apply (erule notE)
   apply assumption
-
+oops
 
 
 

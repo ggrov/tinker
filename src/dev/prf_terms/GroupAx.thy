@@ -42,6 +42,10 @@ full_prf inv_rev
 
 
 lemma inv_rev1: "a ** inv a = e"
+  apply (subst ax3s)
+  apply (subst ax1s)
+  apply (subst ax2)
+  apply (subst ax1)
  
 oops
  
@@ -151,6 +155,12 @@ qed
  
 full_prf inv_inv
 
+lemma inv_inv1: "inv (inv a) = a"
+  apply (subst right_div)
+  apply (subst inv_rev)
+  apply (rule ax3s)
+oops
+
 lemma lat_sq:
   assumes "a ** x = b" 
   shows "x = inv a ** b"
@@ -171,5 +181,10 @@ lemma inv_id:
     qed
 
 full_prf inv_id
+
+lemma inv_id1: "inv e = e"
+  apply (subst ax1s)
+  apply (rule inv_rev)
+done
 
 end

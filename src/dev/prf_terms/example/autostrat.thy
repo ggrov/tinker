@@ -130,13 +130,14 @@ ML{*
 val pssimp = LIFT ([gt],[gt_safe,gt_blast,gt_depth]) (simp);
 val pssafe = LIFT ([gt_safe],[gt_blast,gt_depth]) (safe);
 val psblast = LIFT ([gt_blast,gt_blast],[]) (blast);
-val psndt = LIFT ([gt_depth,gt_depth],[gt_safe,gt_prune]) (nodup);
+val psndt = LIFT ([gt_depth,gt_depth,gt_depth],[gt_safe,gt_prune,gt_depth]) (nodup);
+val psndtloop = LOOP psndt gt_depth;
 val pssafe2 = LIFT ([gt_safe],[gt_prune]) (safe);
 val psprune = LIFT ([gt_prune,gt_prune],[gt]) (prune);
 *}
 
 ML{*
-val psf_auto = pssimp THENG pssafe THENG psblast THENG psndt THENG pssafe2 THENG psprune;
+val psf_auto = pssimp THENG pssafe THENG psblast THENG psndtloop THENG pssafe2 THENG psprune;
 
 val psg_auto =   psf_auto PSGraph.empty 
       |> PSGraph.load_atomics (StrName.NTab.list_of (PSGraphMethod.get_tacs @{theory}));
