@@ -18,3 +18,5 @@ case class OneVertexSelectedEventAPI(name : String, typ: String, value: String) 
 case class OneVertexSelectedEvent(name : String, typ: String, value: String) extends Event
 case class OneEdgeSelectedEventAPI(name: String, value: String, source: String, target: String) extends Event
 case class OneEdgeSelectedEvent(name: String, value: String, source: String, target: String) extends Event
+case class ManyVertexSelectedEventAPI(vnames : Set[String]) extends Event
+case class ManyVertexSelectedEvent(vnames : Set[String]) extends Event

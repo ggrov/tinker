@@ -3,6 +3,7 @@ package tinkerGUI.views
 import scala.swing._
 import tinkerGUI.controllers.ElementEditController
 import tinkerGUI.controllers.OneVertexSelectedEvent
+import tinkerGUI.controllers.ManyVertexSelectedEvent
 import tinkerGUI.controllers.OneEdgeSelectedEvent
 import tinkerGUI.controllers.NothingSelectedEvent
 
@@ -42,6 +43,24 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 	}
 }
 
+class VerticesEditContent(names: Set[String], ctrl: ElementEditController) extends FlowPanel {
+	val mergeButton = new Button("Merge into nested node.")
+	// ctrl.addListener(mergeButton, names)
+	contents += new FlowPanel(){
+		def prettyString(s: Set[String]) : String = {
+			var res = s.head
+			s.tail.foreach{ e =>
+				res += ", " + e
+			}
+			return res
+		}
+		contents += new Label("Nodes : " + prettyString(names))
+	}
+	contents += new FlowPanel(){
+		contents += mergeButton
+	}
+}
+
 class EdgeEditContent(nam: String, value: String, src: String, tgt: String, ctrl: ElementEditController) extends FlowPanel {
 	val edgeValue = new TextField(value, 10)
 	val edgeSrc = new TextField(src, 3)
@@ -78,6 +97,10 @@ class ElementEditPanel() extends BoxPanel(Orientation.Vertical) {
 			case OneVertexSelectedEvent(nam, typ, value) =>
 				contents.clear()
 				contents += new VertexEditContent(nam, typ, value, controller)
+				revalidate()
+			case ManyVertexSelectedEvent(names) =>
+				contents.clear()
+				contents += new VerticesEditContent(names, controller)
 				revalidate()
 			case OneEdgeSelectedEvent(nam, value, src, tgt) =>
 				contents.clear()

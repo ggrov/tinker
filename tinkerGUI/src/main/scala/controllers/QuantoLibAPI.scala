@@ -337,6 +337,25 @@ object QuantoLibAPI extends Publisher{
 	}
 
 	/**
+	  * Method to publish an event when one or more vertex are selected
+	  */
+	private def publishSelectedVerts(){
+		if(view.selectedVerts.size == 1 && view.selectedEdges.size == 0 && !(graph.vdata(view.selectedVerts.head).isBoundary)){
+			(view.selectedVerts.head, graph.vdata(view.selectedVerts.head)) match {
+				case (v: VName, data: NodeV) => publish(OneVertexSelectedEventAPI(v.s, data.typ, data.label))
+			}
+		}
+		else if(view.selectedVerts.size > 1 && view.selectedEdges.size == 0){
+			var vnames = Set[String]()
+			view.selectedVerts.foreach { v =>
+				if(graph.vdata(v).isBoundary) return
+				else vnames = vnames + v.s
+			}
+			publish(ManyVertexSelectedEventAPI(vnames))
+		}
+	}
+
+	/**
 	  * Method to select an element on a graph view
 	  * @param pt, the point where the vertex is selected, if no vertex is found we start a selection box
 	  * @param modifiers, any modifier key to our selection (e.g. Shift key for multiple selection)
@@ -353,11 +372,7 @@ object QuantoLibAPI extends Publisher{
 		vertexHit match {
 			case Some(v) =>
 				view.selectedVerts += v
-				if(view.selectedVerts.size == 1 && view.selectedEdges.size == 0 && !(graph.vdata(v).isBoundary)){ 
-					graph.vdata(v) match {
-						case data: NodeV => publish(OneVertexSelectedEventAPI(v.s, data.typ, data.label))
-					}
-				}
+				publishSelectedVerts()
 				changeMouseStateCallback("dragVertex", pt)
 				view.repaint()
 			case _ =>
@@ -490,6 +505,7 @@ object QuantoLibAPI extends Publisher{
 				view.edgeDisplay find (_._2.pointHit(pt)) map { x => selectionUpdated = true; view.selectedEdges += x._1 }
 			}
 		}
+		publishSelectedVerts()
 	}
 
 	/**

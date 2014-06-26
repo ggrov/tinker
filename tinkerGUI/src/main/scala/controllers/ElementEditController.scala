@@ -51,5 +51,7 @@ class ElementEditController() extends Publisher {
 			}
 		case OneEdgeSelectedEventAPI(name, value, source, target) =>
 			publish(OneEdgeSelectedEvent(name, value, source, target))
+		case ManyVertexSelectedEventAPI(names) =>
+			publish(ManyVertexSelectedEvent(names))
 	}
 }
