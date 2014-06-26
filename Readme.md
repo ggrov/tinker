@@ -1,4 +1,4 @@
-Tinker - A graph based proof strategy language
+Tinker - A graph based proof strategy tool
 ============
 Project Web Page - http://ggrov.github.io/tinker/
 
