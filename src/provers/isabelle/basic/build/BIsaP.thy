@@ -6,27 +6,35 @@ begin
  
  ML_file "../isa_prover.ML"              
 
+ML{*
+  val rtechn_tracing = (*tracing*) (fn _ => ());
+*}
 (* rippling *) 
  ML_file "../../termlib/rippling/basic_ripple.ML" 
 (* induction *)
  ML_file "../../termlib/induct.ML"
 
- ML_file "../simple_goaltyp.ML"
+ ML_file "../simple_goaltyp.ML"  
                             
 
+ML{*
+   structure GT : BASIC_GOALTYPE = SimpleGoalTyp;
+   structure Data = PSGraphDataFun(GT);
+*}
 
 ML{*
-structure Theory = PSTheoryFun(structure GoalTyp = SimpleGoalTyp);
-structure PSGraph = PSGraphFun(structure PSTheory = Theory
-                               structure Prover = IsaProver);
-structure PSComb = PSCombFun(PSGraph);
-structure EData = EDataFun(structure Prover = IsaProver
-                           structure PSGraph = PSGraph);
+  structure PSDataIO = PSGraphIOFun(structure Data = Data);
 *}
 ML{*
-structure EVal = EValFun(EData); 
-*}                    
+structure Theory = PSGraph_TheoryFun(SimpleGoalTyp);
+*}
+ML{*
+structure PSGraph = PSGraphFun(Theory);
+*}     
           
+ML{*
+ PSGraph.empty;
+*}
 end
 
 

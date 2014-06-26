@@ -2,6 +2,7 @@ signature BASIC_GOALTYPE_SHARING =
 sig
   type T
   type gnode
+  type data
 end
 
 (* BASIC GOAL TYPE which is used for graph *)
@@ -10,9 +11,11 @@ sig
   structure Prover : PROVER
   type T
   type gnode
+  type data
    
   val default : T
   val default_gnode : gnode
+  val default_data : data
 
   val eq : (T * T) -> bool
   val gnode_eq : (gnode * gnode) -> bool
@@ -34,7 +37,7 @@ sig
   structure BasicSharing : BASIC_GOALTYPE_SHARING
     sharing type BasicSharing.T = T
     sharing type BasicSharing.gnode = gnode
-    
+    sharing type BasicSharing.data = data    
 end;
 
 

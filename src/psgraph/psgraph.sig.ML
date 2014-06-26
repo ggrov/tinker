@@ -12,11 +12,13 @@ sig
   val get_graph : T -> Theory.Graph.T
   val get_graph_tactics : T -> (Theory.Graph.T list) StrName.NTab.T
   val get_atomic_tactics : T -> Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T
+  val get_goaltype_data : T -> Theory.Data.GoalTyp.data
 
   (* set methods *)
   val set_graph : Theory.Graph.T -> T -> T
   val set_graph_tactics : (Theory.Graph.T list) StrName.NTab.T -> T -> T
   val set_atomic_tactics : Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T -> T -> T
+  val set_goaltype_data :  Theory.Data.GoalTyp.data -> T -> T
 
   (* update methods *)
   val update_graph : (Theory.Graph.T -> Theory.Graph.T) -> T -> T
@@ -25,6 +27,8 @@ sig
                               -> T -> T
   val update_atomic_tactics : (Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T 
                                 -> Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T) 
+                              -> T -> T
+  val update_goaltype_data :  (Theory.Data.GoalTyp.data -> Theory.Data.GoalTyp.data)
                               -> T -> T
 
   (* fresh name generation *)

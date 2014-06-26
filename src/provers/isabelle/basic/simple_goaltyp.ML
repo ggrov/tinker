@@ -5,9 +5,12 @@ struct
   structure Prover = IsaProver;
   type T = string
   type gnode = string (* or with term? *)
+  type data  = unit;
+
   exception gt_exp of string
   val default = "any";
   val default_gnode = "?";
+  val default_data = ();
 
   val ord = String.compare;
   fun eq (t1,t2) = case ord(t1,t2) of EQUAL => true | _ => false;
@@ -255,6 +258,7 @@ struct
   struct
     type T = T
     type gnode = gnode
+    type data = data
   end
   end (* local open *)
 end(* struct *);
