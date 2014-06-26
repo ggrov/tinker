@@ -18,8 +18,8 @@ object GraphEditor extends SimpleSwingApplication {
   // val thyFile = new Json.Input(GraphEditor.getClass.getResourceAsStream("strategy_graph.qtheory"))
   // val StringVETheory = Theory.fromJson(Json.parse(thyFile))
   //val StringVETheory = Theory.DefaultTheory
-  println("loading theory " + Theory.getClass.getResource("strategy_graph.qtheory"))
-  val thyFile = new Json.Input(Theory.getClass.getResourceAsStream("strategy_graph.qtheory"))
+  println("loading theory " + Theory.getClass.getResource("red_green.qtheory"))
+  val thyFile = new Json.Input(Theory.getClass.getResourceAsStream("red_green.qtheory"))
   val thy = Theory.fromJson(Json.parse(thyFile))
 
   val graphEditPanel = new GraphEditPanel(thy, readOnly = false)
@@ -99,10 +99,11 @@ object GraphEditor extends SimpleSwingApplication {
     }
   }
 
-  val EditMenu = new Menu("Edit") {
+  val EditMenu = new Menu("Edit") { menu =>
     mnemonic = Key.E
 
     val UndoAction = new Action("Undo") with Reactor {
+      menu.contents += new MenuItem(this) { mnemonic = Key.U }
       accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_Z, CommandMask))
       enabled = false
       def apply() { graphDocument.undoStack.undo() }
@@ -115,6 +116,7 @@ object GraphEditor extends SimpleSwingApplication {
     }
 
     val RedoAction = new Action("Redo") with Reactor {
+      menu.contents += new MenuItem(this) { mnemonic = Key.R }
       accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_Z, CommandMask | Key.Modifier.Shift))
       enabled = false
       def apply() { graphDocument.undoStack.redo() }
@@ -126,18 +128,37 @@ object GraphEditor extends SimpleSwingApplication {
       }
     }
 
-    val LayoutAction = new Action("Layout Graph") with Reactor {
+    contents += new Separator()
+
+    val CutAction = new Action("Cut") {
+      menu.contents += new MenuItem(this) { mnemonic = Key.U }
+      accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_X, CommandMask))
+      def apply() { graphEditController.cutSubgraph() }
+    }
+
+    val CopyAction = new Action("Copy") {
+      menu.contents += new MenuItem(this) { mnemonic = Key.C }
+      accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_C, CommandMask))
+      def apply() { graphEditController.copySubgraph() }
+    }
+
+    val PasteAction = new Action("Paste") {
+      menu.contents += new MenuItem(this) { mnemonic = Key.P }
+      accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_V, CommandMask))
+      def apply() { graphEditController.pasteSubgraph() }
+    }
+
+    contents += new Separator()
+
+    val LayoutAction = new Action("Layout Graph") {
+      menu.contents += new MenuItem(this) { mnemonic = Key.L }
       accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_L, CommandMask))
       def apply() { graphEditController.layoutGraph() }
     }
-
-    contents += new MenuItem(UndoAction) { mnemonic = Key.U }
-    contents += new MenuItem(RedoAction) { mnemonic = Key.R }
-    contents += new MenuItem(LayoutAction) { mnemonic = Key.L }
   }
 
   def top = new MainFrame {
-    title = "Tinker Editor - " + graphDocument.titleDescription
+    title = "QGraph Editor - " + graphDocument.titleDescription
     contents = graphEditPanel
 
     size = new Dimension(800,800)
@@ -149,7 +170,7 @@ object GraphEditor extends SimpleSwingApplication {
     listenTo(graphDocument)
     reactions += {
       case DocumentChanged(_)|DocumentSaved(_) =>
-        title = "Tinker Editor - " + graphDocument.titleDescription
+        title = "QGraph Editor - " + graphDocument.titleDescription
     }
   }
 }
