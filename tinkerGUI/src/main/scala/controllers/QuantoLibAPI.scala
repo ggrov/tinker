@@ -71,6 +71,7 @@ object QuantoLibAPI extends Publisher{
 	private def changeGraph(gr: Graph){
 		graphPanel.graphDoc.graph = gr
 		graph = graphPanel.graphDoc.graph
+		publish(GraphEventAPI(Graph.toJson(graph, theory)))
 	}
 
 	/**
