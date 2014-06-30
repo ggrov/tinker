@@ -7,8 +7,9 @@ import scala.swing.event.Key._
 import scala.swing.event.Key
 
 class ElementEditController() extends Publisher {
+	var prevText = ""
 	def addValueListener(elt: TextField){
-		var prevText = elt.text
+		prevText = elt.text
 		listenTo(elt.keys)
 		reactions += {
 			case KeyReleased(_, key, _, _) =>
@@ -31,11 +32,12 @@ class ElementEditController() extends Publisher {
 	}
 
 	def addNewSubListener(btn: Button, eltName: String){
+		if(prevText == "") prevText = eltName
 		listenTo(btn)
 		reactions += {
 			case ButtonClicked(b: Button) =>
 				if(b==btn){
-					
+					Service.addSubgraph(prevText)
 				}
 		}
 	}

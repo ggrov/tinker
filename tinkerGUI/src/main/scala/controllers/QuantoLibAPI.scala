@@ -22,7 +22,7 @@ import scala.math._
 
 object QuantoLibAPI extends Publisher{
 	/** the main object, the graph */
-	val graphPanel = new BorderPanel{
+	private var graphPanel = new BorderPanel{
 		println("loading theory " + Theory.getClass.getResource("strategy_graph_modified.qtheory"))
 		val theoryFile = new Json.Input(Theory.getClass.getResourceAsStream("strategy_graph_modified.qtheory"))
 		val theory = Theory.fromJson(Json.parse(theoryFile))
@@ -34,7 +34,7 @@ object QuantoLibAPI extends Publisher{
 
 	/** shortcuts for variables of graph */
 	private var graph = graphPanel.graphDoc.graph
-	private val theory = graphPanel.theory
+	private var theory = graphPanel.theory
 	private var view = graphPanel.graphView
 	private var document = graphPanel.graphDoc
 
@@ -49,6 +49,13 @@ object QuantoLibAPI extends Publisher{
 	  */
 	def getGraph = graphPanel
 
+	/** Method to get a whole new graph
+	  */
+	def newGraph() {
+		document.clear()
+		localUpdate()
+	}
+
 	/**
 	  * Method to get the name of the document
 	  * @return the name of the document
@@ -62,6 +69,7 @@ object QuantoLibAPI extends Publisher{
 		document = graphPanel.graphDoc
 		graph = graphPanel.graphDoc.graph
 		view = graphPanel.graphView
+		theory = graphPanel.theory
 	}
 
 	/**
@@ -108,20 +116,6 @@ object QuantoLibAPI extends Publisher{
 			document.undoStack.cancel()
 		}
 	}
-
-	// /**
-	//   * Private method to add a boundary to the graph.
-	//   * @param : x, the x coordinate of the mouse
-	//   * @param : y, the y coordinate of the mouse
-	//   * @return : the name of the new boundary as a string
-	//   */
-	// private def addBoundary(x: Double, y: Double) : VName = {
-	// 	val coord = view.trans fromScreen (x, y)
-	// 	val vertexData = WireV(theory = theory, annotation = JsonObject("boundary" -> JsonBool(true)))
-	// 	val vertexName = graph.verts.freshWithSuggestion(VName("b0"))
-	// 	changeGraph(graph.addVertex(vertexName, vertexData.withCoord(coord)))
-	// 	return(vertexName)
-	// }
 
 	/**
 	  * Private method to add an edge between two element of the graph.

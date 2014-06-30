@@ -6,6 +6,7 @@ import java.io.{FileNotFoundException, IOException, File}
 class PSGraph() {
 	var currentGraph = "main"
 	var currentIndex = 0
+	var currentArray: Array[JsonObject] = Array()
 	var atomicTactics: Array[JsonObject] = Array((JsonObject("name" -> "simp", "tactic" -> "simplify")),(JsonObject("name" -> "imp", "tactic" -> "imply")))
 	var graphTactics: Array[JsonObject] = Array()
 	var mainGraph: JsonObject = JsonObject()
@@ -19,14 +20,25 @@ class PSGraph() {
 	}		
 
 	def saveSomeGraph(graph: Json) {
-		// save a graph into our json object according to the currentGraph String
-		// we get the graph object from the API file
-		// if current graph is "main" we save it in the main graph field
-		// else we save it in the p_tactics field
 		graph match {
 			case g: JsonObject =>
 				if(currentGraph == "main"){
 					mainGraph = g
+				}
+				else {
+					val tacticIndex = graphTactics.indexOf(JsonObject("name" -> currentGraph, "graphs" -> JsonArray(currentArray)))
+					if(currentArray.isDefinedAt(currentIndex)){
+						currentArray(currentIndex) = g
+					}
+					else{
+						currentArray = currentArray :+ g
+					}
+					if(tacticIndex == -1){
+						graphTactics = graphTactics :+ JsonObject("name" -> currentGraph, "graphs"-> JsonArray(currentArray))
+					}
+					else {
+						graphTactics(tacticIndex) = JsonObject("name" -> currentGraph, "graphs"-> JsonArray(currentArray))
+					}
 				}
 			case _ =>
 		}

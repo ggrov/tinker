@@ -17,7 +17,7 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 	val addSubButton = new Button("Add a sub-graph")
 	ctrl.addValueListener(nodeValue)
 	ctrl.addDeleteListener(delButton, nam)
-	ctrl.addNewSubListener(addSubButton, nam)
+	ctrl.addNewSubListener(addSubButton, nodeValue.text)
 	contents += new FlowPanel(){
 		contents += new Label("Node : " + nam)
 	}
@@ -94,11 +94,12 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, ctrl
 }
 
 class ElementEditPanel() extends BoxPanel(Orientation.Vertical) {
-	val controller = Service.getEltEditController
+	val controller = Service.eltEditCtrl
 
 	// val content = new BoxPanel(Orientation.Vertical) {
 		minimumSize = new Dimension(220, 250)
 		listenTo(controller)
+		listenTo(Service)
 		reactions += {
 			case OneVertexSelectedEvent(nam, typ, value) =>
 				contents.clear()

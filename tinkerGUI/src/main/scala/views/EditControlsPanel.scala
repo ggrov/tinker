@@ -6,7 +6,7 @@ import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.EditControlsController
 
 class EditControlsPanel() {
-	val controller = Service.getEditControlsController
+	val controller = Service.editControlsCtrl
 	val SelectButton = new ToggleButton() {
 		icon = new ImageIcon(MainGUI.getClass.getResource("select-rectangular.png"), "Select")
 		tooltip = "Select"
