@@ -1,6 +1,7 @@
 package tinkerGUI.views
 
 import scala.swing._
+import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.ElementEditController
 import tinkerGUI.controllers.OneVertexSelectedEvent
 import tinkerGUI.controllers.ManyVertexSelectedEvent
@@ -13,8 +14,10 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 	val orElseRadio = new RadioButton("OR ELSE")
 	val hierTypeRadioGroup = new ButtonGroup(orRadio, orElseRadio)
 	val delButton = new Button("Delete node")
+	val addSubButton = new Button("Add a sub-graph")
 	ctrl.addValueListener(nodeValue)
 	ctrl.addDeleteListener(delButton, nam)
+	ctrl.addNewSubListener(addSubButton, nam)
 	contents += new FlowPanel(){
 		contents += new Label("Node : " + nam)
 	}
@@ -36,6 +39,9 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 			contents += new FlowPanel(){
 				contents += orRadio
 				contents += orElseRadio
+			}
+			contents += new FlowPanel(){
+				contents += addSubButton
 			}
 	}
 	contents += new FlowPanel(){
@@ -88,7 +94,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, ctrl
 }
 
 class ElementEditPanel() extends BoxPanel(Orientation.Vertical) {
-	val controller = new ElementEditController()
+	val controller = Service.getEltEditController
 
 	// val content = new BoxPanel(Orientation.Vertical) {
 		minimumSize = new Dimension(220, 250)

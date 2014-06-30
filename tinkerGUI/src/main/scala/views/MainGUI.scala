@@ -1,11 +1,12 @@
 package tinkerGUI.views
 
 import scala.swing._
+import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.MainGUIController
 import tinkerGUI.controllers.DocumentTitleEvent
 
 object MainGUI extends SimpleSwingApplication {
-	val controller = new MainGUIController()
+	val controller = Service.getMainController
 
 	object FourthSplit extends SplitPane {
 		orientation = Orientation.Horizontal

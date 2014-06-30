@@ -30,6 +30,16 @@ class ElementEditController() extends Publisher {
 		}
 	}
 
+	def addNewSubListener(btn: Button, eltName: String){
+		listenTo(btn)
+		reactions += {
+			case ButtonClicked(b: Button) =>
+				if(b==btn){
+					
+				}
+		}
+	}
+
 	def addEdgeListener(e: String, src: TextField, tgt: TextField){
 		listenTo(src.keys)
 		listenTo(tgt.keys)

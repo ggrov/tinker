@@ -2,11 +2,11 @@ package tinkerGUI.views
 
 import scala.swing._
 import javax.swing.ImageIcon
-import tinkerGUI.controllers.GraphEditController
+import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.EditControlsController
 
-class EditControlsPanel(graphController: GraphEditController) {
-	val controller = new EditControlsController(graphController)
+class EditControlsPanel() {
+	val controller = Service.getEditControlsController
 	val SelectButton = new ToggleButton() {
 		icon = new ImageIcon(MainGUI.getClass.getResource("select-rectangular.png"), "Select")
 		tooltip = "Select"

@@ -7,7 +7,7 @@ import javax.swing.KeyStroke
 import java.awt.event.KeyEvent
 
 class TinkerMenu() extends MenuBar{
-	val controller = new TinkerMenuController()
+	val controller = Service.getMenuController
 	val CommandMask = java.awt.Toolkit.getDefaultToolkit.getMenuShortcutKeyMask
 
 	val FileMenu = new Menu("File") { menu =>

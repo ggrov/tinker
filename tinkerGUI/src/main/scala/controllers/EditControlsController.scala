@@ -3,9 +3,9 @@ package tinkerGUI.controllers
 import scala.swing._
 import scala.swing.event.ButtonClicked
 
-class EditControlsController(graphController : GraphEditController) extends Publisher {
+class EditControlsController() extends Publisher {
 	def changeMouseState(state: String) {
-		graphController.changeMouseState(state)
+		Service.changeGraphEditMouseState(state)
 	}
 	def addListener(group: ButtonGroup){
 		group.buttons.foreach(listenTo(_))

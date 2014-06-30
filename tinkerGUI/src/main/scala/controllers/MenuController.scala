@@ -2,7 +2,7 @@ package tinkerGUI.controllers
 
 import scala.swing._
 
-class TinkerMenuController() extends Publisher{
+class MenuController() extends Publisher{
 	def newAction = {
 		QuantoLibAPI.newDoc
 	}

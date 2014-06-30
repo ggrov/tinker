@@ -1,12 +1,13 @@
 package tinkerGUI.views
 
 import scala.swing._
+import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.GraphEditController
 
 class GraphEditPanel() extends BorderPanel {
-	val controller = new GraphEditController()
+	val controller = Service.getGraphEditController
 	val graphPanel = controller.getGraph
-	val editControls = new EditControlsPanel(controller)
+	val editControls = new EditControlsPanel()
 	val evalControls = new EvalControlsPanel()
 	add(new BoxPanel(Orientation.Vertical){
 		contents += editControls.MainToolBar
