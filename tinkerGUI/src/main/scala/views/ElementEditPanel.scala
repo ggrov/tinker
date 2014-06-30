@@ -95,27 +95,24 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, ctrl
 
 class ElementEditPanel() extends BoxPanel(Orientation.Vertical) {
 	val controller = Service.eltEditCtrl
-
-	// val content = new BoxPanel(Orientation.Vertical) {
-		minimumSize = new Dimension(220, 250)
-		listenTo(controller)
-		listenTo(Service)
-		reactions += {
-			case OneVertexSelectedEvent(nam, typ, value) =>
-				contents.clear()
-				contents += new VertexEditContent(nam, typ, value, controller)
-				revalidate()
-			case ManyVertexSelectedEvent(names) =>
-				contents.clear()
-				contents += new VerticesEditContent(names, controller)
-				revalidate()
-			case OneEdgeSelectedEvent(nam, value, src, tgt) =>
-				contents.clear()
-				contents += new EdgeEditContent(nam, value, src, tgt, controller)
-				revalidate()
-			case NothingSelectedEvent() =>
-				contents.clear()
-				repaint()
-		// }
+	minimumSize = new Dimension(220, 250)
+	listenTo(controller)
+	listenTo(Service)
+	reactions += {
+		case OneVertexSelectedEvent(nam, typ, value) =>
+			contents.clear()
+			contents += new VertexEditContent(nam, typ, value, controller)
+			revalidate()
+		case ManyVertexSelectedEvent(names) =>
+			contents.clear()
+			contents += new VerticesEditContent(names, controller)
+			revalidate()
+		case OneEdgeSelectedEvent(nam, value, src, tgt) =>
+			contents.clear()
+			contents += new EdgeEditContent(nam, value, src, tgt, controller)
+			revalidate()
+		case NothingSelectedEvent() =>
+			contents.clear()
+			repaint()
 	}
 }

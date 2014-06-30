@@ -10,7 +10,7 @@ object MainGUI extends SimpleSwingApplication {
 
 	object FourthSplit extends SplitPane {
 		orientation = Orientation.Horizontal
-		contents_=(new BorderPanel(), new ElementEditPanel())
+		contents_=(new SubGraphEditPanel(), new ElementEditPanel())
 	}
 
 	object ThirdSplit extends SplitPane {
