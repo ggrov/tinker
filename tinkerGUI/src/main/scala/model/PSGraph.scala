@@ -19,6 +19,21 @@ class PSGraph() {
 		println(jsonPSGraph)
 	}		
 
+	def newSubGraph(str: String){
+		if(str == currentGraph){
+			currentIndex += 1
+		}
+		else{
+			currentGraph = str
+			currentIndex = 0
+			currentArray = Array()
+		}
+	}
+
+	def changeCurrent(str: String){
+		// TODO : find the array of graph for one specified tactic
+	}
+
 	def saveSomeGraph(graph: Json) {
 		graph match {
 			case g: JsonObject =>
@@ -43,6 +58,15 @@ class PSGraph() {
 			case _ =>
 		}
 		updateJsonPSGraph
+	}
+
+	def getCurrentJson(): JsonObject = {
+		if(currentGraph == "main"){
+			return mainGraph
+		}
+		else {
+			return currentArray(currentIndex)
+		}
 	}
 
 	def loadJsonGraph(f: File) {

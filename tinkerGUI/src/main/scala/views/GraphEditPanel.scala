@@ -9,9 +9,14 @@ class GraphEditPanel() extends BorderPanel {
 	val controller = Service.graphEditCtrl
 	var graphPanel = controller.getGraph
 	val editControls = new EditControlsPanel()
-	val evalControls = new EvalControlsPanel()
-	add(new BoxPanel(Orientation.Vertical){
-		contents += editControls.MainToolBar
+	val graphBreadcrums = new GraphBreadcrums()
+	add(new BorderPanel(){
+		add(new BoxPanel(Orientation.Vertical){
+			contents += graphBreadcrums.breadcrums
+		}, BorderPanel.Position.North)
+		add(new BoxPanel(Orientation.Vertical){
+			contents += editControls.MainToolBar
+		}, BorderPanel.Position.South)
 	}, BorderPanel.Position.North)
 	add(graphPanel, BorderPanel.Position.Center)
 	preferredSize = new Dimension(800, 800)

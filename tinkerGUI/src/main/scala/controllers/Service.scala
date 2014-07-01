@@ -9,6 +9,7 @@ object Service extends Publisher {
 	val eltEditCtrl = new ElementEditController()
 	val menuCtrl = new MenuController()
 	val editControlsCtrl = new EditControlsController()
+	val graphBreadcrumsCtrl = new GraphBreadcrumsController()
 	val model = new PSGraph()
 
 	def changeGraphEditMouseState(state: String){
@@ -16,13 +17,16 @@ object Service extends Publisher {
 	}
 
 	def addSubgraph(eltName: String){
-		if (model.currentGraph == eltName){
-			model.currentIndex += 1
-		}
-		else {
-			model.currentGraph = eltName
-		}
+		model.newSubGraph(eltName)
 		QuantoLibAPI.newGraph()
+		graphBreadcrumsCtrl.addCrum(eltName)
+		publish(NothingSelectedEvent())
+	}
+
+	def changeViewedGraph(gr: String){
+		model.changeCurrent(gr)
+		// println(model.getCurrentJson)
+		// QuantoLibAPI.
 		publish(NothingSelectedEvent())
 	}
 
