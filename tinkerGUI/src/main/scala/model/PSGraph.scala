@@ -30,8 +30,30 @@ class PSGraph() {
 		}
 	}
 
-	def changeCurrent(str: String){
-		// TODO : find the array of graph for one specified tactic
+	def changeCurrent(str: String): Boolean = {
+		if(str == "main"){
+			currentGraph = str
+			currentIndex = 0
+			currentArray = Array()
+			return true
+		}
+		else {
+			graphTactics.foreach{ g =>
+				if(g.mapValue.get("name").get.stringValue == str){
+					currentGraph = str
+					currentIndex = 0
+					currentArray = Array()
+					g.mapValue.get("graphs").get.vectorValue.foreach { v =>
+						v match {
+							case g:JsonObject => currentArray = currentArray :+ g
+							case _ => 
+						}
+					}
+					return true
+				}
+			}
+		}
+		return false
 	}
 
 	def saveSomeGraph(graph: Json) {

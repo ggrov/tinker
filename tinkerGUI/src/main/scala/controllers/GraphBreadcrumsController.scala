@@ -7,8 +7,8 @@ class GraphBreadcrumsController() extends Publisher {
 		publish(AddCrumEvent(crum))
 	}
 
-	def changeGraph(gr: String){
-		Service.changeViewedGraph(gr)
+	def changeGraph(gr: String): Boolean = {
+		return Service.changeViewedGraph(gr)
 		// publish(DelCrumFromEvent(gr))
 	}
 }

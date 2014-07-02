@@ -33,7 +33,6 @@ class GraphBreadcrums() extends Publisher{
 			parent.foreground = new Color(0, 128, 255)
 			parents = parents :+ parent
 			current.text = s
-			println("adding crum")
 			updateContent()
 			parents.foreach { p =>
 				listenTo(p.mouse.moves, p.mouse.clicks)
@@ -44,11 +43,12 @@ class GraphBreadcrums() extends Publisher{
 						current.text = src.text
 						parents.foreach { p =>
 							if(p.text == src.text){
-								parents = parents.splitAt(parents.indexOf(p))._1
+								if(controller.changeGraph(src.text)) {
+									parents = parents.splitAt(parents.indexOf(p))._1
+								}
 							}
 						}
 						updateContent()
-						controller.changeGraph(src.text)
 				}
 			}
 		case DelCrumFromEvent(s) =>

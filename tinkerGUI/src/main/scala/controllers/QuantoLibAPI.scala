@@ -57,6 +57,18 @@ object QuantoLibAPI extends Publisher{
 	}
 
 	/**
+	  * Method to load a graph from a Json object
+	  * @param json, the json object
+	  */
+	def loadFromJson(json: JsonObject) {
+		document.clear()
+		val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
+		document.graph = layout.layout(Graph.fromJson(json, theory))
+		document.publish(GraphReplaced(document, clearSelection = true))
+		localUpdate()
+	}
+
+	/**
 	  * Method to get the name of the document
 	  * @return the name of the document
 	  */

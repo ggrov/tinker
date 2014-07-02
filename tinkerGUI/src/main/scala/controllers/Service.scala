@@ -23,11 +23,15 @@ object Service extends Publisher {
 		publish(NothingSelectedEvent())
 	}
 
-	def changeViewedGraph(gr: String){
-		model.changeCurrent(gr)
+	def changeViewedGraph(gr: String): Boolean = {
+		publish(NothingSelectedEvent())
+		if(model.changeCurrent(gr)){
+			QuantoLibAPI.loadFromJson(model.getCurrentJson())
+			return true
+		}
+		return false
 		// println(model.getCurrentJson)
 		// QuantoLibAPI.
-		publish(NothingSelectedEvent())
 	}
 
 	listenTo(QuantoLibAPI)
