@@ -91,6 +91,23 @@ class PSGraph() {
 		}
 	}
 
+	def getSpecificJson(str: String, index: Int): Option[JsonObject] = {
+		if(str == "main"){
+			return Some(mainGraph)
+		}
+		else {
+			graphTactics.foreach{ g =>
+				if(g.mapValue.get("name").get.stringValue == str){
+					g.mapValue.get("graphs").get.vectorValue(index) match {
+						case g:JsonObject => return Some(g)
+						case _ => 
+					}
+				}
+			}
+			return None
+		}
+	}
+
 	def loadJsonGraph(f: File) {
 		// load a saved file in our json object
 	}

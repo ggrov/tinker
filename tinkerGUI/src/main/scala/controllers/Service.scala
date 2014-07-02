@@ -10,6 +10,7 @@ object Service extends Publisher {
 	val menuCtrl = new MenuController()
 	val editControlsCtrl = new EditControlsController()
 	val graphBreadcrumsCtrl = new GraphBreadcrumsController()
+	val subGraphEditCtrl = new SubGraphEditController()
 	val model = new PSGraph()
 
 	def changeGraphEditMouseState(state: String){
@@ -33,6 +34,8 @@ object Service extends Publisher {
 		// println(model.getCurrentJson)
 		// QuantoLibAPI.
 	}
+
+	def getSpecificJsonFromModel(name: String, index: Int) = model.getSpecificJson(name, index)
 
 	listenTo(QuantoLibAPI)
 	reactions += {

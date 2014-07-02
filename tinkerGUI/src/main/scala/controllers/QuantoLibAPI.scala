@@ -75,6 +75,23 @@ object QuantoLibAPI extends Publisher{
 	def getTitle = graphPanel.graphDoc.titleDescription
 
 	/**
+	  * Method to get a panel display a preview of a graph
+	  * @param json, hte json representation of the graph
+	  */
+	def getPreviewFromJson(json: Option[JsonObject]): BorderPanel = {
+		val graphPreview = new BorderPanel {
+			val graphPreviewDoc = new GraphDocument(this, theory)
+			val graphPreviewView = new GraphView(theory, graphPreviewDoc)
+			val graphPreviewScrollPane = new ScrollPane(graphPreviewView)
+			add(graphPreviewScrollPane, BorderPanel.Position.Center)
+		}
+		val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
+		graphPreview.graphPreviewDoc.graph = layout.layout(Graph.fromJson(json, theory))
+		graphPreview.graphPreviewDoc.publish(GraphReplaced(graphPreview.graphPreviewDoc, clearSelection = true))
+		return graphPreview
+	}
+
+	/**
 	  * Private method to update the local variables
 	  */
 	private def localUpdate() {
