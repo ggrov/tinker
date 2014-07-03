@@ -27,3 +27,4 @@ case class NewGraphEvent() extends Event
 case class AddCrumEvent(crum: String) extends Event
 case class DelCrumFromEvent(crum: String) extends Event
 case class ShowPreviewEvent(panel: BorderPanel) extends Event
+case class HidePreviewEvent() extends Event

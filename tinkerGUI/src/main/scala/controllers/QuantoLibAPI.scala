@@ -76,10 +76,11 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Method to get a panel display a preview of a graph
-	  * @param json, hte json representation of the graph
+	  * @param json, the json representation of the graph
 	  */
-	def getPreviewFromJson(json: Option[JsonObject]): BorderPanel = {
+	def getPreviewFromJson(json: JsonObject): BorderPanel = {
 		val graphPreview = new BorderPanel {
+			preferredSize = new Dimension (250,300)
 			val graphPreviewDoc = new GraphDocument(this, theory)
 			val graphPreviewView = new GraphView(theory, graphPreviewDoc)
 			val graphPreviewScrollPane = new ScrollPane(graphPreviewView)
