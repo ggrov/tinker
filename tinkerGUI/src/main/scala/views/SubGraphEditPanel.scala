@@ -6,17 +6,37 @@ import tinkerGUI.controllers.SubGraphEditController
 import tinkerGUI.controllers.ShowPreviewEvent
 import tinkerGUI.controllers.HidePreviewEvent
 
-class SubGraphEditPanel() extends FlowPanel {
+class SubGraphEditPanel() extends BorderPanel {
 	minimumSize = new Dimension(250, 350)
 	val controller = Service.subGraphEditCtrl
+
+	val nextAction = new Action("Next") {
+		def apply() {
+			controller.showNext()
+		}
+	}
+	val prevAction = new Action("Prev") {
+		def apply() {
+			controller.showPrev()
+		}
+	}
+
+	val navPanel = new FlowPanel{
+		contents += new Button(prevAction)
+		contents += new Button(nextAction)
+	}
+
+	val subgraphPanel = controller.getSubgraphView
+
 	listenTo(controller)
 	reactions += {
-		case ShowPreviewEvent(panel: BorderPanel) =>
-			contents.clear()
-			contents += panel
+		case ShowPreviewEvent() =>
+			_contents.clear()
+			add(navPanel, BorderPanel.Position.North)
+			add(subgraphPanel, BorderPanel.Position.Center)
 			this.repaint()
 		case HidePreviewEvent() =>
-			contents.clear()
+			_contents.clear()
 			this.repaint()
 	}
 }

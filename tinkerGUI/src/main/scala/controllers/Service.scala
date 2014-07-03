@@ -36,6 +36,7 @@ object Service extends Publisher {
 	}
 
 	def getSpecificJsonFromModel(name: String, index: Int) = model.getSpecificJson(name, index)
+	def getSizeOfTactic(name: String) = model.getSizeOfTactic(name)
 
 	listenTo(QuantoLibAPI)
 	reactions += {

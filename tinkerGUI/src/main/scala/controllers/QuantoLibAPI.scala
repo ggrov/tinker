@@ -73,23 +73,33 @@ object QuantoLibAPI extends Publisher{
 	  * @return the name of the document
 	  */
 	def getTitle = graphPanel.graphDoc.titleDescription
+		
+	/**
+	  * private value representing the preview of a graph from a tactic
+	  */
+	private val subgraphPreview = new BorderPanel {
+		preferredSize = new Dimension (250,300)
+		val subgraphPreviewDoc = new GraphDocument(this, theory)
+		val subgraphPreviewView = new GraphView(theory, subgraphPreviewDoc)
+		val subgraphPreviewScrollPane = new ScrollPane(subgraphPreviewView)
+		add(subgraphPreviewScrollPane, BorderPanel.Position.Center)
+	}
 
 	/**
-	  * Method to get a panel display a preview of a graph
+	  * Method to get the subgraph preview
+	  * @return the subgraph preview
+	  */
+	def getSubgraphPreview = subgraphPreview
+
+	/**
+	  * Method to update the subgraphPreview with a json
 	  * @param json, the json representation of the graph
 	  */
-	def getPreviewFromJson(json: JsonObject): BorderPanel = {
-		val graphPreview = new BorderPanel {
-			preferredSize = new Dimension (250,300)
-			val graphPreviewDoc = new GraphDocument(this, theory)
-			val graphPreviewView = new GraphView(theory, graphPreviewDoc)
-			val graphPreviewScrollPane = new ScrollPane(graphPreviewView)
-			add(graphPreviewScrollPane, BorderPanel.Position.Center)
-		}
+	def updatePreviewFromJson(json: JsonObject) {
+		subgraphPreview.subgraphPreviewDoc.clear()
 		val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
-		graphPreview.graphPreviewDoc.graph = layout.layout(Graph.fromJson(json, theory))
-		graphPreview.graphPreviewDoc.publish(GraphReplaced(graphPreview.graphPreviewDoc, clearSelection = true))
-		return graphPreview
+		subgraphPreview.subgraphPreviewDoc.graph = layout.layout(Graph.fromJson(json, theory))
+		subgraphPreview.subgraphPreviewDoc.publish(GraphReplaced(subgraphPreview.subgraphPreviewDoc, clearSelection = true))
 	}
 
 	/**

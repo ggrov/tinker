@@ -19,14 +19,33 @@ class PSGraph() {
 		println(jsonPSGraph)
 	}		
 
+	def lookForTactic(name: String): Option[JsonObject] = {
+		graphTactics.foreach{ g =>
+			if(g.mapValue.get("name").get.stringValue == name) return Some(g)
+		}
+		return None
+	}
+
 	def newSubGraph(str: String){
 		if(str == currentGraph){
 			currentIndex += 1
 		}
 		else{
 			currentGraph = str
-			currentIndex = 0
-			currentArray = Array()
+			lookForTactic(str) match {
+				case Some(t:JsonObject) =>
+					currentArray = Array()
+					t.mapValue.get("graphs").get.vectorValue.foreach { v =>
+						v match {
+							case g:JsonObject => currentArray = currentArray :+ g
+							case _ => 
+						}
+					}
+					currentIndex = currentArray.size
+				case None =>
+					currentIndex = 0
+					currentArray = Array()
+			}
 		}
 	}
 
@@ -38,22 +57,21 @@ class PSGraph() {
 			return true
 		}
 		else {
-			graphTactics.foreach{ g =>
-				if(g.mapValue.get("name").get.stringValue == str){
+			lookForTactic(str) match {
+				case Some(t: JsonObject) =>
 					currentGraph = str
 					currentIndex = 0
 					currentArray = Array()
-					g.mapValue.get("graphs").get.vectorValue.foreach { v =>
+					t.mapValue.get("graphs").get.vectorValue.foreach { v =>
 						v match {
 							case g:JsonObject => currentArray = currentArray :+ g
 							case _ => 
 						}
 					}
 					return true
-				}
+				case None => return false
 			}
 		}
-		return false
 	}
 
 	def saveSomeGraph(graph: Json) {
@@ -91,20 +109,29 @@ class PSGraph() {
 		}
 	}
 
-	def getSpecificJson(str: String, index: Int): Option[JsonObject] = {
-		if(str == "main"){
+	def getSizeOfTactic(name: String): Int = {
+		if(name == "main") 1
+		else {
+			lookForTactic(name) match {
+				case Some(t: JsonObject) =>  t.mapValue.get("graphs").get.vectorValue.size
+				case None => -1
+			}
+		}
+	}
+
+	def getSpecificJson(name: String, index: Int): Option[JsonObject] = {
+		if(name == "main"){
 			return Some(mainGraph)
 		}
 		else {
-			graphTactics.foreach{ g =>
-				if(g.mapValue.get("name").get.stringValue == str){
-					g.mapValue.get("graphs").get.vectorValue(index) match {
+			lookForTactic(name) match {
+				case Some(t: JsonObject) =>
+					t.mapValue.get("graphs").get.vectorValue(index) match {
 						case g:JsonObject => return Some(g)
-						case _ => 
+						case _ => return None // in case it is JsonArray, JsonBool, JsonDouble, JsonInt, JsonNull, JsonString
 					}
-				}
+				case None => return None
 			}
-			return None
 		}
 	}
 
