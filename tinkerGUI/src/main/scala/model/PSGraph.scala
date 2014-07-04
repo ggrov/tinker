@@ -4,70 +4,64 @@ import quanto.util.json._
 import java.io.{FileNotFoundException, IOException, File}
 
 class PSGraph() {
-	var currentGraph = "main"
+	var isMain = true
+	var currentGraph: GraphTactic = new GraphTactic("", true)
 	var currentIndex = 0
-	var currentArray: Array[JsonObject] = Array()
 	var atomicTactics: Array[JsonObject] = Array((JsonObject("name" -> "simp", "tactic" -> "simplify")),(JsonObject("name" -> "imp", "tactic" -> "imply")))
-	var graphTactics: Array[JsonObject] = Array()
+	var graphTactics: Array[GraphTactic] = Array()
 	var mainGraph: JsonObject = JsonObject()
 
 	var jsonPSGraph: JsonObject = JsonObject()
 	var file: Option[File] = None
 
 	def updateJsonPSGraph {
-		jsonPSGraph = JsonObject("current" -> currentGraph, "current_index" -> currentIndex, "graph" -> mainGraph, "graph_tactics" -> JsonArray(graphTactics), "atomic_tactics" -> JsonArray(atomicTactics))
+		var current = ""
+		var graphTacticsJson: Array[JsonObject] = Array()
+		if(isMain) {current = "main"}
+		else {current = currentGraph.name}
+		graphTactics.foreach{ t =>
+			graphTacticsJson = graphTacticsJson :+ t.toJson
+		}
+		jsonPSGraph = JsonObject("current" -> current, "current_index" -> currentIndex, "graph" -> mainGraph, "graph_tactics" -> JsonArray(graphTacticsJson), "atomic_tactics" -> JsonArray(atomicTactics))
 		println(jsonPSGraph)
-	}		
+	}
 
-	def lookForTactic(name: String): Option[JsonObject] = {
-		graphTactics.foreach{ g =>
-			if(g.mapValue.get("name").get.stringValue == name) return Some(g)
+	def lookForTactic(n: String): Option[GraphTactic] = {
+		graphTactics.foreach{ t =>
+			if(t.name == n) return Some(t)
 		}
 		return None
 	}
 
 	def newSubGraph(str: String){
-		if(str == currentGraph){
-			currentIndex += 1
+		isMain = false
+		if(str == currentGraph.name){
+			currentIndex += currentGraph.getSize
 		}
 		else{
-			currentGraph = str
 			lookForTactic(str) match {
-				case Some(t:JsonObject) =>
-					currentArray = Array()
-					t.mapValue.get("graphs").get.vectorValue.foreach { v =>
-						v match {
-							case g:JsonObject => currentArray = currentArray :+ g
-							case _ => 
-						}
-					}
-					currentIndex = currentArray.size
+				case Some(t:GraphTactic) =>
+					currentGraph = t
+					currentIndex = t.getSize
 				case None =>
+					currentGraph = new GraphTactic(str, true)
 					currentIndex = 0
-					currentArray = Array()
+					graphTactics = graphTactics :+ currentGraph
 			}
 		}
 	}
 
 	def changeCurrent(str: String): Boolean = {
 		if(str == "main"){
-			currentGraph = str
+			isMain = true
 			currentIndex = 0
-			currentArray = Array()
 			return true
 		}
 		else {
 			lookForTactic(str) match {
-				case Some(t: JsonObject) =>
-					currentGraph = str
+				case Some(t: GraphTactic) =>
+					currentGraph = t
 					currentIndex = 0
-					currentArray = Array()
-					t.mapValue.get("graphs").get.vectorValue.foreach { v =>
-						v match {
-							case g:JsonObject => currentArray = currentArray :+ g
-							case _ => 
-						}
-					}
 					return true
 				case None => return false
 			}
@@ -77,23 +71,11 @@ class PSGraph() {
 	def saveSomeGraph(graph: Json) {
 		graph match {
 			case g: JsonObject =>
-				if(currentGraph == "main"){
+				if(isMain){
 					mainGraph = g
 				}
 				else {
-					val tacticIndex = graphTactics.indexOf(JsonObject("name" -> currentGraph, "graphs" -> JsonArray(currentArray)))
-					if(currentArray.isDefinedAt(currentIndex)){
-						currentArray(currentIndex) = g
-					}
-					else{
-						currentArray = currentArray :+ g
-					}
-					if(tacticIndex == -1){
-						graphTactics = graphTactics :+ JsonObject("name" -> currentGraph, "graphs"-> JsonArray(currentArray))
-					}
-					else {
-						graphTactics(tacticIndex) = JsonObject("name" -> currentGraph, "graphs"-> JsonArray(currentArray))
-					}
+					currentGraph.addJsonToGraphs(g, currentIndex)
 				}
 			case _ =>
 		}
@@ -101,11 +83,11 @@ class PSGraph() {
 	}
 
 	def getCurrentJson(): JsonObject = {
-		if(currentGraph == "main"){
+		if(isMain){
 			return mainGraph
 		}
 		else {
-			return currentArray(currentIndex)
+			return currentGraph.getGraphJson(currentIndex)
 		}
 	}
 
@@ -113,7 +95,7 @@ class PSGraph() {
 		if(name == "main") 1
 		else {
 			lookForTactic(name) match {
-				case Some(t: JsonObject) =>  t.mapValue.get("graphs").get.vectorValue.size
+				case Some(t: GraphTactic) => t.getSize
 				case None => -1
 			}
 		}
@@ -125,11 +107,11 @@ class PSGraph() {
 		}
 		else {
 			lookForTactic(name) match {
-				case Some(t: JsonObject) =>
-					t.mapValue.get("graphs").get.vectorValue(index) match {
-						case g:JsonObject => return Some(g)
-						case _ => return None // in case it is JsonArray, JsonBool, JsonDouble, JsonInt, JsonNull, JsonString
-					}
+				case Some(t: GraphTactic) => Some(t.getGraphJson(index))
+					// t.getGraphJson(index) match {
+					// 	case g:JsonObject => return Some(g)
+					// 	case _ => return None // in case it is JsonArray, JsonBool, JsonDouble, JsonInt, JsonNull, JsonString
+					// }
 				case None => return None
 			}
 		}
