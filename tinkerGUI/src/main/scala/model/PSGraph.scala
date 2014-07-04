@@ -7,7 +7,7 @@ class PSGraph() {
 	var isMain = true
 	var currentGraph: GraphTactic = new GraphTactic("", true)
 	var currentIndex = 0
-	var atomicTactics: Array[JsonObject] = Array((JsonObject("name" -> "simp", "tactic" -> "simplify")),(JsonObject("name" -> "imp", "tactic" -> "imply")))
+	var atomicTactics: Array[AtomicTactic] = Array(new AtomicTactic("simp", "simplify"))
 	var graphTactics: Array[GraphTactic] = Array()
 	var mainGraph: JsonObject = JsonObject()
 
@@ -17,12 +17,16 @@ class PSGraph() {
 	def updateJsonPSGraph {
 		var current = ""
 		var graphTacticsJson: Array[JsonObject] = Array()
+		var atomicTacticsJson: Array[JsonObject] = Array()
 		if(isMain) {current = "main"}
 		else {current = currentGraph.name}
 		graphTactics.foreach{ t =>
 			graphTacticsJson = graphTacticsJson :+ t.toJson
 		}
-		jsonPSGraph = JsonObject("current" -> current, "current_index" -> currentIndex, "graph" -> mainGraph, "graph_tactics" -> JsonArray(graphTacticsJson), "atomic_tactics" -> JsonArray(atomicTactics))
+		atomicTactics.foreach{ t =>
+			atomicTacticsJson = atomicTacticsJson :+ t.toJson
+		}
+		jsonPSGraph = JsonObject("current" -> current, "current_index" -> currentIndex, "graph" -> mainGraph, "graph_tactics" -> JsonArray(graphTacticsJson), "atomic_tactics" -> JsonArray(atomicTacticsJson))
 		println(jsonPSGraph)
 	}
 

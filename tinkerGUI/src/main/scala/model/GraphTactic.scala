@@ -23,6 +23,6 @@ class GraphTactic(var name: String, var isOr: Boolean) extends HasArguments {
 	}
 
 	def toJson : JsonObject = {
-		return JsonObject("name" -> name, "isOr" -> isOr, "graphs" -> JsonArray(graphs))
+		return JsonObject("name" -> name, "isOr" -> isOr, "graphs" -> JsonArray(graphs), "args" -> argumentsToJson)
 	}
 }
