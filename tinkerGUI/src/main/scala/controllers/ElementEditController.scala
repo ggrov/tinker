@@ -31,16 +31,19 @@ class ElementEditController() extends Publisher {
 		}
 	}
 
-	def addNewSubListener(btn: Button, eltName: String){
+	def addNewSubListener(btn: Button, eltName: String, or: RadioButton){
 		if(prevText == "") prevText = eltName
 		listenTo(btn)
 		reactions += {
 			case ButtonClicked(b: Button) =>
 				if(b==btn){
-					Service.addSubgraph(prevText)
+					Service.addSubgraph(prevText, or.selected)
 				}
 		}
 	}
+
+	def setIsNestedOr(eltName: String, isOr: Boolean) = Service.setIsOr(eltName, isOr)
+	def getIsNestedOr(eltName: String) = Service.isNestedOr(eltName)
 
 	def addEdgeListener(e: String, src: TextField, tgt: TextField){
 		listenTo(src.keys)

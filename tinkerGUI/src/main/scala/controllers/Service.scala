@@ -17,8 +17,8 @@ object Service extends Publisher {
 		graphEditCtrl.changeMouseState(state)
 	}
 
-	def addSubgraph(eltName: String){
-		model.newSubGraph(eltName)
+	def addSubgraph(eltName: String, isOr: Boolean){
+		model.newSubGraph(eltName, isOr)
 		QuantoLibAPI.newGraph()
 		graphBreadcrumsCtrl.addCrum(eltName)
 		publish(NothingSelectedEvent())
@@ -31,12 +31,12 @@ object Service extends Publisher {
 			return true
 		}
 		return false
-		// println(model.getCurrentJson)
-		// QuantoLibAPI.
 	}
 
 	def getSpecificJsonFromModel(name: String, index: Int) = model.getSpecificJson(name, index)
 	def getSizeOfTactic(name: String) = model.getSizeOfTactic(name)
+	def setIsOr(name: String, isOr: Boolean) = model.graphTacticSetIsOr(name, isOr)
+	def isNestedOr(name: String) = model.isGraphTacticOr(name)
 
 	listenTo(QuantoLibAPI)
 	reactions += {

@@ -33,7 +33,7 @@ class PSGraph() {
 		return None
 	}
 
-	def newSubGraph(str: String){
+	def newSubGraph(str: String, isOr: Boolean){
 		isMain = false
 		if(str == currentGraph.name){
 			currentIndex += currentGraph.getSize
@@ -44,7 +44,7 @@ class PSGraph() {
 					currentGraph = t
 					currentIndex = t.getSize
 				case None =>
-					currentGraph = new GraphTactic(str, true)
+					currentGraph = new GraphTactic(str, isOr)
 					currentIndex = 0
 					graphTactics = graphTactics :+ currentGraph
 			}
@@ -114,6 +114,20 @@ class PSGraph() {
 					// }
 				case None => return None
 			}
+		}
+	}
+
+	def graphTacticSetIsOr(name: String, isOr: Boolean){
+		lookForTactic(name) match {
+			case Some(t: GraphTactic) => t.isOr = isOr
+			case None =>
+		}
+	}
+
+	def isGraphTacticOr(name: String): Boolean = {
+		lookForTactic(name) match {
+			case Some(t:GraphTactic) => t.isOr
+			case None => true
 		}
 	}
 

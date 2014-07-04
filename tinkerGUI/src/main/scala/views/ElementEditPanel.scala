@@ -1,6 +1,7 @@
 package tinkerGUI.views
 
 import scala.swing._
+import scala.swing.event.ButtonClicked
 import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.ElementEditController
 import tinkerGUI.controllers.OneVertexSelectedEvent
@@ -10,14 +11,20 @@ import tinkerGUI.controllers.NothingSelectedEvent
 
 class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEditController) extends FlowPanel {
 	val nodeValue = new TextField(value,10)
-	val orRadio = new RadioButton("OR") {selected = true}
-	val orElseRadio = new RadioButton("OR ELSE")
+	val orRadio = new RadioButton("OR") {selected = ctrl.getIsNestedOr(value)}
+	val orElseRadio = new RadioButton("OR ELSE") {selected = !ctrl.getIsNestedOr(value)}
 	val hierTypeRadioGroup = new ButtonGroup(orRadio, orElseRadio)
+	hierTypeRadioGroup.buttons.foreach(listenTo(_))
+	reactions += {
+		case ButtonClicked(b: RadioButton) =>
+			if (b == orRadio){ctrl.setIsNestedOr(nodeValue.text, true)}
+			else if (b == orElseRadio){ctrl.setIsNestedOr(nodeValue.text, false)}
+	}
 	val delButton = new Button("Delete node")
 	val addSubButton = new Button("Add a sub-graph")
 	ctrl.addValueListener(nodeValue)
 	ctrl.addDeleteListener(delButton, nam)
-	ctrl.addNewSubListener(addSubButton, nodeValue.text)
+	ctrl.addNewSubListener(addSubButton, nodeValue.text, orRadio)
 	contents += new FlowPanel(){
 		contents += new Label("Node : " + nam)
 	}
