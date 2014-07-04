@@ -55,7 +55,7 @@ class PSGraph() {
 		}
 	}
 
-	def changeCurrent(str: String): Boolean = {
+	def changeCurrent(str: String, index: Int): Boolean = {
 		if(str == "main"){
 			isMain = true
 			currentIndex = 0
@@ -64,8 +64,9 @@ class PSGraph() {
 		else {
 			lookForTactic(str) match {
 				case Some(t: GraphTactic) =>
+					isMain = false
 					currentGraph = t
-					currentIndex = 0
+					currentIndex = index
 					return true
 				case None => return false
 			}
@@ -112,10 +113,6 @@ class PSGraph() {
 		else {
 			lookForTactic(name) match {
 				case Some(t: GraphTactic) => Some(t.getGraphJson(index))
-					// t.getGraphJson(index) match {
-					// 	case g:JsonObject => return Some(g)
-					// 	case _ => return None // in case it is JsonArray, JsonBool, JsonDouble, JsonInt, JsonNull, JsonString
-					// }
 				case None => return None
 			}
 		}

@@ -20,10 +20,16 @@ class SubGraphEditPanel() extends BorderPanel {
 			controller.showPrev()
 		}
 	}
+	val editAction = new Action("Edit") {
+		def apply() {
+			controller.edit()
+		}
+	}
 
 	val navPanel = new FlowPanel{
 		contents += new Button(prevAction)
 		contents += new Button(nextAction)
+		contents += new Button(editAction)
 	}
 
 	val subgraphPanel = controller.getSubgraphView

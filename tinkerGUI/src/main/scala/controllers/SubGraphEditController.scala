@@ -37,6 +37,10 @@ class SubGraphEditController() extends Publisher {
 		}
 	}
 
+	def edit() {
+		Service.editSubGraph(tacticToShow, indexToShow)
+	}
+
 	listenTo(QuantoLibAPI)
 	listenTo(Service)
 	reactions += {

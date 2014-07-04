@@ -2,6 +2,7 @@ package tinkerGUI.controllers
 
 import scala.swing._
 import tinkerGUI.model.PSGraph
+import quanto.util.json._
 
 object Service extends Publisher {
 	val mainCtrl = new MainGUIController()
@@ -26,7 +27,7 @@ object Service extends Publisher {
 
 	def changeViewedGraph(gr: String): Boolean = {
 		publish(NothingSelectedEvent())
-		if(model.changeCurrent(gr)){
+		if(model.changeCurrent(gr, 0)){
 			QuantoLibAPI.loadFromJson(model.getCurrentJson())
 			return true
 		}
@@ -37,6 +38,17 @@ object Service extends Publisher {
 	def getSizeOfTactic(name: String) = model.getSizeOfTactic(name)
 	def setIsOr(name: String, isOr: Boolean) = model.graphTacticSetIsOr(name, isOr)
 	def isNestedOr(name: String) = model.isGraphTacticOr(name)
+
+	def editSubGraph(name: String, index: Int){
+		if(model.changeCurrent(name, index)){
+			publish(NothingSelectedEvent())
+			getSpecificJsonFromModel(name, index) match {
+				case Some(j: JsonObject) => QuantoLibAPI.loadFromJson(j)
+				case None =>
+			}
+			graphBreadcrumsCtrl.addCrum(name)
+		}
+	}
 
 	listenTo(QuantoLibAPI)
 	reactions += {
