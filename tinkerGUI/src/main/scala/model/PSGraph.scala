@@ -55,6 +55,14 @@ class PSGraph() {
 		}
 	}
 
+	def delSubGraph(str: String, index: Int) {
+		lookForTactic(str) match {
+			case Some(t:GraphTactic) =>
+				t.delGraph(index)
+			case None =>
+		}
+	}
+
 	def changeCurrent(str: String, index: Int): Boolean = {
 		if(str == "main"){
 			isMain = true

@@ -25,6 +25,10 @@ object Service extends Publisher {
 		publish(NothingSelectedEvent())
 	}
 
+	def deleteSubGraph(eltName: String, index: Int){
+		model.delSubGraph(eltName, index)
+	}
+
 	def changeViewedGraph(gr: String): Boolean = {
 		publish(NothingSelectedEvent())
 		if(model.changeCurrent(gr, 0)){
