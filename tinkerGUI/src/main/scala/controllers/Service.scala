@@ -59,4 +59,18 @@ object Service extends Publisher {
 		case GraphEventAPI(graph) =>
 			model.saveSomeGraph(graph)
 	}
+
+	def checkNodeName(n: String, sufix: Int): String = {
+		var name = n
+		if(sufix != 0) name = (n+"-"+sufix)
+		model.lookForTactic(name) match {
+			case None =>
+				println("found no existing name for " + name)
+				name
+			case Some(t:Any) => 
+				println("found existing name for " + name)
+				println("look for new one : " + n + "-" + (sufix+1))
+				checkNodeName(n, (sufix+1))
+		}
+	}
 }

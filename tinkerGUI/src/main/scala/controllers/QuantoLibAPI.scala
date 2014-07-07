@@ -615,6 +615,14 @@ object QuantoLibAPI extends Publisher{
 		val vertexData = NodeV(data = theory.vertexTypes(typ).defaultData, theory = theory).withCoord(coord)
 		val vertexName = graph.verts.freshWithSuggestion(VName("v0"))
 		addVertex(vertexName, vertexData.withCoord(coord))
+		if(typ == "RT_NST") {
+			graph.vdata(vertexName) match {
+				case data: NodeV =>
+					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.checkNodeName(data.label, 0)) })
+					view.invalidateVertex(vertexName)
+					graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
+			}
+		}
 	}
 
 	/**
