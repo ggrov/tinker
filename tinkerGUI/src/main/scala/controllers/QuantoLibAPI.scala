@@ -618,7 +618,7 @@ object QuantoLibAPI extends Publisher{
 		if(typ == "RT_NST") {
 			graph.vdata(vertexName) match {
 				case data: NodeV =>
-					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.checkNodeName(data.label, 0)) })
+					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true)) })
 					view.invalidateVertex(vertexName)
 					graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
 			}

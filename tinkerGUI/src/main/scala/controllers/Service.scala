@@ -32,8 +32,12 @@ object Service extends Publisher {
 	def changeViewedGraph(gr: String): Boolean = {
 		publish(NothingSelectedEvent())
 		if(model.changeCurrent(gr, 0)){
-			QuantoLibAPI.loadFromJson(model.getCurrentJson())
-			return true
+			model.getCurrentJson() match {
+				case Some(j: JsonObject) => 
+					QuantoLibAPI.loadFromJson(j)
+					return true
+				case None => return false
+			}
 		}
 		return false
 	}
@@ -60,17 +64,20 @@ object Service extends Publisher {
 			model.saveSomeGraph(graph)
 	}
 
-	def checkNodeName(n: String, sufix: Int): String = {
+	def checkNodeName(n: String, sufix: Int, create: Boolean): String = {
 		var name = n
 		if(sufix != 0) name = (n+"-"+sufix)
 		model.lookForTactic(name) match {
 			case None =>
 				println("found no existing name for " + name)
+				if(create) model.createGraphTactic(name, true)
 				name
 			case Some(t:Any) => 
 				println("found existing name for " + name)
 				println("look for new one : " + n + "-" + (sufix+1))
-				checkNodeName(n, (sufix+1))
+				checkNodeName(n, (sufix+1), create)
 		}
 	}
+
+	def updateTacticName(oldVal: String, newVal: String) = model.updateTacticName(oldVal, newVal)
 }

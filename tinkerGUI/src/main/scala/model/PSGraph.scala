@@ -95,13 +95,9 @@ class PSGraph() {
 		updateJsonPSGraph
 	}
 
-	def getCurrentJson(): JsonObject = {
-		if(isMain){
-			return mainGraph
-		}
-		else {
-			return currentGraph.getGraphJson(currentIndex)
-		}
+	def getCurrentJson(): Option[JsonObject] = {
+		if(isMain) Some(mainGraph)
+		else currentGraph.getGraphJson(currentIndex)
 	}
 
 	def getSizeOfTactic(name: String): Int = {
@@ -120,7 +116,7 @@ class PSGraph() {
 		}
 		else {
 			lookForTactic(name) match {
-				case Some(t: GraphTactic) => Some(t.getGraphJson(index))
+				case Some(t: GraphTactic) => t.getGraphJson(index)
 				case None => return None
 			}
 		}
@@ -138,6 +134,17 @@ class PSGraph() {
 			case Some(t:GraphTactic) => t.isOr
 			case None => true
 		}
+	}
+
+	def updateTacticName(oldVal: String, newVal: String) {
+		lookForTactic(oldVal) match {
+			case Some(t: GraphTactic) => t.name = newVal
+			case None =>
+		}
+	}
+
+	def createGraphTactic(name: String, isOr: Boolean){
+		graphTactics = graphTactics :+ new GraphTactic(name, isOr)
 	}
 
 	def loadJsonGraph(f: File) {

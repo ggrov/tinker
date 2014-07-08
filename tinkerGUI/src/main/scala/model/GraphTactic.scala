@@ -19,8 +19,9 @@ class GraphTactic(var name: String, var isOr: Boolean) extends HasArguments {
 		graphs = graphs - graphs(index)
 	}
 
-	def getGraphJson(index: Int): JsonObject = {
-		return graphs(index)
+	def getGraphJson(index: Int): Option[JsonObject] = {
+		if (graphs.isDefinedAt(index)) Some(graphs(index))
+		else None
 	}
 
 	def getSize: Int = {

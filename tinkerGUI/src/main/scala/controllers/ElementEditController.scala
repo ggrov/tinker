@@ -13,7 +13,8 @@ class ElementEditController() extends Publisher {
 		listenTo(elt.keys)
 		reactions += {
 			case KeyReleased(_, key, _, _) =>
-				if(prevText != elt.text){
+				if(elt.text != "" && prevText != elt.text && elt.text == Service.checkNodeName(elt.text, 0, false)){
+					Service.updateTacticName(prevText, elt.text)
 					QuantoLibAPI.editSelectedElementValue(elt.text)
 					prevText = elt.text
 				}
