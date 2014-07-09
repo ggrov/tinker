@@ -5,6 +5,7 @@ import tinkerGUI.model.PSGraph
 import quanto.util.json._
 
 object Service extends Publisher {
+	val model = new PSGraph()
 	val mainCtrl = new MainGUIController()
 	val graphEditCtrl = new GraphEditController()
 	val eltEditCtrl = new ElementEditController()
@@ -12,7 +13,7 @@ object Service extends Publisher {
 	val editControlsCtrl = new EditControlsController()
 	val graphBreadcrumsCtrl = new GraphBreadcrumsController()
 	val subGraphEditCtrl = new SubGraphEditController()
-	val model = new PSGraph()
+	val graphNavCtrl = new GraphNavigationController()
 
 	def changeGraphEditMouseState(state: String){
 		graphEditCtrl.changeMouseState(state)
@@ -21,6 +22,7 @@ object Service extends Publisher {
 	def addSubgraph(eltName: String, isOr: Boolean){
 		model.newSubGraph(eltName, isOr)
 		QuantoLibAPI.newGraph()
+		graphNavCtrl.viewedGraphChanged(model.isMain, true)
 		graphBreadcrumsCtrl.addCrum(eltName)
 		publish(NothingSelectedEvent())
 	}
@@ -35,6 +37,7 @@ object Service extends Publisher {
 			model.getCurrentJson() match {
 				case Some(j: JsonObject) => 
 					QuantoLibAPI.loadFromJson(j)
+					graphNavCtrl.viewedGraphChanged(model.isMain, false)
 					return true
 				case None => return false
 			}
@@ -47,11 +50,17 @@ object Service extends Publisher {
 	def setIsOr(name: String, isOr: Boolean) = model.graphTacticSetIsOr(name, isOr)
 	def isNestedOr(name: String) = model.isGraphTacticOr(name)
 
+	def getCurrentIndex = model.currentIndex
+	def getCurrentSize = model.currentGraph.graphs.size
+	def getCurrent = model.currentGraph.name
+
 	def editSubGraph(name: String, index: Int){
 		if(model.changeCurrent(name, index)){
 			publish(NothingSelectedEvent())
 			getSpecificJsonFromModel(name, index) match {
-				case Some(j: JsonObject) => QuantoLibAPI.loadFromJson(j)
+				case Some(j: JsonObject) =>
+					QuantoLibAPI.loadFromJson(j)
+					graphNavCtrl.viewedGraphChanged(model.isMain, false)
 				case None =>
 			}
 			graphBreadcrumsCtrl.addCrum(name)
@@ -62,6 +71,7 @@ object Service extends Publisher {
 	reactions += {
 		case GraphEventAPI(graph) =>
 			model.saveSomeGraph(graph)
+			graphNavCtrl.disableAdd = false
 	}
 
 	def checkNodeName(n: String, sufix: Int, create: Boolean): String = {
@@ -69,12 +79,9 @@ object Service extends Publisher {
 		if(sufix != 0) name = (n+"-"+sufix)
 		model.lookForTactic(name) match {
 			case None =>
-				println("found no existing name for " + name)
 				if(create) model.createGraphTactic(name, true)
 				name
-			case Some(t:Any) => 
-				println("found existing name for " + name)
-				println("look for new one : " + n + "-" + (sufix+1))
+			case Some(t:Any) =>
 				checkNodeName(n, (sufix+1), create)
 		}
 	}

@@ -71,7 +71,6 @@ class SubGraphEditPanel() extends BorderPanel {
 		contents += new Button(addAction){
 			icon = new ImageIcon(MainGUI.getClass.getResource("add.png"), "Add")
 			tooltip = "Add"
-			enabled = false
 			borderPainted = false
 			margin = new Insets(0,0,0,0)
 			contentAreaFilled = false

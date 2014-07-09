@@ -28,3 +28,5 @@ case class AddCrumEvent(crum: String) extends Event
 case class DelCrumFromEvent(crum: String) extends Event
 case class ShowPreviewEvent() extends Event
 case class HidePreviewEvent() extends Event
+case class HideNavigationEvent() extends Event
+case class ShowNavigationEvent() extends Event

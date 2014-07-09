@@ -10,11 +10,15 @@ class GraphEditPanel() extends BorderPanel {
 	var graphPanel = controller.getGraph
 	val editControls = new EditControlsPanel()
 	val graphBreadcrums = new GraphBreadcrums()
+	val graphNav = new GraphNavigation
 	add(new BorderPanel(){
 		add(new BorderPanel(){
 			add(new BoxPanel(Orientation.Vertical){
 				contents += graphBreadcrums.breadcrums
 			}, BorderPanel.Position.West)
+			add(new BoxPanel(Orientation.Vertical){
+				contents += graphNav.navigation
+			}, BorderPanel.Position.East)
 		}, BorderPanel.Position.North)
 		add(new BoxPanel(Orientation.Vertical){
 			contents += editControls.MainToolBar

@@ -40,7 +40,7 @@ class PSGraph() {
 	def newSubGraph(str: String, isOr: Boolean){
 		isMain = false
 		if(str == currentGraph.name){
-			currentIndex += currentGraph.getSize
+			currentIndex = currentGraph.getSize
 		}
 		else{
 			lookForTactic(str) match {

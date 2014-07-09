@@ -81,6 +81,7 @@ object QuantoLibAPI extends Publisher{
 		preferredSize = new Dimension (250,300)
 		val subgraphPreviewDoc = new GraphDocument(this, theory)
 		val subgraphPreviewView = new GraphView(theory, subgraphPreviewDoc)
+		subgraphPreviewView.drawGrid = false
 		val subgraphPreviewScrollPane = new ScrollPane(subgraphPreviewView)
 		add(subgraphPreviewScrollPane, BorderPanel.Position.Center)
 	}

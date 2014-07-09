@@ -29,26 +29,28 @@ class GraphBreadcrums() extends Publisher{
 	listenTo(controller)
 	reactions += {
 		case AddCrumEvent(s) =>
-			val parent = new Label(current.text)
-			parent.foreground = new Color(0, 128, 255)
-			parents = parents :+ parent
-			current.text = s
-			updateContent()
-			parents.foreach { p =>
-				listenTo(p.mouse.moves, p.mouse.clicks)
-				reactions += {
-					case MouseEntered(_, _, _) =>
-						p.cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-					case MouseClicked(src:Label, _, _, _, _) =>
-						current.text = src.text
-						parents.foreach { p =>
-							if(p.text == src.text){
-								if(controller.changeGraph(src.text)) {
-									parents = parents.splitAt(parents.indexOf(p))._1
+			if(current.text != s){
+				val parent = new Label(current.text)
+				parent.foreground = new Color(0, 128, 255)
+				parents = parents :+ parent
+				current.text = s
+				updateContent()
+				parents.foreach { p =>
+					listenTo(p.mouse.moves, p.mouse.clicks)
+					reactions += {
+						case MouseEntered(_, _, _) =>
+							p.cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+						case MouseClicked(src:Label, _, _, _, _) =>
+							current.text = src.text
+							parents.foreach { p =>
+								if(p.text == src.text){
+									if(controller.changeGraph(src.text)) {
+										parents = parents.splitAt(parents.indexOf(p))._1
+									}
 								}
 							}
-						}
-						updateContent()
+							updateContent()
+					}
 				}
 			}
 		case DelCrumFromEvent(s) =>
