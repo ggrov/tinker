@@ -19,8 +19,7 @@ class GraphEditPanel() extends BorderPanel {
 			add(new BoxPanel(Orientation.Horizontal){
 				val openHierTree = new Action(""){
 					def apply(){
-						val hierarchyTree = new HierarchyTree()
-						hierarchyTree.open()
+						HierarchyTree.open()
 					}
 				}
 				contents += new Button(openHierTree){
