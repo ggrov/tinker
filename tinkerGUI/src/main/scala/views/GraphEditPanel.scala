@@ -1,6 +1,9 @@
 package tinkerGUI.views
 
 import scala.swing._
+import javax.swing.ImageIcon
+import java.awt.Cursor
+import java.awt.Insets
 import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.GraphEditController
 import tinkerGUI.controllers.NewGraphEvent
@@ -13,7 +16,22 @@ class GraphEditPanel() extends BorderPanel {
 	val graphNav = new GraphNavigation
 	add(new BorderPanel(){
 		add(new BorderPanel(){
-			add(new BoxPanel(Orientation.Vertical){
+			add(new BoxPanel(Orientation.Horizontal){
+				val openHierTree = new Action(""){
+					def apply(){
+						val hierarchyTree = new HierarchyTree()
+						hierarchyTree.open()
+					}
+				}
+				contents += new Button(openHierTree){
+					icon = new ImageIcon(MainGUI.getClass.getResource("hierarchy-tree-view.png"), "Tree")
+					tooltip = "View hierarchy as a tree."
+					borderPainted = false
+					margin = new Insets(0,0,0,0)
+					contentAreaFilled = false
+					opaque = false
+					cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+				}
 				contents += graphBreadcrums.breadcrums
 			}, BorderPanel.Position.West)
 			add(new BoxPanel(Orientation.Vertical){

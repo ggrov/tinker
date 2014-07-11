@@ -142,6 +142,8 @@ object QuantoLibAPI extends Publisher{
 		graph.adjacentEdges(v).foreach {deleteEdge}
 		if(graph.vdata.contains(v)){
 			val d = graph.vdata(v)
+			// Uncomment the next line to delete the node in the model too
+			// d match { case n: NodeV => if (n.typ == "RT_NST") Service.deleteTactic(n.label)}
 			view.invalidateVertex(v)
 			val selected = if(view.selectedVerts.contains(v)){
 				view.selectedVerts -= v; true
@@ -783,6 +785,7 @@ object QuantoLibAPI extends Publisher{
 				view.selectedEdges.foreach { deleteEdge }
 				document.undoStack.commit()
 				view.repaint()
+				publish(NothingSelectedEventAPI())
 			}
 		case KeyPressed(_, Key.Minus, _, _)  => view.zoom *= 0.6
 		case KeyPressed(_, Key.Equals, _, _) => view.zoom *= 1.6

@@ -2,13 +2,14 @@ package tinkerGUI.model
 
 import quanto.util.json._
 import java.io.{FileNotFoundException, IOException, File}
+import scala.collection.mutable.ArrayBuffer
 
 class PSGraph() {
 	var isMain = true
-	var currentGraph: GraphTactic = new GraphTactic("", true)
+	var currentTactic: GraphTactic = new GraphTactic("", true)
 	var currentIndex = 0
 	var atomicTactics: Array[AtomicTactic] = Array(new AtomicTactic("simp", "simplify"))
-	var graphTactics: Array[GraphTactic] = Array()
+	var graphTactics: ArrayBuffer[GraphTactic] = ArrayBuffer()
 	var mainGraph: JsonObject = JsonObject()
 
 	var jsonPSGraph: JsonObject = JsonObject()
@@ -19,7 +20,7 @@ class PSGraph() {
 		var graphTacticsJson: Array[JsonObject] = Array()
 		var atomicTacticsJson: Array[JsonObject] = Array()
 		if(isMain) {current = "main"}
-		else {current = currentGraph.name}
+		else {current = currentTactic.name}
 		graphTactics.foreach{ t =>
 			graphTacticsJson = graphTacticsJson :+ t.toJson
 		}
@@ -30,50 +31,58 @@ class PSGraph() {
 		println(jsonPSGraph)
 	}
 
-	def lookForTactic(n: String): Option[GraphTactic] = {
+	def lookForTactic(tactic: String): Option[GraphTactic] = {
 		graphTactics.foreach{ t =>
-			if(t.name == n) return Some(t)
+			if(t.name == tactic) return Some(t)
 		}
 		return None
 	}
 
-	def newSubGraph(str: String, isOr: Boolean){
+	def newSubGraph(tactic: String, isOr: Boolean){
 		isMain = false
-		if(str == currentGraph.name){
-			currentIndex = currentGraph.getSize
+		if(tactic == currentTactic.name){
+			currentIndex = currentTactic.getSize
 		}
 		else{
-			lookForTactic(str) match {
+			lookForTactic(tactic) match {
 				case Some(t:GraphTactic) =>
-					currentGraph = t
+					currentTactic = t
 					currentIndex = t.getSize
 				case None =>
-					currentGraph = new GraphTactic(str, isOr)
+					currentTactic = new GraphTactic(tactic, isOr)
 					currentIndex = 0
-					graphTactics = graphTactics :+ currentGraph
+					graphTactics = graphTactics :+ currentTactic
 			}
 		}
 	}
 
-	def delSubGraph(str: String, index: Int) {
-		lookForTactic(str) match {
+	def delSubGraph(tactic: String, index: Int) {
+		lookForTactic(tactic) match {
 			case Some(t:GraphTactic) =>
 				t.delGraph(index)
 			case None =>
 		}
 	}
 
-	def changeCurrent(str: String, index: Int): Boolean = {
-		if(str == "main"){
+	def deleteTactic(tactic: String) {
+		lookForTactic(tactic) match {
+			case Some(t:GraphTactic) =>
+				graphTactics = graphTactics - t
+			case None =>
+		}
+	}
+
+	def changeCurrent(tactic: String, index: Int): Boolean = {
+		if(tactic == "main"){
 			isMain = true
 			currentIndex = 0
 			return true
 		}
 		else {
-			lookForTactic(str) match {
+			lookForTactic(tactic) match {
 				case Some(t: GraphTactic) =>
 					isMain = false
-					currentGraph = t
+					currentTactic = t
 					currentIndex = index
 					return true
 				case None => return false
@@ -88,7 +97,7 @@ class PSGraph() {
 					mainGraph = g
 				}
 				else {
-					currentGraph.addJsonToGraphs(g, currentIndex)
+					currentTactic.addJsonToGraphs(g, currentIndex)
 				}
 			case _ =>
 		}
@@ -97,40 +106,40 @@ class PSGraph() {
 
 	def getCurrentJson(): Option[JsonObject] = {
 		if(isMain) Some(mainGraph)
-		else currentGraph.getGraphJson(currentIndex)
+		else currentTactic.getGraphJson(currentIndex)
 	}
 
-	def getSizeOfTactic(name: String): Int = {
-		if(name == "main") 1
+	def getSizeOfTactic(tactic: String): Int = {
+		if(tactic == "main") 1
 		else {
-			lookForTactic(name) match {
+			lookForTactic(tactic) match {
 				case Some(t: GraphTactic) => t.getSize
 				case None => -1
 			}
 		}
 	}
 
-	def getSpecificJson(name: String, index: Int): Option[JsonObject] = {
-		if(name == "main"){
+	def getSpecificJson(tactic: String, index: Int): Option[JsonObject] = {
+		if(tactic == "main"){
 			return Some(mainGraph)
 		}
 		else {
-			lookForTactic(name) match {
+			lookForTactic(tactic) match {
 				case Some(t: GraphTactic) => t.getGraphJson(index)
 				case None => return None
 			}
 		}
 	}
 
-	def graphTacticSetIsOr(name: String, isOr: Boolean){
-		lookForTactic(name) match {
+	def graphTacticSetIsOr(tactic: String, isOr: Boolean){
+		lookForTactic(tactic) match {
 			case Some(t: GraphTactic) => t.isOr = isOr
 			case None =>
 		}
 	}
 
-	def isGraphTacticOr(name: String): Boolean = {
-		lookForTactic(name) match {
+	def isGraphTacticOr(tactic: String): Boolean = {
+		lookForTactic(tactic) match {
 			case Some(t:GraphTactic) => t.isOr
 			case None => true
 		}
@@ -143,8 +152,8 @@ class PSGraph() {
 		}
 	}
 
-	def createGraphTactic(name: String, isOr: Boolean){
-		graphTactics = graphTactics :+ new GraphTactic(name, isOr)
+	def createGraphTactic(tactic: String, isOr: Boolean){
+		graphTactics = graphTactics :+ new GraphTactic(tactic, isOr)
 	}
 
 	def loadJsonGraph(f: File) {

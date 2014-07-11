@@ -54,12 +54,12 @@ class GraphEditController() extends Publisher {
 				case DragVertex(_,_) => // do nothing
 				case DragEdge(_) => // do nothing
 				case SelectTool() =>
-					if(clicks == 2){
-						QuantoLibAPI.editGraphElement(pt)
-					}
-					else {
+					// if(clicks == 2){
+						// QuantoLibAPI.editGraphElement(pt)
+					// }
+					// else {
 						QuantoLibAPI.selectElement(pt, modifiers, changeMouseState)
-					}
+					// }
 				case AddEdgeTool() =>
 					QuantoLibAPI.startAddEdge(pt, changeMouseState)
 			}

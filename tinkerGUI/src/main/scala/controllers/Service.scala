@@ -14,21 +14,26 @@ object Service extends Publisher {
 	val graphBreadcrumsCtrl = new GraphBreadcrumsController()
 	val subGraphEditCtrl = new SubGraphEditController()
 	val graphNavCtrl = new GraphNavigationController()
+	val hierTreeCtrl = new HierarchyTreeController()
 
 	def changeGraphEditMouseState(state: String){
 		graphEditCtrl.changeMouseState(state)
 	}
 
-	def addSubgraph(eltName: String, isOr: Boolean){
-		model.newSubGraph(eltName, isOr)
+	def addSubgraph(tactic: String, isOr: Boolean){
+		model.newSubGraph(tactic, isOr)
 		QuantoLibAPI.newGraph()
 		graphNavCtrl.viewedGraphChanged(model.isMain, true)
-		graphBreadcrumsCtrl.addCrum(eltName)
+		graphBreadcrumsCtrl.addCrum(tactic)
 		publish(NothingSelectedEvent())
 	}
 
-	def deleteSubGraph(eltName: String, index: Int){
-		model.delSubGraph(eltName, index)
+	def deleteSubGraph(tactic: String, index: Int){
+		model.delSubGraph(tactic, index)
+	}
+
+	def deleteTactic(tactic: String){
+		model.deleteTactic(tactic)
 	}
 
 	def changeViewedGraph(gr: String): Boolean = {
@@ -45,25 +50,25 @@ object Service extends Publisher {
 		return false
 	}
 
-	def getSpecificJsonFromModel(name: String, index: Int) = model.getSpecificJson(name, index)
-	def getSizeOfTactic(name: String) = model.getSizeOfTactic(name)
-	def setIsOr(name: String, isOr: Boolean) = model.graphTacticSetIsOr(name, isOr)
-	def isNestedOr(name: String) = model.isGraphTacticOr(name)
+	def getSpecificJsonFromModel(tactic: String, index: Int) = model.getSpecificJson(tactic, index)
+	def getSizeOfTactic(tactic: String) = model.getSizeOfTactic(tactic)
+	def setIsOr(tactic: String, isOr: Boolean) = model.graphTacticSetIsOr(tactic, isOr)
+	def isNestedOr(tactic: String) = model.isGraphTacticOr(tactic)
 
 	def getCurrentIndex = model.currentIndex
-	def getCurrentSize = model.currentGraph.graphs.size
-	def getCurrent = model.currentGraph.name
+	def getCurrentSize = model.currentTactic.graphs.size
+	def getCurrent = model.currentTactic.name
 
-	def editSubGraph(name: String, index: Int){
-		if(model.changeCurrent(name, index)){
+	def editSubGraph(tactic: String, index: Int){
+		if(model.changeCurrent(tactic, index)){
 			publish(NothingSelectedEvent())
-			getSpecificJsonFromModel(name, index) match {
+			getSpecificJsonFromModel(tactic, index) match {
 				case Some(j: JsonObject) =>
 					QuantoLibAPI.loadFromJson(j)
 					graphNavCtrl.viewedGraphChanged(model.isMain, false)
 				case None =>
 			}
-			graphBreadcrumsCtrl.addCrum(name)
+			graphBreadcrumsCtrl.addCrum(tactic)
 		}
 	}
 

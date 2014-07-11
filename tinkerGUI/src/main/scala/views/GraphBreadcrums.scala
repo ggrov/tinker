@@ -20,7 +20,7 @@ class GraphBreadcrums() extends Publisher{
 		breadcrums.contents.clear()
 		parents.foreach { p => 
 			breadcrums.contents += p
-			breadcrums.contents += new Label (">")
+			breadcrums.contents += new Label ("\u25B8")
 		}
 		breadcrums.contents += current
 		breadcrums.repaint()	

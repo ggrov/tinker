@@ -10,16 +10,22 @@ object MainGUI extends SimpleSwingApplication {
 
 	object FourthSplit extends SplitPane {
 		orientation = Orientation.Horizontal
+		minimumSize = new Dimension (220,800)
+		preferredSize = new Dimension (220,800)
 		contents_=(new SubGraphEditPanel(), new ElementEditPanel())
 	}
 
 	object ThirdSplit extends SplitPane {
 		orientation = Orientation.Horizontal
+		minimumSize = new Dimension (220,800)
+		preferredSize = new Dimension (220,800)
 		contents_=(new BorderPanel(), new BorderPanel())
 	}
 
 	object SecondSplit extends SplitPane {
 		orientation = Orientation.Vertical
+		minimumSize = new Dimension (1020,800)
+		// preferredSize = new Dimension (1020,800)
 		contents_=(new GraphEditPanel(), FourthSplit)
 	}
 
@@ -30,7 +36,6 @@ object MainGUI extends SimpleSwingApplication {
 
 	def top = new MainFrame{
 		title = "Tinker - " + controller.getTitle
-		minimumSize = new Dimension(400,400)
 		menuBar = new TinkerMenu()
 		contents = MainSplit
 		listenTo(controller)
