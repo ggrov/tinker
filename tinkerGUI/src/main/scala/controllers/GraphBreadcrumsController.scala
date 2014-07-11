@@ -8,6 +8,6 @@ class GraphBreadcrumsController() extends Publisher {
 	}
 
 	def changeGraph(gr: String): Boolean = {
-		return Service.changeViewedGraph(gr)
+		return Service.editSubGraph(gr, 0)
 	}
 }

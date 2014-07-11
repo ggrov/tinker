@@ -2,9 +2,12 @@ package tinkerGUI.controllers
 
 import scala.swing._
 import tinkerGUI.model.PSGraph
+import tinkerGUI.model.HierarchyModel
+import tinkerGUI.model.TreeElement
 import quanto.util.json._
 
 object Service extends Publisher {
+	val hierarchyModel = new HierarchyModel()
 	val model = new PSGraph()
 	val mainCtrl = new MainGUIController()
 	val graphEditCtrl = new GraphEditController()
@@ -20,8 +23,13 @@ object Service extends Publisher {
 		graphEditCtrl.changeMouseState(state)
 	}
 
+	def getHierarchyRoot = hierarchyModel.root
+	def getHierarchyActive = hierarchyModel.activeElement
+
 	def addSubgraph(tactic: String, isOr: Boolean){
 		model.newSubGraph(tactic, isOr)
+		hierarchyModel.changeActive(tactic)
+		hierTreeCtrl.redraw
 		QuantoLibAPI.newGraph()
 		graphNavCtrl.viewedGraphChanged(model.isMain, true)
 		graphBreadcrumsCtrl.addCrum(tactic)
@@ -34,20 +42,15 @@ object Service extends Publisher {
 
 	def deleteTactic(tactic: String){
 		model.deleteTactic(tactic)
-	}
-
-	def changeViewedGraph(gr: String): Boolean = {
-		publish(NothingSelectedEvent())
-		if(model.changeCurrent(gr, 0)){
-			model.getCurrentJson() match {
-				case Some(j: JsonObject) => 
-					QuantoLibAPI.loadFromJson(j)
-					graphNavCtrl.viewedGraphChanged(model.isMain, false)
-					return true
-				case None => return false
-			}
+		hierarchyModel.lookForElement(tactic) match {
+			case Some(e: TreeElement) => 
+				e.children.foreach { c =>
+					deleteTactic(c.name)
+				}
+				hierarchyModel.elementArray -= e
+				hierTreeCtrl.redraw
+			case None =>
 		}
-		return false
 	}
 
 	def getSpecificJsonFromModel(tactic: String, index: Int) = model.getSpecificJson(tactic, index)
@@ -59,17 +62,21 @@ object Service extends Publisher {
 	def getCurrentSize = model.currentTactic.graphs.size
 	def getCurrent = model.currentTactic.name
 
-	def editSubGraph(tactic: String, index: Int){
+	def editSubGraph(tactic: String, index: Int): Boolean = {
 		if(model.changeCurrent(tactic, index)){
 			publish(NothingSelectedEvent())
 			getSpecificJsonFromModel(tactic, index) match {
 				case Some(j: JsonObject) =>
 					QuantoLibAPI.loadFromJson(j)
 					graphNavCtrl.viewedGraphChanged(model.isMain, false)
-				case None =>
+					graphBreadcrumsCtrl.addCrum(tactic)
+					hierarchyModel.changeActive(tactic)
+					hierTreeCtrl.redraw
+					return true
+				case None => return false
 			}
-			graphBreadcrumsCtrl.addCrum(tactic)
 		}
+		return false
 	}
 
 	listenTo(QuantoLibAPI)
@@ -84,12 +91,20 @@ object Service extends Publisher {
 		if(sufix != 0) name = (n+"-"+sufix)
 		model.lookForTactic(name) match {
 			case None =>
-				if(create) model.createGraphTactic(name, true)
+				if(create) {
+					model.createGraphTactic(name, true)
+					hierarchyModel.addElement(name)
+					hierTreeCtrl.redraw
+				}
 				name
 			case Some(t:Any) =>
 				checkNodeName(n, (sufix+1), create)
 		}
 	}
 
-	def updateTacticName(oldVal: String, newVal: String) = model.updateTacticName(oldVal, newVal)
+	def updateTacticName(oldVal: String, newVal: String) = {
+		model.updateTacticName(oldVal, newVal)
+		hierarchyModel.updateElementName(oldVal, newVal)
+		hierTreeCtrl.redraw
+	}
 }

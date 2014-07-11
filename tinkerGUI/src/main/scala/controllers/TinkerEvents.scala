@@ -30,3 +30,4 @@ case class ShowPreviewEvent() extends Event
 case class HidePreviewEvent() extends Event
 case class HideNavigationEvent() extends Event
 case class ShowNavigationEvent() extends Event
+case class HierarchyTreeEvent() extends Event
