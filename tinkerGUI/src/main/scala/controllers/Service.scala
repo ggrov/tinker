@@ -73,8 +73,14 @@ object Service extends Publisher {
 					hierarchyModel.changeActive(tactic)
 					hierTreeCtrl.redraw
 					return true
-				case None => return false
+				case None =>
+					addSubgraph(tactic, true)
+					return true
 			}
+		}
+		else{
+			addSubgraph(tactic, true)
+			return true
 		}
 		return false
 	}
@@ -107,4 +113,6 @@ object Service extends Publisher {
 		hierarchyModel.updateElementName(oldVal, newVal)
 		hierTreeCtrl.redraw
 	}
+
+	def getParentList(tactic: String) = hierarchyModel.buildParentList(tactic, Array[String]())
 }

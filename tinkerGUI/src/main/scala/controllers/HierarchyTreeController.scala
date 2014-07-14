@@ -9,17 +9,18 @@ import tinkerGUI.model.TreeElement
 
 class HierarchyTreeController() extends Publisher {
 	val root = Service.getHierarchyRoot
-
+	var elementCoordinates : Map[String, Array[Int]] = Map[String, Array[Int]]()
 	var preferredSize = new Dimension(200,200)
 
 	def drawTree(g: Graphics2D){
+		elementCoordinates = Map[String, Array[Int]]()
 		drawElement(g, root, 100, 30, 1)
 	}
 
 	def drawElement(g: Graphics2D, node: TreeElement, x: Int, y: Int, depth: Int): Int = {
 		var childrenWidth = 0
 		node.children.foreach {c =>
-			var space = 30
+			var space = 15
 			if(childrenWidth == 0) space = 0
 			g.drawLine(x, y, x+childrenWidth+space, y+80)
 			childrenWidth += drawElement(g, c, x+childrenWidth+space, y+80, depth+1)
@@ -40,6 +41,7 @@ class HierarchyTreeController() extends Publisher {
 		g.setColor(Color.BLACK)
 		g.drawRect((x-(r.getWidth.toInt/2)-8), (y-(r.getHeight.toInt/2)-8), r.getWidth.toInt+16, r.getHeight.toInt+16)
 		g.drawString(n, (x-(r.getWidth.toInt/2)), (y+(r.getHeight.toInt/2)))
+		elementCoordinates += (n -> Array(x, y, (r.getWidth.toInt+16)/2, (r.getHeight.toInt+16)/2))
 		r.getWidth.toInt+16
 	}
 
@@ -53,7 +55,17 @@ class HierarchyTreeController() extends Publisher {
 		g.setStroke(new BasicStroke(1))
 		g.drawString(n, (x-(r.getWidth.toInt/2)), (y+(r.getHeight.toInt/2)))
 		g.setColor(Color.BLACK)
+		elementCoordinates += (n -> Array(x, y, (r.getWidth.toInt+16)/2, (r.getHeight.toInt+16)/2))
 		r.getWidth.toInt+16
+	}
+
+	def hit(pt: java.awt.Point){
+		elementCoordinates.foreach { case(key, value) =>
+			if(pt.getX.toInt > value(0)-value(2) && pt.getX.toInt < value(0)+value(2) && pt.getY.toInt > value(1)-value(3) && pt.getY.toInt < value(1)+value(3)){
+				Service.graphBreadcrumsCtrl.rebuildParent(Service.getParentList(key))
+				Service.editSubGraph(key, 0)
+			}
+		}
 	}
 
 	def redraw = publish(HierarchyTreeEvent())

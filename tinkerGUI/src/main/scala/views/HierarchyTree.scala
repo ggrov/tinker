@@ -1,6 +1,7 @@
 package tinkerGUI.views
 
-import scala.swing._
+import scala.swing._	
+import scala.swing.event.MouseClicked
 import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.HierarchyTreeEvent
 import tinkerGUI.controllers.HierarchyTreeController
@@ -17,6 +18,11 @@ class TreeGraph() extends Panel{
 		g.setColor(Color.BLACK)
 		controller.drawTree(g)
 		this.preferredSize = controller.preferredSize
+	}
+	listenTo(this.mouse.moves, this.mouse.clicks)
+	reactions += {
+		case MouseClicked(_, pt, _, _, _) =>
+			controller.hit(pt)
 	}
 	listenTo(controller)
 	reactions += {

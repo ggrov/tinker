@@ -10,4 +10,8 @@ class GraphBreadcrumsController() extends Publisher {
 	def changeGraph(gr: String): Boolean = {
 		return Service.editSubGraph(gr, 0)
 	}
+
+	def rebuildParent(p: Array[String]){
+		publish(RebuildBreadcrumParentEvent(p))
+	}
 }

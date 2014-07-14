@@ -5,6 +5,7 @@ import scala.swing.event._
 import java.awt.Cursor
 import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.AddCrumEvent
+import tinkerGUI.controllers.RebuildBreadcrumParentEvent
 import tinkerGUI.controllers.DelCrumFromEvent
 import tinkerGUI.controllers.GraphBreadcrumsController
 
@@ -15,6 +16,7 @@ class GraphBreadcrums() extends Publisher{
 	val breadcrums = new FlowPanel() {
 		contents += current
 	}
+	var addCurent = true
 
 	def updateContent(){
 		breadcrums.contents.clear()
@@ -30,9 +32,12 @@ class GraphBreadcrums() extends Publisher{
 	reactions += {
 		case AddCrumEvent(s) =>
 			if(current.text != s){
-				val parent = new Label(current.text)
-				parent.foreground = new Color(0, 128, 255)
-				parents = parents :+ parent
+				if(addCurent){
+					val parent = new Label(current.text)
+					parent.foreground = new Color(0, 128, 255)
+					parents = parents :+ parent
+				}
+				addCurent = true
 				current.text = s
 				updateContent()
 				parents.foreach { p =>
@@ -52,6 +57,14 @@ class GraphBreadcrums() extends Publisher{
 							updateContent()
 					}
 				}
+			}
+		case RebuildBreadcrumParentEvent(p: Array[String]) =>
+			parents = Array()
+			addCurent = false
+			p.foreach {s=>
+				val parent = new Label(s)
+				parent.foreground = new Color(0, 128, 255)
+				parents = parents.+:(parent)
 			}
 		case DelCrumFromEvent(s) =>
 			current.text = s

@@ -31,3 +31,4 @@ case class HidePreviewEvent() extends Event
 case class HideNavigationEvent() extends Event
 case class ShowNavigationEvent() extends Event
 case class HierarchyTreeEvent() extends Event
+case class RebuildBreadcrumParentEvent(p: Array[String]) extends Event
