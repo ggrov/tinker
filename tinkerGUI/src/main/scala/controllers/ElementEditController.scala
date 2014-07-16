@@ -30,6 +30,8 @@ class ElementEditController() extends Publisher {
 		}
 	}
 
+	def getArgumentValue(node: String) = Service.getArgumentsOfTactic(node)
+
 	def addDeleteListener(btn: Button, eltName: String){
 		listenTo(btn)
 		reactions += {

@@ -4,6 +4,7 @@ import scala.swing._
 import tinkerGUI.model.PSGraph
 import tinkerGUI.model.HierarchyModel
 import tinkerGUI.model.TreeElement
+import tinkerGUI.model.HasArguments
 import quanto.util.json._
 
 object Service extends Publisher {
@@ -119,5 +120,17 @@ object Service extends Publisher {
 	def parseArguments(tactic: String, s: String) {
 		val args = ArgumentParser.stringToArguments(s)
 		model.updateTacticArguments(tactic, args)
+	}
+
+	def getArgumentsOfTactic(tactic: String): String ={
+		model.lookForTactic(tactic) match {
+			case Some(t:HasArguments) =>
+				var array = Array[Array[String]]()
+				t.arg.foreach{ a => 
+					array = array :+ a.arg
+				}
+				return ArgumentParser.argumentsToString(array)
+			case None => return ""
+		}
 	}
 }

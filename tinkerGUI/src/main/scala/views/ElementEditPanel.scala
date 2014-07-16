@@ -11,7 +11,7 @@ import tinkerGUI.controllers.NothingSelectedEvent
 
 class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEditController) extends FlowPanel {
 	val nodeValue = new TextField(value,10)
-	val arguments = new TextField("",10)
+	val arguments = new TextField(ctrl.getArgumentValue(value),10)
 	val orRadio = new RadioButton("OR") {selected = ctrl.getIsNestedOr(value)}
 	val orElseRadio = new RadioButton("OR ELSE") {selected = !ctrl.getIsNestedOr(value)}
 	val hierTypeRadioGroup = new ButtonGroup(orRadio, orElseRadio)

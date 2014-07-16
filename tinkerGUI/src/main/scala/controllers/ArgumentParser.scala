@@ -49,4 +49,28 @@ object ArgumentParser {
 		if(res.length > 0 && res.charAt(res.length-1).equals(' ')) res = res.substring(0, res.length-2)
 		return res
 	}
+
+	def argumentsToString(args: Array[Array[String]]): String = {
+		var res = ""
+		if(args.size > 0){
+			args.foreach{ a => 
+				res += argumentToString(a)+", "
+			}
+			res = res.substring(0, res.length-2)
+		}
+		return res
+	}
+
+	def argumentToString(arg: Array[String]): String = {
+		var res = ""
+		res += arg.head+": "
+		if(arg.size > 1){
+			arg.tail.foreach{ a =>
+				res += a+" "
+			}
+		}
+		res = res.substring(0, res.length-1)
+		return res
+	}
+
 }
