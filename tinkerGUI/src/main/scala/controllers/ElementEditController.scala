@@ -2,22 +2,31 @@ package tinkerGUI.controllers
 
 import scala.swing._
 import scala.swing.event.KeyReleased
+import scala.swing.event.KeyPressed
 import scala.swing.event.ButtonClicked
 import scala.swing.event.Key._
 import scala.swing.event.Key
 
 class ElementEditController() extends Publisher {
-	var prevText = ""
+	var valueText = ""
 	def addValueListener(elt: TextField){
-		prevText = elt.text
+		valueText = elt.text
 		listenTo(elt.keys)
 		reactions += {
 			case KeyReleased(_, key, _, _) =>
-				if(elt.text != "" && prevText != elt.text && elt.text == Service.checkNodeName(elt.text, 0, false)){
-					Service.updateTacticName(prevText, elt.text)
+				if(elt.text != "" && valueText != elt.text && elt.text == Service.checkNodeName(elt.text, 0, false)){
+					Service.updateTacticName(valueText, elt.text)
 					QuantoLibAPI.editSelectedElementValue(elt.text)
-					prevText = elt.text
+					valueText = elt.text
 				}
+		}
+	}
+
+	def addArgsListener(elt: TextField){
+		listenTo(elt.keys)
+		reactions += {
+			case KeyReleased(_, key, _, _) =>
+				Service.parseArguments(valueText, elt.text)
 		}
 	}
 
@@ -33,12 +42,12 @@ class ElementEditController() extends Publisher {
 	}
 
 	def addNewSubListener(btn: Button, eltName: String, or: RadioButton){
-		if(prevText == "") prevText = eltName
+		if(valueText == "") valueText = eltName
 		listenTo(btn)
 		reactions += {
 			case ButtonClicked(b: Button) =>
 				if(b==btn){
-					Service.addSubgraph(prevText, or.selected)
+					Service.addSubgraph(valueText, or.selected)
 				}
 		}
 	}

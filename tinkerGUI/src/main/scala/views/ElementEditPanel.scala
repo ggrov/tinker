@@ -11,20 +11,18 @@ import tinkerGUI.controllers.NothingSelectedEvent
 
 class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEditController) extends FlowPanel {
 	val nodeValue = new TextField(value,10)
+	val arguments = new TextField("",10)
 	val orRadio = new RadioButton("OR") {selected = ctrl.getIsNestedOr(value)}
 	val orElseRadio = new RadioButton("OR ELSE") {selected = !ctrl.getIsNestedOr(value)}
 	val hierTypeRadioGroup = new ButtonGroup(orRadio, orElseRadio)
-	hierTypeRadioGroup.buttons.foreach(listenTo(_))
-	reactions += {
-		case ButtonClicked(b: RadioButton) =>
-			if (b == orRadio){ctrl.setIsNestedOr(nodeValue.text, true)}
-			else if (b == orElseRadio){ctrl.setIsNestedOr(nodeValue.text, false)}
-	}
 	val delButton = new Button("Delete node")
 	val addSubButton = new Button("Add a sub-graph")
+
 	ctrl.addValueListener(nodeValue)
+	ctrl.addArgsListener(arguments)
 	ctrl.addDeleteListener(delButton, nam)
 	ctrl.addNewSubListener(addSubButton, nodeValue.text, orRadio)
+
 	contents += new FlowPanel(){
 		contents += new Label("Node : " + nam)
 	}
@@ -38,10 +36,18 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 				contents += new Label("RTech. : ")
 				contents += nodeValue
 			}
+			contents += new FlowPanel(){
+				contents += new Label("Args. : ")
+				contents += arguments
+			}
 		case "Nested" =>
 			contents += new FlowPanel(){ 
 				contents += new Label("Name : ")
 				contents += nodeValue
+			}
+			contents += new FlowPanel(){
+				contents += new Label("Args. : ")
+				contents += arguments
 			}
 			contents += new FlowPanel(){
 				contents += orRadio
@@ -53,6 +59,13 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 	}
 	contents += new FlowPanel(){
 		contents += delButton
+	}
+
+	hierTypeRadioGroup.buttons.foreach(listenTo(_))
+	reactions += {
+		case ButtonClicked(b: RadioButton) =>
+			if (b == orRadio){ctrl.setIsNestedOr(nodeValue.text, true)}
+			else if (b == orElseRadio){ctrl.setIsNestedOr(nodeValue.text, false)}
 	}
 }
 

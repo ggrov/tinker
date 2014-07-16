@@ -21,4 +21,7 @@ trait HasArguments {
 		return JsonArray(arg2)
 	}
 
+	def eraseArguments() {
+		arg = Array()
+	}
 }

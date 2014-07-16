@@ -156,6 +156,17 @@ class PSGraph() {
 		graphTactics = graphTactics :+ new GraphTactic(tactic, isOr)
 	}
 
+	def updateTacticArguments(tactic: String, args: Array[Array[String]]){
+		lookForTactic(tactic) match {
+			case Some(t: GraphTactic) =>
+				t.eraseArguments()
+				args.foreach{ a =>
+					t.addArgument(a)
+				}
+			case None => //needs to do the same for atomic
+		}
+	}
+
 	def loadJsonGraph(f: File) {
 		// load a saved file in our json object
 	}
