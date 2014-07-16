@@ -31,9 +31,28 @@ class PSGraph() {
 		println(jsonPSGraph)
 	}
 
-	def lookForTactic(tactic: String): Option[GraphTactic] = {
+	def lookForGraphTactic(tactic: String): Option[GraphTactic] = {
 		graphTactics.foreach{ t =>
 			if(t.name == tactic) return Some(t)
+		}
+		return None
+	}
+
+	def lookForAtomicTactic(tactic: String): Option[AtomicTactic] = {
+		atomicTactics.foreach{ t =>
+			if(t.name == tactic) return Some(t)
+		}
+		return None
+	}
+
+	def lookForTactic(tactic: String): Option[HasArguments] = {
+		lookForAtomicTactic(tactic) match {
+			case Some(t:AtomicTactic) => return Some(t)
+			case None =>
+		}
+		lookForGraphTactic(tactic) match {
+			case Some(t:GraphTactic) => return Some(t)
+			case None =>
 		}
 		return None
 	}
@@ -44,7 +63,7 @@ class PSGraph() {
 			currentIndex = currentTactic.getSize
 		}
 		else{
-			lookForTactic(tactic) match {
+			lookForGraphTactic(tactic) match {
 				case Some(t:GraphTactic) =>
 					currentTactic = t
 					currentIndex = t.getSize
@@ -57,7 +76,7 @@ class PSGraph() {
 	}
 
 	def delSubGraph(tactic: String, index: Int) {
-		lookForTactic(tactic) match {
+		lookForGraphTactic(tactic) match {
 			case Some(t:GraphTactic) =>
 				t.delGraph(index)
 			case None =>
@@ -65,7 +84,7 @@ class PSGraph() {
 	}
 
 	def deleteTactic(tactic: String) {
-		lookForTactic(tactic) match {
+		lookForGraphTactic(tactic) match {
 			case Some(t:GraphTactic) =>
 				graphTactics = graphTactics - t
 			case None =>
@@ -79,7 +98,7 @@ class PSGraph() {
 			return true
 		}
 		else {
-			lookForTactic(tactic) match {
+			lookForGraphTactic(tactic) match {
 				case Some(t: GraphTactic) =>
 					isMain = false
 					currentTactic = t
@@ -112,7 +131,7 @@ class PSGraph() {
 	def getSizeOfTactic(tactic: String): Int = {
 		if(tactic == "main") 1
 		else {
-			lookForTactic(tactic) match {
+			lookForGraphTactic(tactic) match {
 				case Some(t: GraphTactic) => t.getSize
 				case None => -1
 			}
@@ -124,7 +143,7 @@ class PSGraph() {
 			return Some(mainGraph)
 		}
 		else {
-			lookForTactic(tactic) match {
+			lookForGraphTactic(tactic) match {
 				case Some(t: GraphTactic) => t.getGraphJson(index)
 				case None => return None
 			}
@@ -132,14 +151,14 @@ class PSGraph() {
 	}
 
 	def graphTacticSetIsOr(tactic: String, isOr: Boolean){
-		lookForTactic(tactic) match {
+		lookForGraphTactic(tactic) match {
 			case Some(t: GraphTactic) => t.isOr = isOr
 			case None =>
 		}
 	}
 
 	def isGraphTacticOr(tactic: String): Boolean = {
-		lookForTactic(tactic) match {
+		lookForGraphTactic(tactic) match {
 			case Some(t:GraphTactic) => t.isOr
 			case None => true
 		}
@@ -148,6 +167,8 @@ class PSGraph() {
 	def updateTacticName(oldVal: String, newVal: String) {
 		lookForTactic(oldVal) match {
 			case Some(t: GraphTactic) => t.name = newVal
+			case Some(t: AtomicTactic) => t.name = newVal
+			case Some(t: HasArguments) => 
 			case None =>
 		}
 	}
@@ -158,7 +179,7 @@ class PSGraph() {
 
 	def updateTacticArguments(tactic: String, args: Array[Array[String]]){
 		lookForTactic(tactic) match {
-			case Some(t: GraphTactic) =>
+			case Some(t: HasArguments) =>
 				t.eraseArguments()
 				args.foreach{ a =>
 					t.addArgument(a)

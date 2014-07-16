@@ -104,7 +104,7 @@ object Service extends Publisher {
 					hierTreeCtrl.redraw
 				}
 				name
-			case Some(t:Any) =>
+			case Some(t:HasArguments) =>
 				checkNodeName(n, (sufix+1), create)
 		}
 	}
