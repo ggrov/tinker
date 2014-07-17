@@ -8,25 +8,27 @@ import scala.swing.event.Key._
 import scala.swing.event.Key
 
 class ElementEditController() extends Publisher {
-	var valueText = ""
+	var elementName = ""
+	var elementArguments = ""
 	def addValueListener(elt: TextField){
-		valueText = elt.text
+		elementName = ArgumentParser.separateNameFromArgument(elt.text)._1
+		elementArguments = ArgumentParser.separateNameFromArgument(elt.text)._2
 		listenTo(elt.keys)
 		reactions += {
 			case KeyReleased(_, key, _, _) =>
-				if(elt.text != "" && valueText != elt.text && elt.text == Service.checkNodeName(elt.text, 0, false)){
-					Service.updateTacticName(valueText, elt.text)
+				val name = ArgumentParser.separateNameFromArgument(elt.text)._1
+				val arguments = ArgumentParser.separateNameFromArgument(elt.text)._2
+				if(name == elementName && arguments != elementArguments){
+					Service.parseArguments(name, arguments)
 					QuantoLibAPI.editSelectedElementValue(elt.text)
-					valueText = elt.text
+					elementArguments = arguments
 				}
-		}
-	}
-
-	def addArgsListener(elt: TextField){
-		listenTo(elt.keys)
-		reactions += {
-			case KeyReleased(_, key, _, _) =>
-				Service.parseArguments(valueText, elt.text)
+				else if(name != elementName && name != "" && name == Service.checkNodeName(name, 0, false)){
+					Service.updateTacticName(elementName, name)
+					Service.parseArguments(name, arguments)
+					QuantoLibAPI.editSelectedElementValue(elt.text)
+					elementName = name
+				}
 		}
 	}
 
@@ -43,13 +45,14 @@ class ElementEditController() extends Publisher {
 		}
 	}
 
-	def addNewSubListener(btn: Button, eltName: String, or: RadioButton){
-		if(valueText == "") valueText = eltName
+	def addNewSubListener(btn: Button, elt: String, or: RadioButton){
+		val name = ArgumentParser.separateNameFromArgument(elt)._1
+		if(elementName == "") elementName = name
 		listenTo(btn)
 		reactions += {
 			case ButtonClicked(b: Button) =>
 				if(b==btn){
-					Service.addSubgraph(valueText, or.selected)
+					Service.addSubgraph(elementName, or.selected)
 				}
 		}
 	}
@@ -76,6 +79,7 @@ class ElementEditController() extends Publisher {
 		reactions += {
 			case ButtonClicked(b: Button) =>
 				if(b==btn){
+					QuantoLibAPI.mergeSelectedVertices()
 				}
 		}
 	}

@@ -10,8 +10,7 @@ import tinkerGUI.controllers.OneEdgeSelectedEvent
 import tinkerGUI.controllers.NothingSelectedEvent
 
 class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEditController) extends FlowPanel {
-	val nodeValue = new TextField(value,10)
-	val arguments = new TextField(ctrl.getArgumentValue(value),10)
+	val nodeValue = new TextField(value,12)
 	val orRadio = new RadioButton("OR") {selected = ctrl.getIsNestedOr(value)}
 	val orElseRadio = new RadioButton("OR ELSE") {selected = !ctrl.getIsNestedOr(value)}
 	val hierTypeRadioGroup = new ButtonGroup(orRadio, orElseRadio)
@@ -19,7 +18,6 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 	val addSubButton = new Button("Add a sub-graph")
 
 	ctrl.addValueListener(nodeValue)
-	ctrl.addArgsListener(arguments)
 	ctrl.addDeleteListener(delButton, nam)
 	ctrl.addNewSubListener(addSubButton, nodeValue.text, orRadio)
 
@@ -36,18 +34,10 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 				contents += new Label("RTech. : ")
 				contents += nodeValue
 			}
-			contents += new FlowPanel(){
-				contents += new Label("Args. : ")
-				contents += arguments
-			}
 		case "Nested" =>
 			contents += new FlowPanel(){ 
 				contents += new Label("Name : ")
 				contents += nodeValue
-			}
-			contents += new FlowPanel(){
-				contents += new Label("Args. : ")
-				contents += arguments
 			}
 			contents += new FlowPanel(){
 				contents += orRadio

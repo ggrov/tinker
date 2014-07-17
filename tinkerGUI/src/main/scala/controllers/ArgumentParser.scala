@@ -1,6 +1,23 @@
 package tinkerGUI.controllers
 
+import java.util.regex.Pattern
+
 object ArgumentParser {
+
+	def separateNameFromArgument(s: String): (String, String) = {
+		if(s.contains("(")){
+			val parts = s.split(Pattern.quote("("))
+			if(parts.size > 1){
+				if(parts(1).charAt(parts(1).length-1).equals(')')){
+					parts(1) = parts(1).substring(0, parts(1).length-1)
+				}
+				return(removeUselessSpace(parts(0)), removeUselessSpace(parts(1)))
+			}
+			else return (parts(0), "")
+		}
+		else return (s, "")
+	}
+
 	def stringToArguments(s: String): Array[Array[String]] = {
 		var res = Array[Array[String]]()
 		if(s.contains(",")){
@@ -46,7 +63,7 @@ object ArgumentParser {
 	def removeUselessSpace(s: String): String = {
 		var res = s
 		if(res.length > 0 && res.head.equals(' ')) res = res.tail
-		if(res.length > 0 && res.charAt(res.length-1).equals(' ')) res = res.substring(0, res.length-2)
+		if(res.length > 0 && res.charAt(res.length-1).equals(' ')) res = res.substring(0, res.length-1)
 		return res
 	}
 

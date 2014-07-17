@@ -733,6 +733,14 @@ object QuantoLibAPI extends Publisher{
 		}
 	}
 
+	/**
+	  * Method to merge selected vertices into a nested one
+	  */
+	def mergeSelectedVertices() {
+		val jsonGraph = Graph.toJson(graph, theory)
+		// view.selectedVerts
+	}
+
 	/** listener to document status */
 	listenTo(document)
 	reactions += { case DocumentChanged(_) | DocumentSaved(_) =>

@@ -69,9 +69,10 @@ class SubGraphEditController() extends Publisher {
 		case OneVertexSelectedEventAPI(_, typ, value) =>
 			typ match {
 				case "RT_NST" =>
-					tacticToShow = value
+					val name = ArgumentParser.separateNameFromArgument(value)._1
+					tacticToShow = name
 					indexToShow = 0
-					tacticTotal = Service.getSizeOfTactic(value)
+					tacticTotal = Service.getSizeOfTactic(name)
 					indexOnTotal.text = (indexToShow + 1) + " / " + tacticTotal
 					showPreview()
 				case "RT_ATM" | "RT_ID" => publish(HidePreviewEvent())
