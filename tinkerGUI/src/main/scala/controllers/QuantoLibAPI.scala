@@ -737,8 +737,36 @@ object QuantoLibAPI extends Publisher{
 	  * Method to merge selected vertices into a nested one
 	  */
 	def mergeSelectedVertices() {
+		// saving json graph
 		val jsonGraph = Graph.toJson(graph, theory)
-		// view.selectedVerts
+		// computing new node coordinates to be at center of all selected nodes
+		var maxX = -1000.0
+		var minX = 1000.0
+		var maxY = -1000.0
+		var minY = 1000.0
+		view.selectedVerts.foreach{ v=>
+			maxX = max(maxX, graph.vdata(v).coord._1)
+			minX = min(minX, graph.vdata(v).coord._1)
+			maxY = max(maxY, graph.vdata(v).coord._2)
+			minY = min(minY, graph.vdata(v).coord._2)
+		}
+		val newX = (minX+maxX)/2
+		val newY = (minY+maxY)/2
+		// creating new node (cannot use userAddVertex as we don't have the mouse point coordinates)
+		val newData = NodeV(data = theory.vertexTypes("RT_NST").defaultData, theory = theory).withCoord((newX,newY))
+		val newName = graph.verts.freshWithSuggestion(VName("v0"))
+		addVertex(newName, newData.withCoord((newX,newY)))
+		graph.vdata(newName) match {
+			case data: NodeV =>
+				changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true)) })
+				view.invalidateVertex(newName)
+				graph.adjacentEdges(newName).foreach { view.invalidateEdge }
+		}
+		// puting previously saved json in new node
+		// foreach "in" edges of selected nodes, setting target to be new node
+		// foreach "out" edges of selected nodes, setting source to be new node
+		// foreach recursive edge on new node, deleting them
+		// deleting selected nodes
 	}
 
 	/** listener to document status */
