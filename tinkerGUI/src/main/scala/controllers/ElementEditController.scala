@@ -66,6 +66,20 @@ class ElementEditController() extends Publisher {
 		}
 	}
 
+	val mergeAction = new Action("ok"){
+		def apply() {
+		}
+	}
+
+	def addMergeListener(btn: Button, names: Set[String]){
+		listenTo(btn)
+		reactions += {
+			case ButtonClicked(b: Button) =>
+				if(b==btn){
+				}
+		}
+	}
+
 	listenTo(QuantoLibAPI)
 	reactions += {
 		case NothingSelectedEventAPI() =>

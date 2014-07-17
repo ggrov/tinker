@@ -79,7 +79,7 @@ class PSGraph() {
 		lookForGraphTactic(tactic) match {
 			case Some(t:GraphTactic) =>
 				t.delGraph(index)
-			case None =>
+			case None => tinkerGUI.controllers.TinkerDialog.openErrorDialog("<html>The program tried to delete a subgraph of tactic : "+tactic+", at index : "+(index+1)+".<br>But no such tactic could be found.</html>")
 		}
 	}
 
@@ -87,7 +87,7 @@ class PSGraph() {
 		lookForGraphTactic(tactic) match {
 			case Some(t:GraphTactic) =>
 				graphTactics = graphTactics - t
-			case None =>
+			case None => tinkerGUI.controllers.TinkerDialog.openErrorDialog("<html>The program tried to delete the tactic : "+tactic+".<br>But no such tactic could be found.</html>")
 		}
 	}
 

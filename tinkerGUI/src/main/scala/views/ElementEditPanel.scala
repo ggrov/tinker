@@ -71,7 +71,7 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 
 class VerticesEditContent(names: Set[String], ctrl: ElementEditController) extends FlowPanel {
 	val mergeButton = new Button("Merge into nested node.")
-	// ctrl.addListener(mergeButton, names)
+	ctrl.addMergeListener(mergeButton, names)
 	contents += new FlowPanel(){
 		def prettyString(s: Set[String]) : String = {
 			var res = s.head
