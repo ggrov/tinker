@@ -118,6 +118,7 @@ object Service extends Publisher {
 	}
 
 	def getParentList(tactic: String) = hierarchyModel.buildParentList(tactic, Array[String]())
+	def changeTacticParent(tactic: String, parent: String) = hierarchyModel.changeParent(tactic, parent)
 
 	def parseArguments(tactic: String, s: String) {
 		val args = ArgumentParser.stringToArguments(s)

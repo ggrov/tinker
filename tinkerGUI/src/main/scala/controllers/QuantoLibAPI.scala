@@ -753,7 +753,7 @@ object QuantoLibAPI extends Publisher{
 		val newX = (minX+maxX)/2
 		val newY = (minY+maxY)/2
 		// creating new node (cannot use userAddVertex as we don't have the mouse point coordinates)
-		val newData = NodeV(data = theory.vertexTypes("RT_NST").defaultData, theory = theory).withCoord((newX,newY))
+		var newData = NodeV(data = theory.vertexTypes("RT_NST").defaultData, theory = theory).withCoord((newX,newY))
 		val newName = graph.verts.freshWithSuggestion(VName("v0"))
 		changeGraph(graph.addVertex(newName, newData.withCoord((newX,newY))))
 		graph.vdata(newName) match {
@@ -762,8 +762,16 @@ object QuantoLibAPI extends Publisher{
 				view.invalidateVertex(newName)
 				graph.adjacentEdges(newName).foreach { view.invalidateEdge }
 		}
+		graph.vdata(newName) match { case data: NodeV => newData = data}
 		var subgraphVerts = view.selectedVerts
 		view.selectedVerts.foreach { v =>
+			// we update the hierarchy if v is nested
+			graph.vdata(v) match {
+				case d:NodeV =>
+					if(d.typ == "RT_NST"){
+						Service.changeTacticParent(ArgumentParser.separateNameFromArgument(d.label)._1, ArgumentParser.separateNameFromArgument(newData.label)._1)
+					}
+			}
 			// foreach "in" edges of selected nodes, setting target to be new node except for recursion
 			graph.inEdges(v).foreach { e =>
 				val data = graph.edata(e)

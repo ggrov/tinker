@@ -68,4 +68,22 @@ class HierarchyModel() {
 			case None =>
 		}
 	}
+
+	def changeParent(element: String, parent:String){
+		lookForElement(element) match {
+			case Some(e:TreeElement) =>
+				lookForElement(e.parent) match {
+					case Some(p:TreeElement) =>
+						p.children -= e
+					case None =>
+				}
+				e.parent = parent
+				lookForElement(parent) match {
+					case Some(p:TreeElement) =>
+						p.children += e
+					case None =>
+				}
+			case None =>
+		}
+	}
 }
