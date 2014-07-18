@@ -755,7 +755,7 @@ object QuantoLibAPI extends Publisher{
 		// creating new node (cannot use userAddVertex as we don't have the mouse point coordinates)
 		val newData = NodeV(data = theory.vertexTypes("RT_NST").defaultData, theory = theory).withCoord((newX,newY))
 		val newName = graph.verts.freshWithSuggestion(VName("v0"))
-		addVertex(newName, newData.withCoord((newX,newY)))
+		changeGraph(graph.addVertex(newName, newData.withCoord((newX,newY))))
 		graph.vdata(newName) match {
 			case data: NodeV =>
 				changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true)) })
@@ -763,10 +763,38 @@ object QuantoLibAPI extends Publisher{
 				graph.adjacentEdges(newName).foreach { view.invalidateEdge }
 		}
 		// puting previously saved json in new node
-		// foreach "in" edges of selected nodes, setting target to be new node
-		// foreach "out" edges of selected nodes, setting source to be new node
-		// foreach recursive edge on new node, deleting them
+		//TODO
+		view.selectedVerts.foreach { v =>
+			// foreach "in" edges of selected nodes, setting target to be new node except for recursion
+			graph.inEdges(v).foreach { e =>
+				val data = graph.edata(e)
+				val src = graph.source(e)
+				val tgt = graph.target(e)
+				graph.edgesBetween(src, tgt).foreach { view.invalidateEdge }
+				changeGraph(graph.deleteEdge(e))
+				if(src != tgt && src != newName){
+					changeGraph(graph.addEdge(e, data, (src, newName)))
+					graph.edgesBetween(src, newName).foreach { view.invalidateEdge }
+				}
+			}
+			// foreach "out" edges of selected nodes, setting source to be new node if it doesn't create recursion
+			graph.outEdges(v).foreach { e =>
+				val data = graph.edata(e)
+				val tgt = graph.target(e)
+				graph.edgesBetween(graph.source(e), tgt).foreach { view.invalidateEdge }
+				changeGraph(graph.deleteEdge(e))
+				if(tgt != newName){
+					changeGraph(graph.addEdge(e, data, (newName, tgt)))
+					graph.edgesBetween(newName, tgt).foreach { view.invalidateEdge }
+				}
+			}
+			view.invalidateVertex(v)
+			view.selectedVerts -= v
+			changeGraph(graph.deleteVertex(v))
+		}
 		// deleting selected nodes
+		// update graph in new node !!
+		//TODO
 	}
 
 	/** listener to document status */
