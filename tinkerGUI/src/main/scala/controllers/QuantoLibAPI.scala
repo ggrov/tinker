@@ -737,8 +737,8 @@ object QuantoLibAPI extends Publisher{
 	  * Method to merge selected vertices into a nested one
 	  */
 	def mergeSelectedVertices() {
-		// saving json graph
-		val jsonGraph = Graph.toJson(graph, theory)
+		// duplicate graph in a subgraph
+		var newSubgraph = graph
 		// computing new node coordinates to be at center of all selected nodes
 		var maxX = -1000.0
 		var minX = 1000.0
@@ -762,14 +762,22 @@ object QuantoLibAPI extends Publisher{
 				view.invalidateVertex(newName)
 				graph.adjacentEdges(newName).foreach { view.invalidateEdge }
 		}
-		// puting previously saved json in new node
-		//TODO
+		var subgraphVerts = view.selectedVerts
 		view.selectedVerts.foreach { v =>
 			// foreach "in" edges of selected nodes, setting target to be new node except for recursion
 			graph.inEdges(v).foreach { e =>
 				val data = graph.edata(e)
 				val src = graph.source(e)
 				val tgt = graph.target(e)
+				// in the subgraph we put boundaries instead on unselected nodes
+				if(!view.selectedVerts.contains(src) && src != newName){
+					val bData = WireV(theory = theory, annotation = JsonObject("boundary" -> JsonBool(true)))
+					val bName = newSubgraph.verts.freshWithSuggestion(VName("b0"))
+					subgraphVerts += bName
+					newSubgraph = newSubgraph.addVertex(bName, bData.withCoord(newSubgraph.vdata(src).coord))
+					newSubgraph = newSubgraph.deleteEdge(e)
+					newSubgraph = newSubgraph.addEdge(e, data, (bName, v))
+				}
 				graph.edgesBetween(src, tgt).foreach { view.invalidateEdge }
 				changeGraph(graph.deleteEdge(e))
 				if(src != tgt && src != newName){
@@ -781,6 +789,15 @@ object QuantoLibAPI extends Publisher{
 			graph.outEdges(v).foreach { e =>
 				val data = graph.edata(e)
 				val tgt = graph.target(e)
+				// in the subgraph we put boundaries instead on unselected nodes
+				if(!view.selectedVerts.contains(tgt) && tgt != newName){
+					val bData = WireV(theory = theory, annotation = JsonObject("boundary" -> JsonBool(true)))
+					val bName = newSubgraph.verts.freshWithSuggestion(VName("b0"))
+					subgraphVerts += bName					
+					newSubgraph = newSubgraph.addVertex(bName, bData.withCoord(newSubgraph.vdata(tgt).coord))
+					newSubgraph = newSubgraph.deleteEdge(e)
+					newSubgraph = newSubgraph.addEdge(e, data, (v, bName))
+				}
 				graph.edgesBetween(graph.source(e), tgt).foreach { view.invalidateEdge }
 				changeGraph(graph.deleteEdge(e))
 				if(tgt != newName){
@@ -788,13 +805,18 @@ object QuantoLibAPI extends Publisher{
 					graph.edgesBetween(newName, tgt).foreach { view.invalidateEdge }
 				}
 			}
+			// deleting selected nodes
 			view.invalidateVertex(v)
 			view.selectedVerts -= v
 			changeGraph(graph.deleteVertex(v))
 		}
-		// deleting selected nodes
-		// update graph in new node !!
-		//TODO
+		newSubgraph.verts.foreach{ v => 
+			if(!subgraphVerts.contains(v)) newSubgraph = newSubgraph.deleteVertex(v)
+		}
+		// saving json graph
+		val jsonGraph = Graph.toJson(newSubgraph, theory)
+		Service.saveGraphSpecificTactic(ArgumentParser.separateNameFromArgument(newData.label)._1, jsonGraph)
+		publish(NothingSelectedEventAPI())
 	}
 
 	/** listener to document status */

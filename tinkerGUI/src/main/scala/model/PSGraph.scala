@@ -28,7 +28,7 @@ class PSGraph() {
 			atomicTacticsJson = atomicTacticsJson :+ t.toJson
 		}
 		jsonPSGraph = JsonObject("current" -> current, "current_index" -> currentIndex, "graph" -> mainGraph, "graph_tactics" -> JsonArray(graphTacticsJson), "atomic_tactics" -> JsonArray(atomicTacticsJson))
-		// println(jsonPSGraph)
+		println(jsonPSGraph)
 	}
 
 	def lookForGraphTactic(tactic: String): Option[GraphTactic] = {
@@ -109,7 +109,7 @@ class PSGraph() {
 		}
 	}
 
-	def saveSomeGraph(graph: Json) {
+	def saveCurrentGraph(graph: Json) {
 		graph match {
 			case g: JsonObject =>
 				if(isMain){
@@ -118,7 +118,19 @@ class PSGraph() {
 				else {
 					currentTactic.addJsonToGraphs(g, currentIndex)
 				}
-			case _ =>
+			case _ => tinkerGUI.controllers.TinkerDialog.openErrorDialog("<html>The program tried to save a graph, </br>but the object received is not in JSON format.</html>")
+		}
+		updateJsonPSGraph
+	}
+
+	def saveGraphSpecificTactic(tactic: String, graph: Json){
+		graph match {
+			case g: JsonObject =>
+				lookForGraphTactic(tactic) match {
+					case Some(t: GraphTactic) => t.addJsonToGraphs(g, t.getSize)
+					case None => tinkerGUI.controllers.TinkerDialog.openErrorDialog("<html>The program tried to save a graph in tactic : "+tactic+" , </br>but it could not be found.</html>")
+				}
+			case _ => tinkerGUI.controllers.TinkerDialog.openErrorDialog("<html>The program tried to save a graph, </br>but the object received is not in JSON format.</html>")
 		}
 		updateJsonPSGraph
 	}

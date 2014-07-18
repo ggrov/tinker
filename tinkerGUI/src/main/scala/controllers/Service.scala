@@ -86,10 +86,12 @@ object Service extends Publisher {
 		return false
 	}
 
+	def saveGraphSpecificTactic(tactic: String, graph: Json) = model.saveGraphSpecificTactic(tactic, graph)
+
 	listenTo(QuantoLibAPI)
 	reactions += {
 		case GraphEventAPI(graph) =>
-			model.saveSomeGraph(graph)
+			model.saveCurrentGraph(graph)
 			graphNavCtrl.disableAdd = false
 	}
 
