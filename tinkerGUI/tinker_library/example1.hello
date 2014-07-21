@@ -1,0 +1,98 @@
+{
+"dir_edges" : {
+"e6" : {
+"data" : {
+  "gtyp_name" : "any",
+  "type" : "GT"
+},
+"src" : "v4",
+"tgt" : "b1"
+},
+"e1" : {
+"data" : {
+  "gtyp_name" : "any",
+  "type" : "GT"
+},
+"src" : "v0",
+"tgt" : "v4"
+},
+"e5" : {
+"data" : {
+  "gtyp_name" : "any",
+  "type" : "GT"
+},
+"src" : "v2",
+"tgt" : "v4"
+},
+"e0" : {
+"data" : {
+  "gtyp_name" : "any",
+  "type" : "GT"
+},
+"src" : "b0",
+"tgt" : "v0"
+},
+"e4" : {
+"data" : {
+  "gtyp_name" : "any",
+  "type" : "GT"
+},
+"src" : "v4",
+"tgt" : "v2"
+}
+},
+"wire_vertices" : {
+"b1" : {
+"annotation" : {
+  "boundary" : true,
+  "coord" : [ 1.00, 0.00 ]
+}
+},
+"b0" : {
+"annotation" : {
+  "boundary" : true,
+  "coord" : [ 1.00, 1.00 ]
+}
+}
+},
+"node_vertices" : {
+"v4" : {
+"data" : {
+  "rt_name" : "nested",
+  "appf" : {
+    "type" : "Nested"
+  },
+  "type" : "RT_NST",
+  "label" : "nested"
+},
+"annotation" : {
+  "coord" : [ 0.0, 0.0 ]
+}
+},
+"v0" : {
+"data" : {
+  "rt_name" : "id",
+  "appf" : {
+    "type" : "Identity"
+  },
+  "type" : "RT_ID"
+},
+"annotation" : {
+  "coord" : [ 0.00, 1.00 ]
+}
+},
+"v2" : {
+"data" : {
+  "rt_name" : "id",
+  "appf" : {
+    "type" : "Identity"
+  },
+  "type" : "RT_ID"
+},
+"annotation" : {
+  "coord" : [ 0.00, -1.00 ]
+}
+}
+}
+}
+

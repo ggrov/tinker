@@ -62,8 +62,9 @@ object QuantoLibAPI extends Publisher{
 	  */
 	def loadFromJson(json: JsonObject) {
 		document.clear()
-		val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
-		document.graph = layout.layout(Graph.fromJson(json, theory))
+		// val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
+		// wrap Graph.fromJson .... with layout.layout(...) in next line to activate layout
+		document.graph = Graph.fromJson(json, theory)
 		document.publish(GraphReplaced(document, clearSelection = true))
 		localUpdate()
 	}
@@ -96,11 +97,42 @@ object QuantoLibAPI extends Publisher{
 	  * Method to update the subgraphPreview with a json
 	  * @param json, the json representation of the graph
 	  */
-	def updatePreviewFromJson(json: JsonObject) {
+	def updateSubgraphPreviewFromJson(json: JsonObject) {
 		subgraphPreview.subgraphPreviewDoc.clear()
-		val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
-		subgraphPreview.subgraphPreviewDoc.graph = layout.layout(Graph.fromJson(json, theory))
+		// val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
+		// wrap Graph.fromJson .... with layout.layout(...) in next line to activate layout
+		subgraphPreview.subgraphPreviewDoc.graph = Graph.fromJson(json, theory)
 		subgraphPreview.subgraphPreviewDoc.publish(GraphReplaced(subgraphPreview.subgraphPreviewDoc, clearSelection = true))
+	}
+
+	/**
+	  * private value representing the preview of a graph from the tinker library
+	  */
+	private val libraryPreview = new BorderPanel {
+		preferredSize = new Dimension (250,300)
+		val libraryPreviewDoc = new GraphDocument(this, theory)
+		val libraryPreviewView = new GraphView(theory, libraryPreviewDoc)
+		libraryPreviewView.drawGrid = false
+		val libraryPreviewScrollPane = new ScrollPane(libraryPreviewView)
+		add(libraryPreviewScrollPane, BorderPanel.Position.Center)
+	}
+
+	/**
+	  * Method to get the library preview
+	  * @return the library preview
+	  */
+	def getLibraryPreview = libraryPreview
+
+	/**
+	  * Method to update the libraryPreview with a json
+	  * @param json, the json representation of the graph
+	  */
+	def updateLibraryPreviewFromJson(json: Json) {
+		libraryPreview.libraryPreviewDoc.clear()
+		// val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
+		// wrap Graph.fromJson .... with layout.layout(...) in next line to activate layout
+		libraryPreview.libraryPreviewDoc.graph = Graph.fromJson(json, theory)
+		libraryPreview.libraryPreviewDoc.publish(GraphReplaced(libraryPreview.libraryPreviewDoc, clearSelection = true))
 	}
 
 	/**

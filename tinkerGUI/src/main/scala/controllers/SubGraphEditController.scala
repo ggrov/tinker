@@ -18,7 +18,7 @@ class SubGraphEditController() extends Publisher {
 		val jsonSubGraph = Service.getSpecificJsonFromModel(tacticToShow, indexToShow)
 		jsonSubGraph match {
 			case Some(j: JsonObject) =>
-				QuantoLibAPI.updatePreviewFromJson(j)
+				QuantoLibAPI.updateSubgraphPreviewFromJson(j)
 				publish(ShowPreviewEvent())
 			case None => 
 				publish(HidePreviewEvent())

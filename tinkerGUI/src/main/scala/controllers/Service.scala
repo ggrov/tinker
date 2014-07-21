@@ -19,6 +19,7 @@ object Service extends Publisher {
 	val subGraphEditCtrl = new SubGraphEditController()
 	val graphNavCtrl = new GraphNavigationController()
 	val hierTreeCtrl = new HierarchyTreeController()
+	val libraryTreeCtrl = new TinkerLibraryController()
 
 	def changeGraphEditMouseState(state: String){
 		graphEditCtrl.changeMouseState(state)

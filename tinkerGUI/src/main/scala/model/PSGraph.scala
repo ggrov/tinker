@@ -165,14 +165,14 @@ class PSGraph() {
 	def graphTacticSetIsOr(tactic: String, isOr: Boolean){
 		lookForGraphTactic(tactic) match {
 			case Some(t: GraphTactic) => t.isOr = isOr
-			case None =>
+			case None => tinkerGUI.controllers.TinkerDialog.openErrorDialog("<html>The program tried to change a graph tactic, </br>but the given tactic name was not found.</html>")
 		}
 	}
 
 	def isGraphTacticOr(tactic: String): Boolean = {
 		lookForGraphTactic(tactic) match {
 			case Some(t:GraphTactic) => t.isOr
-			case None => true
+			case None => false
 		}
 	}
 
@@ -181,7 +181,7 @@ class PSGraph() {
 			case Some(t: GraphTactic) => t.name = newVal
 			case Some(t: AtomicTactic) => t.name = newVal
 			case Some(t: HasArguments) => 
-			case None =>
+			case None => tinkerGUI.controllers.TinkerDialog.openErrorDialog("<html>The program tried to change a tactic, </br>but the given tactic name was not found.</html>")
 		}
 	}
 
@@ -196,7 +196,7 @@ class PSGraph() {
 				args.foreach{ a =>
 					t.addArgument(a)
 				}
-			case None => //needs to do the same for atomic
+			case None => 
 		}
 	}
 

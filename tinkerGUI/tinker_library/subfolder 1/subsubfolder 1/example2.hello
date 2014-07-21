@@ -1,0 +1,104 @@
+{
+"dir_edges" : {
+"e6" : {
+  "data" : {
+    "gtyp_name" : "any",
+    "type" : "GT"
+  },
+  "src" : "v3",
+  "tgt" : "b4"
+},
+"e1" : {
+  "data" : {
+    "gtyp_name" : "any",
+    "type" : "GT"
+  },
+  "src" : "b2",
+  "tgt" : "v3"
+},
+"e5" : {
+  "data" : {
+    "gtyp_name" : "any",
+    "type" : "GT"
+  },
+  "src" : "b3",
+  "tgt" : "v3"
+},
+"e4" : {
+  "data" : {
+    "gtyp_name" : "any",
+    "type" : "GT"
+  },
+  "src" : "v1",
+  "tgt" : "b5"
+},
+"e3" : {
+  "data" : {
+    "gtyp_name" : "any",
+    "type" : "GT"
+  },
+  "src" : "v3",
+  "tgt" : "v1"
+},
+"e2" : {
+  "data" : {
+    "gtyp_name" : "any",
+    "type" : "GT"
+  },
+  "src" : "v3",
+  "tgt" : "v3"
+}
+},
+"wire_vertices" : {
+"b5" : {
+  "annotation" : {
+    "boundary" : true,
+    "coord" : [ 0.4873055547244737, -3.322206077410628 ]
+  }
+},
+"b2" : {
+  "annotation" : {
+    "boundary" : true,
+    "coord" : [ -2.4036527773586522, 3.0778032886412787 ]
+  }
+},
+"b4" : {
+  "annotation" : {
+    "boundary" : true,
+    "coord" : [ -1.0636527773799374, -1.5912655273079388 ]
+  }
+},
+"b3" : {
+  "annotation" : {
+    "boundary" : true,
+    "coord" : [ 1.6563472226448208, 2.59085269243715 ]
+  }
+}
+},
+"node_vertices" : {
+"v3" : {
+  "data" : {
+    "rt_name" : "rtech",
+    "appf" : {
+      "type" : "Atomic"
+    },
+    "type" : "RT_ATM"
+  },
+  "annotation" : {
+    "coord" : [ -0.04365277735517995, 0.5592820683919986 ]
+  }
+},
+"v1" : {
+  "data" : {
+    "rt_name" : "id",
+    "appf" : {
+      "type" : "Identity"
+    },
+    "type" : "RT_ID"
+  },
+  "annotation" : {
+    "coord" : [ 1.3473055547244739, -1.0744664447518604 ]
+  }
+}
+}
+}
