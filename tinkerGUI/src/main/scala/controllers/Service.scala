@@ -99,7 +99,7 @@ object Service extends Publisher {
 	def checkNodeName(n: String, sufix: Int, create: Boolean): String = {
 		var name = n
 		if(sufix != 0) name = (n+"-"+sufix)
-		model.lookForTactic(name) match {
+		model.lookForGraphTactic(name) match {
 			case None =>
 				if(create) {
 					model.createGraphTactic(name, true)
@@ -113,9 +113,11 @@ object Service extends Publisher {
 	}
 
 	def updateTacticName(oldVal: String, newVal: String) = {
-		model.updateTacticName(oldVal, newVal)
-		hierarchyModel.updateElementName(oldVal, newVal)
-		hierTreeCtrl.redraw
+		val isGraphTactic = model.updateTacticName(oldVal, newVal)
+		if(isGraphTactic) {
+			hierarchyModel.updateElementName(oldVal, newVal)
+			hierTreeCtrl.redraw
+		}
 	}
 
 	def getParentList(tactic: String) = hierarchyModel.buildParentList(tactic, Array[String]())
@@ -136,5 +138,13 @@ object Service extends Publisher {
 				return ArgumentParser.argumentsToString(array)
 			case None => return ""
 		}
+	}
+
+	def getAtomicTacticValue(tactic: String): String = model.getAtomicTacticValue(tactic)
+	def setAtomicTacticValue(tactic: String, value: String) = model.setAtomicTacticValue(tactic, value)
+
+	def addAtomicTactic(name: String): String = {
+		val args = model.createAtomicTactic(name)
+		return name+"("+ArgumentParser.argumentsToString(args)+")"
 	}
 }

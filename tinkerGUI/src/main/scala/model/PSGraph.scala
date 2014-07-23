@@ -1,14 +1,17 @@
 package tinkerGUI.model
 
+import scala.swing._
 import quanto.util.json._
 import java.io.{FileNotFoundException, IOException, File}
 import scala.collection.mutable.ArrayBuffer
+import tinkerGUI.controllers.TinkerDialog
+import tinkerGUI.controllers.ArgumentParser
 
 class PSGraph() {
 	var isMain = true
 	var currentTactic: GraphTactic = new GraphTactic("", true)
 	var currentIndex = 0
-	var atomicTactics: Array[AtomicTactic] = Array(new AtomicTactic("simp", "simplify"))
+	var atomicTactics: ArrayBuffer[AtomicTactic] = ArrayBuffer()
 	var graphTactics: ArrayBuffer[GraphTactic] = ArrayBuffer()
 	var mainGraph: JsonObject = JsonObject()
 
@@ -79,15 +82,18 @@ class PSGraph() {
 		lookForGraphTactic(tactic) match {
 			case Some(t:GraphTactic) =>
 				t.delGraph(index)
-			case None => tinkerGUI.controllers.TinkerDialog.openErrorDialog("<html>The program tried to delete a subgraph of tactic : "+tactic+", at index : "+(index+1)+".<br>But no such tactic could be found.</html>")
+			case None => throwError("<html>The program tried to delete a subgraph of tactic : "+tactic+", at index : "+(index+1)+".<br>But no such tactic could be found.</html>")
 		}
 	}
 
 	def deleteTactic(tactic: String) {
-		lookForGraphTactic(tactic) match {
+		lookForTactic(tactic) match {
 			case Some(t:GraphTactic) =>
 				graphTactics = graphTactics - t
-			case None => tinkerGUI.controllers.TinkerDialog.openErrorDialog("<html>The program tried to delete the tactic : "+tactic+".<br>But no such tactic could be found.</html>")
+			case Some(t:AtomicTactic) =>
+				atomicTactics = atomicTactics - t
+			case Some(t:HasArguments) =>
+			case None => throwError("<html>The program tried to delete the tactic : "+tactic+".<br>But no such tactic could be found.</html>")
 		}
 	}
 
@@ -118,7 +124,7 @@ class PSGraph() {
 				else {
 					currentTactic.addJsonToGraphs(g, currentIndex)
 				}
-			case _ => tinkerGUI.controllers.TinkerDialog.openErrorDialog("<html>The program tried to save a graph, </br>but the object received is not in JSON format.</html>")
+			case _ => throwError("<html>The program tried to save a graph, </br>but the object received is not in JSON format.</html>")
 		}
 		updateJsonPSGraph
 	}
@@ -128,9 +134,9 @@ class PSGraph() {
 			case g: JsonObject =>
 				lookForGraphTactic(tactic) match {
 					case Some(t: GraphTactic) => t.addJsonToGraphs(g, t.getSize)
-					case None => tinkerGUI.controllers.TinkerDialog.openErrorDialog("<html>The program tried to save a graph in tactic : "+tactic+" , </br>but it could not be found.</html>")
+					case None => throwError("<html>The program tried to save a graph in tactic : "+tactic+" , </br>but it could not be found.</html>")
 				}
-			case _ => tinkerGUI.controllers.TinkerDialog.openErrorDialog("<html>The program tried to save a graph, </br>but the object received is not in JSON format.</html>")
+			case _ => throwError("<html>The program tried to save a graph, </br>but the object received is not in JSON format.</html>")
 		}
 		updateJsonPSGraph
 	}
@@ -165,7 +171,7 @@ class PSGraph() {
 	def graphTacticSetIsOr(tactic: String, isOr: Boolean){
 		lookForGraphTactic(tactic) match {
 			case Some(t: GraphTactic) => t.isOr = isOr
-			case None => tinkerGUI.controllers.TinkerDialog.openErrorDialog("<html>The program tried to change a graph tactic, </br>but the given tactic name was not found.</html>")
+			case None => throwError("<html>The program tried to change a graph tactic, </br>but the given tactic name was not found.</html>")
 		}
 	}
 
@@ -176,13 +182,48 @@ class PSGraph() {
 		}
 	}
 
-	def updateTacticName(oldVal: String, newVal: String) {
+	def updateTacticName(oldVal: String, newVal: String): Boolean = {
+		var isGraphTactic = false
 		lookForTactic(oldVal) match {
-			case Some(t: GraphTactic) => t.name = newVal
-			case Some(t: AtomicTactic) => t.name = newVal
-			case Some(t: HasArguments) => 
-			case None => tinkerGUI.controllers.TinkerDialog.openErrorDialog("<html>The program tried to change a tactic, </br>but the given tactic name was not found.</html>")
+			case Some(old: GraphTactic) => isGraphTactic = true ; old.name = newVal
+			case Some(old: AtomicTactic) => 
+				lookForAtomicTactic(newVal) match {
+					case Some(n:AtomicTactic) =>
+						val oldArg = ArgumentParser.argumentsToString(old.argumentsToArrays)
+						val newArg = ArgumentParser.argumentsToString(n.argumentsToArrays)
+						if(oldArg != newArg){
+							val mergeAction1 = new Action("Merge tactics to "+newVal+"("+ArgumentParser.argumentsToString(old.argumentsToArrays)+")"){
+								def apply(){
+									n.arg = old.arg
+									deleteTactic(old.name)
+									// update value in every graph & reload current json to quantolib
+									TinkerDialog.close()
+								}
+							}
+							val mergeAction2 = new Action("Merge tactics to "+newVal+"("+ArgumentParser.argumentsToString(n.argumentsToArrays)+")"){
+								def apply(){
+									deleteTactic(old.name)
+									// update value in every graph & reload current json to quantolib
+									TinkerDialog.close()
+								}
+							}
+							val dontMerge = new Action("Do not merge tactics"){
+								def apply(){
+									TinkerDialog.close()
+								}
+							}
+							TinkerDialog.openConfirmationDialog("<html>The new name you specified is already taken.</br>What would you want to do ?</html>", Array(mergeAction1, mergeAction2, dontMerge))
+						}
+						else {
+							deleteTactic(old.name)
+						}
+					case None => old.name = newVal
+				}
+			case Some(old: HasArguments) => 
+			case None => 
+			// throwError("<html>The program tried to change a tactic, </br>but the given tactic name was not found.</html>")
 		}
+		return isGraphTactic
 	}
 
 	def createGraphTactic(tactic: String, isOr: Boolean){
@@ -196,9 +237,37 @@ class PSGraph() {
 				args.foreach{ a =>
 					t.addArgument(a)
 				}
+				// update everywhere & reload current json to quantolib
 			case None => 
 		}
 	}
+
+	def getAtomicTacticValue(tactic: String): String = {
+		lookForAtomicTactic(tactic) match {
+			case Some(t:AtomicTactic) => t.tactic
+			case None => ""
+		}
+	}
+
+	def createAtomicTactic(name: String): Array[Array[String]] = {
+		lookForAtomicTactic(name) match {
+			case Some(t:AtomicTactic) =>
+				t.argumentsToArrays
+			case None => 
+				val t = new AtomicTactic(name, "")
+				atomicTactics += t
+				t.argumentsToArrays
+		}
+	}
+
+	def setAtomicTacticValue(name: String, value: String){
+		lookForAtomicTactic(name) match {
+			case Some(t:AtomicTactic) => t.tactic = value
+			case None => throwError("<html>The program tried to change a tactic : "+name+", <br>but the given tactic name was not found.</html>")
+		}
+	}
+
+	def throwError(text: String) = TinkerDialog.openErrorDialog(text)
 
 	def loadJsonGraph(f: File) {
 		// load a saved file in our json object

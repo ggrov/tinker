@@ -10,29 +10,51 @@ import scala.swing.event.Key
 class ElementEditController() extends Publisher {
 	var elementName = ""
 	var elementArguments = ""
+
+	def reset = {
+		elementName = ""
+		elementArguments = ""
+	}
+
 	def addValueListener(elt: TextField){
-		elementName = ArgumentParser.separateNameFromArgument(elt.text)._1
-		elementArguments = ArgumentParser.separateNameFromArgument(elt.text)._2
+		val eltNameArg = ArgumentParser.separateNameFromArgument(elt.text)
+		elementName = eltNameArg._1
+		elementArguments = eltNameArg._2
 		listenTo(elt.keys)
 		reactions += {
-			case KeyReleased(_, key, _, _) =>
-				val name = ArgumentParser.separateNameFromArgument(elt.text)._1
-				val arguments = ArgumentParser.separateNameFromArgument(elt.text)._2
-				if(name == elementName && arguments != elementArguments){
-					Service.parseArguments(name, arguments)
+			case KeyReleased(c, key, _, _) =>
+				if(c == elt){
+					var (name, arguments) = ArgumentParser.separateNameFromArgument(elt.text)
+					if(name == elementName && arguments != elementArguments){
+						Service.parseArguments(name, arguments)
+						elementArguments = arguments
+					}
+					else if(name != elementName && name != ""){
+						Service.updateTacticName(elementName, name)
+						Service.parseArguments(name, arguments)
+						elementName = name
+					}
 					QuantoLibAPI.editSelectedElementValue(elt.text)
-					elementArguments = arguments
-				}
-				else if(name != elementName && name != "" && name == Service.checkNodeName(name, 0, false)){
-					Service.updateTacticName(elementName, name)
-					Service.parseArguments(name, arguments)
-					QuantoLibAPI.editSelectedElementValue(elt.text)
-					elementName = name
 				}
 		}
 	}
 
-	def getArgumentValue(node: String) = Service.getArgumentsOfTactic(node)
+	def getAtomicTacticValue(value: String): String = {
+		val name = ArgumentParser.separateNameFromArgument(value)._1
+		Service.getAtomicTacticValue(name)
+	}
+
+	def addAtmTctValueListener(elt: TextField, node:String){
+		listenTo(elt.keys)
+		reactions += {
+			case KeyReleased(c, key, _, _) =>
+				val name = ArgumentParser.separateNameFromArgument(node)._1
+				if(elementName == "") elementName = name
+				if(c == elt){
+					Service.setAtomicTacticValue(elementName, elt.text)
+				}
+		}
+	}
 
 	def addDeleteListener(btn: Button, eltName: String){
 		listenTo(btn)
@@ -46,11 +68,11 @@ class ElementEditController() extends Publisher {
 	}
 
 	def addNewSubListener(btn: Button, elt: String, or: RadioButton){
-		val name = ArgumentParser.separateNameFromArgument(elt)._1
-		if(elementName == "") elementName = name
 		listenTo(btn)
 		reactions += {
 			case ButtonClicked(b: Button) =>
+				val name = ArgumentParser.separateNameFromArgument(elt)._1
+				if(elementName == "") elementName = name
 				if(b==btn){
 					Service.addSubgraph(elementName, or.selected)
 				}
@@ -69,8 +91,15 @@ class ElementEditController() extends Publisher {
 		}
 	}
 
-	val mergeAction = new Action("ok"){
+	val mergeAction = new Action("Yes"){
 		def apply() {
+			QuantoLibAPI.mergeSelectedVertices()
+			TinkerDialog.close()
+		}
+	}
+	val cancelAction = new Action("Cancel"){
+		def apply() {
+			TinkerDialog.close()
 		}
 	}
 
@@ -79,7 +108,7 @@ class ElementEditController() extends Publisher {
 		reactions += {
 			case ButtonClicked(b: Button) =>
 				if(b==btn){
-					QuantoLibAPI.mergeSelectedVertices()
+					TinkerDialog.openConfirmationDialog("<html>You are about to merge these nodes.</br>Do you wish to continue ?</html>", Array(mergeAction, cancelAction))
 				}
 		}
 	}

@@ -5,6 +5,14 @@ import quanto.util.json._
 trait HasArguments {
 	var arg: Array[Argument] = Array()
 
+	def argumentsToArrays : Array[Array[String]] = {
+		var res = Array[Array[String]]()
+		arg.foreach{a =>
+			res = res :+ a.arg
+		}
+		return res
+	}
+
 	def addArgument(a: Argument){
 		arg = arg :+ a
 	}

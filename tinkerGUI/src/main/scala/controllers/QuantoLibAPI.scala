@@ -109,7 +109,6 @@ object QuantoLibAPI extends Publisher{
 	  * private value representing the preview of a graph from the tinker library
 	  */
 	private val libraryPreview = new BorderPanel {
-		preferredSize = new Dimension (250,300)
 		val libraryPreviewDoc = new GraphDocument(this, theory)
 		val libraryPreviewView = new GraphView(theory, libraryPreviewDoc)
 		libraryPreviewView.drawGrid = false
@@ -650,13 +649,18 @@ object QuantoLibAPI extends Publisher{
 		val vertexData = NodeV(data = theory.vertexTypes(typ).defaultData, theory = theory).withCoord(coord)
 		val vertexName = graph.verts.freshWithSuggestion(VName("v0"))
 		addVertex(vertexName, vertexData.withCoord(coord))
-		if(typ == "RT_NST") {
-			graph.vdata(vertexName) match {
-				case data: NodeV =>
+		graph.vdata(vertexName) match {
+			case data: NodeV =>
+				if(typ == "RT_NST") {
 					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true)) })
 					view.invalidateVertex(vertexName)
 					graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
-			}
+				}
+				else if (typ == "RT_ATM") {
+					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.addAtomicTactic(data.label)) })
+					view.invalidateVertex(vertexName)
+					graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
+				}
 		}
 	}
 

@@ -11,15 +11,11 @@ import tinkerGUI.controllers.NothingSelectedEvent
 
 class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEditController) extends FlowPanel {
 	val nodeValue = new TextField(value,12)
-	val orRadio = new RadioButton("OR") {selected = ctrl.getIsNestedOr(value)}
-	val orElseRadio = new RadioButton("OR ELSE") {selected = !ctrl.getIsNestedOr(value)}
-	val hierTypeRadioGroup = new ButtonGroup(orRadio, orElseRadio)
 	val delButton = new Button("Delete node")
 	val addSubButton = new Button("Add a sub-graph")
 
 	ctrl.addValueListener(nodeValue)
 	ctrl.addDeleteListener(delButton, nam)
-	ctrl.addNewSubListener(addSubButton, nodeValue.text, orRadio)
 
 	contents += new FlowPanel(){
 		contents += new Label("Node : " + nam)
@@ -30,11 +26,21 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 	typ match {
 		case "Identity" => // add nothing
 		case "Atomic" =>
+			val atomicTacticValue = new TextField(ctrl.getAtomicTacticValue(value), 12)
+			ctrl.addAtmTctValueListener(atomicTacticValue, nodeValue.text)
 			contents += new FlowPanel(){ 
-				contents += new Label("RTech. : ")
+				contents += new Label("Name : ")
 				contents += nodeValue
 			}
+			contents += new FlowPanel(){ 
+				contents += new Label("Tactic : ")
+				contents += atomicTacticValue
+			}
 		case "Nested" =>
+			val orRadio = new RadioButton("OR") {selected = ctrl.getIsNestedOr(value)}
+			val orElseRadio = new RadioButton("OR ELSE") {selected = !ctrl.getIsNestedOr(value)}
+			val hierTypeRadioGroup = new ButtonGroup(orRadio, orElseRadio)
+			ctrl.addNewSubListener(addSubButton, nodeValue.text, orRadio)
 			contents += new FlowPanel(){ 
 				contents += new Label("Name : ")
 				contents += nodeValue
@@ -46,17 +52,17 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 			contents += new FlowPanel(){
 				contents += addSubButton
 			}
+			hierTypeRadioGroup.buttons.foreach(listenTo(_))
+			reactions += {
+				case ButtonClicked(b: RadioButton) =>
+					if (b == orRadio){ctrl.setIsNestedOr(nodeValue.text, true)}
+					else if (b == orElseRadio){ctrl.setIsNestedOr(nodeValue.text, false)}
+			}
 	}
 	contents += new FlowPanel(){
 		contents += delButton
 	}
 
-	hierTypeRadioGroup.buttons.foreach(listenTo(_))
-	reactions += {
-		case ButtonClicked(b: RadioButton) =>
-			if (b == orRadio){ctrl.setIsNestedOr(nodeValue.text, true)}
-			else if (b == orElseRadio){ctrl.setIsNestedOr(nodeValue.text, false)}
-	}
 }
 
 class VerticesEditContent(names: Set[String], ctrl: ElementEditController) extends FlowPanel {
@@ -111,18 +117,22 @@ class ElementEditPanel() extends BoxPanel(Orientation.Vertical) {
 	reactions += {
 		case OneVertexSelectedEvent(nam, typ, value) =>
 			contents.clear()
+			controller.reset
 			contents += new VertexEditContent(nam, typ, value, controller)
 			revalidate()
 		case ManyVertexSelectedEvent(names) =>
 			contents.clear()
+			controller.reset
 			contents += new VerticesEditContent(names, controller)
 			revalidate()
 		case OneEdgeSelectedEvent(nam, value, src, tgt) =>
 			contents.clear()
+			controller.reset
 			contents += new EdgeEditContent(nam, value, src, tgt, controller)
 			revalidate()
 		case NothingSelectedEvent() =>
 			contents.clear()
+			controller.reset
 			repaint()
 	}
 }

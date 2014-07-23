@@ -18,7 +18,7 @@ object MainGUI extends SimpleSwingApplication {
 	object ThirdSplit extends SplitPane {
 		orientation = Orientation.Horizontal
 		minimumSize = new Dimension (220,800)
-		preferredSize = new Dimension (220,800)
+		preferredSize = new Dimension (300,800)
 		val tinkerLibTree = new TinkerLibraryTree()
 		contents_=(tinkerLibTree.libraryFileTree, tinkerLibTree.previewPanel)
 	}

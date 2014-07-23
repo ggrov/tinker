@@ -7,13 +7,14 @@ object ArgumentParser {
 	def separateNameFromArgument(s: String): (String, String) = {
 		if(s.contains("(")){
 			val parts = s.split(Pattern.quote("("))
+			var args = ""
 			if(parts.size > 1){
 				if(parts(1).charAt(parts(1).length-1).equals(')')){
-					parts(1) = parts(1).substring(0, parts(1).length-1)
+					args = parts(1).substring(0, parts(1).length-1)
 				}
-				return(removeUselessSpace(parts(0)), removeUselessSpace(parts(1)))
+				else { args = parts(1)}
 			}
-			else return (parts(0), "")
+			return(removeUselessSpace(parts(0)), removeUselessSpace(args))
 		}
 		else return (s, "")
 	}
@@ -80,8 +81,9 @@ object ArgumentParser {
 
 	def argumentToString(arg: Array[String]): String = {
 		var res = ""
-		res += arg.head+": "
+		res += arg.head+" "
 		if(arg.size > 1){
+			res += ": "
 			arg.tail.foreach{ a =>
 				res += a+" "
 			}

@@ -39,7 +39,6 @@ class TinkerLibraryTree() extends Publisher {
 	// end of copy
 
 	val previewPanel = new BorderPanel(){
-		minimumSize = new Dimension(250, 350)
 		add(controller.getLibraryView, BorderPanel.Position.Center)
 	}
 
