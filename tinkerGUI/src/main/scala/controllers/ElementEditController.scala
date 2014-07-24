@@ -16,7 +16,7 @@ class ElementEditController() extends Publisher {
 		elementArguments = ""
 	}
 
-	def addValueListener(elt: TextField){
+	def addValueListener(elt: TextField, isGraphTactic: Boolean){
 		val eltNameArg = ArgumentParser.separateNameFromArgument(elt.text)
 		elementName = eltNameArg._1
 		elementArguments = eltNameArg._2
@@ -25,16 +25,20 @@ class ElementEditController() extends Publisher {
 			case KeyReleased(c, key, _, _) =>
 				if(c == elt){
 					var (name, arguments) = ArgumentParser.separateNameFromArgument(elt.text)
+					QuantoLibAPI.editSelectedElementValue(elt.text)
 					if(name == elementName && arguments != elementArguments){
 						Service.parseArguments(name, arguments)
 						elementArguments = arguments
 					}
-					else if(name != elementName && name != ""){
-						Service.updateTacticName(elementName, name)
+					else if(name != elementName && name != "" && arguments != elementArguments){
+						Service.updateTacticName(elementName, name, isGraphTactic)
 						Service.parseArguments(name, arguments)
 						elementName = name
 					}
-					QuantoLibAPI.editSelectedElementValue(elt.text)
+					else if(name != elementName && name != "" && arguments == elementArguments){
+						Service.updateTacticName(elementName, name, isGraphTactic)
+						elementName = name
+					}
 				}
 		}
 	}
@@ -82,11 +86,24 @@ class ElementEditController() extends Publisher {
 	def setIsNestedOr(eltName: String, isOr: Boolean) = Service.setIsOr(eltName, isOr)
 	def getIsNestedOr(eltName: String) = Service.isNestedOr(eltName)
 
+	def addEdgeValueListener(elt: TextField) {
+		var prevValue = ""
+		listenTo(elt.keys)
+		reactions += {
+			case KeyReleased(c, key, _, _) =>
+				if(c == elt && elt.text != "" && elt.text != prevValue){
+					prevValue = elt.text
+					QuantoLibAPI.editSelectedElementValue(elt.text)
+				}
+		}
+	}
+
 	def addEdgeListener(e: String, src: TextField, tgt: TextField){
 		listenTo(src.keys)
 		listenTo(tgt.keys)
 		reactions += {
-			case KeyReleased(_, key, _, _) =>
+			case KeyReleased(c, key, _, _) =>
+				if(c == src || c == tgt)
 				QuantoLibAPI.userUpdateEdge(e, src.text, tgt.text)
 		}
 	}

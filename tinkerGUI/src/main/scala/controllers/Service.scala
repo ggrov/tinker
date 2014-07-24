@@ -87,6 +87,17 @@ object Service extends Publisher {
 		return false
 	}
 
+	def refreshGraph {
+		model.getCurrentJson match {
+			case Some(j: JsonObject) =>
+				QuantoLibAPI.loadFromJson(j)
+				graphBreadcrumsCtrl.addCrum(getCurrent)
+				hierarchyModel.changeActive(getCurrent)
+				hierTreeCtrl.redraw
+			case None => TinkerDialog.openErrorDialog("<html>Program tried to refresh current graph,<br>but json model could not be found.</html>")
+		}
+	}
+
 	def saveGraphSpecificTactic(tactic: String, graph: Json) = model.saveGraphSpecificTactic(tactic, graph)
 
 	listenTo(QuantoLibAPI)
@@ -96,24 +107,28 @@ object Service extends Publisher {
 			graphNavCtrl.disableAdd = false
 	}
 
-	def checkNodeName(n: String, sufix: Int, create: Boolean): String = {
+	def checkNodeName(n: String, sufix: Int, create: Boolean, isGraphTactic: Boolean): String = {
 		var name = n
 		if(sufix != 0) name = (n+"-"+sufix)
-		model.lookForGraphTactic(name) match {
+		model.lookForTactic(name) match {
 			case None =>
-				if(create) {
+				if(create && isGraphTactic) {
 					model.createGraphTactic(name, true)
 					hierarchyModel.addElement(name)
 					hierTreeCtrl.redraw
 				}
+				else if(create && !isGraphTactic){
+					val args = model.createAtomicTactic(name)
+					name = name+"("+ArgumentParser.argumentsToString(args)+")"
+				}
 				name
 			case Some(t:HasArguments) =>
-				checkNodeName(n, (sufix+1), create)
+				checkNodeName(n, (sufix+1), create, isGraphTactic)
 		}
 	}
 
-	def updateTacticName(oldVal: String, newVal: String) = {
-		val isGraphTactic = model.updateTacticName(oldVal, newVal)
+	def updateTacticName(oldVal: String, newVal: String, isGraphTactic: Boolean) = {
+		model.updateTacticName(oldVal, newVal, isGraphTactic)
 		if(isGraphTactic) {
 			hierarchyModel.updateElementName(oldVal, newVal)
 			hierTreeCtrl.redraw
@@ -142,9 +157,4 @@ object Service extends Publisher {
 
 	def getAtomicTacticValue(tactic: String): String = model.getAtomicTacticValue(tactic)
 	def setAtomicTacticValue(tactic: String, value: String) = model.setAtomicTacticValue(tactic, value)
-
-	def addAtomicTactic(name: String): String = {
-		val args = model.createAtomicTactic(name)
-		return name+"("+ArgumentParser.argumentsToString(args)+")"
-	}
 }

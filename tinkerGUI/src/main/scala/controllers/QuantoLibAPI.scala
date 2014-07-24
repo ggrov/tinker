@@ -653,12 +653,12 @@ object QuantoLibAPI extends Publisher{
 		graph.vdata(vertexName) match {
 			case data: NodeV =>
 				if(typ == "RT_NST") {
-					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true)) })
+					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true, true)) })
 					view.invalidateVertex(vertexName)
 					graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
 				}
 				else if (typ == "RT_ATM") {
-					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.addAtomicTactic(data.label)) })
+					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true, false)) })
 					view.invalidateVertex(vertexName)
 					graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
 				}
@@ -775,6 +775,7 @@ object QuantoLibAPI extends Publisher{
 	  */
 	def addBreakpointOnSelectedEdges() {
 		view.selectedEdges.foreach{ e =>
+			view.selectedEdges -= e
 			val esrc = graph.source(e)
 			val etgt = graph.target(e)
 			val edata = graph.edata(e)
@@ -784,12 +785,13 @@ object QuantoLibAPI extends Publisher{
 			val y = coordSrc._2 + ((coordTgt._2 - coordSrc._2)/2)
 			val d = NodeV(data = theory.vertexTypes("break").defaultData, theory = theory).withCoord((x,y))
 			val n = graph.verts.freshWithSuggestion(VName("v0"))
+			graph.edgesBetween(esrc, etgt).foreach { view.invalidateEdge }
+			changeGraph(graph.deleteEdge(e))
 			changeGraph(graph.addVertex(n, d.withCoord((x,y))))
 			changeGraph(graph.addEdge(graph.edges.fresh, edata, (n, etgt)))
-			view.invalidateEdge(e)
-			changeGraph(graph.deleteEdge(e))
-			changeGraph(graph.addEdge(e, edata, (esrc, n)))
-			view.selectedEdges -= e
+			graph.edgesBetween(n, etgt).foreach { view.invalidateEdge }
+			changeGraph(graph.addEdge(graph.edges.fresh, edata, (esrc, n)))
+			graph.edgesBetween(esrc, n).foreach { view.invalidateEdge }
 		}
 		publish(NothingSelectedEventAPI())
 	}
@@ -819,7 +821,7 @@ object QuantoLibAPI extends Publisher{
 		changeGraph(graph.addVertex(newName, newData.withCoord((newX,newY))))
 		graph.vdata(newName) match {
 			case data: NodeV =>
-				changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true)) })
+				changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true, true)) })
 				view.invalidateVertex(newName)
 				graph.adjacentEdges(newName).foreach { view.invalidateEdge }
 		}

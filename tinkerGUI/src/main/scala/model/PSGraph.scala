@@ -6,6 +6,7 @@ import java.io.{FileNotFoundException, IOException, File}
 import scala.collection.mutable.ArrayBuffer
 import tinkerGUI.controllers.TinkerDialog
 import tinkerGUI.controllers.ArgumentParser
+import tinkerGUI.controllers.Service
 
 class PSGraph() {
 	var isMain = true
@@ -31,7 +32,7 @@ class PSGraph() {
 			atomicTacticsJson = atomicTacticsJson :+ t.toJson
 		}
 		jsonPSGraph = JsonObject("current" -> current, "current_index" -> currentIndex, "graph" -> mainGraph, "graph_tactics" -> JsonArray(graphTacticsJson), "atomic_tactics" -> JsonArray(atomicTacticsJson))
-		println(jsonPSGraph)
+		// println(jsonPSGraph)
 	}
 
 	def lookForGraphTactic(tactic: String): Option[GraphTactic] = {
@@ -182,28 +183,30 @@ class PSGraph() {
 		}
 	}
 
-	def updateTacticName(oldVal: String, newVal: String): Boolean = {
-		var isGraphTactic = false
+	def updateTacticName(oldVal: String, newVal: String, isGraphTactic: Boolean) {
 		lookForTactic(oldVal) match {
-			case Some(old: GraphTactic) => isGraphTactic = true ; old.name = newVal
+			case Some(old: GraphTactic) => old.name = newVal
 			case Some(old: AtomicTactic) => 
+				val oldArg = ArgumentParser.argumentsToString(old.argumentsToArrays)
 				lookForAtomicTactic(newVal) match {
 					case Some(n:AtomicTactic) =>
-						val oldArg = ArgumentParser.argumentsToString(old.argumentsToArrays)
 						val newArg = ArgumentParser.argumentsToString(n.argumentsToArrays)
 						if(oldArg != newArg){
-							val mergeAction1 = new Action("Merge tactics to "+newVal+"("+ArgumentParser.argumentsToString(old.argumentsToArrays)+")"){
+							val mergeAction1 = new Action("Merge tactics to "+newVal+"("+oldArg+")"){
 								def apply(){
+									println("hello1")
+									updateJsonGraphs(newVal+"("+newArg+")", newVal+"("+oldArg+")")
+									updateJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+oldArg+")")
 									n.arg = old.arg
 									deleteTactic(old.name)
-									// update value in every graph & reload current json to quantolib
 									TinkerDialog.close()
 								}
 							}
-							val mergeAction2 = new Action("Merge tactics to "+newVal+"("+ArgumentParser.argumentsToString(n.argumentsToArrays)+")"){
+							val mergeAction2 = new Action("Merge tactics to "+newVal+"("+newArg+")"){
 								def apply(){
+									println("hello2")
+									updateJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+newArg+")")
 									deleteTactic(old.name)
-									// update value in every graph & reload current json to quantolib
 									TinkerDialog.close()
 								}
 							}
@@ -215,38 +218,40 @@ class PSGraph() {
 							TinkerDialog.openConfirmationDialog("<html>The new name you specified is already taken.</br>What would you want to do ?</html>", Array(mergeAction1, mergeAction2, dontMerge))
 						}
 						else {
+							println("hello3")
+							updateJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+newArg+")")
 							deleteTactic(old.name)
 						}
-					case None => old.name = newVal
+					case None =>
+						println("hello4")
+						updateJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+oldArg+")")
+						old.name = newVal
 				}
 			case Some(old: HasArguments) => 
 			case None => 
-			// throwError("<html>The program tried to change a tactic, </br>but the given tactic name was not found.</html>")
+				if(!isGraphTactic){
+					createAtomicTactic(newVal)
+				}
 		}
-		return isGraphTactic
-	}
-
-	def createGraphTactic(tactic: String, isOr: Boolean){
-		graphTactics = graphTactics :+ new GraphTactic(tactic, isOr)
 	}
 
 	def updateTacticArguments(tactic: String, args: Array[Array[String]]){
 		lookForTactic(tactic) match {
 			case Some(t: HasArguments) =>
+				val oldArg = ArgumentParser.argumentsToString(t.argumentsToArrays)
 				t.eraseArguments()
 				args.foreach{ a =>
 					t.addArgument(a)
 				}
-				// update everywhere & reload current json to quantolib
+				val newArg = ArgumentParser.argumentsToString(t.argumentsToArrays)
+				println("hello5")
+				updateJsonGraphs(tactic+"("+oldArg+")", tactic+"("+newArg+")")
 			case None => 
 		}
 	}
 
-	def getAtomicTacticValue(tactic: String): String = {
-		lookForAtomicTactic(tactic) match {
-			case Some(t:AtomicTactic) => t.tactic
-			case None => ""
-		}
+	def createGraphTactic(tactic: String, isOr: Boolean){
+		graphTactics = graphTactics :+ new GraphTactic(tactic, isOr)
 	}
 
 	def createAtomicTactic(name: String): Array[Array[String]] = {
@@ -260,6 +265,13 @@ class PSGraph() {
 		}
 	}
 
+	def getAtomicTacticValue(tactic: String): String = {
+		lookForAtomicTactic(tactic) match {
+			case Some(t:AtomicTactic) => t.tactic
+			case None => ""
+		}
+	}
+
 	def setAtomicTacticValue(name: String, value: String){
 		lookForAtomicTactic(name) match {
 			case Some(t:AtomicTactic) => t.tactic = value
@@ -268,6 +280,18 @@ class PSGraph() {
 	}
 
 	def throwError(text: String) = TinkerDialog.openErrorDialog(text)
+
+	def updateJsonGraphs(oldVal: String, newVal: String) {
+		println("replace "+oldVal+ " to "+newVal)
+		mainGraph = Json.parse(mainGraph.toString.replace(oldVal, newVal)) match {
+			case j: JsonObject => j
+			case _ => JsonObject()
+		}
+		// println(mainGraph)
+		updateJsonPSGraph
+		Service.refreshGraph
+	}
+
 
 	def loadJsonGraph(f: File) {
 		// load a saved file in our json object

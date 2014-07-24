@@ -14,7 +14,7 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 	val delButton = new Button("Delete node")
 	val addSubButton = new Button("Add a sub-graph")
 
-	ctrl.addValueListener(nodeValue)
+	ctrl.addValueListener(nodeValue, (typ == "RT_NST"))
 	ctrl.addDeleteListener(delButton, nam)
 
 	contents += new FlowPanel(){
@@ -88,7 +88,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, ctrl
 	val edgeSrc = new TextField(src, 3)
 	val edgeTgt = new TextField(tgt, 3)
 	val delButton = new Button("Delete edge")
-	ctrl.addValueListener(edgeValue)
+	ctrl.addEdgeValueListener(edgeValue)
 	ctrl.addDeleteListener(delButton, nam)
 	ctrl.addEdgeListener(nam, edgeSrc, edgeTgt)
 	contents += new FlowPanel(){

@@ -41,7 +41,7 @@
         "shape" : "octagon"
       },
       "default_data" : {
-        "rt_name" : "stop",
+        "rt_name" : "STOP",
         "appf" : {"type" : "Breakpoint"},
         "type" : "break"
       }
