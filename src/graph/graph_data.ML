@@ -9,6 +9,7 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
   datatype nvdata = T_Atomic of { name : string, args : arg_typ}
                   | T_Graph of { name : string, args : arg_typ, is_or : bool}
                   | T_Identity 
+                  | G_Break (* breakpoint *)
                   | G of GoalTyp.gnode 
                   | T_Var of string (* variable of rtechn *)
                   | G_Var of string (* variable of gnode *)
@@ -59,6 +60,7 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
   val set_is_or = update_is_or o K;
 
   val identity = T_Identity;
+  val break_point =  G_Break; (* breakpoint *)
 
   fun is_tactic_node (T_Atomic _) = true
    |  is_tactic_node (T_Graph _)  = true
@@ -73,6 +75,9 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
 
   fun is_identity T_Identity = true
    |  is_identity _ = false;
+
+  fun is_break_point G_Break = true
+   |  is_break_point _ = false;
 
   fun is_or (T_Graph {is_or, ...}) = SOME is_or
    |  is_or _ = NONE
@@ -89,6 +94,7 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
    | nvdata_eq (T_Graph n1,T_Graph n2) = 
      #name n1 = #name n2 andalso #args n1 = #args n2 andalso #is_or n1 = #is_or n2
    | nvdata_eq (T_Identity,T_Identity) = true 
+   | nvdata_eq (G_Break,G_Break) = true 
    |  nvdata_eq (G g1,G g2) = GoalTyp.gnode_eq (g1,g2)
    |  nvdata_eq (T_Var v1,T_Var v2) = (v1 = v2)
    |  nvdata_eq (G_Var v1,G_Var v2) = (v1 = v2)
@@ -205,6 +211,7 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
   fun pretty_nvdata (T_Atomic {name,args}) = Pretty.str name
    |  pretty_nvdata (T_Graph {name,args,is_or}) = Pretty.str name
    |  pretty_nvdata (T_Identity) = Pretty.str "id"
+   |  pretty_nvdata (G_Break) = Pretty.str "break_point"
    |  pretty_nvdata (G gn) = GoalTyp.pretty_gnode gn
    |  pretty_nvdata (T_Var s) = Pretty.str ("?T_" ^ s)
    |  pretty_nvdata (G_Var s) = Pretty.str ("?G_" ^ s)

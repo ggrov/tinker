@@ -10,6 +10,7 @@ sig
   datatype nvdata =  T_Atomic of { name : string, args : arg_typ}
              | T_Graph of { name : string, args : arg_typ, is_or : bool}
              | T_Identity 
+             | G_Break (* breakpoint *)
              | G of GoalTyp.gnode 
              | T_Var of string (* variable of rtechn *)
              | G_Var of string (* variable of gnode *)
@@ -42,11 +43,13 @@ sig
   val set_is_or : bool -> nvdata -> nvdata  (* raises rtechn_exp *)
 
   val identity : nvdata
+  val break_point : nvdata
 
   val is_tactic_node : nvdata -> bool
   val is_atomic : nvdata -> bool
   val is_nested : nvdata -> bool
   val is_identity : nvdata -> bool
+  val is_break_point : nvdata -> bool
   val is_or : nvdata -> bool option
   val is_or' : nvdata -> bool (* false if not nested *)
   

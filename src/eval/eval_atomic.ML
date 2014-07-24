@@ -2,38 +2,38 @@ signature EVAL_ATOMIC =
 sig
   structure EData : EVAL_DATA
 
-  exception partition_exp of EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode
+  exception apply_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode
+  exception node_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode * EData.PSGraph.Theory.Data.nvdata
+  exception partition_exp of
+    { pnodes :  EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list,
+      input :  EData.PSGraph.Theory.Data.GoalTyp.gnode, 
+      goaltypes : EData.PSGraph.Theory.Data.GoalTyp.T list } 
+
+  (* EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode *)
 
   (* generalise *)
-  val partition : 
-     EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode list (* new proof nodes *)
-     -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode (* old gnode [parent] *)
-     -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T list (* output types *)
-     -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode list list list (* one list for each goal type - outer when non-orthogonal outputs *)
+  val partition : (* raises partition exception *)
+     EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list (* new proof nodes *)
+     -> EData.PSGraph.Theory.Data.GoalTyp.gnode (* old gnode [parent] *)
+     -> EData.PSGraph.Theory.Data.GoalTyp.T list (* output types *)
+     -> EData.PSGraph.Theory.Data.GoalTyp.gnode list list list (* one list for each goal type - outer when non-orthogonal outputs *)
 
   val partition_to_gnodes : 
-   EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode list list  
-   -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.vdata  list
+   EData.PSGraph.Theory.Data.GoalTyp.gnode list list  
+   -> EData.PSGraph.Theory.Data.nvdata  list list
 
   val apply_atomic : 
         EData.T 
-      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode (* the goal node  *)
-      -> RTechn.T (* application function *)
-      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.T list (* outputs *)
-      -> (EData.branch * EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode list list list) Seq.seq
-
-  val apply_appf : 
-        EData.T 
-      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode (* the goal node  *)
-      -> RTechn.atomic (* application function *)
-      -> (EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode list * EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pplan) Seq.seq
+      -> EData.PSGraph.Theory.Data.GoalTyp.gnode (* the goal node  *)
+      -> EData.PSGraph.Theory.Data.nvdata (* application function *)
+      -> EData.PSGraph.Theory.Data.GoalTyp.T list (* outputs *)
+      -> (EData.branch * EData.PSGraph.Theory.Data.GoalTyp.gnode list list list) Seq.seq
 
   val apply_tactic :
         EData.T 
-      -> EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.gnode (* the goal node *)
-      -> string (* the name of the tactic *)
-      -> RTechn.tac_assms (* tactic assumption *)
-      -> (EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pnode list * EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover.pplan) Seq.seq
+      -> EData.PSGraph.Theory.Data.GoalTyp.gnode (* the goal node *)
+      -> EData.PSGraph.Theory.Data.nvdata (* tactic assumption *)
+      -> (EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list * EData.PSGraph.Theory.Data.GoalTyp.Prover.pplan) Seq.seq
 
 end
 
@@ -41,75 +41,116 @@ functor EvalAtomicFun(EData : EVAL_DATA) : EVAL_ATOMIC =
 struct
  local open DebugHandler in
   structure EData = EData;
-  structure Prover = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover;
-  structure GData = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData
-  structure GoalTyp = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp;
+  structure Prover = EData.PSGraph.Theory.Data.GoalTyp.Prover;
+  structure GData = EData.PSGraph.Theory.Data;
+  structure GoalTyp = EData.PSGraph.Theory.Data.GoalTyp;
 
-  exception no_such_fact of string
-  exception eval_appf_exp of string;
-  exception partition_exp of Prover.pnode
+  exception apply_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode
+  exception node_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode * EData.PSGraph.Theory.Data.nvdata
+  exception partition_exp of
+    { pnodes :  EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list,
+      input :  EData.PSGraph.Theory.Data.GoalTyp.gnode, 
+      goaltypes : EData.PSGraph.Theory.Data.GoalTyp.T list } 
 
-  fun lookup_fact node name = 
-   case Prover.lookup_fact node name of
-      NONE => (add_debug_msg (Pretty.str ("No such a fact/ thm : " ^ name) );raise no_such_fact name)
-    | SOME f => (name,f)
 
-  fun try_lookup_fact node name = 
-   case Prover.lookup_fact node name of
-      NONE => []
-    | SOME f => [(name,f)]
 
-  fun fact_list node fact_nms =
-      fact_nms 
-      |> StrName.NSet.list_of 
-      |> map (lookup_fact node)
-
-  val fact_seq = Seq.of_list oo fact_list;
-
-  fun fact_seq_of_gnode edata gnode fact_nms =
-    let 
-      val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
-    in
-     Seq.of_list (fact_list pnode fact_nms)
-    end;
-
-  fun apply_tactic edata gnode tac_name RTechn.TNoAsm = 
+  (* FIXME: handle arguments *)
+  (* FIXME: raise exception if it fails *)
+  fun apply_tactic edata gnode (GData.T_Atomic {name,...}) = 
        let 
          val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
          val pplan = EData.get_pplan edata
-         val tac = EData.get_tactic edata tac_name
+         (* string vs facts : what about variables? and list of things bound? *)
+         val facts = []
+         val tac = EData.get_tactic edata name
        in 
-         Prover.apply_tactic tac_name [] tac (pnode,pplan)
-       end
-   |  apply_tactic edata gnode tac_name RTechn.TAllAsm = 
-       let 
-         val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
-         val pplan = EData.get_pplan edata
-         val tac = EData.get_tactic edata tac_name
-         val facts = Prover.get_all_assms pnode
-       in 
-         Prover.apply_tactic tac_name facts tac (pnode,pplan)
-       end
-   |  apply_tactic edata gnode tac_name (RTechn.TClass class_nms) =
-       let 
-         val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
-         val pplan = EData.get_pplan edata
-         val tac = EData.get_tactic edata tac_name
-         fun lookup_fact fname = case GoalTyp.lookup_fact_names fname gnode
-                                  of NONE => StrName.NSet.empty
-                                   | (SOME ns) => ns
-         (* combines names of facts from all classes *)
-         val fact_nms = C.NSet.fold 
-                         (fn wn => StrName.NSet.union_merge (lookup_fact wn))
-                         class_nms
-                         StrName.NSet.empty
-         (* get the actual facts *)
-         val facts = fact_list pnode fact_nms |> map snd
-       in
-         Prover.apply_tactic tac_name facts tac (pnode,pplan)
-       end;
+         Prover.apply_tactic name facts tac (pnode,pplan)
+      end
+   | apply_tactic _ gnode node = raise node_exp ("not atomic tactic node",gnode,node);
 
-  
+  val lift  = GoalTyp.lift;
+
+  (* FIXME: can we get a list of failed pnodes *)
+
+  (* need some filtering of empty here *)
+  fun partition_one' [] _ _ _ [] = [] (* fails to lift for this branch *)
+   |  partition_one' (gt::gts) gnode pnode bres (r::ares) = 
+    (case lift gnode gt pnode of
+      (* fails to lift *)
+      NONE => partition_one' gts gnode pnode (bres@[r]) ares
+      (* succeeds, and check for further successes *)
+    | (SOME g') =>
+        (* adds the succeded to the current result *)
+        (bres @ [g'::r] @ ares) ::
+        (* goes through and see if more succeeds (thus branching) *)
+         partition_one' gts gnode pnode (bres@[r]) ares)
+  | partition_one' _ _ _ _ _ = [];
+
+  (* raises exception if one proof nodes fails *)
+  fun partition_one goal_typs gnode pnode res =
+    case partition_one' goal_typs gnode pnode [] res of
+       [] => (
+        (Pretty.chunks
+          ([Pretty.str "Fail to lift ",
+            Prover.pretty_concl pnode,
+            Pretty.str ("with GoalTypes: " ^
+            (Pretty.block (map (fn x =>  GoalTyp.pretty x) goal_typs) |> Pretty.string_of))]) 
+        |> DebugHandler.add_debug_msg); raise partition_exp {input = gnode, pnodes = [pnode], goaltypes = goal_typs})
+     | xs => xs 
+
+  (* return value : outer list - each branch: singleton 
+                    middle list - one branch same length as goaltype input list
+                    inner list - matching goal nodes for given goaltype
+    invariant result = partition goal_typs pplan pnds 
+       all res in result: length res  = length goal_typs (and they pairwise match)
+                          
+       outer list is all the possible options -> should be a singleton list if orthogonal
+       length (result) > 0
+  *)
+  fun partition []     _       _     = []
+   |  partition pnds gnode goal_typs =
+        [map (K []) goal_typs] (* empty list to start *)
+        |> fold (fn pnd => maps (partition_one goal_typs gnode pnd)) pnds;
+
+  val partition_to_gnodes = map (map GData.G);
+
+  (* fixme: make this into branch instead *)
+  fun apply_atomic edata gnode tac goal_typs = 
+     let fun apply_one (pnds,pplan) =
+         Seq.single (EData.get_current edata
+           |> EData.set_bpplan pplan
+           |> EData.add_bgoals pnds,
+         partition pnds gnode goal_typs)
+      handle partition_exp _ => Seq.empty
+   in
+   apply_tactic edata gnode tac
+   |> Seq.maps apply_one
+  end
+ end (* local open *)
+end (* functor *)
+
+(* OLD STUFF TO DELETE *)
+
+(* 
+
+  fun apply_atomic edata gnode rtechn goal_typs = 
+   let 
+     fun appf atom = apply_appf edata gnode atom
+     fun apply_one (pnds,pplan) =
+         Seq.single (EData.get_current edata
+           |> EData.set_bpplan pplan
+           |> EData.add_bgoals pnds,
+         partition pnds gnode goal_typs)
+      handle partition_exp _ => Seq.empty
+   in
+    case (RTechn.get_appf rtechn) of
+       RTechn.Appf atom => appf atom 
+                       (*|> Seq.list_of
+                       |> map apply_one
+                       |> Seq.of_list*)
+                       |> Seq.maps apply_one
+      | _ => Seq.empty (* TODO: raise exception *)
+
   fun apply_appf edata gnode (RTechn.Rule fact_nms) =
         let 
           val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
@@ -200,76 +241,8 @@ struct
         in
            Seq.maps apply_subst_asm hyps
         end
-   |  apply_appf edata gnode (RTechn.Tactic (tac_data,name)) =
+   |  apply_appf edata gnode (EData.PSGraph.Theory.Data.nvdataactic (tac_data,name)) =
         apply_tactic edata gnode name tac_data
    |  apply_appf _ _ _ = raise eval_appf_exp "unknown application type";
 
-  (*
-    partitioning of outputs
-  *)
-
-  val lift  = GoalTyp.lift;
-
-  (* need some filtering of empty here *)
-  fun partition_one' [] _ _ _ [] = [] (* fails to lift for this branch *)
-   |  partition_one' (gt::gts) gnode pnode bres (r::ares) = 
-    (case lift gnode gt pnode of
-      (* fails to lift *)
-      NONE => partition_one' gts gnode pnode (bres@[r]) ares
-      (* succeeds, and check for further successes *)
-    | (SOME g') =>
-        (* adds the succeded to the current result *)
-        (bres @ [g'::r] @ ares) ::
-        (* goes through and see if more succeeds (thus branching) *)
-         partition_one' gts gnode pnode (bres@[r]) ares)
-  | partition_one' _ _ _ _ _ = [];
-
-  (* raises exception if one proof nodes fails *)
-  fun partition_one goal_typs gnode pnode res =
-    case partition_one' goal_typs gnode pnode [] res of
-       [] => (
-        (Pretty.chunks
-          ([Pretty.str "Fail to lift ",
-            Prover.pretty_concl pnode,
-            Pretty.str ("with GoalTypes: " ^
-            (Pretty.block (map (fn x =>  GoalTyp.pretty x) goal_typs) |> Pretty.string_of))]) 
-        |> DebugHandler.add_debug_msg); raise partition_exp pnode)
-     | xs => xs 
-
-  (* return value : outer list - each branch: singleton 
-                    middle list - one branch same length as goaltype input list
-                    inner list - matching goal nodes for given goaltype
-    invariant result = partition goal_typs pplan pnds 
-       all res in result: length res  = length goal_typs (and they pairwise match)
-                          
-       outer list is all the possible options -> should be a singleton list if orthogonal
-       length (result) > 0
-  *)
-  fun partition []     _       _     = []
-   |  partition pnds gnode goal_typs =
-        [map (K []) goal_typs] (* empty list to start *)
-        |> fold (fn pnd => maps (partition_one goal_typs gnode pnd)) pnds;
-
-  val partition_to_gnodes = map (GData.GN o GData.gnode_of_list o (map GData.GN_Node));
-
-  (* fixme: make this into branch instead *)
-  fun apply_atomic edata gnode rtechn goal_typs = 
-   let 
-     fun appf atom = apply_appf edata gnode atom
-     fun apply_one (pnds,pplan) =
-         Seq.single (EData.get_current edata
-           |> EData.set_bpplan pplan
-           |> EData.add_bgoals pnds,
-         partition pnds gnode goal_typs)
-      handle partition_exp _ => Seq.empty
-   in
-    case (RTechn.get_appf rtechn) of
-       RTechn.Appf atom => appf atom 
-                       (*|> Seq.list_of
-                       |> map apply_one
-                       |> Seq.of_list*)
-                       |> Seq.maps apply_one
-      | _ => Seq.empty (* TODO: raise exception *)
-  end
- end (* local open *)
-end (* functor *)
+*)

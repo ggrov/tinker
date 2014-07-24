@@ -19,7 +19,7 @@ sig
 
   val eq : (T * T) -> bool
   val gnode_eq : (gnode * gnode) -> bool
-  (* val goal_name : gnode -> string *)
+  val goal_name : gnode -> string
 
   val gnode_to_json : gnode -> Json.json 
   val gnode_from_json : Json.json -> gnode 
