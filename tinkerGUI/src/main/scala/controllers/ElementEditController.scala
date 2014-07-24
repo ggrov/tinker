@@ -91,6 +91,10 @@ class ElementEditController() extends Publisher {
 		}
 	}
 
+	def addBreakpoints = {
+		QuantoLibAPI.addBreakpointOnSelectedEdges()
+	}
+
 	val mergeAction = new Action("Yes"){
 		def apply() {
 			QuantoLibAPI.mergeSelectedVertices()
@@ -122,6 +126,7 @@ class ElementEditController() extends Publisher {
 				case "RT_ID" => publish(OneVertexSelectedEvent(name, "Identity", value))
 				case "RT_ATM" => publish(OneVertexSelectedEvent(name, "Atomic", value))
 				case "RT_NST" => publish(OneVertexSelectedEvent(name, "Nested", value))
+				case "break" => publish(NothingSelectedEvent())
 			}
 		case OneEdgeSelectedEventAPI(name, value, source, target) =>
 			publish(OneEdgeSelectedEvent(name, value, source, target))

@@ -75,7 +75,7 @@ class SubGraphEditController() extends Publisher {
 					tacticTotal = Service.getSizeOfTactic(name)
 					indexOnTotal.text = (indexToShow + 1) + " / " + tacticTotal
 					showPreview()
-				case "RT_ATM" | "RT_ID" => publish(HidePreviewEvent())
+				case "break" | "RT_ATM" | "RT_ID" => publish(HidePreviewEvent())
 			}
 		case NothingSelectedEvent() | NothingSelectedEventAPI() | OneEdgeSelectedEventAPI(_,_,_,_) => publish(HidePreviewEvent())
 	}

@@ -21,6 +21,7 @@ import scala.math._
   */
 
 object QuantoLibAPI extends Publisher{
+
 	/** the main object, the graph */
 	private var graphPanel = new BorderPanel{
 		println("loading theory " + Theory.getClass.getResource("strategy_graph_modified.qtheory"))
@@ -767,6 +768,30 @@ object QuantoLibAPI extends Publisher{
 				moveEdge(tgt, src, edge, true)
 			}
 		}
+	}
+
+	/**
+	  * Method to add a breakpoint on selected edges
+	  */
+	def addBreakpointOnSelectedEdges() {
+		view.selectedEdges.foreach{ e =>
+			val esrc = graph.source(e)
+			val etgt = graph.target(e)
+			val edata = graph.edata(e)
+			val coordSrc = graph.vdata(esrc).coord
+			val coordTgt = graph.vdata(etgt).coord
+			val x = coordSrc._1 + ((coordTgt._1 - coordSrc._1)/2)
+			val y = coordSrc._2 + ((coordTgt._2 - coordSrc._2)/2)
+			val d = NodeV(data = theory.vertexTypes("break").defaultData, theory = theory).withCoord((x,y))
+			val n = graph.verts.freshWithSuggestion(VName("v0"))
+			changeGraph(graph.addVertex(n, d.withCoord((x,y))))
+			changeGraph(graph.addEdge(graph.edges.fresh, edata, (n, etgt)))
+			view.invalidateEdge(e)
+			changeGraph(graph.deleteEdge(e))
+			changeGraph(graph.addEdge(e, edata, (esrc, n)))
+			view.selectedEdges -= e
+		}
+		publish(NothingSelectedEventAPI())
 	}
 
 	/**

@@ -71,7 +71,7 @@
 },
 "v0" : {
 "data" : {
-  "rt_name" : "id",
+  "rt_name" : "",
   "appf" : {
     "type" : "Identity"
   },
@@ -83,7 +83,7 @@
 },
 "v2" : {
 "data" : {
-  "rt_name" : "id",
+  "rt_name" : "",
   "appf" : {
     "type" : "Identity"
   },

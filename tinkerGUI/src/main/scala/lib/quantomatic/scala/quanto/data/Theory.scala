@@ -66,6 +66,9 @@ object Theory {
   object VertexShape extends Enumeration with JsonEnumConversions {
     val Circle = Value("circle")
     val Rectangle = Value("rectangle")
+    // added for tinker
+    val Triangle = Value("triangle")
+    val Octagon = Value("octagon")
     val Custom = Value("custom")
   }
   type VertexShape = VertexShape.Value

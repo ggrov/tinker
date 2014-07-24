@@ -39,6 +39,22 @@ trait VertexDisplayData { self: GraphView =>
         }
 
         (c._1 + rad * cos(angle), c._2 + rad * sin(angle))
+      // added for tinker
+      case p: java.awt.Polygon =>
+        val r: Rectangle2D = p.getBounds2D()
+        val chopX = (trans scaleFromScreen r.getWidth) / 2 + 0.01
+        val chopY = (trans scaleFromScreen r.getHeight) / 2 + 0.01
+        val tryRad = max(chopX, chopY)
+
+        val rad = if (abs(tryRad * cos(angle)) > chopX) {
+          abs(chopX / cos(angle))
+        } else if (abs(tryRad * sin(angle)) > chopY) {
+          abs(chopY / sin(angle))
+        } else {
+          tryRad
+        }
+        (c._1 + rad * cos(angle), c._2 + rad * sin(angle))
+
     }
   }
 
@@ -77,6 +93,35 @@ trait VertexDisplayData { self: GraphView =>
                 labelDisplay.bounds.getCenterX - r,
                 labelDisplay.bounds.getCenterY -r,
                 2.0 * r, 2.0 * r)
+            // added for tinker
+            case Theory.VertexShape.Triangle =>
+              new java.awt.Polygon(
+                Array(labelDisplay.bounds.getCenterX.toInt,
+                  labelDisplay.bounds.getCenterX.toInt-(labelDisplay.bounds.getWidth.toInt/2)-12,
+                  labelDisplay.bounds.getCenterX.toInt+(labelDisplay.bounds.getWidth.toInt/2)+12),
+                Array(labelDisplay.bounds.getCenterY.toInt-(labelDisplay.bounds.getWidth.toInt/2)-15,
+                  labelDisplay.bounds.getCenterY.toInt+7,
+                  labelDisplay.bounds.getCenterY.toInt+7),
+                3)
+            case Theory.VertexShape.Octagon =>
+              new java.awt.Polygon(
+                Array(labelDisplay.bounds.getCenterX.toInt-(labelDisplay.bounds.getHeight.toInt/2),
+                  labelDisplay.bounds.getCenterX.toInt+(labelDisplay.bounds.getHeight.toInt/2),
+                  labelDisplay.bounds.getCenterX.toInt+(labelDisplay.bounds.getWidth.toInt/2)+2,
+                  labelDisplay.bounds.getCenterX.toInt+(labelDisplay.bounds.getWidth.toInt/2)+2,
+                  labelDisplay.bounds.getCenterX.toInt+(labelDisplay.bounds.getHeight.toInt/2),
+                  labelDisplay.bounds.getCenterX.toInt-(labelDisplay.bounds.getHeight.toInt/2),
+                  labelDisplay.bounds.getCenterX.toInt-(labelDisplay.bounds.getWidth.toInt/2)-2,
+                  labelDisplay.bounds.getCenterX.toInt-(labelDisplay.bounds.getWidth.toInt/2)-2),
+                Array(labelDisplay.bounds.getCenterY.toInt-(labelDisplay.bounds.getWidth.toInt/2)-2,
+                  labelDisplay.bounds.getCenterY.toInt-(labelDisplay.bounds.getWidth.toInt/2)-2,
+                  labelDisplay.bounds.getCenterY.toInt-(labelDisplay.bounds.getHeight.toInt/2),
+                  labelDisplay.bounds.getCenterY.toInt+(labelDisplay.bounds.getHeight.toInt/2),
+                  labelDisplay.bounds.getCenterY.toInt+(labelDisplay.bounds.getWidth.toInt/2)+2,
+                  labelDisplay.bounds.getCenterY.toInt+(labelDisplay.bounds.getWidth.toInt/2)+2,
+                  labelDisplay.bounds.getCenterY.toInt+(labelDisplay.bounds.getHeight.toInt/2),
+                  labelDisplay.bounds.getCenterY.toInt-(labelDisplay.bounds.getHeight.toInt/2)),
+                8)
             case _ => throw new Exception("Shape not supported yet")
           }
 

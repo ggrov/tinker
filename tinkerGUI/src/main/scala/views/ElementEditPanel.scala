@@ -105,6 +105,9 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, ctrl
 		contents += edgeTgt
 	}
 	contents += new FlowPanel(){
+		contents += new Button(new Action("Add break"){def apply(){ctrl.addBreakpoints}})
+	}
+	contents += new FlowPanel(){
 		contents += delButton
 	}
 }
