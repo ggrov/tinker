@@ -69,6 +69,7 @@ object Theory {
     // added for tinker
     val Triangle = Value("triangle")
     val Octagon = Value("octagon")
+    val MultiRect = Value("multirect")
     val Custom = Value("custom")
   }
   type VertexShape = VertexShape.Value

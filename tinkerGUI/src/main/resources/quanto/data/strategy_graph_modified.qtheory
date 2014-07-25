@@ -82,7 +82,7 @@
         },
         "stroke_color" : [ 0.1, 0.1, 0.1 ],
         "fill_color" : [ 1.0, 0.8, 0.6 ],
-        "shape" : "rectangle"
+        "shape" : "multirect"
       },
       "default_data" : {
         "rt_name" : "nested",

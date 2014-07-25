@@ -279,14 +279,18 @@ class PSGraph() {
 	def updateValueInJsonGraphs(oldVal: String, newVal: String) {
 		mainGraph = Json.parse(mainGraph.toString.replace(oldVal, newVal)) match {
 			case j: JsonObject => j
-			case _ => throwError("Error when parsing graph to Json Object.")
+			case _ =>
+				throwError("Error when parsing graph to Json Object.")
+				mainGraph
 		}
 		graphTactics.foreach { t =>
 			t.graphs.foreach { g =>
 				t.graphs -= g
 				Json.parse(g.toString.replace(oldVal, newVal)) match {
 					case j: JsonObject => t.graphs += j
-					case _ => throwError("Error when parsing graph to Json Object.")
+					case _ =>
+						throwError("Error when parsing graph to Json Object.")
+						t.graphs += g
 				}
 			}
 		}

@@ -54,7 +54,20 @@ trait VertexDisplayData { self: GraphView =>
           tryRad
         }
         (c._1 + rad * cos(angle), c._2 + rad * sin(angle))
+      case a: java.awt.geom.Area =>
+        val r: Rectangle2D = a.getBounds2D()
+        val chopX = (trans scaleFromScreen r.getWidth) / 2 + 0.01
+        val chopY = (trans scaleFromScreen r.getHeight) / 2 + 0.01
+        val tryRad = max(chopX, chopY)
 
+        val rad = if (abs(tryRad * cos(angle)) > chopX) {
+          abs(chopX / cos(angle))
+        } else if (abs(tryRad * sin(angle)) > chopY) {
+          abs(chopY / sin(angle))
+        } else {
+          tryRad
+        }
+        (c._1 + rad * cos(angle), c._2 + rad * sin(angle))
     }
   }
 
@@ -122,6 +135,24 @@ trait VertexDisplayData { self: GraphView =>
                   labelDisplay.bounds.getCenterY.toInt+(labelDisplay.bounds.getHeight.toInt/2),
                   labelDisplay.bounds.getCenterY.toInt-(labelDisplay.bounds.getHeight.toInt/2)),
                 8)
+            case Theory.VertexShape.MultiRect =>
+              val r1 = new Rectangle2D.Double(
+                labelDisplay.bounds.getMinX - 1.0, labelDisplay.bounds.getMinY + 1.0,
+                labelDisplay.bounds.getWidth + 10.0, labelDisplay.bounds.getHeight + 6.0)
+              val r2 = new Rectangle2D.Double(
+                labelDisplay.bounds.getMinX - 4.0, labelDisplay.bounds.getMinY - 2.0,
+                labelDisplay.bounds.getWidth + 10.0, labelDisplay.bounds.getHeight + 6.0)
+              val r3 = new Rectangle2D.Double(
+                labelDisplay.bounds.getMinX - 5.0, labelDisplay.bounds.getMinY - 3.0,
+                labelDisplay.bounds.getWidth + 10.0, labelDisplay.bounds.getHeight + 6.0)
+              val area1 = new java.awt.geom.Area(r1)
+              val area2 = new java.awt.geom.Area(r2)
+              val area3 = new java.awt.geom.Area(r3)
+              area1.add(area3)
+              area1.add(area2)
+              area1.exclusiveOr(area2)
+              area1.add(area3)
+              area1
             case _ => throw new Exception("Shape not supported yet")
           }
 
