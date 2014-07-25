@@ -194,9 +194,8 @@ class PSGraph() {
 						if(oldArg != newArg){
 							val mergeAction1 = new Action("Merge tactics to "+newVal+"("+oldArg+")"){
 								def apply(){
-									println("hello1")
-									updateJsonGraphs(newVal+"("+newArg+")", newVal+"("+oldArg+")")
-									updateJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+oldArg+")")
+									updateValueInJsonGraphs(newVal+"("+newArg+")", newVal+"("+oldArg+")")
+									updateValueInJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+oldArg+")")
 									n.arg = old.arg
 									deleteTactic(old.name)
 									TinkerDialog.close()
@@ -204,8 +203,7 @@ class PSGraph() {
 							}
 							val mergeAction2 = new Action("Merge tactics to "+newVal+"("+newArg+")"){
 								def apply(){
-									println("hello2")
-									updateJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+newArg+")")
+									updateValueInJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+newArg+")")
 									deleteTactic(old.name)
 									TinkerDialog.close()
 								}
@@ -218,13 +216,11 @@ class PSGraph() {
 							TinkerDialog.openConfirmationDialog("<html>The new name you specified is already taken.</br>What would you want to do ?</html>", Array(mergeAction1, mergeAction2, dontMerge))
 						}
 						else {
-							println("hello3")
-							updateJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+newArg+")")
+							updateValueInJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+newArg+")")
 							deleteTactic(old.name)
 						}
 					case None =>
-						println("hello4")
-						updateJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+oldArg+")")
+						updateValueInJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+oldArg+")")
 						old.name = newVal
 				}
 			case Some(old: HasArguments) => 
@@ -244,8 +240,7 @@ class PSGraph() {
 					t.addArgument(a)
 				}
 				val newArg = ArgumentParser.argumentsToString(t.argumentsToArrays)
-				println("hello5")
-				updateJsonGraphs(tactic+"("+oldArg+")", tactic+"("+newArg+")")
+				updateValueInJsonGraphs(tactic+"("+oldArg+")", tactic+"("+newArg+")")
 			case None => 
 		}
 	}
@@ -281,13 +276,20 @@ class PSGraph() {
 
 	def throwError(text: String) = TinkerDialog.openErrorDialog(text)
 
-	def updateJsonGraphs(oldVal: String, newVal: String) {
-		println("replace "+oldVal+ " to "+newVal)
+	def updateValueInJsonGraphs(oldVal: String, newVal: String) {
 		mainGraph = Json.parse(mainGraph.toString.replace(oldVal, newVal)) match {
 			case j: JsonObject => j
-			case _ => JsonObject()
+			case _ => throwError("Error when parsing graph to Json Object.")
 		}
-		// println(mainGraph)
+		graphTactics.foreach { t =>
+			t.graphs.foreach { g =>
+				t.graphs -= g
+				Json.parse(g.toString.replace(oldVal, newVal)) match {
+					case j: JsonObject => t.graphs += j
+					case _ => throwError("Error when parsing graph to Json Object.")
+				}
+			}
+		}
 		updateJsonPSGraph
 		Service.refreshGraph
 	}

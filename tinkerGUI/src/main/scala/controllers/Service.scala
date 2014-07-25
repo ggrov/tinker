@@ -91,7 +91,7 @@ object Service extends Publisher {
 		model.getCurrentJson match {
 			case Some(j: JsonObject) =>
 				QuantoLibAPI.loadFromJson(j)
-				graphBreadcrumsCtrl.addCrum(getCurrent)
+				// graphBreadcrumsCtrl.addCrum(getCurrent)
 				hierarchyModel.changeActive(getCurrent)
 				hierTreeCtrl.redraw
 			case None => TinkerDialog.openErrorDialog("<html>Program tried to refresh current graph,<br>but json model could not be found.</html>")
