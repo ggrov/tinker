@@ -1,4 +1,4 @@
-package tinkerGUI.controllers
+package tinkerGUI.utils
 
 import java.util.regex.Pattern
 

@@ -6,6 +6,7 @@ import scala.swing.event.KeyPressed
 import scala.swing.event.ButtonClicked
 import scala.swing.event.Key._
 import scala.swing.event.Key
+import tinkerGUI.utils.ArgumentParser
 
 class ElementEditController() extends Publisher {
 	var elementName = ""

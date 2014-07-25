@@ -5,8 +5,8 @@ import quanto.util.json._
 import java.io.{FileNotFoundException, IOException, File}
 import scala.collection.mutable.ArrayBuffer
 import tinkerGUI.controllers.TinkerDialog
-import tinkerGUI.controllers.ArgumentParser
 import tinkerGUI.controllers.Service
+import tinkerGUI.utils.ArgumentParser
 
 class PSGraph() {
 	var isMain = true

@@ -6,6 +6,7 @@ import tinkerGUI.model.HierarchyModel
 import tinkerGUI.model.TreeElement
 import tinkerGUI.model.HasArguments
 import quanto.util.json._
+import tinkerGUI.utils.ArgumentParser
 
 object Service extends Publisher {
 	val hierarchyModel = new HierarchyModel()

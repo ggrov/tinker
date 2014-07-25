@@ -3,6 +3,7 @@ package tinkerGUI.controllers
 import scala.swing._
 import scala.swing.event.ButtonClicked
 import quanto.util.json._
+import tinkerGUI.utils.ArgumentParser
 
 class SubGraphEditController() extends Publisher {
 

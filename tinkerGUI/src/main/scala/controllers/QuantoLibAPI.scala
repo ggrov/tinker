@@ -13,6 +13,9 @@ import scala.swing.event._
 import scala.swing.event.Key.Modifiers
 import scala.swing.event.Key.Modifier
 import scala.math._
+import tinkerGUI.utils.ArgumentParser
+import tinkerGUI.utils.PopupMenu
+
 
 /**
   *
@@ -925,6 +928,12 @@ object QuantoLibAPI extends Publisher{
 			view.requestFocus()
 			if(e.peer.getButton == 1){
 				publish(MouseLeftPressedEvent(e.point, e.modifiers, e.clicks))
+			}
+			else if(e.peer.getButton == 3){
+				val popup = new PopupMenu(){
+					contents += new MenuItem(new Action("Say Hello") {def apply = println("Hello World")})
+				}
+				popup.show(graphPanel, e.point.getX.toInt, e.point.getY.toInt)
 			}
 		case MouseDragged(_, pt, _) =>
 			publish(GraphMouseDraggedEvent(pt))
