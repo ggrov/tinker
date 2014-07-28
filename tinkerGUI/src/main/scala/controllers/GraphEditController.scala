@@ -1,6 +1,7 @@
 package tinkerGUI.controllers
 
 import scala.swing._
+import tinkerGUI.utils.PopupMenu
 
 class GraphEditController() extends Publisher {
 	private var mouseState: MouseState = SelectTool()
@@ -45,6 +46,10 @@ class GraphEditController() extends Publisher {
 		}
 	}
 
+	val popup = new PopupMenu(){
+		contents += new MenuItem(new Action("Say Hello") {def apply = println("Hello World")})
+	}
+
 	listenTo(QuantoLibAPI)
 	reactions += {
 		case MouseLeftPressedEvent(pt, modifiers, clicks) =>
@@ -60,6 +65,18 @@ class GraphEditController() extends Publisher {
 					// else {
 						QuantoLibAPI.selectElement(pt, modifiers, changeMouseState)
 					// }
+				case AddEdgeTool() =>
+					QuantoLibAPI.startAddEdge(pt, changeMouseState)
+			}
+		case MouseRightPressedEvent(pt, modifiers, clicks, source) =>
+			 mouseState match {
+				case AddVertexTool(_) => // do nothing
+				case SelectionBox(_,_) => // do nothing
+				case DragVertex(_,_) => // do nothing
+				case DragEdge(_) => // do nothing
+				case SelectTool() =>
+					QuantoLibAPI.selectElement(pt, modifiers, changeMouseState)
+					popup.show(source, pt.getX.toInt, pt.getY.toInt)
 				case AddEdgeTool() =>
 					QuantoLibAPI.startAddEdge(pt, changeMouseState)
 			}

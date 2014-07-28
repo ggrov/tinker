@@ -14,7 +14,6 @@ import scala.swing.event.Key.Modifiers
 import scala.swing.event.Key.Modifier
 import scala.math._
 import tinkerGUI.utils.ArgumentParser
-import tinkerGUI.utils.PopupMenu
 
 
 /**
@@ -893,6 +892,30 @@ object QuantoLibAPI extends Publisher{
 		publish(NothingSelectedEventAPI())
 	}
 
+	/**
+	  * Method to add vertices and edges from specified json into our graph
+	  * @param json, the json object to add
+	  */
+	def addFromJson(json: JsonObject) {
+		var newNameMap = Map[String, String]()
+		(json ? "wire_vertices").mapValue.foreach{ case (k,v) =>
+			val bName = graph.verts.freshWithSuggestion(VName("b0"))
+			newNameMap = newNameMap + ((k, bName.s))
+			changeGraph(graph.addVertex(bName, WireV.fromJson(v, theory)))
+		}
+		(json ? "node_vertices").mapValue.foreach{ case (k,v) =>
+			val vName = graph.verts.freshWithSuggestion(VName("v0"))
+			newNameMap = newNameMap + ((k, vName.s))
+			changeGraph(graph.addVertex(vName, NodeV.fromJson(v, theory)))
+		}
+		(json ? "dir_edges").mapValue.foreach{ case (k,v) =>
+			val eName = graph.edges.freshWithSuggestion(EName("e0"))
+			val data = v.getOrElse("data", theory.defaultEdgeData).asObject
+			val annotation = (v ? "annotation").asObject
+			changeGraph(graph.addEdge(eName, DirEdge(data, annotation, theory), (newNameMap((v / "src").stringValue), newNameMap((v / "tgt").stringValue))))
+		}
+	}
+
 	/** listener to document status */
 	listenTo(document)
 	reactions += { case DocumentChanged(_) | DocumentSaved(_) =>
@@ -930,10 +953,7 @@ object QuantoLibAPI extends Publisher{
 				publish(MouseLeftPressedEvent(e.point, e.modifiers, e.clicks))
 			}
 			else if(e.peer.getButton == 3){
-				val popup = new PopupMenu(){
-					contents += new MenuItem(new Action("Say Hello") {def apply = println("Hello World")})
-				}
-				popup.show(graphPanel, e.point.getX.toInt, e.point.getY.toInt)
+				publish(MouseRightPressedEvent(e.point, e.modifiers, e.clicks, graphPanel))
 			}
 		case MouseDragged(_, pt, _) =>
 			publish(GraphMouseDraggedEvent(pt))

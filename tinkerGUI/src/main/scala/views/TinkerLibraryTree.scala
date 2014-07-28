@@ -39,6 +39,9 @@ class TinkerLibraryTree() extends Publisher {
 	// end of copy
 
 	val previewPanel = new BorderPanel(){
+		add(new FlowPanel() {
+			contents += new Button(controller.addFileToGraph)
+		}, BorderPanel.Position.North)
 		add(controller.getLibraryView, BorderPanel.Position.Center)
 	}
 

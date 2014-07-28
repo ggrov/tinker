@@ -158,4 +158,8 @@ object Service extends Publisher {
 
 	def getAtomicTacticValue(tactic: String): String = model.getAtomicTacticValue(tactic)
 	def setAtomicTacticValue(tactic: String, value: String) = model.setAtomicTacticValue(tactic, value)
+
+	def addJsonToCurrent(json: JsonObject){
+		QuantoLibAPI.addFromJson(json)
+	}
 }
