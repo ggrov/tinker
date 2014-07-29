@@ -37,7 +37,8 @@ class GraphEditPanel() extends BorderPanel {
 				contents += graphNav.navigation
 			}, BorderPanel.Position.East)
 		}, BorderPanel.Position.North)
-		add(new BoxPanel(Orientation.Vertical){
+		add(new BoxPanel(Orientation.Horizontal){
+			contents += editControls.SecondaryToolBar
 			contents += editControls.MainToolBar
 		}, BorderPanel.Position.South)
 	}, BorderPanel.Position.North)

@@ -4,6 +4,29 @@ import scala.swing._
 import javax.swing.ImageIcon
 import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.EditControlsController
+import scala.swing.event.KeyReleased
+
+object GoalTypeEditor extends Frame {
+	title = "Tinker - " + Service.mainCtrl.getTitle + " - Goal Type Editor"
+	minimumSize = new Dimension(800, 400)
+	var prevText = Service.getGoalTypes
+	val txtArea = new TextArea(prevText)
+	contents = txtArea
+	listenTo(txtArea.keys)
+	reactions += {
+		case KeyReleased(c, key, _, _) =>
+			if(c == txtArea && txtArea.text != prevText){
+				Service.setGoalTypes(txtArea.text)
+				prevText = txtArea.text
+			}
+	}
+
+	override def open() {
+		prevText = Service.getGoalTypes
+		txtArea.text = prevText
+		super.open()
+	}
+}
 
 class EditControlsPanel() {
 	val controller = Service.editControlsCtrl
@@ -37,7 +60,20 @@ class EditControlsPanel() {
 
 	controller.addListener(GraphToolGroup)
 
+	val EditGoalTypesButton = new Button(new Action(""){
+		def apply() {
+			GoalTypeEditor.open()
+		}
+		}) {
+		icon = new ImageIcon(MainGUI.getClass.getResource("edit-goal-type.png"), "Edit Goal Types")
+		tooltip = "Edit goal types"
+	}
+
 	val MainToolBar = new ToolBar {
 		contents += (SelectButton, AddIDVertexButton, AddATMVertexButton, AddNSTVertexButton, AddEdgeButton)
+	}
+	val SecondaryToolBar = new ToolBar {
+
+		contents += (EditGoalTypesButton)
 	}
 }

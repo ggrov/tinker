@@ -15,6 +15,7 @@ class PSGraph() {
 	var atomicTactics: ArrayBuffer[AtomicTactic] = ArrayBuffer()
 	var graphTactics: ArrayBuffer[GraphTactic] = ArrayBuffer()
 	var mainGraph: JsonObject = JsonObject()
+	var goalTypes = ""
 
 	var jsonPSGraph: JsonObject = JsonObject()
 	var file: Option[File] = None
@@ -31,8 +32,8 @@ class PSGraph() {
 		atomicTactics.foreach{ t =>
 			atomicTacticsJson = atomicTacticsJson :+ t.toJson
 		}
-		jsonPSGraph = JsonObject("current" -> current, "current_index" -> currentIndex, "graph" -> mainGraph, "graph_tactics" -> JsonArray(graphTacticsJson), "atomic_tactics" -> JsonArray(atomicTacticsJson))
-		// println(jsonPSGraph)
+		jsonPSGraph = JsonObject("current" -> current, "current_index" -> currentIndex, "graph" -> mainGraph, "graph_tactics" -> JsonArray(graphTacticsJson), "atomic_tactics" -> JsonArray(atomicTacticsJson), "goal_types" -> goalTypes)
+		println(jsonPSGraph)
 	}
 
 	def lookForGraphTactic(tactic: String): Option[GraphTactic] = {

@@ -162,4 +162,9 @@ object Service extends Publisher {
 	def addJsonToCurrent(json: JsonObject){
 		QuantoLibAPI.addFromJson(json)
 	}
+
+	def getGoalTypes = model.goalTypes
+	def setGoalTypes(s: String){
+		model.goalTypes = s
+	}
 }
