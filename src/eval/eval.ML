@@ -9,9 +9,9 @@ struct
  structure EData = EData;
  structure EGraph = EvalGraphFun(EData);
  structure EAtom = EvalAtomicFun(EData);
- structure Theory = EData.PSGraph.PSTheory.PS_Theory;
- structure GComb = EData.PSGraph.PSTheory.PS_Comb;
- structure GoalTyp = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp;
+ structure Theory = EData.PSGraph.Theory;
+(* structure GComb = EData.PSGraph.PSTheory.PS_Comb; *)
+ structure GoalTyp = EData.PSGraph.Theory.Data.GoalTyp;
  structure Prover = GoalTyp.Prover;
 
  exception evaluate_exp of V.name option * string;
@@ -45,7 +45,7 @@ struct
        case GoalTyp.init_lift gt pnode of
          NONE => []
          | SOME gn => [(gn,EGraph.Util.insert_node_on_edge 
-                           (EGraph.Util.mk_single_gnode gn) e graph)] 
+                           (EGraph.Util.mk_gnode gn) e graph)] 
      val new_graphs = maps new_graph in_edges
    in  (* fixme: this should be updated according to strategy *)
        map (fn (gn,g) => edata |> EData.update_gnodes (fn gs => gn::gs) 
@@ -105,7 +105,7 @@ struct
  fun mk_atomic_rhs edata rt lhs =
     let
       val out_edges = 
-        GComb.boundary_outputs lhs 
+        EGraph.Util.output_boundary lhs 
         |> map (fn (_,(x,_),_) => x)
       val out_types =  map (EGraph.Util.gtyp_of lhs) out_edges;
       val [gnode_name] = EGraph.Util.all_gnodes lhs;

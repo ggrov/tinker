@@ -31,8 +31,21 @@ struct
 
   (* simplify ? *)
   fun input_boundary g = 
-    let val bvertexes = Graph.get_boundary g (* Vertex.NSet.T *)
+    let val bvertexes = Graph.get_inputs g (* Vertex.NSet.T *)
         fun dest_name bv e =(bv,(e,Graph.get_edge_data g e),Graph.get_edge_target g e)
+        fun mk_pairs v = Graph.get_out_edges g v 
+                  |> E.NSet.list_of
+                  |> map (fn e => dest_name v e)
+    in  
+      V.NSet.fold
+        (fn v => fn xs => xs @ (mk_pairs v))
+        bvertexes
+        []
+    end;
+
+  fun output_boundary g = 
+    let val bvertexes = Graph.get_outputs g (* Vertex.NSet.T *)
+        fun dest_name bv e =(Graph.get_edge_source g e,(e,Graph.get_edge_data g e),bv)
         fun mk_pairs v = Graph.get_out_edges g v 
                   |> E.NSet.list_of
                   |> map (fn e => dest_name v e)
@@ -123,9 +136,9 @@ struct
    fun single_gnode_of graph v = 
      case vertex_data graph v of (GData.GN (GData.GN_Node gnode)) => gnode;
 *)
-(*
-   fun mk_single_gnode gnode = GData.GN (GData.GN_Node gnode);
-*)
+
+   fun mk_gnode gnode = GData.G gnode;
+
 
    fun get_vertex_list graph =  
      Graph.get_vertices graph
