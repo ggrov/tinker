@@ -114,7 +114,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, ctrl
 
 class ElementEditPanel() extends BoxPanel(Orientation.Vertical) {
 	val controller = Service.eltEditCtrl
-	minimumSize = new Dimension(220, 250)
+	minimumSize = new Dimension(250, 250)
 	listenTo(controller)
 	listenTo(Service)
 	reactions += {

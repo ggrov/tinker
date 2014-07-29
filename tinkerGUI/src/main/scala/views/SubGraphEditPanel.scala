@@ -10,7 +10,7 @@ import tinkerGUI.controllers.ShowPreviewEvent
 import tinkerGUI.controllers.HidePreviewEvent
 
 class SubGraphEditPanel() extends BorderPanel {
-	minimumSize = new Dimension(250, 350)
+	minimumSize = new Dimension(250, 500)
 	val controller = Service.subGraphEditCtrl
 
 	val nextAction = new Action("") {

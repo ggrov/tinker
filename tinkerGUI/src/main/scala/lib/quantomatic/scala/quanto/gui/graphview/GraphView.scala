@@ -349,8 +349,14 @@ class GraphView(val theory: Theory, gRef: HasGraph) extends Panel
         }
 
         if (ld.text.length > 0) {
-          val textLayout = new TextLayout(ld.text, VertexLabelFont, g.getFontRenderContext)
-
+          var textLayout = new TextLayout(ld.text, VertexLabelFont, g.getFontRenderContext)
+          // added for tinker
+          // check type of node, if breakpoint set font size to small
+          // changed textLayout to var for that
+          graph.vdata(v) match {
+            case d: NodeV => if(d.typ == "break") textLayout = new TextLayout(ld.text, VertexLabelFontSmall, g.getFontRenderContext)
+            case _ =>
+          }
 //          val tr = new AffineTransform
 //          tr.translate(ld.bounds.getMinX, ld.baseline)
 //          val outline = textLayout.getOutline(tr)
@@ -662,6 +668,7 @@ object GraphView {
   final val ArrowheadAngle = 0.2 * Pi
   final val EdgeSelectionRadius = 3.0
   final val VertexLabelFont = new Font("Dialog", AWTFont.PLAIN, 12)
+  final val VertexLabelFontSmall = new Font("Dialog", AWTFont.PLAIN, 8) // added for tinker
   final val EdgeLabelFont = new Font("Dialog", AWTFont.PLAIN, 10)
 
   final val AxisColor = new Color(0.8f,0.8f,0.9f)

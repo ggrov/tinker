@@ -86,7 +86,9 @@ trait VertexDisplayData { self: GraphView =>
             case _ => ""
           }*/
 
-          val fm = peer.getGraphics.getFontMetrics(GraphView.VertexLabelFont)
+          var fm = peer.getGraphics.getFontMetrics(GraphView.VertexLabelFont)
+          // added for tinker, change font metric for smaller size in case of breakpoint type, changed fm to var for that
+          if(vertexData.typ == "break") fm = peer.getGraphics.getFontMetrics(GraphView.VertexLabelFontSmall)
           val labelDisplay = LabelDisplayData(
             text, (x,y), fm,
             vertexData.typeInfo.style.labelForegroundColor,
@@ -135,6 +137,18 @@ trait VertexDisplayData { self: GraphView =>
                   labelDisplay.bounds.getCenterY.toInt+(labelDisplay.bounds.getHeight.toInt/2),
                   labelDisplay.bounds.getCenterY.toInt-(labelDisplay.bounds.getHeight.toInt/2)),
                 8)
+              // val r = trans.scaleToScreen(0.20)
+              // val center = (labelDisplay.bounds.getCenterX, labelDisplay.bounds.getCenterY)
+
+              // val area1 = new java.awt.geom.Area(new Ellipse2D.Double(
+              //   center._1 - r,
+              //   center._2 - r,
+              //   2.0 * r, 2.0 * r))
+              // val area2 = new java.awt.geom.Area(new Rectangle2D.Double(
+              //   center._1 - r/1.5, center._2 - r/3.5,
+              //   r/0.75, r/1.7))
+              // area1 exclusiveOr(area2)
+              // area1
             case Theory.VertexShape.MultiRect =>
               val r1 = new Rectangle2D.Double(
                 labelDisplay.bounds.getMinX - 1.0, labelDisplay.bounds.getMinY + 1.0,

@@ -897,16 +897,19 @@ object QuantoLibAPI extends Publisher{
 	  * @param json, the json object to add
 	  */
 	def addFromJson(json: JsonObject) {
+		view.selectedVerts.foreach { v => view.selectedVerts -= v}
 		var newNameMap = Map[String, String]()
 		(json ? "wire_vertices").mapValue.foreach{ case (k,v) =>
 			val bName = graph.verts.freshWithSuggestion(VName("b0"))
 			newNameMap = newNameMap + ((k, bName.s))
 			changeGraph(graph.addVertex(bName, WireV.fromJson(v, theory)))
+			view.selectedVerts += bName
 		}
 		(json ? "node_vertices").mapValue.foreach{ case (k,v) =>
 			val vName = graph.verts.freshWithSuggestion(VName("v0"))
 			newNameMap = newNameMap + ((k, vName.s))
 			changeGraph(graph.addVertex(vName, NodeV.fromJson(v, theory)))
+			view.selectedVerts += vName
 		}
 		(json ? "dir_edges").mapValue.foreach{ case (k,v) =>
 			val eName = graph.edges.freshWithSuggestion(EName("e0"))
