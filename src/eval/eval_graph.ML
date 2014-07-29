@@ -8,10 +8,10 @@ end
 functor EvalGraphFun(EData : EVAL_DATA) =
 struct
   structure EData = EData;
-  structure Prover = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData.GoalTyp.Prover;
-  structure Theory = EData.PSGraph.PSTheory.PS_Theory;
+  structure Prover = EData.PSGraph.Theory.Data.GoalTyp.Prover;
+  structure Theory = EData.PSGraph.Theory;
   structure Graph = Theory.Graph;
-  structure GData = EData.PSGraph.PSTheory.PS_GraphParam.GraphSubstData;
+  structure GData = EData.PSGraph.Theory.Data;
 
   (* move into separate/different file? *) 
   structure Util =
@@ -20,19 +20,20 @@ struct
     fun rewrite_lazy rule graph = 
       let 
         val graph' = Graph.normalise graph;
-        val (rule',matches) = Theory.Rewriter.find_matches rule graph';
+        val matches = Theory.Rewriter.find_matches rule graph';
         fun rewr match = 
-          Theory.Rewriter.rewrite_at rule' match
+          Theory.Rewriter.rewrite_at rule match
           |> snd
       in
         Seq.map rewr matches
       end;
     val rewrite = Seq.list_of oo rewrite_lazy;
 
+  (* simplify ? *)
   fun input_boundary g = 
     let val bvertexes = Graph.get_boundary g (* Vertex.NSet.T *)
-        fun dest_name bv e = let val ((_,ed),(_,v)) = Graph.get_edge g e in (bv,(e,ed),v) end
-        fun mk_pairs v = Graph.out_enames g v 
+        fun dest_name bv e =(bv,(e,Graph.get_edge_data g e),Graph.get_edge_target g e)
+        fun mk_pairs v = Graph.get_out_edges g v 
                   |> E.NSet.list_of
                   |> map (fn e => dest_name v e)
     in  
@@ -42,92 +43,104 @@ struct
         []
     end;
 
-    fun edge_dest g e = Graph.get_edge g e |> (snd o snd);
-    fun edge_src g e = Graph.get_edge g e |> (fst o snd);
-    fun edge_data g e = Graph.get_edge g e |> fst |> snd;
+    fun edge_dest g e = Graph.get_edge_target g e;
+    fun edge_src g e = Graph.get_edge_source g e;
+    fun edge_data g e = Graph.get_edge_data g e;
 
    (* checks data *)
     fun lookup_ivertex_data g v = 
-      Graph.get_vertex_data g v 
-      |> Graph.OVData.idata_of 
+      case Graph.get_vertex_data g v of 
+          (Graph.NVert nv) => SOME nv
+        | _ => NONE
 
    val vertex_data = the oo lookup_ivertex_data;
 
    fun out_edges graph v = 
-      Graph.out_enames graph v 
+      Graph.get_out_edges graph v 
       |> E.NSet.list_of;
 
    fun in_edges graph v = 
-      Graph.in_enames graph v 
+      Graph.get_in_edges graph v 
       |> E.NSet.list_of;
 
     fun insert_node_on_edge node edge graph0 =
-      let val (l,graph') = Graph.add_vertex (Graph.OVData.NVert node) graph0
+      let val (l,graph') = Graph.add_vertex (Graph.NVert node) graph0
           val from' = edge_src graph' edge
           val to' = edge_dest graph' edge
           val edata = edge_data graph' edge
       in
         graph' |> Graph.delete_edge edge 
-               |> Graph.doadd_edge (Graph.Directed,edata) from' l
-               |> Graph.doadd_edge (Graph.Directed,edata) l to'
+               |> Graph.add_edge_anon (Directed,edata) from' l
+               |> Graph.add_edge_anon (Directed,edata) l to'
       end;
 
     (* assumes: 1/1 - so just replace by wire node *)
-    val del_gnode = Graph.update_vertex_data (K Graph.OVData.WVert);
+    val del_gnode = Graph.update_vertex_data (K Graph.WVert);
 
    fun mk_binput edata dest graph =
-     graph |> Graph.add_vertex Graph.OVData.WVert
-           |> (fn (n,g) => (n,Graph.add_to_boundary n g))
-           |> (fn (n,g) => Graph.doadd_edge (Graph.Directed, edata) n dest g);
+     graph |> Graph.add_vertex Graph.WVert
+           |> (fn (n,g) => Graph.add_edge_anon (Directed, edata) n dest g);
 
    fun mk_boutput edata source graph =
-     graph |> Graph.add_vertex Graph.OVData.WVert
-           |> (fn (n,g) => (n,Graph.add_to_boundary n g))
-           |> (fn (n,g) => Graph.doadd_edge (Graph.Directed, edata) source n g);
+     graph |> Graph.add_vertex Graph.WVert
+           |> (fn (n,g) => Graph.add_edge_anon (Directed, edata) source n g);
 
    (* checks type *)
    fun is_gtyp graph e = 
      case edge_data graph e of (GData.GT _) => true | _ => false;
-   fun is_rtechn graph v = 
+   fun is_tactic graph v = 
      case lookup_ivertex_data graph v of 
-         SOME (GData.RT _) => true
+         SOME (GData.T_Atomic _) => true
+       | SOME (GData.T_Graph _) => true
+       | SOME GData.T_Identity => true
        | _ => false; 
    fun is_gnode graph v = 
      case lookup_ivertex_data graph v of 
-         SOME (GData.GN _) => true
+         SOME (GData.G _) => true
        | _ => false; 
 
+
    (* lookup node *)
-   fun lookup_rtechn graph v = 
+   (* fun lookup_rtechn graph v = 
      case lookup_ivertex_data graph v of 
          SOME (GData.RT rt) => SOME rt
-       | _ => NONE; 
+       | _ => NONE; *)
    fun lookup_gnode graph v = 
      case lookup_ivertex_data graph v of 
-         SOME (GData.GN gn) => SOME gn
+         SOME (GData.G gn) => SOME gn
        | _ => NONE; 
 
    (* projects goal types - exception if not existing *)
    fun gtyp_of graph e = 
      case edge_data graph e of (GData.GT g) => g   (* |  _ => raise error *);
+(*
    fun rtechn_of graph v = 
      case vertex_data graph v of (GData.RT rt) => rt; 
+*)
    fun gnode_of graph v = 
-     case vertex_data graph v of (GData.GN gn) => gn
+     case vertex_data graph v of (GData.G gn) => gn
+(*
    fun single_gnode_of graph v = 
      case vertex_data graph v of (GData.GN (GData.GN_Node gnode)) => gnode;
-
+*)
+(*
    fun mk_single_gnode gnode = GData.GN (GData.GN_Node gnode);
+*)
+
+   fun get_vertex_list graph =  
+     Graph.get_vertices graph
+     |> V.NSet.list_of
 
    (* projects *)
-   fun all_rtechns graph = 
-     map fst (Graph.get_vertex_list graph)
-     |> filter (is_rtechn graph);
+   fun all_tactics graph = 
+     get_vertex_list graph
+     |> filter (is_tactic graph);
 
    fun all_gnodes graph = 
-     map fst (Graph.get_vertex_list graph)
+     get_vertex_list graph
      |> filter (is_gnode graph);
 
+(*
    fun prj_single_gnodes (GData.GN_Node gn) = [gn]
     |  prj_single_gnodes (GData.GN_Pair (g1,g2)) =
          prj_single_gnodes g1 @ prj_single_gnodes g2
@@ -137,6 +150,7 @@ struct
      all_gnodes graph
      |> map (gnode_of graph)
      |> maps prj_single_gnodes;
+*)
 
   end (* structure Util *)
  
@@ -144,19 +158,19 @@ struct
      instead - then we only need on lhs per rule  *)
   fun mk_lhs graph v =
     let 
-     val ins = Graph.in_enames graph v  
-     val outs = Graph.out_enames graph v
+     val ins = Graph.get_in_edges graph v  
+     val outs = Graph.get_out_edges graph v
      val gtyp = Util.gtyp_of
-     val gnode = Graph.OVData.NVert (GData.GN ((GData.GN_Var "g")))
-     val rtechn  = Util.rtechn_of graph v
+     val gnode = Graph.NVert (GData.G_Var "g")
+     (* val tactic  = Util.tactic_of graph v *)
      (* graph with rtechn *)
      val (v_rt,g) = Graph.empty
-               |> Graph.add_vertex (Graph.OVData.NVert (GData.RT rtechn))
+               |> Graph.add_vertex (Graph.get_vertex_data graph v)
      (* adding goalnode variable *)
      val (v_gvar,g) = Graph.add_vertex gnode g 
      (* one lhs for each input node *)
      fun mk_lhs' inp = g
-         |> Graph.doadd_edge (Graph.Directed,GData.GT (gtyp graph inp)) v_gvar v_rt
+         |> Graph.add_edge_anon (Directed,GData.GT (gtyp graph inp)) v_gvar v_rt
          |> Util.mk_binput (GData.GT (gtyp graph inp)) v_gvar
          |> E.NSet.fold (fn outp => Util.mk_boutput (GData.GT (gtyp graph outp)) v_rt) outs
          |> E.NSet.fold (fn o_inp => Util.mk_binput (GData.GT (gtyp graph o_inp)) v_rt) 
@@ -170,8 +184,7 @@ struct
      Theory.Rewriter.find_matches
            (Theory.Rule.mk(lhs,lhs)) (* make a dummy rule *)
            graph
-     |> snd
-     |> Seq.map (fn m => (Theory.Match.get_match_subst m, Graph.apply_data_subst (Theory.Match.get_match_subst m) lhs));
+     |> Seq.map (fn m => (Theory.Match.get_subst m, Graph.apply_data_subst (Theory.Match.get_subst m) lhs));
         
   fun matched_lhs graph v = Seq.maps (match_lhs graph) (mk_lhs graph v |> Seq.of_list)
 
@@ -182,44 +195,50 @@ struct
 
   (* RULES FOR REWRITING *)
 
+(*
  val split_gnode_pairs = 
   let
-    val edge = GData.EVar "e";
+    val edge = GData.GT_Var "e";
     val bnode = GData.GN (GData.GN_Pair (GData.GN_Var "h",GData.GN_Var "t"));
     val fnode = GData.GN (GData.GN_Var "h");
     val snode = GData.GN (GData.GN_Var "t");
-    val (inp,g0) = Graph.add_vertex Graph.OVData.WVert Graph.empty;
-    val (outp,g0) = Graph.add_vertex Graph.OVData.WVert g0;
-    val (bn,left) = Graph.add_vertex (Graph.OVData.NVert bnode) g0; 
-    val left = left |> Graph.doadd_edge (Graph.Directed,edge) inp bn
-                    |> Graph.doadd_edge (Graph.Directed,edge) bn outp;
-    val (fno,right) = Graph.add_vertex (Graph.OVData.NVert fnode) g0; 
-    val (sno,right) = Graph.add_vertex (Graph.OVData.NVert snode) right;
-    val right = right |> Graph.doadd_edge (Graph.Directed,edge) inp sno
-                      |> Graph.doadd_edge (Graph.Directed,edge) sno fno
-                      |> Graph.doadd_edge (Graph.Directed,edge) fno outp;
+    val (inp,g0) = Graph.add_vertex Graph.WVert Graph.empty;
+    val (outp,g0) = Graph.add_vertex Graph.WVert g0;
+    val (bn,left) = Graph.add_vertex (Graph.NVert bnode) g0; 
+    val left = left |> Graph.add_edge_anon (Directed,edge) inp bn
+                    |> Graph.add_edge_anon (Directed,edge) bn outp;
+    val (fno,right) = Graph.add_vertex (Graph.NVert fnode) g0; 
+    val (sno,right) = Graph.add_vertex (Graph.NVert snode) right;
+    val right = right |> Graph.add_edge_anon (Directed,edge) inp sno
+                      |> Graph.add_edge_anon (Directed,edge) sno fno
+                      |> Graph.add_edge_anon (Directed,edge) fno outp;
   in
      Theory.Rule.mk (left,right)
   end;
+*)
 
  fun symmetric_rule rule = Theory.Rule.mk (Theory.Rule.get_rhs rule,Theory.Rule.get_lhs rule);
-
+(*
  val combine_gnodes_to_pair = symmetric_rule split_gnode_pairs;
+*)
 
+(*
  val del_empty_gnode = 
   let
-    val edge = GData.EVar "e";
+    val edge = GData.GT_Var "e";
     val node = GData.GN (GData.GN_Empty);
-    val (inp,g0) = Graph.add_vertex Graph.OVData.WVert Graph.empty;
-    val (outp,g0) = Graph.add_vertex Graph.OVData.WVert g0;
-    val (bn,left) = Graph.add_vertex (Graph.OVData.NVert node) g0; 
-    val left = left |> Graph.doadd_edge (Graph.Directed,edge) inp bn
-                    |> Graph.doadd_edge (Graph.Directed,edge) bn outp;
-    val right = Graph.doadd_edge (Graph.Directed,edge) inp outp g0
+    val (inp,g0) = Graph.add_vertex Graph.WVert Graph.empty;
+    val (outp,g0) = Graph.add_vertex Graph.WVert g0;
+    val (bn,left) = Graph.add_vertex (Graph.NVert node) g0; 
+    val left = left |> Graph.add_edge_anon (Directed,edge) inp bn
+                    |> Graph.add_edge_anon (Directed,edge) bn outp;
+    val right = Graph.add_edge_anon (Directed,edge) inp outp g0
   in
      Theory.Rule.mk (left,right)
   end;
+*)
 
+(*
  val gnode_rs = Theory.Ruleset.empty
             |> Theory.Ruleset.add_fresh_rule (R.mk "del_empty",del_empty_gnode)
             |> (fn (rn,rs) => Theory.Ruleset.activate_rule rn rs)
@@ -239,5 +258,6 @@ struct
      NONE => g
    | SOME (g',_) => normalise_combine_gnodes g';
 
+*)
       
 end (* functor *)
