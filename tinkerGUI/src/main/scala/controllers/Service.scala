@@ -115,11 +115,13 @@ object Service extends Publisher {
 			case None =>
 				if(create && isGraphTactic) {
 					model.createGraphTactic(name, isOr)
+					name = name+"("+ArgumentParser.argumentsToString(model.getTacticArguments(name))+")"
 					hierarchyModel.addElement(name)
 					hierTreeCtrl.redraw
 				}
 				else if(create && !isGraphTactic){
 					model.createAtomicTactic(name)
+					name = name+"("+ArgumentParser.argumentsToString(model.getTacticArguments(name))+")"
 				}
 				name
 			case Some(t:HasArguments) =>
@@ -145,18 +147,6 @@ object Service extends Publisher {
 
 	def updateArguments(tactic: String, args: Array[Array[String]]){
 		model.updateTacticArguments(tactic, args)
-	}
-
-	def getArgumentsOfTactic(tactic: String): String ={
-		model.lookForTactic(tactic) match {
-			case Some(t:HasArguments) =>
-				var array = Array[Array[String]]()
-				t.arg.foreach{ a => 
-					array = array :+ a.arg
-				}
-				return ArgumentParser.argumentsToString(array)
-			case None => return ""
-		}
 	}
 
 	def getAtomicTacticValue(tactic: String): String = model.getAtomicTacticValue(tactic)

@@ -29,9 +29,6 @@ class TinkerLibraryController() extends Publisher {
 	val addFileToGraph = new Action("Add to graph"){
 		def apply(){
 			var valuesToReplace = Map[String, String]()
-			def removeBrackets(s: String): String = {
-				s.substring(1, s.length-1)
-			}
 			def updateGraphJsonWithNewNames(json: Json): Json = {
 				var newJson = json
 				valuesToReplace.foreach{ case (oldVal, newVal) =>
@@ -40,15 +37,15 @@ class TinkerLibraryController() extends Publisher {
 				return newJson
 			}
 			(json ? "atomic_tactics").asArray.foreach{ tct =>
-				val oldVal = removeBrackets((tct / "name").toString)
+				val oldVal = (tct / "name").stringValue
 				var tctName = fileName+"-"+oldVal
-				val tctTactic = removeBrackets((tct / "tactic").toString)
-				tctName = Service.checkNodeName(tctName, 0, true, false, false)
+				val tctTactic = (tct / "tactic").stringValue
+				tctName = ArgumentParser.separateNameFromArgument(Service.checkNodeName(tctName, 0, true, false, false))._1
 				Service.setAtomicTacticValue(tctName, tctTactic)
 				var tctArgs = Array[Array[String]]()
 				(tct / "args").asArray.foreach{ a =>
 					var arg = Array[String]()
-					a.asArray.foreach{ s => arg = arg :+ removeBrackets(s.toString)}
+					a.asArray.foreach{ s => arg = arg :+ s.stringValue}
 					tctArgs = tctArgs :+ arg
 				}
 				Service.updateArguments(tctName, tctArgs)
@@ -58,14 +55,14 @@ class TinkerLibraryController() extends Publisher {
 				))
 			}
 			(json ? "graph_tactics").asArray.foreach{ tct =>
-				val oldVal = removeBrackets((tct / "name").toString)
+				val oldVal = (tct / "name").stringValue
 				var tctName = fileName+"-"+oldVal
 				val isOr = (tct / "isOr").boolValue
-				tctName = Service.checkNodeName(tctName, 0, true, true, isOr)
+				tctName = ArgumentParser.separateNameFromArgument(Service.checkNodeName(tctName, 0, true, true, isOr))._1
 				var tctArgs = Array[Array[String]]()
 				(tct / "args").asArray.foreach{ a =>
 					var arg = Array[String]()
-					a.asArray.foreach{ s => arg = arg :+ removeBrackets(s.toString)}
+					a.asArray.foreach{ s => arg = arg :+ s.stringValue}
 					tctArgs = tctArgs :+ arg
 				}
 				Service.updateArguments(tctName, tctArgs)
@@ -75,7 +72,7 @@ class TinkerLibraryController() extends Publisher {
 				))
 			}
 			(json ? "graph_tactics").asArray.foreach{ tct =>
-				val tctName = fileName+"-"+removeBrackets((tct / "name").toString)
+				val tctName = fileName+"-"+(tct / "name").stringValue
 				(tct / "graphs").asArray.foreach{ gr =>
 					Service.saveGraphSpecificTactic(tctName, updateGraphJsonWithNewNames(gr))
 				}

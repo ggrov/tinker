@@ -11,11 +11,14 @@ import tinkerGUI.controllers.NothingSelectedEvent
 
 class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEditController) extends FlowPanel {
 	val nodeValue = new TextField(value,12)
-	val delButton = new Button("Delete node")
-	val addSubButton = new Button("Add a sub-graph")
+	val delButton = new Button(
+		new Action("Delete node"){
+			def apply(){
+				ctrl.delete(nam)
+			}
+		})
 
 	ctrl.addValueListener(nodeValue, (typ == "RT_NST"))
-	ctrl.addDeleteListener(delButton, nam)
 
 	contents += new FlowPanel(){
 		contents += new Label("Node : " + nam)
@@ -36,11 +39,23 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 				contents += new Label("Tactic : ")
 				contents += atomicTacticValue
 			}
+			// contents += new Button(
+			// 	new Action("Save changes"){
+			// 		def apply() {
+			// 			// ctrl.saveChanges(nodeValue.text, atomicTacticValue.text)
+			// 		}
+			// 	}){
+			// }
 		case "Nested" =>
 			val orRadio = new RadioButton("OR") {selected = ctrl.getIsNestedOr(value)}
 			val orElseRadio = new RadioButton("OR ELSE") {selected = !ctrl.getIsNestedOr(value)}
 			val hierTypeRadioGroup = new ButtonGroup(orRadio, orElseRadio)
-			ctrl.addNewSubListener(addSubButton, nodeValue.text, orRadio)
+			val addSubButton = new Button(
+				new Action("Add a sub-graph"){
+					def apply(){
+						ctrl.addNewSubgraph(nodeValue.text, orRadio.selected)
+					}
+				})
 			contents += new FlowPanel(){ 
 				contents += new Label("Name : ")
 				contents += nodeValue
@@ -87,9 +102,13 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, ctrl
 	val edgeValue = new TextField(value, 10)
 	val edgeSrc = new TextField(src, 3)
 	val edgeTgt = new TextField(tgt, 3)
-	val delButton = new Button("Delete edge")
+	val delButton = new Button(
+		new Action("Delete node"){
+			def apply(){
+				ctrl.delete(nam)
+			}
+		})
 	ctrl.addEdgeValueListener(edgeValue)
-	ctrl.addDeleteListener(delButton, nam)
 	ctrl.addEdgeListener(nam, edgeSrc, edgeTgt)
 	contents += new FlowPanel(){
 		contents += new Label("Edge : " + nam)
@@ -105,7 +124,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, ctrl
 		contents += edgeTgt
 	}
 	contents += new FlowPanel(){
-		contents += new Button(new Action("Add break"){def apply(){ctrl.addBreakpoints}})
+		contents += new Button(ctrl.addBreakpoints)
 	}
 	contents += new FlowPanel(){
 		contents += delButton

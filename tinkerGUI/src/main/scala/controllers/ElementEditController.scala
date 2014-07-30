@@ -61,27 +61,15 @@ class ElementEditController() extends Publisher {
 		}
 	}
 
-	def addDeleteListener(btn: Button, eltName: String){
-		listenTo(btn)
-		reactions += {
-			case ButtonClicked(b: Button) =>
-				if(b==btn)  {
-					QuantoLibAPI.userDeleteElement(eltName)
-					publish(NothingSelectedEvent())
-				}
-		}
+	def delete(eltName: String){
+		QuantoLibAPI.userDeleteElement(eltName)
+		publish(NothingSelectedEvent())
 	}
 
-	def addNewSubListener(btn: Button, elt: String, or: RadioButton){
-		listenTo(btn)
-		reactions += {
-			case ButtonClicked(b: Button) =>
-				val name = ArgumentParser.separateNameFromArgument(elt)._1
-				if(elementName == "") elementName = name
-				if(b==btn){
-					Service.addSubgraph(elementName, or.selected)
-				}
-		}
+	def addNewSubgraph(tactic: String, isOr: Boolean){
+		val name = ArgumentParser.separateNameFromArgument(tactic)._1
+		if(elementName == "") elementName = name
+		Service.addSubgraph(elementName, isOr)
 	}
 
 	def setIsNestedOr(eltName: String, isOr: Boolean) = Service.setIsOr(eltName, isOr)
@@ -109,8 +97,10 @@ class ElementEditController() extends Publisher {
 		}
 	}
 
-	def addBreakpoints = {
-		QuantoLibAPI.addBreakpointOnSelectedEdges()
+	val addBreakpoints = new Action("Add breakpoint") {
+		def apply() {
+			QuantoLibAPI.addBreakpointOnSelectedEdges()
+		}
 	}
 
 	val mergeAction = new Action("Yes"){

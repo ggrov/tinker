@@ -479,16 +479,34 @@ object QuantoLibAPI extends Publisher{
 								}
 							}
 							else if(dSrc<=0.5){
-								movingEdge = true
-								movingEdgeSource = true
-								movedEdge = e
-								changeMouseStateCallback("dragEdge", graph.target(e).s)
+								graph.vdata(graph.source(e)) match {
+									case d:NodeV if(d.typ != "break" && d.typ != "GN") =>
+										movingEdge = true
+										movingEdgeSource = true
+										movedEdge = e
+										changeMouseStateCallback("dragEdge", graph.target(e).s)
+									case d:WireV =>
+										movingEdge = true
+										movingEdgeSource = true
+										movedEdge = e
+										changeMouseStateCallback("dragEdge", graph.target(e).s)
+									case _ =>
+								}
 							}
 							else if(dTgt<=0.5){
-								movingEdge = true
-								movingEdgeSource = false
-								movedEdge = e
-								changeMouseStateCallback("dragEdge", graph.source(e).s)
+								graph.vdata(graph.target(e)) match {
+									case d:NodeV if(d.typ != "break" && d.typ != "GN") =>
+										movingEdge = true
+										movingEdgeSource = false
+										movedEdge = e
+										changeMouseStateCallback("dragEdge", graph.source(e).s)
+									case d:WireV =>
+										movingEdge = true
+										movingEdgeSource = false
+										movedEdge = e
+										changeMouseStateCallback("dragEdge", graph.source(e).s)
+									case _ =>
+								}
 							}
 						}
 						view.repaint()
@@ -595,9 +613,19 @@ object QuantoLibAPI extends Publisher{
 			vertexHit = Some(vertexName)
 		}
 		vertexHit map { startV =>
-			changeMouseStateCallback("dragEdge", startV.s)
-			view.edgeOverlay = Some(EdgeOverlay(pt, src = startV, tgt = Some(startV)))
-			view.repaint()
+			graph.vdata(startV) match {
+				case d:NodeV if(d.typ != "break" && d.typ != "GN") =>
+						changeMouseStateCallback("dragEdge", startV.s)
+						view.edgeOverlay = Some(EdgeOverlay(pt, src = startV, tgt = Some(startV)))
+						view.repaint()
+				case d:WireV =>
+					if(graph.adjacentEdges(startV).size < 1){
+						changeMouseStateCallback("dragEdge", startV.s)
+						view.edgeOverlay = Some(EdgeOverlay(pt, src = startV, tgt = Some(startV)))
+						view.repaint()
+					}
+				case _ => 
+			}
 		}
 	}
 
@@ -608,8 +636,20 @@ object QuantoLibAPI extends Publisher{
 	  */
 	def dragEdge(startV: String, pt: java.awt.Point){
 		val vertexHit = view.vertexDisplay find { _._2.pointHit(pt) } map { _._1 }
-		view.edgeOverlay = Some(EdgeOverlay(pt, startV, vertexHit))
-		view.repaint()
+		vertexHit match {
+			case Some(v:VName) =>
+				graph.vdata(v) match {
+					case d:NodeV if(d.typ != "break" && d.typ != "GN") =>
+						view.edgeOverlay = Some(EdgeOverlay(pt, startV, vertexHit))
+						view.repaint()
+					case _ =>
+						view.edgeOverlay = Some(EdgeOverlay(pt, startV, None))
+						view.repaint()
+				}
+			case _ =>
+				view.edgeOverlay = Some(EdgeOverlay(pt, startV, vertexHit))
+				view.repaint()
+		}
 	}
 
 	/**
@@ -628,14 +668,34 @@ object QuantoLibAPI extends Publisher{
 			vertexHit = Some(vertexName)
 		}
 		vertexHit map { endV =>
-			if(movingEdge){
-				moveEdge(VName(startV), endV, movedEdge, movingEdgeSource)
-				changeMouseStateCallback("select")
-			}
-			else {
-				val defaultData = DirEdge.fromJson(theory.defaultEdgeData, theory)
-				addEdge(graph.edges.fresh, defaultData, (VName(startV), endV))
-				changeMouseStateCallback("addEdge")
+			graph.vdata(endV) match {
+				case d:NodeV if(d.typ != "break" && d.typ != "GN") =>
+					if(movingEdge){
+						moveEdge(VName(startV), endV, movedEdge, movingEdgeSource)
+						changeMouseStateCallback("select")
+					}
+					else{
+						val defaultData = DirEdge.fromJson(theory.defaultEdgeData, theory)
+						addEdge(graph.edges.fresh, defaultData, (VName(startV), endV))
+						changeMouseStateCallback("addEdge")
+					}
+				case d:WireV if(graph.adjacentEdges(endV).size < 1 && endV != VName(startV)) =>
+					if(movingEdge){
+						moveEdge(VName(startV), endV, movedEdge, movingEdgeSource)
+						changeMouseStateCallback("select")
+					}
+					else{
+						val defaultData = DirEdge.fromJson(theory.defaultEdgeData, theory)
+						addEdge(graph.edges.fresh, defaultData, (VName(startV), endV))
+						changeMouseStateCallback("addEdge")
+					}
+				case _ =>
+					if(!movingEdge){
+						if(graph.vdata(VName(startV)).isBoundary) {
+							deleteVertex(VName(startV))
+						}
+						changeMouseStateCallback("addEdge")
+					}
 			}
 		}
 		view.edgeOverlay = None
@@ -764,10 +824,18 @@ object QuantoLibAPI extends Publisher{
 		val tgt = VName(t)
 		if (graph.vdata.contains(src) && graph.vdata.contains(tgt)) {
 			if(graph.source(e) == src && graph.target(e) != tgt) {
-				moveEdge(src, tgt, edge, false)
+				graph.vdata(graph.target(e)) match {
+					case d:NodeV if(d.typ == "break" || d.typ == "GN") => // do nothing
+					case d:WireV => // do nothing
+					case _ => moveEdge(src, tgt, edge, false)
+				}
 			}
 			else if (graph.source(e) != src && graph.target(e) == tgt){
-				moveEdge(tgt, src, edge, true)
+				graph.vdata(graph.source(e)) match {
+					case d:NodeV if(d.typ == "break" || d.typ == "GN") => // do nothing
+					case d:WireV => // do nothing
+					case _ => moveEdge(tgt, src, edge, true)
+				}
 			}
 		}
 	}

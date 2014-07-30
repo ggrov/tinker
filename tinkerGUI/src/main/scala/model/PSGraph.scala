@@ -298,6 +298,14 @@ class PSGraph() {
 		Service.refreshGraph
 	}
 
+	def getTacticArguments(tactic: String): Array[Array[String]] = {
+		lookForTactic(tactic) match {
+			case Some(t: HasArguments) => t.argumentsToArrays
+			case None => 
+				throwError("<html>Program tried to access tactic "+tactic+"<br> but could not find it</html>")
+				Array[Array[String]]()
+		}
+	}
 
 	def loadJsonGraph(f: File) {
 		// load a saved file in our json object
