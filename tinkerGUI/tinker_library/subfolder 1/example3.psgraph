@@ -1,0 +1,300 @@
+{
+  "graph_tactics" : [ {
+    "name" : "nested",
+    "isOr" : false,
+    "graphs" : [ {
+      "dir_edges" : {
+        "e0" : {
+          "data" : {
+            "gtyp_name" : "any",
+            "type" : "GT",
+            "break" : false
+          },
+          "src" : "b0",
+          "tgt" : "v0"
+        },
+        "e1" : {
+          "data" : {
+            "gtyp_name" : "any",
+            "type" : "GT",
+            "break" : false
+          },
+          "src" : "b1",
+          "tgt" : "v1"
+        },
+        "e2" : {
+          "data" : {
+            "gtyp_name" : "any",
+            "type" : "GT",
+            "break" : false
+          },
+          "src" : "v1",
+          "tgt" : "v0"
+        },
+        "e3" : {
+          "data" : {
+            "gtyp_name" : "any",
+            "type" : "GT",
+            "break" : false
+          },
+          "src" : "v0",
+          "tgt" : "b2"
+        }
+      },
+      "wire_vertices" : {
+        "b1" : {
+          "annotation" : {
+            "boundary" : true,
+            "coord" : [ 2.040000000000001, 2.84 ]
+          }
+        },
+        "b0" : {
+          "annotation" : {
+            "boundary" : true,
+            "coord" : [ -1.02, 2.92 ]
+          }
+        },
+        "b2" : {
+          "annotation" : {
+            "boundary" : true,
+            "coord" : [ -1.02, -0.88 ]
+          }
+        }
+      },
+      "node_vertices" : {
+        "v1" : {
+          "data" : {
+            "rt_name" : "imp(exl : y z, add : g)",
+            "appf" : {
+              "type" : "Atomic"
+            },
+            "type" : "RT_ATM",
+            "label" : "imp(exl : y z, add : g)"
+          },
+          "annotation" : {
+            "coord" : [ 2.020000000000001, 1.0 ]
+          }
+        },
+        "v0" : {
+          "data" : {
+            "rt_name" : "ripl(r : a b)",
+            "appf" : {
+              "type" : "Atomic"
+            },
+            "type" : "RT_ATM",
+            "label" : "ripl(r : a b)"
+          },
+          "annotation" : {
+            "coord" : [ -1.0, 1.0 ]
+          }
+        }
+      }
+    }, {
+      "dir_edges" : {
+        "e0" : {
+          "data" : {
+            "gtyp_name" : "any",
+            "type" : "GT",
+            "break" : false
+          },
+          "src" : "b0",
+          "tgt" : "v1"
+        },
+        "e1" : {
+          "data" : {
+            "gtyp_name" : "any",
+            "type" : "GT",
+            "break" : false
+          },
+          "src" : "b1",
+          "tgt" : "v1"
+        },
+        "e2" : {
+          "data" : {
+            "gtyp_name" : "any",
+            "type" : "GT",
+            "break" : false
+          },
+          "src" : "v1",
+          "tgt" : "v0"
+        },
+        "e3" : {
+          "data" : {
+            "gtyp_name" : "any",
+            "type" : "GT",
+            "break" : false
+          },
+          "src" : "v0",
+          "tgt" : "b2"
+        }
+      },
+      "wire_vertices" : {
+        "b1" : {
+          "annotation" : {
+            "boundary" : true,
+            "coord" : [ 0.8799999999999997, 2.709999999999999 ]
+          }
+        },
+        "b0" : {
+          "annotation" : {
+            "boundary" : true,
+            "coord" : [ -0.64, 2.729999999999999 ]
+          }
+        },
+        "b2" : {
+          "annotation" : {
+            "boundary" : true,
+            "coord" : [ 0.0, -2.650000000000001 ]
+          }
+        }
+      },
+      "node_vertices" : {
+        "v1" : {
+          "data" : {
+            "rt_name" : "",
+            "appf" : {
+              "type" : "Identity"
+            },
+            "type" : "RT_ID"
+          },
+          "annotation" : {
+            "coord" : [ 0.02, 1.1899999999999993 ]
+          }
+        },
+        "v0" : {
+          "data" : {
+            "rt_name" : "ripl(r : a b)",
+            "appf" : {
+              "type" : "Atomic"
+            },
+            "type" : "RT_ATM",
+            "label" : "ripl(r : a b)"
+          },
+          "annotation" : {
+            "coord" : [ 0.04, -0.7700000000000001 ]
+          }
+        }
+      }
+    } ],
+    "args" : [ ]
+  } ],
+  "atomic_tactics" : [ {
+    "name" : "simp",
+    "tactic" : "simplify",
+    "args" : [ [ "x", "y" ], [ "a", "b" ] ]
+  }, {
+    "name" : "ripl",
+    "tactic" : "ripling",
+    "args" : [ [ "r", "a", "b" ] ]
+  }, {
+    "name" : "imp",
+    "tactic" : "imply",
+    "args" : [ [ "exl", "y", "z" ], [ "add", "g" ] ]
+  } ],
+  "current_index" : 0,
+  "goal_types" : "",
+  "graph" : {
+    "dir_edges" : {
+      "e1" : {
+        "data" : {
+          "gtyp_name" : "any",
+          "type" : "GT",
+          "break" : false
+        },
+        "src" : "v2",
+        "tgt" : "v0"
+      },
+      "e0" : {
+        "data" : {
+          "gtyp_name" : "any",
+          "type" : "GT",
+          "break" : false
+        },
+        "src" : "b0",
+        "tgt" : "v2"
+      },
+      "e4" : {
+        "data" : {
+          "gtyp_name" : "any",
+          "type" : "GT",
+          "break" : false
+        },
+        "src" : "v2",
+        "tgt" : "v1"
+      },
+      "e3" : {
+        "data" : {
+          "gtyp_name" : "any",
+          "type" : "GT",
+          "break" : false
+        },
+        "src" : "v1",
+        "tgt" : "b1"
+      },
+      "e2" : {
+        "data" : {
+          "gtyp_name" : "any",
+          "type" : "GT",
+          "break" : false
+        },
+        "src" : "v0",
+        "tgt" : "v1"
+      }
+    },
+    "wire_vertices" : {
+      "b1" : {
+        "annotation" : {
+          "boundary" : true,
+          "coord" : [ -0.44000000000000006, -2.6600000000000006 ]
+        }
+      },
+      "b0" : {
+        "annotation" : {
+          "boundary" : true,
+          "coord" : [ -0.4800000000000001, 2.560000000000012 ]
+        }
+      }
+    },
+    "node_vertices" : {
+      "v1" : {
+        "data" : {
+          "rt_name" : "nested()",
+          "appf" : {
+            "type" : "Nested"
+          },
+          "type" : "RT_NST",
+          "label" : "nested()"
+        },
+        "annotation" : {
+          "coord" : [ -0.46000000000000013, -1.4000000000000001 ]
+        }
+      },
+      "v0" : {
+        "data" : {
+          "rt_name" : "simp(x : y, a : b)",
+          "appf" : {
+            "type" : "Atomic"
+          },
+          "type" : "RT_ATM",
+          "label" : "simp(x : y, a : b)"
+        },
+        "annotation" : {
+          "coord" : [ 1.1399999999999997, 0.040000000000000244 ]
+        }
+      },
+      "v2" : {
+        "data" : {
+          "rt_name" : "",
+          "appf" : {
+            "type" : "Identity"
+          },
+          "type" : "RT_ID"
+        },
+        "annotation" : {
+          "coord" : [ -0.48000000000000015, 1.1199999999999983 ]
+        }
+      }
+    }
+  },
+  "current" : "main"
+}

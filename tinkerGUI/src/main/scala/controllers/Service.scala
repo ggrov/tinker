@@ -108,23 +108,22 @@ object Service extends Publisher {
 			graphNavCtrl.disableAdd = false
 	}
 
-	def checkNodeName(n: String, sufix: Int, create: Boolean, isGraphTactic: Boolean): String = {
+	def checkNodeName(n: String, sufix: Int, create: Boolean, isGraphTactic: Boolean, isOr: Boolean): String = {
 		var name = n
 		if(sufix != 0) name = (n+"-"+sufix)
 		model.lookForTactic(name) match {
 			case None =>
 				if(create && isGraphTactic) {
-					model.createGraphTactic(name, true)
+					model.createGraphTactic(name, isOr)
 					hierarchyModel.addElement(name)
 					hierTreeCtrl.redraw
 				}
 				else if(create && !isGraphTactic){
-					val args = model.createAtomicTactic(name)
-					name = name+"("+ArgumentParser.argumentsToString(args)+")"
+					model.createAtomicTactic(name)
 				}
 				name
 			case Some(t:HasArguments) =>
-				checkNodeName(n, (sufix+1), create, isGraphTactic)
+				checkNodeName(n, (sufix+1), create, isGraphTactic, isOr)
 		}
 	}
 
@@ -139,8 +138,12 @@ object Service extends Publisher {
 	def getParentList(tactic: String) = hierarchyModel.buildParentList(tactic, Array[String]())
 	def changeTacticParent(tactic: String, parent: String) = hierarchyModel.changeParent(tactic, parent)
 
-	def parseArguments(tactic: String, s: String) {
+	def parseAndUpdateArguments(tactic: String, s: String) {
 		val args = ArgumentParser.stringToArguments(s)
+		model.updateTacticArguments(tactic, args)
+	}
+
+	def updateArguments(tactic: String, args: Array[Array[String]]){
 		model.updateTacticArguments(tactic, args)
 	}
 
@@ -158,10 +161,6 @@ object Service extends Publisher {
 
 	def getAtomicTacticValue(tactic: String): String = model.getAtomicTacticValue(tactic)
 	def setAtomicTacticValue(tactic: String, value: String) = model.setAtomicTacticValue(tactic, value)
-
-	def addJsonToCurrent(json: JsonObject){
-		QuantoLibAPI.addFromJson(json)
-	}
 
 	def getGoalTypes = model.goalTypes
 	def setGoalTypes(s: String){

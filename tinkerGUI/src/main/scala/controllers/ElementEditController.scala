@@ -28,12 +28,12 @@ class ElementEditController() extends Publisher {
 					var (name, arguments) = ArgumentParser.separateNameFromArgument(elt.text)
 					QuantoLibAPI.editSelectedElementValue(elt.text)
 					if(name == elementName && arguments != elementArguments){
-						Service.parseArguments(name, arguments)
+						Service.parseAndUpdateArguments(name, arguments)
 						elementArguments = arguments
 					}
 					else if(name != elementName && name != "" && arguments != elementArguments){
 						Service.updateTacticName(elementName, name, isGraphTactic)
-						Service.parseArguments(name, arguments)
+						Service.parseAndUpdateArguments(name, arguments)
 						elementName = name
 					}
 					else if(name != elementName && name != "" && arguments == elementArguments){

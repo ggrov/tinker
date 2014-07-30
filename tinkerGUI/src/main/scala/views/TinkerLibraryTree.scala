@@ -16,7 +16,7 @@ class TinkerLibraryTree() extends Publisher {
 	val libraryFileTree = new FileTree
 	libraryFileTree.preferredSize = new Dimension(250,360)
 	libraryFileTree.filenameFilter = Some(new FilenameFilter {
-		val extns = Set("hello")
+		val extns = Set("hello", "psgraph")
 		def accept(parent: File, name: String) = {
 			val extn = name.lastIndexOf('.') match {
 				case i if i > 0 => name.substring(i+1)

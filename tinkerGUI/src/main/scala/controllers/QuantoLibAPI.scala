@@ -655,12 +655,12 @@ object QuantoLibAPI extends Publisher{
 		graph.vdata(vertexName) match {
 			case data: NodeV =>
 				if(typ == "RT_NST") {
-					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true, true)) })
+					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true, true, true)) })
 					view.invalidateVertex(vertexName)
 					graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
 				}
 				else if (typ == "RT_ATM") {
-					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true, false)) })
+					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true, false, false)) })
 					view.invalidateVertex(vertexName)
 					graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
 				}
@@ -823,7 +823,7 @@ object QuantoLibAPI extends Publisher{
 		changeGraph(graph.addVertex(newName, newData.withCoord((newX,newY))))
 		graph.vdata(newName) match {
 			case data: NodeV =>
-				changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true, true)) })
+				changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true, true, true)) })
 				view.invalidateVertex(newName)
 				graph.adjacentEdges(newName).foreach { view.invalidateEdge }
 		}
@@ -896,7 +896,7 @@ object QuantoLibAPI extends Publisher{
 	  * Method to add vertices and edges from specified json into our graph
 	  * @param json, the json object to add
 	  */
-	def addFromJson(json: JsonObject) {
+	def addFromJson(json: Json) {
 		view.selectedVerts.foreach { v => view.selectedVerts -= v}
 		var newNameMap = Map[String, String]()
 		(json ? "wire_vertices").mapValue.foreach{ case (k,v) =>

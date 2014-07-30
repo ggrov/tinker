@@ -33,6 +33,7 @@ class PSGraph() {
 			atomicTacticsJson = atomicTacticsJson :+ t.toJson
 		}
 		jsonPSGraph = JsonObject("current" -> current, "current_index" -> currentIndex, "graph" -> mainGraph, "graph_tactics" -> JsonArray(graphTacticsJson), "atomic_tactics" -> JsonArray(atomicTacticsJson), "goal_types" -> goalTypes)
+		println("---------------------------------------------------")
 		println(jsonPSGraph)
 	}
 
@@ -195,8 +196,8 @@ class PSGraph() {
 						if(oldArg != newArg){
 							val mergeAction1 = new Action("Merge tactics to "+newVal+"("+oldArg+")"){
 								def apply(){
-									updateValueInJsonGraphs(newVal+"("+newArg+")", newVal+"("+oldArg+")")
-									updateValueInJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+oldArg+")")
+									updateValueInJsonGraphs("\""+newVal+"("+newArg+")\"", "\""+newVal+"("+oldArg+")\"")
+									updateValueInJsonGraphs("\""+oldVal+"("+oldArg+")\"", "\""+newVal+"("+oldArg+")\"")
 									n.arg = old.arg
 									deleteTactic(old.name)
 									TinkerDialog.close()
@@ -204,7 +205,7 @@ class PSGraph() {
 							}
 							val mergeAction2 = new Action("Merge tactics to "+newVal+"("+newArg+")"){
 								def apply(){
-									updateValueInJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+newArg+")")
+									updateValueInJsonGraphs("\""+oldVal+"("+oldArg+")\"", "\""+newVal+"("+newArg+")\"")
 									deleteTactic(old.name)
 									TinkerDialog.close()
 								}
@@ -217,11 +218,11 @@ class PSGraph() {
 							TinkerDialog.openConfirmationDialog("<html>The new name you specified is already taken.</br>What would you want to do ?</html>", Array(mergeAction1, mergeAction2, dontMerge))
 						}
 						else {
-							updateValueInJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+newArg+")")
+							updateValueInJsonGraphs("\""+oldVal+"("+oldArg+")\"", "\""+newVal+"("+newArg+")\"")
 							deleteTactic(old.name)
 						}
 					case None =>
-						updateValueInJsonGraphs(oldVal+"("+oldArg+")", newVal+"("+oldArg+")")
+						updateValueInJsonGraphs("\""+oldVal+"("+oldArg+")\"", "\""+newVal+"("+oldArg+")\"")
 						old.name = newVal
 				}
 			case Some(old: HasArguments) => 
@@ -241,7 +242,7 @@ class PSGraph() {
 					t.addArgument(a)
 				}
 				val newArg = ArgumentParser.argumentsToString(t.argumentsToArrays)
-				updateValueInJsonGraphs(tactic+"("+oldArg+")", tactic+"("+newArg+")")
+				updateValueInJsonGraphs("\""+tactic+"("+oldArg+")\"", "\""+tactic+"("+newArg+")\"")
 			case None => 
 		}
 	}
@@ -250,14 +251,12 @@ class PSGraph() {
 		graphTactics = graphTactics :+ new GraphTactic(tactic, isOr)
 	}
 
-	def createAtomicTactic(name: String): Array[Array[String]] = {
+	def createAtomicTactic(name: String) {
 		lookForAtomicTactic(name) match {
 			case Some(t:AtomicTactic) =>
-				t.argumentsToArrays
+				throwError("The program tried to create an already existing tactic.")
 			case None => 
-				val t = new AtomicTactic(name, "")
-				atomicTactics += t
-				t.argumentsToArrays
+				atomicTactics += new AtomicTactic(name, "")
 		}
 	}
 
