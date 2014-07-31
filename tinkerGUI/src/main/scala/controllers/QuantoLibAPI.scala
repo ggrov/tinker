@@ -888,6 +888,26 @@ object QuantoLibAPI extends Publisher{
 	}
 
 	/**
+	  * Method to remove the selected breakpoint
+	  */
+	def removeSelectedBreakpoint() {
+		if(view.selectedVerts.size == 1){
+			graph.vdata(view.selectedVerts.head) match {
+				case d:NodeV if(d.typ == "break") =>
+					val break = view.selectedVerts.head
+					val edata = graph.edata(graph.inEdges(break).head)
+					val src = graph.source(graph.inEdges(break).head)
+					val tgt = graph.target(graph.outEdges(break).head)
+					graph.adjacentEdges(break).foreach {e => view.invalidateEdge(e) ; changeGraph(graph.deleteEdge(e))}
+					view.invalidateVertex(break)
+					changeGraph(graph.deleteVertex(break))
+					changeGraph(graph.addEdge(graph.edges.fresh, edata, (src, tgt)))
+				case _ =>
+			}
+		}
+	}
+
+	/**
 	  * Method to merge selected vertices into a nested one
 	  */
 	def mergeSelectedVertices() {

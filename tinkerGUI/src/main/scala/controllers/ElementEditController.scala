@@ -80,8 +80,8 @@ class ElementEditController() extends Publisher {
 		Service.addSubgraph(elementName, isOr)
 	}
 
-	def setIsNestedOr(eltName: String, isOr: Boolean) = Service.setIsOr(eltName, isOr)
-	def getIsNestedOr(eltName: String) = Service.isNestedOr(eltName)
+	def setIsNestedOr(eltName: String, isOr: Boolean) = Service.setIsOr(ArgumentParser.separateNameFromArgument(eltName)._1, isOr)
+	def getIsNestedOr(eltName: String) = Service.isNestedOr(ArgumentParser.separateNameFromArgument(eltName)._1)
 
 	def addEdgeValueListener(elt: TextField) {
 		var prevValue = ""
@@ -108,6 +108,12 @@ class ElementEditController() extends Publisher {
 	val addBreakpoints = new Action("Add breakpoint") {
 		def apply() {
 			QuantoLibAPI.addBreakpointOnSelectedEdges()
+		}
+	}
+
+	val removeBreakpoint = new Action("Remove breakpoint"){
+		def apply() {
+			QuantoLibAPI.removeSelectedBreakpoint()
 		}
 	}
 
@@ -142,7 +148,7 @@ class ElementEditController() extends Publisher {
 				case "RT_ID" => publish(OneVertexSelectedEvent(name, "Identity", value))
 				case "RT_ATM" => publish(OneVertexSelectedEvent(name, "Atomic", value))
 				case "RT_NST" => publish(OneVertexSelectedEvent(name, "Nested", value))
-				case "break" => publish(NothingSelectedEvent())
+				case "break" => publish(OneVertexSelectedEvent(name, "Breakpoint", value))
 			}
 		case OneEdgeSelectedEventAPI(name, value, source, target) =>
 			publish(OneEdgeSelectedEvent(name, value, source, target))

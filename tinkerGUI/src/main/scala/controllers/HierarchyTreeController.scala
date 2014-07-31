@@ -21,9 +21,10 @@ class HierarchyTreeController() extends Publisher {
 		var childrenWidth = 0
 		node.children.foreach {c =>
 			var space = 15
-			if(childrenWidth == 0) space = 0
-			g.drawLine(x, y, x+childrenWidth+space, y+80)
-			childrenWidth += drawElement(g, c, x+childrenWidth+space, y+80, depth+1)
+			var totalSpace = space+(((g.getFontMetrics().getStringBounds(c.name, g).getWidth.toInt)/2)-8)
+			if(childrenWidth == 0) { space = 0; totalSpace = 0}
+			g.drawLine(x, y, x+childrenWidth+totalSpace, y+80)
+			childrenWidth += drawElement(g, c, x+childrenWidth+totalSpace, y+80, depth+1)
 			childrenWidth += space
 		}
 		preferredSize = new Dimension(max(preferredSize.getWidth().toInt, childrenWidth+200), max(preferredSize.getHeight().toInt, depth*50+200))

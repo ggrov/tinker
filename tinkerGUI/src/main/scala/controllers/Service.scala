@@ -63,7 +63,7 @@ object Service extends Publisher {
 
 	def getCurrentIndex = model.currentIndex
 	def getCurrentSize = model.currentTactic.graphs.size
-	def getCurrent = model.currentTactic.name
+	def getCurrent = if(model.isMain) "main" else model.currentTactic.name
 
 	def editSubGraph(tactic: String, index: Int): Boolean = {
 		if(model.changeCurrent(tactic, index)){

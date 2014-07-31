@@ -27,7 +27,10 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 		contents += new Label("Type : " + typ)
 	}
 	typ match {
-		case "Identity" => // add nothing
+		case "Identity" =>
+			contents += new FlowPanel(){
+				contents += delButton
+			}
 		case "Atomic" =>
 			val atomicTacticValue = new TextField(ctrl.getAtomicTacticValue(value), 12)
 			ctrl.addAtmTctValueListener(atomicTacticValue, nodeValue.text)
@@ -38,6 +41,9 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 			contents += new FlowPanel(){ 
 				contents += new Label("Tactic : ")
 				contents += atomicTacticValue
+			}
+			contents += new FlowPanel(){
+				contents += delButton
 			}
 			// contents += new Button(
 			// 	new Action("Save changes"){
@@ -73,9 +79,13 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 					if (b == orRadio){ctrl.setIsNestedOr(nodeValue.text, true)}
 					else if (b == orElseRadio){ctrl.setIsNestedOr(nodeValue.text, false)}
 			}
-	}
-	contents += new FlowPanel(){
-		contents += delButton
+			contents += new FlowPanel(){
+				contents += delButton
+			}
+		case "Breakpoint" =>
+			contents += new FlowPanel() {
+				contents += new Button(ctrl.removeBreakpoint)
+			}
 	}
 
 }
