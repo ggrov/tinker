@@ -185,52 +185,88 @@ class PSGraph() {
 		}
 	}
 
-	def updateTacticName(oldVal: String, newVal: String, isGraphTactic: Boolean) {
+	def updateTacticName(oldVal: String, newVal: String): String = {
+		// OLD CODE, COULD BE REUSED WHEN FINAL PROTOCOL IS FIXED
+		// lookForTactic(oldVal) match {
+		// 	case Some(old: GraphTactic) => old.name = newVal
+		// 	case Some(old: AtomicTactic) => 
+		// 		val oldArg = ArgumentParser.argumentsToString(old.argumentsToArrays)
+		// 		lookForAtomicTactic(newVal) match {
+		// 			case Some(n:AtomicTactic) =>
+		// 				val newArg = ArgumentParser.argumentsToString(n.argumentsToArrays)
+		// 				if(oldArg != newArg){
+		// 					val mergeAction1 = new Action("Merge tactics to "+newVal+"("+oldArg+")"){
+		// 						def apply(){
+		// 							updateValueInJsonGraphs("\""+newVal+"("+newArg+")\"", "\""+newVal+"("+oldArg+")\"")
+		// 							updateValueInJsonGraphs("\""+oldVal+"("+oldArg+")\"", "\""+newVal+"("+oldArg+")\"")
+		// 							n.arg = old.arg
+		// 							deleteTactic(old.name)
+		// 							TinkerDialog.close()
+		// 						}
+		// 					}
+		// 					val mergeAction2 = new Action("Merge tactics to "+newVal+"("+newArg+")"){
+		// 						def apply(){
+		// 							updateValueInJsonGraphs("\""+oldVal+"("+oldArg+")\"", "\""+newVal+"("+newArg+")\"")
+		// 							deleteTactic(old.name)
+		// 							TinkerDialog.close()
+		// 						}
+		// 					}
+		// 					val dontMerge = new Action("Do not merge tactics"){
+		// 						def apply(){
+		// 							TinkerDialog.close()
+		// 						}
+		// 					}
+		// 					TinkerDialog.openConfirmationDialog("<html>The new name you specified is already taken.</br>What would you want to do ?</html>", Array(mergeAction1, mergeAction2, dontMerge))
+		// 				}
+		// 				else {
+		// 					updateValueInJsonGraphs("\""+oldVal+"("+oldArg+")\"", "\""+newVal+"("+newArg+")\"")
+		// 					deleteTactic(old.name)
+		// 				}
+		// 			case None =>
+		// 				updateValueInJsonGraphs("\""+oldVal+"("+oldArg+")\"", "\""+newVal+"("+oldArg+")\"")
+		// 				old.name = newVal
+		// 		}
+		// 	case Some(old: HasArguments) => 
+		// 	case None => 
+		// 		if(!isGraphTactic){
+		// 			createAtomicTactic(newVal)
+		// 		}
+		// }
+		var res = oldVal
 		lookForTactic(oldVal) match {
-			case Some(old: GraphTactic) => old.name = newVal
-			case Some(old: AtomicTactic) => 
-				val oldArg = ArgumentParser.argumentsToString(old.argumentsToArrays)
-				lookForAtomicTactic(newVal) match {
-					case Some(n:AtomicTactic) =>
-						val newArg = ArgumentParser.argumentsToString(n.argumentsToArrays)
-						if(oldArg != newArg){
-							val mergeAction1 = new Action("Merge tactics to "+newVal+"("+oldArg+")"){
-								def apply(){
-									updateValueInJsonGraphs("\""+newVal+"("+newArg+")\"", "\""+newVal+"("+oldArg+")\"")
-									updateValueInJsonGraphs("\""+oldVal+"("+oldArg+")\"", "\""+newVal+"("+oldArg+")\"")
-									n.arg = old.arg
-									deleteTactic(old.name)
-									TinkerDialog.close()
-								}
+			case Some(old:GraphTactic) => 
+				lookForTactic(newVal) match {
+					case Some(t:HasArguments) =>
+						val actualNewVal = generateNewName(newVal,0)
+						val agree = new Action("Ok"){
+							def apply(){
+								TinkerDialog.close()
 							}
-							val mergeAction2 = new Action("Merge tactics to "+newVal+"("+newArg+")"){
-								def apply(){
-									updateValueInJsonGraphs("\""+oldVal+"("+oldArg+")\"", "\""+newVal+"("+newArg+")\"")
-									deleteTactic(old.name)
-									TinkerDialog.close()
-								}
-							}
-							val dontMerge = new Action("Do not merge tactics"){
-								def apply(){
-									TinkerDialog.close()
-								}
-							}
-							TinkerDialog.openConfirmationDialog("<html>The new name you specified is already taken.</br>What would you want to do ?</html>", Array(mergeAction1, mergeAction2, dontMerge))
 						}
-						else {
-							updateValueInJsonGraphs("\""+oldVal+"("+oldArg+")\"", "\""+newVal+"("+newArg+")\"")
-							deleteTactic(old.name)
+						TinkerDialog.openConfirmationDialog("<html> The new name you specified is already taken,<br>the name "+actualNewVal+" will be used.", Array(agree))
+						old.name = actualNewVal
+					case None => old.name = newVal
+				}
+				res = old.name
+			case Some(old: AtomicTactic) =>
+				lookForTactic(newVal) match {
+					case Some(t:HasArguments) =>
+						val actualNewVal = generateNewName(newVal,0)
+						val agree = new Action("Ok"){
+							def apply(){
+								TinkerDialog.close()
+							}
 						}
-					case None =>
-						updateValueInJsonGraphs("\""+oldVal+"("+oldArg+")\"", "\""+newVal+"("+oldArg+")\"")
-						old.name = newVal
+						TinkerDialog.openConfirmationDialog("<html> The new name you specified is already taken,<br>the name "+actualNewVal+" will be used.", Array(agree))
+						old.name = actualNewVal
+					case None => old.name = newVal
 				}
-			case Some(old: HasArguments) => 
-			case None => 
-				if(!isGraphTactic){
-					createAtomicTactic(newVal)
-				}
+				res = old.name
+			case Some(t:HasArguments) =>
+			case None =>
+				throwError("<html>The program tried to edit the name of tactic "+oldVal+" to "+newVal+"<br> but tactic was not found.</html>")
 		}
+		return res
 	}
 
 	def updateTacticArguments(tactic: String, args: Array[Array[String]]){
@@ -304,6 +340,15 @@ class PSGraph() {
 			case None => 
 				throwError("<html>Program tried to access tactic "+tactic+"<br> but could not find it</html>")
 				Array[Array[String]]()
+		}
+	}
+
+	def generateNewName(n: String, sufix: Int): String = {
+		var name = n
+		if(sufix != 0) {name = (n+"-"+sufix)}
+		lookForTactic(name) match {
+			case None => name
+			case Some(t:HasArguments) => generateNewName(n, sufix+1)
 		}
 	}
 

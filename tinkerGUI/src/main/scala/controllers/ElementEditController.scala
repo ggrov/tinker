@@ -26,20 +26,28 @@ class ElementEditController() extends Publisher {
 			case KeyReleased(c, key, _, _) =>
 				if(c == elt){
 					var (name, arguments) = ArgumentParser.separateNameFromArgument(elt.text)
-					QuantoLibAPI.editSelectedElementValue(elt.text)
 					if(name == elementName && arguments != elementArguments){
 						Service.parseAndUpdateArguments(name, arguments)
 						elementArguments = arguments
 					}
 					else if(name != elementName && name != "" && arguments != elementArguments){
-						Service.updateTacticName(elementName, name, isGraphTactic)
-						Service.parseAndUpdateArguments(name, arguments)
-						elementName = name
+						val actualName = Service.updateTacticName(elementName, name, isGraphTactic)
+						Service.parseAndUpdateArguments(actualName, arguments)
+						elementName = actualName
+						val oldPosition = elt.caret.position
+						elt.text = actualName+"("+arguments+")"
+						elt.caret.position = oldPosition
+						// elt.repaint()
 					}
 					else if(name != elementName && name != "" && arguments == elementArguments){
-						Service.updateTacticName(elementName, name, isGraphTactic)
-						elementName = name
+						val actualName = Service.updateTacticName(elementName, name, isGraphTactic)
+						elementName = actualName
+						val oldPosition = elt.caret.position
+						elt.text = actualName+"("+arguments+")"
+						elt.caret.position = oldPosition
+						// elt.repaint()
 					}
+					QuantoLibAPI.editSelectedElementValue(elt.text)
 				}
 		}
 	}

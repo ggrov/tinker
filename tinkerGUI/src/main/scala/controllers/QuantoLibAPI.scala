@@ -218,8 +218,8 @@ object QuantoLibAPI extends Publisher{
 		val tgt = vs._2
 		val srcData = graph.vdata(vs._1)
 		val tgtData = graph.vdata(vs._2)
-		val delSource = (srcData.isBoundary && (graph.adjacentEdges(src).size == 1))
-		val delTarget = (tgtData.isBoundary && (graph.adjacentEdges(tgt).size == 1))
+		val delSource = (srcData.isBoundary || (srcData match { case d:NodeV => d.typ == "break"}))
+		val delTarget = (tgtData.isBoundary || (tgtData match { case d:NodeV => d.typ == "break"}))
 		val srcSelected = if(view.selectedVerts.contains(src)) {
 			view.selectedVerts -= src; true
 		} else false
@@ -233,11 +233,11 @@ object QuantoLibAPI extends Publisher{
 		changeGraph(graph.deleteEdge(e))
 		if(delSource){
 			view.invalidateVertex(src)
-			changeGraph(graph.deleteVertex(src))
+			deleteVertex(src)
 		}
 		if(delTarget && !(src == tgt)){
 			view.invalidateVertex(tgt)
-			changeGraph(graph.deleteVertex(tgt))
+			deleteVertex(tgt)
 		}
 		document.undoStack.register("Delete Edge") {
 			if(delSource){
@@ -715,12 +715,12 @@ object QuantoLibAPI extends Publisher{
 		graph.vdata(vertexName) match {
 			case data: NodeV =>
 				if(typ == "RT_NST") {
-					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true, true, true)) })
+					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.createNode(data.label, true, true)) })
 					view.invalidateVertex(vertexName)
 					graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
 				}
 				else if (typ == "RT_ATM") {
-					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true, false, false)) })
+					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.createNode(data.label, false, false)) })
 					view.invalidateVertex(vertexName)
 					graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
 				}
@@ -912,7 +912,7 @@ object QuantoLibAPI extends Publisher{
 		changeGraph(graph.addVertex(newName, newData.withCoord((newX,newY))))
 		graph.vdata(newName) match {
 			case data: NodeV =>
-				changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.checkNodeName(data.label, 0, true, true, true)) })
+				changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.createNode(data.label, true, true)) })
 				view.invalidateVertex(newName)
 				graph.adjacentEdges(newName).foreach { view.invalidateEdge }
 		}

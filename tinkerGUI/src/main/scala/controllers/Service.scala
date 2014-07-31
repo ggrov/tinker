@@ -108,33 +108,28 @@ object Service extends Publisher {
 			graphNavCtrl.disableAdd = false
 	}
 
-	def checkNodeName(n: String, sufix: Int, create: Boolean, isGraphTactic: Boolean, isOr: Boolean): String = {
-		var name = n
-		if(sufix != 0) name = (n+"-"+sufix)
-		model.lookForTactic(name) match {
-			case None =>
-				if(create && isGraphTactic) {
-					model.createGraphTactic(name, isOr)
-					hierarchyModel.addElement(name)
-					hierTreeCtrl.redraw
-					name = name+"("+ArgumentParser.argumentsToString(model.getTacticArguments(name))+")"
-				}
-				else if(create && !isGraphTactic){
-					model.createAtomicTactic(name)
-					name = name+"("+ArgumentParser.argumentsToString(model.getTacticArguments(name))+")"
-				}
-				name
-			case Some(t:HasArguments) =>
-				checkNodeName(n, (sufix+1), create, isGraphTactic, isOr)
+	def createNode(n: String, isGraphTactic: Boolean, isOr: Boolean): String = {
+		var name = model.generateNewName(n, 0)
+		if(isGraphTactic) {
+			model.createGraphTactic(name, isOr)
+			hierarchyModel.addElement(name)
+			hierTreeCtrl.redraw
+			name = name+"("+ArgumentParser.argumentsToString(model.getTacticArguments(name))+")"
 		}
+		else{
+			model.createAtomicTactic(name)
+			name = name+"("+ArgumentParser.argumentsToString(model.getTacticArguments(name))+")"
+		}
+		name
 	}
 
-	def updateTacticName(oldVal: String, newVal: String, isGraphTactic: Boolean) = {
-		model.updateTacticName(oldVal, newVal, isGraphTactic)
+	def updateTacticName(oldVal: String, newVal: String, isGraphTactic: Boolean): String = {
+		val actualNewVal = model.updateTacticName(oldVal, newVal)
 		if(isGraphTactic) {
-			hierarchyModel.updateElementName(oldVal, newVal)
+			hierarchyModel.updateElementName(oldVal, actualNewVal)
 			hierTreeCtrl.redraw
 		}
+		actualNewVal
 	}
 
 	def getParentList(tactic: String) = hierarchyModel.buildParentList(tactic, Array[String]())

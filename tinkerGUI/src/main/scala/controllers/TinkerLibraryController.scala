@@ -40,7 +40,7 @@ class TinkerLibraryController() extends Publisher {
 				val oldVal = (tct / "name").stringValue
 				var tctName = fileName+"-"+oldVal
 				val tctTactic = (tct / "tactic").stringValue
-				tctName = ArgumentParser.separateNameFromArgument(Service.checkNodeName(tctName, 0, true, false, false))._1
+				tctName = ArgumentParser.separateNameFromArgument(Service.createNode(tctName, false, false))._1
 				Service.setAtomicTacticValue(tctName, tctTactic)
 				var tctArgs = Array[Array[String]]()
 				(tct / "args").asArray.foreach{ a =>
@@ -58,7 +58,7 @@ class TinkerLibraryController() extends Publisher {
 				val oldVal = (tct / "name").stringValue
 				var tctName = fileName+"-"+oldVal
 				val isOr = (tct / "isOr").boolValue
-				tctName = ArgumentParser.separateNameFromArgument(Service.checkNodeName(tctName, 0, true, true, isOr))._1
+				tctName = ArgumentParser.separateNameFromArgument(Service.createNode(tctName, true, isOr))._1
 				var tctArgs = Array[Array[String]]()
 				(tct / "args").asArray.foreach{ a =>
 					var arg = Array[String]()
