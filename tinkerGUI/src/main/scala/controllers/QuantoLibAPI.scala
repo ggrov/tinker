@@ -735,9 +735,21 @@ object QuantoLibAPI extends Publisher{
 	private def setEdgeValue(e: EName, str: String) {
 		val data = graph.edata(e)
 		val oldVal = data.label
-		changeGraph(graph.updateEData(e) { _ => data.withValue(str) })
-		graph.edgesBetween(graph.source(e), graph.target(e)).foreach { view.invalidateEdge }
-		document.undoStack.register("Set Edge Data") { setEdgeValue(e, oldVal) }
+		if(oldVal != str){
+			changeGraph(graph.updateEData(e) { _ => data.withValue(str) })
+			graph.edgesBetween(graph.source(e), graph.target(e)).foreach { view.invalidateEdge }
+			graph.vdata(graph.source(e)) match {
+				case d:NodeV if(d.typ == "break" || d.typ == "GN") =>
+					setEdgeValue(graph.inEdges(graph.source(e)).head, str)
+				case _ => // do nothing special
+			}
+			graph.vdata(graph.target(e)) match {
+				case d:NodeV if(d.typ == "break" || d.typ == "GN") =>
+					setEdgeValue(graph.outEdges(graph.target(e)).head, str)
+				case _ => // do nothing special
+			}
+			document.undoStack.register("Set Edge Data") { setEdgeValue(e, oldVal) }
+		}
 	}
 
 	/**
@@ -759,6 +771,7 @@ object QuantoLibAPI extends Publisher{
 
 	/**
 	  * Method to edit an element value (goal type for edge, strategy for vertex)
+	  * Was used for double-click
 	  * @param pt, point where to find element to edit
 	  */
 	def editGraphElement(pt: java.awt.Point){
@@ -826,15 +839,23 @@ object QuantoLibAPI extends Publisher{
 			if(graph.source(e) == src && graph.target(e) != tgt) {
 				graph.vdata(graph.target(e)) match {
 					case d:NodeV if(d.typ == "break" || d.typ == "GN") => // do nothing
-					case d:WireV => // do nothing
-					case _ => moveEdge(src, tgt, edge, false)
+					case _ => 
+						graph.vdata(tgt) match {
+							case d:NodeV if(d.typ == "break" || d.typ == "GN") => // do nothing
+							case d:WireV if(graph.adjacentEdges(tgt).size >= 1) => // do nothing
+							case _ => moveEdge(src, tgt, edge, false)
+						}
 				}
 			}
 			else if (graph.source(e) != src && graph.target(e) == tgt){
 				graph.vdata(graph.source(e)) match {
 					case d:NodeV if(d.typ == "break" || d.typ == "GN") => // do nothing
-					case d:WireV => // do nothing
-					case _ => moveEdge(tgt, src, edge, true)
+					case _ => 
+						graph.vdata(src) match {
+							case d:NodeV if(d.typ == "break" || d.typ == "GN") => // do nothing
+							case d:WireV if(graph.adjacentEdges(src).size >= 1) => // do nothing
+							case _ => moveEdge(tgt, src, edge, true)
+						}
 				}
 			}
 		}

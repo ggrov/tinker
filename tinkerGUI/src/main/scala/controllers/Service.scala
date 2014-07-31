@@ -115,9 +115,9 @@ object Service extends Publisher {
 			case None =>
 				if(create && isGraphTactic) {
 					model.createGraphTactic(name, isOr)
-					name = name+"("+ArgumentParser.argumentsToString(model.getTacticArguments(name))+")"
 					hierarchyModel.addElement(name)
 					hierTreeCtrl.redraw
+					name = name+"("+ArgumentParser.argumentsToString(model.getTacticArguments(name))+")"
 				}
 				else if(create && !isGraphTactic){
 					model.createAtomicTactic(name)
