@@ -2,7 +2,6 @@ signature EVAL_GRAPH =
 sig
   structure GoalTyp : BASIC_GOALTYPE
   structure Prover : PROVER
-
 end
 
 functor EvalGraphFun(EData : EVAL_DATA) =
@@ -81,10 +80,11 @@ struct
           val from' = edge_src graph' edge
           val to' = edge_dest graph' edge
           val edata = edge_data graph' edge
+          val graph' = Graph.delete_edge edge graph'
+          val (src, graph') = Graph.add_edge (Directed,edata) from' l graph'
+          val (dest, graph') = Graph.add_edge (Directed,edata) l to' graph'
       in
-        graph' |> Graph.delete_edge edge 
-               |> Graph.add_edge_anon (Directed,edata) from' l
-               |> Graph.add_edge_anon (Directed,edata) l to'
+        (src,dest,graph')
       end;
 
     (* assumes: 1/1 - so just replace by wire node *)
@@ -124,7 +124,7 @@ struct
        | _ => NONE; 
 
    (* projects goal types - exception if not existing *)
-   fun gtyp_of graph e = 
+   fun goaltype_of graph e = 
      case edge_data graph e of (GData.GT g) => g   (* |  _ => raise error *);
 (*
    fun rtechn_of graph v = 
@@ -173,7 +173,7 @@ struct
     let 
      val ins = Graph.get_in_edges graph v  
      val outs = Graph.get_out_edges graph v
-     val gtyp = Util.gtyp_of
+     val gtyp = Util.goaltype_of
      val gnode = Graph.NVert (GData.G_Var "g")
      (* val tactic  = Util.tactic_of graph v *)
      (* graph with rtechn *)
@@ -204,7 +204,7 @@ struct
  (* vertex list -> partition -> graph -> graph *)
  fun add_outs [] [] graph = graph
   |  add_outs  (i::is) (p::ps) graph = 
-       add_outs is ps (Util.insert_node_on_edge p i graph);
+       add_outs is ps (#3 (Util.insert_node_on_edge p i graph));
 
   (* RULES FOR REWRITING *)
 
