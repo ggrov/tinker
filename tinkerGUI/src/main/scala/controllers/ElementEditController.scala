@@ -26,18 +26,22 @@ class ElementEditController() extends Publisher {
 			case KeyReleased(c, key, _, _) =>
 				if(c == elt){
 					var (name, arguments) = ArgumentParser.separateNameFromArgument(elt.text)
-					if(name == elementName && arguments != elementArguments){
-						Service.parseAndUpdateArguments(name, arguments)
-						elementArguments = arguments
+					if(name == elementName && arguments != elementArguments && (key != Key.Colon && key != Key.Comma && key != Key.Space)){
+						val actualArgs = Service.parseAndUpdateArguments(name, arguments)
+						elementArguments = actualArgs
+						val oldPosition = elt.text.length-elt.caret.position
+						elt.text = name+"("+actualArgs+")"
+						elt.caret.position = elt.text.length-oldPosition
+						QuantoLibAPI.editSelectedElementValue(elt.text)
 					}
 					else if(name != elementName && name != "" && arguments != elementArguments){
 						val actualName = Service.updateTacticName(elementName, name, isGraphTactic)
-						Service.parseAndUpdateArguments(actualName, arguments)
+						val actualArgs = Service.parseAndUpdateArguments(actualName, arguments)
 						elementName = actualName
 						val oldPosition = elt.caret.position
-						elt.text = actualName+"("+arguments+")"
+						elt.text = actualName+"("+actualArgs+")"
 						elt.caret.position = oldPosition
-						// elt.repaint()
+						QuantoLibAPI.editSelectedElementValue(elt.text)
 					}
 					else if(name != elementName && name != "" && arguments == elementArguments){
 						val actualName = Service.updateTacticName(elementName, name, isGraphTactic)
@@ -45,9 +49,8 @@ class ElementEditController() extends Publisher {
 						val oldPosition = elt.caret.position
 						elt.text = actualName+"("+arguments+")"
 						elt.caret.position = oldPosition
-						// elt.repaint()
+						QuantoLibAPI.editSelectedElementValue(elt.text)
 					}
-					QuantoLibAPI.editSelectedElementValue(elt.text)
 				}
 		}
 	}

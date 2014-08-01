@@ -1,6 +1,7 @@
 package tinkerGUI.utils
 
 import java.util.regex.Pattern
+import tinkerGUI.controllers.TinkerDialog
 
 object ArgumentParser {
 
@@ -41,8 +42,9 @@ object ArgumentParser {
 					res = res :+ removeUselessSpace(parts(0))
 					res = res ++ stringToArgumentParameters(removeUselessSpace(parts(1)))
 				case x if(x > 2 || x < 1) => 
-					println("ERROR !!!")
-					return Array[String]()
+					TinkerDialog.openErrorDialog("<html>Error when parsing arguments, found more than one colon in one argument,<br> you probably forgot a comma to separate two arguments.</html>")
+					res = res :+ removeUselessSpace(parts(0))
+					res = res ++ stringToArgumentParameters(removeUselessSpace(parts(1)))
 			}
 		}
 		else { res = res :+ s }
@@ -63,8 +65,8 @@ object ArgumentParser {
 
 	def removeUselessSpace(s: String): String = {
 		var res = s
-		if(res.length > 0 && res.head.equals(' ')) res = res.tail
-		if(res.length > 0 && res.charAt(res.length-1).equals(' ')) res = res.substring(0, res.length-1)
+		if(res.length > 0 && res.head.equals(' ')) res = removeUselessSpace(res.tail)
+		if(res.length > 0 && res.charAt(res.length-1).equals(' ')) res = removeUselessSpace(res.substring(0, res.length-1))
 		return res
 	}
 
@@ -81,14 +83,14 @@ object ArgumentParser {
 
 	def argumentToString(arg: Array[String]): String = {
 		var res = ""
-		res += arg.head+" "
+		if(arg.size > 0) res += arg.head+" "
 		if(arg.size > 1){
 			res += ": "
 			arg.tail.foreach{ a =>
 				res += a+" "
 			}
 		}
-		res = res.substring(0, res.length-1)
+		if(arg.size > 0) res = res.substring(0, res.length-1)
 		return res
 	}
 

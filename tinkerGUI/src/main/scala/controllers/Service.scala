@@ -135,9 +135,13 @@ object Service extends Publisher {
 	def getParentList(tactic: String) = hierarchyModel.buildParentList(tactic, Array[String]())
 	def changeTacticParent(tactic: String, parent: String) = hierarchyModel.changeParent(tactic, parent)
 
-	def parseAndUpdateArguments(tactic: String, s: String) {
+	def parseAndUpdateArguments(tactic: String, s: String): String = {
 		val args = ArgumentParser.stringToArguments(s)
 		model.updateTacticArguments(tactic, args)
+		return ArgumentParser.argumentsToString(args)
+		// the reason we return this string is to update the graph and textfield (where the arguments where first input)
+		// with a unique format, so the program won't struggle with later with spaces missing or anthing
+		// (main problem comes from importing file from library, were we assume the name in the library file are correctly formatted)
 	}
 
 	def updateArguments(tactic: String, args: Array[Array[String]]){
