@@ -20,19 +20,24 @@ sig
   val eq : (T * T) -> bool
   val gnode_eq : (gnode * gnode) -> bool
   val goal_name : gnode -> string
+  (* data_eq ?? *)
 
-  val gnode_to_json : gnode -> Json.json 
-  val gnode_from_json : Json.json -> gnode 
+  val gnode_to_json : Prover.context -> gnode -> Json.json 
+  val gnode_from_json : Prover.context -> Json.json -> gnode 
 
-  val to_json : T -> Json.json 
-  val from_json : Json.json -> T 
+  val data_to_json : Prover.context -> data -> Json.json
+  val data_from_json : Prover.context -> Json.json -> data
 
-  val pretty_gnode : gnode -> Pretty.T
-  val pretty : T -> Pretty.T
+  val to_json : Prover.context -> T -> Json.json 
+  val from_json : Prover.context -> Json.json -> T 
+
+  val pretty_gnode : Prover.context -> gnode -> Pretty.T
+  val pretty_data : Prover.context -> data -> Pretty.T
+  val pretty : Prover.context -> T -> Pretty.T
 
   (* for evaluation *)
-  val lift :  gnode -> T -> Prover.pnode -> gnode option
-  val init_lift :  T -> Prover.pnode -> gnode option
+  val lift :  gnode -> data * T -> Prover.pnode -> gnode option
+  val init_lift :  data * T -> Prover.pnode -> gnode option
 
   structure BasicSharing : BASIC_GOALTYPE_SHARING
     sharing type BasicSharing.T = T

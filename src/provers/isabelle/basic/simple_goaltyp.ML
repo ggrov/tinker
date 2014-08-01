@@ -24,6 +24,9 @@ struct
   fun gnode_from_json (Json.String str) = str
   | gnode_from_json _ = raise gt_exp "gnode_from_json: ill-formed json structure"
 
+  fun data_to_json _ = Json.String "";
+  fun data_from_json _ = ()
+
 (*
   val to_json = Json.String;
   fun from_json (Json.String str) = str;
