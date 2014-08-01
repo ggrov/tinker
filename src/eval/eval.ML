@@ -1,47 +1,284 @@
-signature EVAL =
-sig
-
-
-end
+(* evaluation *)
 
 functor EValFun(EData : EVAL_DATA) =
 struct
  structure EData = EData;
- structure EGraph = EvalGraphFun(EData);
- structure EAtom = EvalAtomicFun(EData);
  structure Theory = EData.PSGraph.Theory;
-(* structure GComb = EData.PSGraph.PSTheory.PS_Comb; *)
+ structure Graph = Theory.Graph;
  structure GoalTyp = EData.PSGraph.Theory.Data.GoalTyp;
  structure Prover = GoalTyp.Prover;
+ structure GData = EData.PSGraph.Theory.Data;
 
- (* not sure about this anymore *)
- exception evaluate_exp of V.name option * string;
+  exception apply_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode
+  exception node_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode * EData.PSGraph.Theory.Data.nvdata
+  exception partition_exp of
+    { pnodes :  EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list,
+      input :  EData.PSGraph.Theory.Data.GoalTyp.gnode, 
+      goaltypes : EData.PSGraph.Theory.Data.GoalTyp.T list } 
 
-   (* information to capture 
-           1: debug
-           2: logging for learning/analysis
-   *)
+  (* helper functions to work with graphs *)
+  structure Util =
+  struct
+
+    (* actual rewriting *)
+    fun rewrite_lazy rule graph = 
+      let 
+        val graph' = Graph.normalise graph;
+        val matches = Theory.Rewriter.find_matches rule graph';
+        fun rewr match = 
+          Theory.Rewriter.rewrite_at rule match
+          |> snd
+      in
+        Seq.map rewr matches
+      end;
+
+    val rewrite = Seq.list_of oo rewrite_lazy;
+
+  (* simplify ? *)
+  fun input_boundary g = 
+    let val bvertexes = Graph.get_inputs g (* Vertex.NSet.T *)
+        fun dest_name bv e =(bv,(e,Graph.get_edge_data g e),Graph.get_edge_target g e)
+        fun mk_pairs v = Graph.get_out_edges g v 
+                  |> E.NSet.list_of
+                  |> map (fn e => dest_name v e)
+    in  
+      V.NSet.fold
+        (fn v => fn xs => xs @ (mk_pairs v))
+        bvertexes
+        []
+    end;
+
+  fun output_boundary g = 
+    let val bvertexes = Graph.get_outputs g (* Vertex.NSet.T *)
+        fun dest_name bv e =(Graph.get_edge_source g e,(e,Graph.get_edge_data g e),bv)
+        fun mk_pairs v = Graph.get_out_edges g v 
+                  |> E.NSet.list_of
+                  |> map (fn e => dest_name v e)
+    in  
+      V.NSet.fold
+        (fn v => fn xs => xs @ (mk_pairs v))
+        bvertexes
+        []
+    end;
+
+    fun edge_dest g e = Graph.get_edge_target g e;
+    fun edge_src g e = Graph.get_edge_source g e;
+    fun edge_data g e = Graph.get_edge_data g e;
+
+   (* checks data *)
+    fun lookup_ivertex_data g v = 
+      case Graph.get_vertex_data g v of 
+          (Graph.NVert nv) => SOME nv
+        | _ => NONE
+
+   val vertex_data = the oo lookup_ivertex_data;
+
+   fun out_edges graph v = 
+      Graph.get_out_edges graph v 
+      |> E.NSet.list_of;
+
+   fun in_edges graph v = 
+      Graph.get_in_edges graph v 
+      |> E.NSet.list_of;
+
+    fun insert_node_on_edge node edge graph0 =
+      let val (l,graph') = Graph.add_vertex (Graph.NVert node) graph0
+          val from' = edge_src graph' edge
+          val to' = edge_dest graph' edge
+          val edata = edge_data graph' edge
+          val graph' = Graph.delete_edge edge graph'
+          val (src, graph') = Graph.add_edge (Directed,edata) from' l graph'
+          val (dest, graph') = Graph.add_edge (Directed,edata) l to' graph'
+      in
+        (src,dest,graph')
+      end;
+
+   (* assumes: 1/1 - so just replace by wire node *)
+   val del_gnode = Graph.update_vertex_data (K Graph.WVert);
+
+   fun mk_binput edata dest graph =
+     graph |> Graph.add_vertex Graph.WVert
+           |> (fn (n,g) => Graph.add_edge_anon (Directed, edata) n dest g);
+
+   fun mk_boutput edata source graph =
+     graph |> Graph.add_vertex Graph.WVert
+           |> (fn (n,g) => Graph.add_edge_anon (Directed, edata) source n g);
+
+   fun is_gtyp graph e = 
+     case edge_data graph e of (GData.GT _) => true | _ => false;
+
+   fun is_tactic graph v = 
+     case lookup_ivertex_data graph v of 
+         SOME (GData.T_Atomic _) => true
+       | SOME (GData.T_Graph _) => true
+       | SOME GData.T_Identity => true
+       | _ => false; 
+
+   fun is_gnode graph v = 
+     case lookup_ivertex_data graph v of 
+         SOME (GData.G _) => true
+       | _ => false; 
+
+   fun lookup_gnode graph v = 
+     case lookup_ivertex_data graph v of 
+         SOME (GData.G gn) => SOME gn
+       | _ => NONE; 
+
+   fun goaltype_of graph e = 
+     case edge_data graph e of (GData.GT g) => g   (* |  _ => raise error *);
+
+   fun gnode_of graph v = 
+     case vertex_data graph v of (GData.G gn) => gn
+
+   fun mk_gnode gnode = GData.G gnode;
+
+   fun get_vertex_list graph =  
+     Graph.get_vertices graph
+     |> V.NSet.list_of
+
+   fun all_tactics graph = 
+     get_vertex_list graph
+     |> filter (is_tactic graph);
+
+   fun all_gnodes graph = 
+     get_vertex_list graph
+     |> filter (is_gnode graph);
+
+   (* FIXME: makes one for each input - can be generalised by vars on the edges  instead - then we only need on lhs per rule  *)
+   fun mk_lhs graph v =
+     let 
+      val ins = Graph.get_in_edges graph v  
+      val outs = Graph.get_out_edges graph v
+      val gnode = Graph.NVert (GData.G_Var "g")
+      val (v_rt,g) = Graph.empty
+                   |> Graph.add_vertex (Graph.get_vertex_data graph v)
+      (* adding goalnode variable *)
+      val (v_gvar,g) = Graph.add_vertex gnode g 
+      (* one lhs for each input node *)
+      fun mk_lhs' inp = g
+          |> Graph.add_edge_anon (Directed,GData.GT (goaltype_of graph inp)) v_gvar v_rt
+          |> mk_binput (GData.GT (goaltype_of graph inp)) v_gvar
+          |> E.NSet.fold (fn outp => mk_boutput (GData.GT (goaltype_of graph outp)) v_rt) outs
+          |> E.NSet.fold (fn o_inp => mk_binput (GData.GT (goaltype_of graph o_inp)) v_rt) 
+                         (E.NSet.delete' inp ins) 
+     in 
+       map mk_lhs' (E.NSet.list_of ins)    (* one match per input *)
+     end;
+
+   (* Should be one tactic and one graph *)
+   fun match_lhs graph lhs =
+     Theory.Rewriter.find_matches
+           (Theory.Rule.mk(lhs,lhs)) (* make a dummy rule *)
+           graph
+      |> Seq.map (fn m => (Theory.Match.get_subst m, Graph.apply_data_subst (Theory.Match.get_subst m) lhs));
+        
+   fun matched_lhs graph v = Seq.maps (match_lhs graph) (mk_lhs graph v |> Seq.of_list)
+
+   (* vertex list -> partition -> graph -> graph *)
+   fun add_outs [] [] graph = graph
+    |  add_outs  (i::is) (p::ps) graph = 
+       add_outs is ps (#3 (insert_node_on_edge p i graph));
+
+   fun symmetric_rule rule = Theory.Rule.mk (Theory.Rule.get_rhs rule,Theory.Rule.get_lhs rule);
+
+  end (* structure Util *)
+
+  (*******
+    Application of tactic - link with TP systems
+  *******) 
+
+  (* FIXME: handle arguments + raise exception if it fails *)
+  fun apply_tactic edata gnode (GData.T_Atomic {name,...}) = 
+       let 
+         val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
+         val pplan = EData.get_pplan edata
+         (* string vs facts : what about variables? and list of things bound? *)
+         val facts = []
+         val tac = EData.get_tactic edata name
+       in 
+         Prover.apply_tactic name facts tac (pnode,pplan)
+      end
+   | apply_tactic _ gnode node = raise node_exp ("not atomic tactic node",gnode,node);
+
+  val lift  = GoalTyp.lift;
+
+  (* FIXME: can we get a list of failed pnodes *)
+
+  (* need some filtering of empty here *)
+  fun partition_one' [] _ _ _ [] = [] (* fails to lift for this branch *)
+   |  partition_one' (gt::gts) gnode pnode bres (r::ares) = 
+    (case lift gnode gt pnode of
+      (* fails to lift *)
+      NONE => partition_one' gts gnode pnode (bres@[r]) ares
+      (* succeeds, and check for further successes *)
+    | (SOME g') =>
+        (* adds the succeded to the current result *)
+        (bres @ [g'::r] @ ares) ::
+        (* goes through and see if more succeeds (thus branching) *)
+         partition_one' gts gnode pnode (bres@[r]) ares)
+  | partition_one' _ _ _ _ _ = [];
+
+  (* raises exception if one proof nodes fails *)
+  fun partition_one goal_typs gnode pnode res =
+    case partition_one' goal_typs gnode pnode [] res of
+       [] => (
+        (Pretty.chunks
+          ([Pretty.str "Fail to lift ",
+            Prover.pretty_concl pnode,
+            Pretty.str ("with GoalTypes: " ^
+            (Pretty.block (map (fn x =>  GoalTyp.pretty x) goal_typs) |> Pretty.string_of))]) 
+        |> DebugHandler.add_debug_msg); raise partition_exp {input = gnode, pnodes = [pnode], goaltypes = goal_typs})
+     | xs => xs 
+
+  (* return value : outer list - each branch: singleton 
+                    middle list - one branch same length as goaltype input list
+                    inner list - matching goal nodes for given goaltype
+    invariant result = partition goal_typs pplan pnds 
+       all res in result: length res  = length goal_typs (and they pairwise match)
+                          
+       outer list is all the possible options -> should be a singleton list if orthogonal
+       length (result) > 0
+  *)
+  fun partition []     _       _     = []
+   |  partition pnds gnode goal_typs =
+        [map (K []) goal_typs] (* empty list to start *)
+        |> fold (fn pnd => maps (partition_one goal_typs gnode pnd)) pnds;
+
+  val partition_to_gnodes = map (map GData.G);
+
+  (* fixme: make this into branch instead *)
+  fun apply_atomic edata gnode tac goal_typs = 
+     let fun apply_one (pnds,pplan) =
+         Seq.single (EData.get_current edata
+           |> EData.set_bpplan pplan
+           |> EData.add_bgoals pnds,
+         partition pnds gnode goal_typs)
+      handle partition_exp _ => Seq.empty
+   in
+   apply_tactic edata gnode tac
+   |> Seq.maps apply_one
+  end
 
 
- fun eval_goal_atomic is_interactive gname edata = 
+  (* information to capture 
+         1: debug
+         2: logging for learning/analysis
+  *)
+
+ (* evaluates a single goal node *)
+ fun eval_goal_atomic_node_names is_interactive gname gnode tnode edata = 
    let
      val graph = EData.get_graph edata
-     val gnode = EGraph.Util.all_gnodes graph
-               |> filter (fn gn => gname = GoalTyp.goal_name (EGraph.Util.gnode_of graph gn))
-               |> (fn [x] => x) (* raise exception: log if not singleton list *)
-     val goal = EGraph.Util.gnode_of graph gnode
-     val tnode = EGraph.Util.out_edges graph gnode
-               |> (fn [x] => x) (* raise exception: log if not singleton list *)
-               |> EGraph.Util.edge_dest graph
-     val (SOME tactic) = EGraph.Util.lookup_ivertex_data graph tnode
-     val out_edges = EGraph.Util.out_edges graph tnode
-     val out_goaltypes = map (EGraph.Util.goaltype_of graph) out_edges
+     val goal = Util.gnode_of graph gnode
+     val (SOME tactic) = Util.lookup_ivertex_data graph tnode
+     val out_edges = Util.out_edges graph tnode
+     val out_goaltypes = map (Util.goaltype_of graph) out_edges
      (* (EData.branch * EData.PSGraph.Theory.Data.GoalTyp.gnode list list list) Seq.seq *)
-     val result = EAtom.apply_atomic edata goal tactic out_goaltypes
-     val graph' = EGraph.Util.del_gnode gnode graph 
+     val result = apply_atomic edata goal tactic out_goaltypes
+     val graph' = Util.del_gnode gnode graph 
      fun add_gnode n e g =
         let 
-          val (from,_,g') = EGraph.Util.insert_node_on_edge n e g 
+          val (from,_,g') = Util.insert_node_on_edge n e g 
         in
           (from,g')
        end
@@ -53,61 +290,86 @@ struct
       Seq.maps (fn (b,rs) => (map (fn res => (b,add_gnodes out_edges res graph')) rs) |> Seq.of_list) result
    end
 
+ fun eval_goal_atomic_goalnode is_interactive gnode edata = 
+   let
+     val graph = EData.get_graph edata
+     val gname = GoalTyp.goal_name (Util.gnode_of graph gnode)
+     val goal = Util.gnode_of graph gnode
+     val tnode = Util.out_edges graph gnode
+               |> (fn [x] => x) (* raise exception: log if not singleton list *)
+               |> Util.edge_dest graph
+  in
+   eval_goal_atomic_node_names is_interactive gnode tnode gnode edata
+  end;
+
+ fun eval_goal_atomic is_interactive gname edata = 
+   let
+     val graph = EData.get_graph edata
+     val gnode = Util.all_gnodes graph
+               |> filter (fn gn => gname = GoalTyp.goal_name (Util.gnode_of graph gn))
+               |> (fn [x] => x) (* raise exception: log if not singleton list *)
+     val goal = Util.gnode_of graph gnode
+     val tnode = Util.out_edges graph gnode
+               |> (fn [x] => x) (* raise exception: log if not singleton list *)
+               |> Util.edge_dest graph
+  in
+   eval_goal_atomic_node_names is_interactive gnode tnode gnode edata
+  end;
 
 
 
 
    (* allows to step over gnodes *)
    fun try_get_out graph v =
-    if EGraph.Util.is_tactic graph v (* assume no variables *) 
+    if Util.is_tactic graph v (* assume no variables *) 
      then NONE
      else 
-      case EGraph.Util.out_edges graph v  of
+      case Util.out_edges graph v  of
           [] => SOME v (* output *)
-       | [e] => try_get_out graph (EGraph.Util.edge_dest graph e) (* gnode or  *)
+       | [e] => try_get_out graph (Util.edge_dest graph e) (* gnode or  *)
        |  _  => NONE (* many outputs (shouldn't happen) *);
 
    (* allows to step over gnodes *)
    fun try_get_in graph v =
-    if EGraph.Util.is_tactic graph v (* assume no variables *) 
+    if Util.is_tactic graph v (* assume no variables *) 
      then NONE
      else 
-      case EGraph.Util.in_edges graph v  of
+      case Util.in_edges graph v  of
           [] => SOME v (* output *)
-       | [e] => try_get_in graph (EGraph.Util.edge_src graph e) (* gnode or  *)
+       | [e] => try_get_in graph (Util.edge_src graph e) (* gnode or  *)
        |  _  => NONE (* many outputs (shouldn't happen) *);
 
    fun has_terminated edata = 
-     EGraph.Util.all_gnodes (EData.get_graph edata)
+     Util.all_gnodes (EData.get_graph edata)
      |> forall (is_some o (try_get_out (EData.get_graph edata)));
 
   (* assume exact same boundary *)
   fun move_gnode from' v to' =
     let 
       val (SOME b) = try_get_out from' v
-      val [edge] = EGraph.Util.in_edges to' b
-      val (SOME node) = EGraph.Util.lookup_ivertex_data from' v
+      val [edge] = Util.in_edges to' b
+      val (SOME node) = Util.lookup_ivertex_data from' v
     in
-      EGraph.Util.insert_node_on_edge node edge to'
+      Util.insert_node_on_edge node edge to'
     end
 
   (* for evaluation *)
   fun next_tactic_vertex graph v = 
-    case EGraph.Util.lookup_ivertex_data graph v of
-      SOME _ => if EGraph.Util.is_tactic graph v then SOME v else NONE
-      | NONE => (case (EGraph.Util.out_edges graph v) of 
+    case Util.lookup_ivertex_data graph v of
+      SOME _ => if Util.is_tactic graph v then SOME v else NONE
+      | NONE => (case (Util.out_edges graph v) of 
                   [] => (* output edge *) NONE
                   | [e] => next_tactic_edge graph e
                   | _ => (* should never happen *) NONE)
   and next_tactic_edge graph edge =
-    next_tactic_vertex graph (EGraph.Util.edge_dest graph edge)
+    next_tactic_vertex graph (Util.edge_dest graph edge)
 
   (* project goal node  and call next_tactic_vertex -
       a lot of optimizations possible: store gnode for one... *)
   fun next_tactic graph node = 
     let 
       fun check_gnode v =
-        GoalTyp.gnode_eq (EGraph.Util.gnode_of graph v,node)
+        GoalTyp.gnode_eq (Util.gnode_of graph v,node)
         handle _ => false
       fun getvertex [] = NONE
        |  getvertex (v::vs) = 
@@ -115,7 +377,7 @@ struct
             then SOME v
             else getvertex vs
     in
-      case getvertex (EGraph.Util.all_gnodes graph) of
+      case getvertex (Util.all_gnodes graph) of
          NONE => NONE
        | SOME v => next_tactic_vertex graph v
     end;
@@ -134,13 +396,13 @@ struct
    let
      val _ = DebugHandler.clear_debug_msg ();
      val graph = EData.get_graph edata
-     fun to_gt e = [(e,EGraph.Util.goaltype_of graph e)] handle _ => []
-     val in_edges = EGraph.Util.input_boundary graph
+     fun to_gt e = [(e,Util.goaltype_of graph e)] handle _ => []
+     val in_edges = Util.input_boundary graph
                   |> maps (fn (_,(e,_),_) => to_gt e)
      fun new_graph (e,gt) = 
        case GoalTyp.init_lift gt pnode of
          NONE => []
-         | SOME gn => [(gn, #3 (EGraph.Util.insert_node_on_edge (EGraph.Util.mk_gnode gn) e graph))] 
+         | SOME gn => [(gn, #3 (Util.insert_node_on_edge (Util.mk_gnode gn) e graph))] 
      val new_graphs = maps new_graph in_edges
    in  (* fixme: this should be updated according to strategy *)
        map (fn (gn,g) => edata |> EData.update_gnodes (fn gs => gn::gs) 
@@ -199,400 +461,5 @@ struct
 
 
 end (* functor *)
-
-
-(* NOT SO OLD STUFF (after moving to new quanto) *)
-
-(*
-(************************************************************
-  
-      EVALUATION STRATEGIES
-
-*************************************************************)
-
-  fun evaluate edata v = 
-    case EGraph.Util.lookup_rtechn (EData.get_graph edata) v of
-      NONE => raise evaluate_exp (SOME v, "Vertex not a reasoning technique")
-    | SOME rt =>
-       if (RTechn.is_atomic rt) then eval_atomic edata v rt 
-       else if (RTechn.is_merge rt) then raise evaluate_exp (SOME v, "merge not supported")
-       else if (RTechn.is_identity rt) then raise evaluate_exp (SOME v, "identity not supported")
-       else if (RTechn.is_hgraph rt) then eval_nested edata v
-       else if (RTechn.is_or rt) then eval_or edata v
-       else if (RTechn.is_orelse rt) then raise evaluate_exp (SOME v, "orelse not supported")
-       else raise evaluate_exp (SOME v, "Unknown reasoning technique type")
-     ;
-
-   (* should check if it is a nested and then move goalnodes back  *)
-
-   datatype result = Good of EData.T | Bad | Cont of EData.T
-
-   (* to do : add this into contxt to allow users to define their own functions *)
-   fun searchf new old "breath_first" = old @ new
-    |  searchf new old "depth_first" = new @ old
-    |  searchf new old _ = new @ old;
-
-   fun update_branches_all edata branches =
-     case Seq.list_of branches of
-       [] => Bad
-     | ys => (* to do: replace by search data *)(DebugHandler.debug_print DebugHandler.EVAL ("Eval number of branches: " ^ (Int.toString (length ys)));
-          (case searchf ys (EData.get_branches edata) (EData.get_searchf edata) of
-             [] => Bad (* should never happen *)
-           | (x::xs) => (* fixme: this should be based on the search strategy *)
-               Cont (edata 
-                     |> EData.set_current x 
-                     |> EData.set_branches xs)));
-
-  fun update_branches_single edata branches =
-     case Seq.pull branches of
-       NONE => Bad
-     | SOME (y,ys) => (* to do: replace by search data *)
-     ((case searchf [y] (EData.get_branches edata) (EData.get_searchf edata) of
-             [] => Bad (* should never happen *)
-           | (x::xs) => (* fixme: this should be based on the search strategy *)
-               Cont (edata 
-                     |> EData.set_current x 
-                     |> EData.set_branches xs)));
-
-  val update_branches = 
-    case Prover.psgraph_prover_i 
-    of "isabelle" => update_branches_all
-     | "proofpower" => update_branches_single
-                   
-   (* fixme: only normalise goal nodes for picked branched *)
-   fun pick_first_branch edata [] = Bad
-    |  pick_first_branch edata (x::xs) = 
-         case update_branches edata x of 
-           Bad => pick_first_branch edata xs
-(*         | res => res; *)
-         | Good res => Good (normalise_gnode res)
-         | Cont res => Cont (normalise_gnode res);
-
-   fun evaluate_backtrack edata = 
-     case EData.get_branches edata  
-     of [] => Bad
-      | branch  => 
-          Cont( EData.set_current (hd branch) edata 
-                |> EData.set_branches (tl branch) 
-                |> normalise_gnode) 
-    
-   fun evaluate_any edata =
-    if has_terminated edata then
-     (case EData.parent_lhs edata of
-       NONE => Good edata
-       | _ =>  update_branches edata (fold_nested edata))
-    else
-     EGraph.Util.all_tactics (EData.get_graph edata)
-     |> Seq.of_list
-     |> Seq.maps (evaluate edata)
-     |> update_branches edata
-
-   fun get_tactic [] _ = raise evaluate_exp (NONE,"No applicable tactic")
-    |  get_tactic (x::xs) edata =
-         case next_tactic (EData.get_graph edata) x of
-           SOME v => v
-         | NONE => get_tactic xs edata;
-
-   (* follows evaluation strategy *)
-   fun evaluate_next edata =
-    if has_terminated edata then
-     (case EData.parent_lhs edata of
-       NONE => Good edata
-       | _ =>  update_branches edata (fold_nested edata))
-    else
-     evaluate edata (get_tactic (EData.get_gnodes edata) edata)
-     |> update_branches edata
-
-   (* similar to evaluate_any, but only evaluate a single one *)
-   fun evaluate_single edata =
-    if has_terminated edata then
-     (case EData.parent_lhs edata of
-       NONE => Good edata
-       | _ =>  update_branches edata (fold_nested edata))
-    else
-     EGraph.Util.all_tactics (EData.get_graph edata)
-     |> map (evaluate edata)
-     |> pick_first_branch edata
-
-   (* similar to evaluate_any, but only evaluate a single one *)
-   fun evaluate_arbitrary edata =
-    if has_terminated edata then
-     (case EData.parent_lhs edata of
-       NONE => Good edata
-       | _ =>  update_branches edata (fold_nested edata))
-    else
-     EGraph.Util.all_tactics (EData.get_graph edata)
-     |> map (evaluate edata)
-     |> pick_first_branch edata
-
-   (* depth first search  *)
-   fun evaluate_full edata = 
-     case evaluate_arbitrary edata of
-       Good edata' =>
-         (case EData.next_branch edata' of
-            NONE => [EData.get_pplan edata']
-           | SOME (res,edata'') =>  (EData.get_bpplan res) :: (evaluate_full edata''))
-       | Bad => 
-         (case EData.next_branch edata of
-            NONE => []
-           | SOME (_,edata'') => evaluate_full edata'')
-       | Cont edata' => evaluate_full edata';
-
-   (* depth first search  *)
-   fun evaluate_full_one edata = 
-     (case evaluate_arbitrary edata of
-       Good edata' => [EData.get_pplan edata']
-     | Bad => (case EData.next_branch edata of
-            NONE => []
-           | SOME (_,edata') => evaluate_full_one (normalise_gnode edata'))
-     | Cont edata' => evaluate_full_one edata')    
-
-
-  (* FOR DEBUGGING PURPOSES *)
-
-  (* should return (atomic,gnode) pairs (for given vertex) *)
-  fun debug_get_gnodes_input edata v = 
-     EGraph.matched_lhs (EData.get_graph edata) v
-     |> Seq.list_of
-     |> maps (fn (_,g) =>  EGraph.Util.all_gnodes g);
-
-  fun debug_get_appf_gnode_vertex edata v =
-    case EGraph.Util.lookup_rtechn (EData.get_graph edata) v of
-      NONE => []
-    | SOME rt => 
-       if (RTechn.is_atomic rt) 
-       then (debug_get_gnodes_input edata v
-             |> maps (fn g => [(rt,case (RTechn.get_appf rt) of RTechn.Appf atom => atom ,g)])) 
-       else []; 
-
-  fun debug_get_appf_gnode edata = 
-     EGraph.Util.all_tactics (EData.get_graph edata)
-     |> maps (debug_get_appf_gnode_vertex edata);
- 
-  fun debug_apply_appf edata = 
-    debug_get_appf_gnode edata
-    |> Seq.of_list
-    |> Seq.maps (fn (_,appf,gn) => (EAtom.apply_appf edata gn appf))
-    |> Seq.list_of;
-
-
-  (*
-   fun debug_eval_tac_Vert edata v = 
-    case EGraph.Util.lookup_rtechn (EData.get_graph edata) v of
-      NONE => raise evaluate_exp (SOME v, "Vertex not a reasoning technique")
-    | SOME rt =>
-       if (RTechn.is_atomic rt) 
-  
-then eval_atomic edata v rt 
-*)
-
-
-(* 
-  and eval_one edata =
-    eval_one_restricted (GraphEnv.get_rtechns_of_graph (EData.get_graph edata)) edata
-
-  and eval_full edata = 
-    case eval_one edata of
-      NONE => if edata_terminated edata then (Seq.single edata) else Seq.empty
-    | SOME edatas => Seq.maps eval_full edatas;
- 
-  fun eval_any edata =   
-     GraphEnv.get_rtechns_of_graph (EData.get_graph edata)
-     |> V.NSet.seq_of
-     |> Seq.maps (one_step edata);
-*)
-
-  (* assumes nested , terminated and exact same boundary *)
-  fun fold_nested edata =
-   let  
-    val res = EData.get_graph edata |> EGraph.normalise_combine_gnodes;
-    val (SOME lhs) = EData.parent_lhs edata;
-    val [gnode_name] = EGraph.Util.all_gnodes lhs;
-    val lhs' = EGraph.Util.del_gnode gnode_name lhs
-    val out_gnodes = EGraph.Util.all_gnodes res
-    val rhs = fold (move_gnode res) out_gnodes lhs'
-    val rule = EGraph.Theory.Rule.mk (lhs,rhs);
-    val branch = EData.pop_bactive (EData.get_current edata);
-    fun upd_gnodes branch =
-     let
-       val gnodes = 
-             evalf (EGraph.Util.all_gnodes res)   
-                   (EData.get_bgnodes branch)
-                   (EData.get_bevalf branch)
-    in 
-      EData.set_bgnodes gnodes branch
-    end
-   in (* to do: update active? *)
-     EGraph.Util.rewrite_lazy rule (EData.get_bgraph branch)
-     |> Seq.map (fn g => EData.set_bgraph g branch)
-     |> Seq.map upd_gnodes 
-   end;
-
-  fun eval_or edata v = 
-   let 
-     val rtechn = EGraph.Util.rtechn_of (EData.get_graph edata) v
-     val name = rtechn
-              |> RTechn.get_name
-              |> RT.dest
-     val unfrules = StrName.NTab.get (EData.PSGraph.get_or_tacs (EData.get_psgraph edata)) name
-   in
-     Seq.maps (unfold_nested edata v rtechn) (Seq.of_list unfrules)
-   end;
-
-  fun eval_nested edata v = 
-   let 
-     val rtechn = EGraph.Util.rtechn_of (EData.get_graph edata) v
-     val name = rtechn
-              |> RTechn.get_name
-              |> RT.dest
-     val unfrule = StrName.NTab.get (EData.PSGraph.get_g_tacs (EData.get_psgraph edata)) name
-   in
-     unfold_nested edata v rtechn unfrule 
-   end
-
- (* to do: set eval properties properties *)
-  (* note: input gnode removed from' parent, but will be added on folding *)
-  fun unfold_nested edata v rtechn unfrule = 
-   let 
-     val lhs_seq = EGraph.matched_lhs (EData.get_graph edata) v
-     fun update_searchf branch = (* should maybe be removed for or for optimisations *)
-       case RTechn.get_searchf rtechn of
-         NONE => branch
-        | SOME str => EData.set_bsearchf str branch; 
-     fun update_evalf branch = (* should maybe be removed for or for optimisations *)
-       case RTechn.get_evalf rtechn of
-         NONE => branch
-        | SOME str => EData.set_bevalf str branch; 
-     fun rm_gnodes lhs = 
-      EData.update_gnodes 
-        (delete_gnodes (EGraph.Util.all_gnodes lhs))
-     fun upd (_,lhs) = EGraph.Util.rewrite_lazy unfrule lhs
-                     |> Seq.map (fn rhs => EData.push_bactive rhs lhs [] (EData.get_current (rm_gnodes lhs edata))
-                                           |> update_searchf |> update_evalf)
-   in
-     Seq.maps upd lhs_seq
-   end
-
-  val normalise_gnode = EData.update_graph EGraph.normalise_gnode;
-
- fun mk_atomic_rhs edata rt lhs =
-    let
-      val out_edges = 
-        EGraph.Util.output_boundary lhs 
-        |> map (fn (_,(x,_),_) => x)
-      val out_types =  map (EGraph.Util.gtyp_of lhs) out_edges;
-      val [gnode_name] = EGraph.Util.all_gnodes lhs;
-      val gnode =  EGraph.Util.gnode_of lhs gnode_name
-      val result_seq = EAtom.apply_atomic edata gnode rt out_types
-      fun apply_one (edata',part) = 
-           lhs |> EGraph.Util.del_gnode gnode_name
-               |> EGraph.add_outs out_edges part 
-               |> (fn rhs => (edata',(lhs,rhs)))
-      fun apply_all (edata',[]) = (* no subgoals *)
-          lhs |> EGraph.Util.del_gnode gnode_name
-              |> (fn rhs => (edata',(lhs,rhs)))
-              |> Seq.single      
-        | apply_all (edata',parts) =
-              parts
-              |> map EAtom.partition_to_gnodes
-              |> Seq.of_list
-              |> Seq.map (fn p => apply_one (edata',p));
-    in
-      Seq.maps apply_all result_seq
-    end
-
-  fun eval_atomic edata v rt = 
-   let
-     val graph = EData.get_graph edata
-     val lhs_seq = EGraph.matched_lhs (EData.get_graph edata) v
-     fun upd_edata_gnode (lhs,rhs) branch = 
-       let
-         val left_gs = EGraph.Util.all_gnodes lhs
-         val right_gs = EGraph.Util.all_gnodes rhs
-         val current = EData.get_bgnodes branch
-         val updated = 
-           evalf right_gs 
-                 (delete_gnodes left_gs current) 
-                 (EData.get_evalf edata)
-       in
-         EData.set_bgnodes updated branch
-       end
-      (* delete input node(s) *)
-     fun update (branch,(lhs,rhs)) =
-       Seq.map (fn g => EData.set_bgraph g branch |> upd_edata_gnode (lhs,rhs))
-               (EGraph.Util.rewrite_lazy (Theory.Rule.mk (lhs,rhs)) graph);
-   in 
-    lhs_seq 
-    |> Seq.maps ((mk_atomic_rhs edata rt) o snd) 
-    |> Seq.maps update 
-   end; 
-
- (* working with evaluation strategy *)
-
- (* should not be required as you should really only work on first goal node! *)
- fun delete_gnode gnode [] = []
-  |  delete_gnode gnode (g::gs) = 
-       if GoalTyp.gnode_eq(gnode,g) 
-        then delete_gnode gnode gs
-        else g::(delete_gnode gnode gs)
-
-  val delete_gnodes = fold delete_gnode;
-
-  (* to do : add this into contxt to allow users to 
-      define their own functions, maybe more information required? *)
-  fun evalf new old "breath_first" = old @ new
-   |  evalf new old "depth_first" = new @ old
-   |  evalf new old _ = new @ old;
-*)
-
-(* OLD STUFF *)
-
-(*
-
-
-  fun init_prf (th:theory) (pnds,prf) graph = 
-    let
-       val wset = GraphEnv.get_input_wires graph;
-       val ptab = 
-         fold
-           (fn pnode => StrName.NTab.ins (PNode.get_name pnode,pnode))
-            pnds
-           (StrName.NTab.empty);
-       val edata0 = EData.init_of prf graph ptab [] th;
-       val ggraphs = pnds 
-                   |> map (EvalOutput.lift_pnode_by_wires (EData.get_fmatch edata0) wset)
-                   |> map (fn (w,g) => GraphEnv.lift_gnode g w)
-       val g1 = fold GraphComb.then_g ggraphs graph;
-    in 
-       edata0 
-       |> EData.set_graph g1
-    end;
-
-  fun init_g (th:theory) trms = 
-    init_prf (th:theory) (PPlan.init_gls (Proof_Context.init_global th) trms);
-
-  fun init_f (th:theory) trms graphf = 
-    let
-       val (g0,th') = graphf th
-    in
-      init_g th' trms g0
-    end;
-
-  fun is_terminated active_rtechns graph =
-    let 
-      val g' = Strategy_Theory.Graph.minimise graph
-      val iedge = Strategy_Theory.Graph.get_in_edges g' #> E.NSet.list_of;
-      val inode = (map (Strategy_Theory.Graph.get_edge_source g')) o iedge;
-      val inodes = maps inode active_rtechns
-      val check = not o (GraphEnv.is_gnode g');
-    in
-     forall check inodes
-    end;
-
-  fun graph_terminated graph = 
-     is_terminated (V.NSet.list_of (GraphEnv.get_rtechns_of_graph graph)) graph;
-
-  val edata_terminated = graph_terminated o EData.get_graph;
-*)
 
 

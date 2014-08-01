@@ -1,0 +1,41 @@
+signature EVAL =
+sig
+  structure EData : EVAL_DATA
+
+  exception apply_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode
+  exception node_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode * EData.PSGraph.Theory.Data.nvdata
+  exception partition_exp of
+    { pnodes :  EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list,
+      input :  EData.PSGraph.Theory.Data.GoalTyp.gnode, 
+      goaltypes : EData.PSGraph.Theory.Data.GoalTyp.T list } 
+
+  (* generalise *)
+  val partition : (* raises partition exception *)
+     EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list (* new proof nodes *)
+     -> EData.PSGraph.Theory.Data.GoalTyp.gnode (* old gnode [parent] *)
+     -> EData.PSGraph.Theory.Data.GoalTyp.T list (* output types *)
+     -> EData.PSGraph.Theory.Data.GoalTyp.gnode list list list (* one list for each goal type - outer when non-orthogonal outputs *)
+
+  val partition_to_gnodes : 
+   EData.PSGraph.Theory.Data.GoalTyp.gnode list list  
+   -> EData.PSGraph.Theory.Data.nvdata  list list
+
+  val apply_atomic : 
+        EData.T 
+      -> EData.PSGraph.Theory.Data.GoalTyp.gnode (* the goal node  *)
+      -> EData.PSGraph.Theory.Data.nvdata (* application function *)
+      -> EData.PSGraph.Theory.Data.GoalTyp.T list (* outputs *)
+      -> (EData.branch * EData.PSGraph.Theory.Data.GoalTyp.gnode list list list) Seq.seq
+
+  val apply_tactic :
+        EData.T 
+      -> EData.PSGraph.Theory.Data.GoalTyp.gnode (* the goal node *)
+      -> EData.PSGraph.Theory.Data.nvdata (* tactic assumption *)
+      -> (EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list * EData.PSGraph.Theory.Data.GoalTyp.Prover.pplan) Seq.seq
+
+
+
+end
+
+
+
