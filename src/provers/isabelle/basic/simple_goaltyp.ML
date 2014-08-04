@@ -38,7 +38,7 @@ struct
   | from_json _ = raise gt_exp "from_json: ill-formed json structure"
 
 
-
+  fun pretty_data _ = Pretty.str "";
   val pretty_gnode = Pretty.str;
   val pretty = Pretty.str;
 
@@ -228,7 +228,7 @@ struct
    fun lift' pn str = lift_list pn (splitstr str)
    handle _ => raise gt_exp "int lift'";
 
-   fun init_lift str pn =
+   fun init_lift (_,str) pn =
      let 
         val ls = String.tokens (fn c => c = #";") str
         val _ = debug_print BASIC_INFO (("init goal " ^  (#pname pn) ^  " with goal type: " ^ str ))

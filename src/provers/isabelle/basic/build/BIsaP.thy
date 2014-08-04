@@ -14,7 +14,7 @@ ML{*
 (* induction *)
  ML_file "../../termlib/induct.ML"
 
- ML_file "../simple_goaltyp.ML"  
+ ML_file "../simple_goaltyp.ML"         
                             
 
 ML{*

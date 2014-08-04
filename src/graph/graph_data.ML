@@ -212,19 +212,20 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
    |  pretty_nvdata (T_Graph {name,args,is_or}) = Pretty.str name
    |  pretty_nvdata (T_Identity) = Pretty.str "id"
    |  pretty_nvdata (G_Break) = Pretty.str "break_point"
-   |  pretty_nvdata (G gn) = GoalTyp.pretty_gnode gn
+   |  pretty_nvdata (G gn) = Pretty.str "" (* FIXME *)
    |  pretty_nvdata (T_Var s) = Pretty.str ("?T_" ^ s)
    |  pretty_nvdata (G_Var s) = Pretty.str ("?G_" ^ s)
 
   val print_nvdata = Pretty.writeln o pretty_nvdata;
 
-  fun pretty_edata (GT gt) = GoalTyp.pretty gt
+  fun pretty_edata (GT gt) = Pretty.str "" (* FIXME *)
    |  pretty_edata (GT_Var v) = Pretty.str ("?" ^ v)
   val print_edata = Pretty.writeln o pretty_edata;
 
   fun pretty_subst (Subst {tactic,gnode,edge}) =
     Pretty.block [Pretty.str "vertex subst: ",StrName.NTab.pretty pretty_nvdata tactic,
-                  Pretty.str "gnode subst: ",StrName.NTab.pretty GoalTyp.pretty_gnode gnode, 
+           (* FIXME *)
+           (*     Pretty.str "gnode subst: ",StrName.NTab.pretty GoalTyp.pretty_gnode gnode, *) 
                   Pretty.str "edge subst: ",StrName.NTab.pretty pretty_edata edge];
   val print_subst = Pretty.writeln o pretty_subst;  
 

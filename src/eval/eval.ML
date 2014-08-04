@@ -205,29 +205,23 @@ struct
   (* FIXME: can we get a list of failed pnodes *)
 
   (* need some filtering of empty here *)
-  fun partition_one' [] _ _ _ [] = [] (* fails to lift for this branch *)
-   |  partition_one' (gt::gts) gnode pnode bres (r::ares) = 
-    (case lift gnode gt pnode of
+  fun partition_one' _ [] _ _ _ [] = [] (* fails to lift for this branch *)
+   |  partition_one' gtype_data (gt::gts) gnode pnode bres (r::ares) = 
+    (case lift gnode (gtype_data,gt) pnode of
       (* fails to lift *)
-      NONE => partition_one' gts gnode pnode (bres@[r]) ares
+      NONE => partition_one' gtype_data gts gnode pnode (bres@[r]) ares
       (* succeeds, and check for further successes *)
     | (SOME g') =>
         (* adds the succeded to the current result *)
         (bres @ [g'::r] @ ares) ::
         (* goes through and see if more succeeds (thus branching) *)
-         partition_one' gts gnode pnode (bres@[r]) ares)
-  | partition_one' _ _ _ _ _ = [];
+         partition_one' gtype_data gts gnode pnode (bres@[r]) ares)
+  | partition_one' _ _ _ _ _ _ = [];
 
   (* raises exception if one proof nodes fails *)
-  fun partition_one goal_typs gnode pnode res =
-    case partition_one' goal_typs gnode pnode [] res of
-       [] => (
-        (Pretty.chunks
-          ([Pretty.str "Fail to lift ",
-            Prover.pretty_concl pnode,
-            Pretty.str ("with GoalTypes: " ^
-            (Pretty.block (map (fn x =>  GoalTyp.pretty x) goal_typs) |> Pretty.string_of))]) 
-        |> DebugHandler.add_debug_msg); raise partition_exp {input = gnode, pnodes = [pnode], goaltypes = goal_typs})
+  fun partition_one gtype_data goal_typs gnode pnode res =
+    case partition_one' gtype_data goal_typs gnode pnode [] res of
+       [] => raise partition_exp {input = gnode, pnodes = [pnode], goaltypes = goal_typs} 
      | xs => xs 
 
   (* return value : outer list - each branch: singleton 
@@ -239,20 +233,24 @@ struct
        outer list is all the possible options -> should be a singleton list if orthogonal
        length (result) > 0
   *)
-  fun partition []     _       _     = []
-   |  partition pnds gnode goal_typs =
+  fun partition _ []     _       _     = []
+   |  partition gtype_data pnds gnode goal_typs =
         [map (K []) goal_typs] (* empty list to start *)
-        |> fold (fn pnd => maps (partition_one goal_typs gnode pnd)) pnds;
+        |> fold (fn pnd => maps (partition_one gtype_data goal_typs gnode pnd)) pnds;
 
   val partition_to_gnodes = map (map GData.G);
 
   (* fixme: make this into branch instead *)
   fun apply_atomic edata gnode tac goal_typs = 
-     let fun apply_one (pnds,pplan) =
+     let 
+       val gt_data = edata 
+                    |> EData.get_psgraph  
+                    |> EData.PSGraph.get_goaltype_data
+       fun apply_one (pnds,pplan) =
          Seq.single (EData.get_current edata
            |> EData.set_bpplan pplan
            |> EData.add_bgoals pnds,
-         partition pnds gnode goal_typs)
+         partition gt_data pnds gnode goal_typs)
       handle partition_exp _ => Seq.empty
    in
    apply_tactic edata gnode tac
@@ -395,12 +393,15 @@ struct
  fun init_goal pnode edata  = 
    let
      val _ = DebugHandler.clear_debug_msg ();
+     val gt_data = edata 
+                 |> EData.get_psgraph  
+                 |> EData.PSGraph.get_goaltype_data
      val graph = EData.get_graph edata
      fun to_gt e = [(e,Util.goaltype_of graph e)] handle _ => []
      val in_edges = Util.input_boundary graph
                   |> maps (fn (_,(e,_),_) => to_gt e)
      fun new_graph (e,gt) = 
-       case GoalTyp.init_lift gt pnode of
+       case GoalTyp.init_lift (gt_data,gt) pnode of
          NONE => []
          | SOME gn => [(gn, #3 (Util.insert_node_on_edge (Util.mk_gnode gn) e graph))] 
      val new_graphs = maps new_graph in_edges
@@ -440,7 +441,7 @@ struct
      val edata0 = EData.init psgraph pplan pnode_tab []
    in
     init_goals edata0 pnds
-    |> (fn x => case x of [] => (DebugHandler.add_debug_msg (Pretty.str "Fail to init lift") ; DebugHandler.debug_err (); [])
+    |> (fn x => case x of [] => []
       | _ => x)
    end;
 
@@ -455,7 +456,7 @@ struct
      val edata0 = EData.init psgraph pplan pnode_tab []
    in
     init_goal pnode edata0
-    |> (fn x => case x of [] => (DebugHandler.add_debug_msg (Pretty.str "Fail to init lift") ; DebugHandler.debug_err (); [])
+    |> (fn x => case x of [] => []
       | _ => x)
    end;
 

@@ -22,18 +22,18 @@ sig
   val goal_name : gnode -> string
   (* data_eq ?? *)
 
-  val gnode_to_json : Prover.context -> gnode -> Json.json 
-  val gnode_from_json : Prover.context -> Json.json -> gnode 
+  val gnode_to_json : gnode -> Json.json 
+  val gnode_from_json : Json.json -> gnode 
 
-  val data_to_json : Prover.context -> data -> Json.json
-  val data_from_json : Prover.context -> Json.json -> data
+  val data_to_json : data -> Json.json
+  val data_from_json : Json.json -> data
 
-  val to_json : Prover.context -> T -> Json.json 
-  val from_json : Prover.context -> Json.json -> T 
+  val to_json : T -> Json.json 
+  val from_json : Json.json -> T 
 
-  val pretty_gnode : Prover.context -> gnode -> Pretty.T
-  val pretty_data : Prover.context -> data -> Pretty.T
-  val pretty : Prover.context -> T -> Pretty.T
+  val pretty_gnode : gnode -> Pretty.T
+  val pretty_data :  data -> Pretty.T
+  val pretty :  T -> Pretty.T
 
   (* for evaluation *)
   val lift :  gnode -> data * T -> Prover.pnode -> gnode option
