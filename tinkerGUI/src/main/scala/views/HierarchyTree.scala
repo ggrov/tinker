@@ -4,6 +4,7 @@ import scala.swing._
 import scala.swing.event.MouseClicked
 import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.HierarchyTreeEvent
+import tinkerGUI.controllers.DocumentTitleEvent
 import tinkerGUI.controllers.HierarchyTreeController
 import java.awt.{ Graphics2D, Color }
 
@@ -34,5 +35,10 @@ object HierarchyTree extends Frame {
 	val controller = Service.hierTreeCtrl
 	minimumSize  = new Dimension(250,250)
 	title = "Tinker - " + Service.mainCtrl.getTitle + " - hierarchy tree"
+	listenTo(Service.mainCtrl)
+	reactions += {
+		case DocumentTitleEvent(t) =>
+			title = "Tinker - " + t + " - hierarchy tree"
+	}
 	contents = new ScrollPane(new TreeGraph())
 }

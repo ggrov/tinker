@@ -680,7 +680,7 @@ object QuantoLibAPI extends Publisher{
 						addEdge(graph.edges.fresh, defaultData, (VName(startV), endV))
 						changeMouseStateCallback("addEdge")
 					}
-				case d:WireV if(graph.adjacentEdges(endV).size < 1 && endV != VName(startV)) =>
+				case d:WireV if(graph.adjacentEdges(endV).size < 1 && endV != VName(startV) && !(graph.vdata(startV).isBoundary)) =>
 					if(movingEdge){
 						moveEdge(VName(startV), endV, movedEdge, movingEdgeSource)
 						changeMouseStateCallback("select")
@@ -692,8 +692,11 @@ object QuantoLibAPI extends Publisher{
 					}
 				case _ =>
 					if(!movingEdge){
-						if(graph.vdata(VName(startV)).isBoundary) {
+						if(graph.vdata(VName(startV)).isBoundary  && endV != VName(startV)) {
 							deleteVertex(VName(startV))
+						}
+						if(graph.vdata(endV).isBoundary) {
+							deleteVertex(endV)
 						}
 						changeMouseStateCallback("addEdge")
 					}

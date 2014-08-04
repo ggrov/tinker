@@ -4,10 +4,16 @@ import scala.swing._
 import javax.swing.ImageIcon
 import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.EditControlsController
+import tinkerGUI.controllers.DocumentTitleEvent
 import scala.swing.event.KeyReleased
 
 object GoalTypeEditor extends Frame {
 	title = "Tinker - " + Service.mainCtrl.getTitle + " - Goal Type Editor"
+	listenTo(Service.mainCtrl)
+	reactions += {
+		case DocumentTitleEvent(t) =>
+			title = "Tinker - " + t + " - Goal Type Editor"
+	}
 	minimumSize = new Dimension(800, 400)
 	var prevText = Service.getGoalTypes
 	val txtArea = new TextArea(prevText)

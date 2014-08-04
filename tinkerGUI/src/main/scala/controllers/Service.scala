@@ -26,6 +26,8 @@ object Service extends Publisher {
 	def setMainFrame(c: Component) { mainFrame = c }
 	def getMainFrame : Component = mainFrame 
 	
+	def getJsonPSGraph = model.jsonPSGraph
+
 	def changeGraphEditMouseState(state: String){
 		graphEditCtrl.changeMouseState(state)
 	}
@@ -178,6 +180,20 @@ object Service extends Publisher {
 	def setGoalTypes(s: String){
 		DocumentService.setUnsavedChanges(true)
 		model.goalTypes = s
+	}
+
+	def loadJsonFromFile() {
+		DocumentService.showOpenDialog(None) match {
+			case Some(j: Json) =>
+				if(!j.isEmpty){
+					model.loadJsonGraph(j)
+					refreshGraph
+				}
+				else{
+					TinkerDialog.openErrorDialog("<html>Error while loading json from file : object is empty.</html>")
+				}
+			case None =>
+		}
 	}
 
 	def saveJsonToFile() {

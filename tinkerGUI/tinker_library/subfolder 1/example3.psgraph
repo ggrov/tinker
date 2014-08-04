@@ -192,7 +192,7 @@
     "args" : [ [ "exl", "y", "z" ], [ "add", "g" ] ]
   } ],
   "current_index" : 0,
-  "goal_types" : "",
+  "goal_types" : "Hello World !",
   "graph" : {
     "dir_edges" : {
       "e1" : {

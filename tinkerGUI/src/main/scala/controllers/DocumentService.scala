@@ -24,6 +24,13 @@ object DocumentService extends Publisher {
 		val prefs = Preferences.userRoot().node(this.getClass.getName)
 		new File(prefs.get("previousDir", System.getProperty("user.home")))
 	}
+	def previousDir_=(f: File) {
+		val dir = if (f.isDirectory) f.getPath else f.getParent
+		if (dir != null) {
+			val prefs = Preferences.userRoot().node(this.getClass.getName)
+			prefs.put("previousDir", dir)
+		}
+	}
 
 	def save(fopt: Option[File] = None, json: Json){
 		fopt.orElse(file).map { f =>
@@ -85,5 +92,51 @@ object DocumentService extends Publisher {
 			}
 			else choice == Dialog.Result(1)
 		} else true
+	}
+
+	def showOpenDialog(rootDir: Option[String] = None): Option[Json] = {
+		if (promptUnsaved(Service.getJsonPSGraph)) {
+			val chooser = new FileChooser()
+			chooser.peer.setCurrentDirectory(rootDir match {
+				case Some(d) => new File(d)
+				case None => previousDir
+			})
+			chooser.fileFilter = new FileNameExtensionFilter("Tinker Proof Strategy Graph File (*.psgraph)", "psgraph")
+			chooser.showOpenDialog(Service.getMainFrame) match {
+				case FileChooser.Result.Approve =>
+					previousDir = chooser.selectedFile
+					load(chooser.selectedFile) match{
+						case Some(j: Json) => Some(j)
+						case None => None
+					}
+				case _ => None
+			}
+		}
+		else {
+			None
+		}
+	}
+
+	def load(f : File): Option[Json] = {
+		try {
+			file = Some(f)
+			val json = Json.parse(f)
+			publish(DocumentChanged())
+			Some(json)
+		} catch {
+			case e: JsonParseException => 
+				TinkerDialog.openErrorDialog("loading : mal-formed JSON: " + e.getMessage)
+				None
+			case e: FileNotFoundException => 
+				TinkerDialog.openErrorDialog("loading : file not found")
+				None
+			case e: IOException => 
+				TinkerDialog.openErrorDialog("loading : file unreadable")
+				None
+			case e: Exception =>
+				TinkerDialog.openErrorDialog("loading : unexpected error")
+				e.printStackTrace()
+				None
+		}
 	}
 }

@@ -2,7 +2,6 @@ package tinkerGUI.model
 
 import scala.swing._
 import quanto.util.json._
-import java.io.{FileNotFoundException, IOException, File}
 import scala.collection.mutable.ArrayBuffer
 import tinkerGUI.controllers.TinkerDialog
 import tinkerGUI.controllers.Service
@@ -18,7 +17,6 @@ class PSGraph() {
 	var goalTypes = ""
 
 	var jsonPSGraph: JsonObject = JsonObject()
-	var file: Option[File] = None
 
 	def updateJsonPSGraph {
 		var current = ""
@@ -287,12 +285,15 @@ class PSGraph() {
 		graphTactics = graphTactics :+ new GraphTactic(tactic, isOr)
 	}
 
-	def createAtomicTactic(name: String) {
+	def createAtomicTactic(name: String, tactic: Option[String] = None) {
 		lookForAtomicTactic(name) match {
 			case Some(t:AtomicTactic) =>
 				throwError("The program tried to create an already existing tactic.")
-			case None => 
-				atomicTactics += new AtomicTactic(name, "")
+			case None =>
+				tactic match {
+					case Some(s:String) => atomicTactics += new AtomicTactic(name, s)
+					case None => atomicTactics += new AtomicTactic(name, "")
+				}
 		}
 	}
 
@@ -352,20 +353,49 @@ class PSGraph() {
 		}
 	}
 
-	def loadJsonGraph(f: File) {
-		// load a saved file in our json object
-	}
-
-	def saveFile(fopt: Option[File] = None) {
-		// write our json object in a file
-		// if no file is specified, we take the file variable
-		// fopt.orElse(file).map { f =>
-		// 	try {
-
-		// 	}
-		// 	catch {
-
-		// 	}
-		// }
+	def loadJsonGraph(j: Json) {
+		val current = (j / "current").stringValue
+		currentIndex  = (j / "current_index").intValue
+		goalTypes = (j / "goal_types").stringValue
+		mainGraph = (j / "graph").asObject
+		atomicTactics = ArrayBuffer()
+		graphTactics = ArrayBuffer()
+		(j / "atomic_tactics").asArray.foreach{ tct =>
+			val name = (tct / "name").stringValue
+			val tactic = (tct / "tactic").stringValue
+			var args = Array[Array[String]]()
+			(tct / "args").asArray.foreach{ a =>
+				var arg = Array[String]()
+				a.asArray.foreach{ s => arg = arg :+ s.stringValue}
+				args = args :+ arg
+			}
+			createAtomicTactic(name, Some(tactic))
+			updateTacticArguments(name, args)
+		}
+		(j / "graph_tactics").asArray.foreach { tct => 
+			val name = (tct / "name").stringValue
+			val isOr = (tct / "isOr").boolValue
+			var args = Array[Array[String]]()
+			(tct / "args").asArray.foreach{ a =>
+				var arg = Array[String]()
+				a.asArray.foreach{ s => arg = arg :+ s.stringValue}
+				args = args :+ arg
+			}
+			createGraphTactic(name, isOr)
+			updateTacticArguments(name, args)
+			(tct / "graphs").asArray.foreach{ gr =>
+				saveGraphSpecificTactic(name, gr)
+			}
+		}
+		if(current == "main"){
+			isMain = true
+		}
+		else {
+			isMain = false
+			lookForGraphTactic(current) match {
+				case Some(t: GraphTactic) => currentTactic = t
+				case None => throwError("<html>Error while loading Json, tried to set current tactic to "+current+"<br< but it could not be found.</html>")
+			}
+		}
 	}
 }

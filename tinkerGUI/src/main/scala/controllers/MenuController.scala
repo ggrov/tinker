@@ -7,13 +7,13 @@ class MenuController() extends Publisher{
 		QuantoLibAPI.newDoc
 	}
 	def openAction = {
-		QuantoLibAPI.openDoc
+		Service.loadJsonFromFile
 	}
 	def saveAction = {
 		Service.saveJsonToFile
 	}
 	def saveAsAction = {
-		QuantoLibAPI.saveAsDoc
+		Service.saveJsonAs
 	}
 	def quitAction = {
 		if(Service.closeDoc) sys.exit(0)

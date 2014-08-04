@@ -77,6 +77,7 @@ class TinkerLibraryController() extends Publisher {
 					Service.saveGraphSpecificTactic(tctName, updateGraphJsonWithNewNames(gr))
 				}
 			}
+			Service.setGoalTypes(Service.getGoalTypes + "\n\n\n/* From "+fileName+" */\n\n" + (json / "goal_types").stringValue)
 			QuantoLibAPI.addFromJson(updateGraphJsonWithNewNames((json ? "graph")))
 		}
 	}
