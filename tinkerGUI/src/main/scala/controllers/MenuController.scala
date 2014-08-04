@@ -10,13 +10,13 @@ class MenuController() extends Publisher{
 		QuantoLibAPI.openDoc
 	}
 	def saveAction = {
-		QuantoLibAPI.saveDoc
+		Service.saveJsonToFile
 	}
 	def saveAsAction = {
 		QuantoLibAPI.saveAsDoc
 	}
 	def quitAction = {
-		if(QuantoLibAPI.closeDoc) sys.exit(0)
+		if(Service.closeDoc) sys.exit(0)
 	}
 
 	def undoAction = {
@@ -29,11 +29,11 @@ class MenuController() extends Publisher{
 		QuantoLibAPI.layoutGraph
 	}
 
-	listenTo(QuantoLibAPI)
+	listenTo(DocumentService)
 	reactions += { 
-		case DocumentStatusEventAPI(status) => 
-			publish(DocumentStatusEvent(status))
-		case DocumentActionStackEventAPI(canUndo, canRedo, undoActionName, redoActionName) =>
-			publish (DocumentActionStackEvent(canUndo, canRedo, undoActionName, redoActionName))
+		case (DocumentSaved() | DocumentChanged()) => 
+			publish(DocumentStatusEvent(DocumentService.unsavedChanges))
+		// case DocumentActionStackEventAPI(canUndo, canRedo, undoActionName, redoActionName) =>
+		// 	publish (DocumentActionStackEvent(canUndo, canRedo, undoActionName, redoActionName))
 	}
 }

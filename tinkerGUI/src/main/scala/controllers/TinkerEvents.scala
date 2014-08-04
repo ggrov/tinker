@@ -7,8 +7,8 @@ import scala.swing.event.Key.Modifiers
 import quanto.util.json.Json
 
 case class GraphEventAPI(graph: Json) extends Event
-case class DocumentStatusEventAPI(status: Boolean) extends Event
-case class DocumentTitleEventAPI(title: String) extends Event
+case class DocumentSaved() extends Event
+case class DocumentChanged() extends Event
 case class DocumentStatusEvent(status: Boolean) extends Event
 case class DocumentTitleEvent(title: String) extends Event
 case class DocumentActionStackEventAPI(canUndo: Boolean, canRedo: Boolean, undoActionName: String, redoActionName: String) extends Event

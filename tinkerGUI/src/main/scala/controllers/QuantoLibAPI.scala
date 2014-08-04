@@ -14,6 +14,7 @@ import scala.swing.event.Key.Modifiers
 import scala.swing.event.Key.Modifier
 import scala.math._
 import tinkerGUI.utils.ArgumentParser
+import tinkerGUI.utils.SelectionBox
 
 
 /**
@@ -331,7 +332,7 @@ object QuantoLibAPI extends Publisher{
 	def newDoc {
 		if(document.promptUnsaved()) document.clear()
 		localUpdate()
-		publish(DocumentTitleEventAPI(document.titleDescription))
+		// publish(DocumentTitleEventAPI(document.titleDescription))
 	}
 
 	/**
@@ -340,7 +341,7 @@ object QuantoLibAPI extends Publisher{
 	def openDoc {
 		document.showOpenDialog()
 		localUpdate()
-		publish(DocumentTitleEventAPI(document.titleDescription))
+		// publish(DocumentTitleEventAPI(document.titleDescription))
 	}
 
 	/**
@@ -352,7 +353,7 @@ object QuantoLibAPI extends Publisher{
 			case None => document.showSaveAsDialog()
 		}
 		localUpdate()
-		publish(DocumentTitleEventAPI(document.titleDescription))
+		// publish(DocumentTitleEventAPI(document.titleDescription))
 	}
 
 	/**
@@ -361,7 +362,7 @@ object QuantoLibAPI extends Publisher{
 	def saveAsDoc {
 		document.showSaveAsDialog()
 		localUpdate()
-		publish(DocumentTitleEventAPI(document.titleDescription))
+		// publish(DocumentTitleEventAPI(document.titleDescription))
 	}
 
 	/**
@@ -1026,13 +1027,6 @@ object QuantoLibAPI extends Publisher{
 			val annotation = (v ? "annotation").asObject
 			changeGraph(graph.addEdge(eName, DirEdge(data, annotation, theory), (newNameMap((v / "src").stringValue), newNameMap((v / "tgt").stringValue))))
 		}
-	}
-
-	/** listener to document status */
-	listenTo(document)
-	reactions += { case DocumentChanged(_) | DocumentSaved(_) =>
-		publish(DocumentTitleEventAPI(document.titleDescription))
-		publish(DocumentStatusEventAPI(document.unsavedChanges))
 	}
 
 	/** listener to document undo stack */

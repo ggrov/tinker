@@ -27,7 +27,7 @@ object MainGUI extends SimpleSwingApplication {
 		orientation = Orientation.Vertical
 		minimumSize = new Dimension (1020,800)
 		// preferredSize = new Dimension (1020,800)
-		contents_=(new GraphEditPanel(), FourthSplit)
+		contents_=(new GraphEditPanel(){Service.setMainFrame(this)}, FourthSplit)
 	}
 
 	object MainSplit extends SplitPane {
@@ -45,4 +45,5 @@ object MainGUI extends SimpleSwingApplication {
 				title = "Tinker - " + t
 		}
 	}
+
 }

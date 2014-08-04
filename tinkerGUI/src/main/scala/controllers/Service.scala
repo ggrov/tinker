@@ -22,6 +22,10 @@ object Service extends Publisher {
 	val hierTreeCtrl = new HierarchyTreeController()
 	val libraryTreeCtrl = new TinkerLibraryController()
 
+	private var mainFrame: Component = new BorderPanel()
+	def setMainFrame(c: Component) { mainFrame = c }
+	def getMainFrame : Component = mainFrame 
+	
 	def changeGraphEditMouseState(state: String){
 		graphEditCtrl.changeMouseState(state)
 	}
@@ -30,6 +34,7 @@ object Service extends Publisher {
 	def getHierarchyActive = hierarchyModel.activeElement
 
 	def addSubgraph(tactic: String, isOr: Boolean){
+		DocumentService.setUnsavedChanges(true)
 		model.newSubGraph(tactic, isOr)
 		hierarchyModel.changeActive(tactic)
 		hierTreeCtrl.redraw
@@ -40,10 +45,12 @@ object Service extends Publisher {
 	}
 
 	def deleteSubGraph(tactic: String, index: Int){
+		DocumentService.setUnsavedChanges(true)
 		model.delSubGraph(tactic, index)
 	}
 
 	def deleteTactic(tactic: String){
+		DocumentService.setUnsavedChanges(true)
 		model.deleteTactic(tactic)
 		hierarchyModel.lookForElement(tactic) match {
 			case Some(e: TreeElement) => 
@@ -58,7 +65,10 @@ object Service extends Publisher {
 
 	def getSpecificJsonFromModel(tactic: String, index: Int) = model.getSpecificJson(tactic, index)
 	def getSizeOfTactic(tactic: String) = model.getSizeOfTactic(tactic)
-	def setIsOr(tactic: String, isOr: Boolean) = model.graphTacticSetIsOr(tactic, isOr)
+	def setIsOr(tactic: String, isOr: Boolean) = {
+		DocumentService.setUnsavedChanges(true)
+		model.graphTacticSetIsOr(tactic, isOr)
+	}
 	def isNestedOr(tactic: String) = model.isGraphTacticOr(tactic)
 
 	def getCurrentIndex = model.currentIndex
@@ -67,6 +77,7 @@ object Service extends Publisher {
 
 	def editSubGraph(tactic: String, index: Int): Boolean = {
 		if(model.changeCurrent(tactic, index)){
+			DocumentService.setUnsavedChanges(true)
 			publish(NothingSelectedEvent())
 			getSpecificJsonFromModel(tactic, index) match {
 				case Some(j: JsonObject) =>
@@ -82,6 +93,7 @@ object Service extends Publisher {
 			}
 		}
 		else{
+			DocumentService.setUnsavedChanges(true)
 			addSubgraph(tactic, true)
 			return true
 		}
@@ -99,16 +111,21 @@ object Service extends Publisher {
 		}
 	}
 
-	def saveGraphSpecificTactic(tactic: String, graph: Json) = model.saveGraphSpecificTactic(tactic, graph)
+	def saveGraphSpecificTactic(tactic: String, graph: Json) = {
+		DocumentService.setUnsavedChanges(true)
+		model.saveGraphSpecificTactic(tactic, graph)
+	}
 
 	listenTo(QuantoLibAPI)
 	reactions += {
 		case GraphEventAPI(graph) =>
+			DocumentService.setUnsavedChanges(true)
 			model.saveCurrentGraph(graph)
 			graphNavCtrl.disableAdd = false
 	}
 
 	def createNode(n: String, isGraphTactic: Boolean, isOr: Boolean): String = {
+		DocumentService.setUnsavedChanges(true)
 		var name = model.generateNewName(n, 0)
 		if(isGraphTactic) {
 			model.createGraphTactic(name, isOr)
@@ -124,6 +141,7 @@ object Service extends Publisher {
 	}
 
 	def updateTacticName(oldVal: String, newVal: String, isGraphTactic: Boolean): String = {
+		DocumentService.setUnsavedChanges(true)
 		val actualNewVal = model.updateTacticName(oldVal, newVal)
 		if(isGraphTactic) {
 			hierarchyModel.updateElementName(oldVal, actualNewVal)
@@ -136,6 +154,7 @@ object Service extends Publisher {
 	def changeTacticParent(tactic: String, parent: String) = hierarchyModel.changeParent(tactic, parent)
 
 	def parseAndUpdateArguments(tactic: String, s: String): String = {
+		DocumentService.setUnsavedChanges(true)
 		val args = ArgumentParser.stringToArguments(s)
 		model.updateTacticArguments(tactic, args)
 		return ArgumentParser.argumentsToString(args)
@@ -145,14 +164,37 @@ object Service extends Publisher {
 	}
 
 	def updateArguments(tactic: String, args: Array[Array[String]]){
+		DocumentService.setUnsavedChanges(true)
 		model.updateTacticArguments(tactic, args)
 	}
 
 	def getAtomicTacticValue(tactic: String): String = model.getAtomicTacticValue(tactic)
-	def setAtomicTacticValue(tactic: String, value: String) = model.setAtomicTacticValue(tactic, value)
+	def setAtomicTacticValue(tactic: String, value: String) = {
+		DocumentService.setUnsavedChanges(true)
+		model.setAtomicTacticValue(tactic, value)
+	}
 
 	def getGoalTypes = model.goalTypes
 	def setGoalTypes(s: String){
+		DocumentService.setUnsavedChanges(true)
 		model.goalTypes = s
+	}
+
+	def saveJsonToFile() {
+		model.updateJsonPSGraph
+		DocumentService.file match {
+			case Some(_) => DocumentService.save(None, model.jsonPSGraph)
+			case None => DocumentService.saveAs(None, model.jsonPSGraph)
+		}
+	}
+
+	def saveJsonAs(){
+		model.updateJsonPSGraph
+		DocumentService.saveAs(None, model.jsonPSGraph)
+	}
+
+	def closeDoc : Boolean = {
+		model.updateJsonPSGraph
+		DocumentService.promptUnsaved(model.jsonPSGraph)
 	}
 }

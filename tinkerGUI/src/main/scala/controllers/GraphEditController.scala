@@ -2,6 +2,13 @@ package tinkerGUI.controllers
 
 import scala.swing._
 import tinkerGUI.utils.PopupMenu
+import tinkerGUI.utils.SelectTool
+import tinkerGUI.utils.SelectionBox
+import tinkerGUI.utils.DragVertex
+import tinkerGUI.utils.AddVertexTool
+import tinkerGUI.utils.AddEdgeTool
+import tinkerGUI.utils.DragEdge
+import tinkerGUI.utils.MouseState
 
 class GraphEditController() extends Publisher {
 	private var mouseState: MouseState = SelectTool()

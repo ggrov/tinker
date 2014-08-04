@@ -2,7 +2,7 @@
   * This file is a copy of the mouse state file from Quantomatic
   * changes as been made to be standalone from classes from quantomatic
   */
-package tinkerGUI.controllers
+package tinkerGUI.utils
 
 import java.awt.Point
 import java.awt.geom.Rectangle2D
