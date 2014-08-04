@@ -2,6 +2,7 @@ signature BASIC_GOALTYPE_SHARING =
 sig
   type T
   type gnode
+  type data
 end
 
 (* BASIC GOAL TYPE which is used for graph *)
@@ -10,49 +11,38 @@ sig
   structure Prover : PROVER
   type T
   type gnode
+  type data
    
   val default : T
   val default_gnode : gnode
+  val default_data : data
 
-  val ord : (T * T) -> order (* just for printing? *)
   val eq : (T * T) -> bool
-
-  val gnode_ord : (gnode * gnode) -> order
   val gnode_eq : (gnode * gnode) -> bool
-
   val goal_name : gnode -> string
+  (* data_eq ?? *)
 
   val gnode_to_json : gnode -> Json.json 
   val gnode_from_json : Json.json -> gnode 
+
+  val data_to_json : data -> Json.json
+  val data_from_json : Json.json -> data
 
   val to_json : T -> Json.json 
   val from_json : Json.json -> T 
 
   val pretty_gnode : gnode -> Pretty.T
-  val pretty : T -> Pretty.T
+  val pretty_data :  data -> Pretty.T
+  val pretty :  T -> Pretty.T
 
-(* for evaluation *)
-
-  val match : gnode -> T -> Prover.pnode -> bool
-  val lift :  gnode -> T -> Prover.pnode -> gnode option
-  val init_lift :  T -> Prover.pnode -> gnode option
-
-(* for type checking *)
-
-(*
- val is_subtyp : T -> T -> order option 
- val is_orthogonal : T -> T -> bool
- val is_equal : T -> T -> bool 
-*)
-
-(* To be removed *)
-  val lookup_fact_names : C.name -> gnode -> StrName.NSet.T option
-  val get_fact_names : C.name -> gnode -> StrName.NSet.T 
+  (* for evaluation *)
+  val lift :  gnode -> data * T -> Prover.pnode -> gnode option
+  val init_lift :  data * T -> Prover.pnode -> gnode option
 
   structure BasicSharing : BASIC_GOALTYPE_SHARING
     sharing type BasicSharing.T = T
     sharing type BasicSharing.gnode = gnode
-    
+    sharing type BasicSharing.data = data    
 end;
 
 

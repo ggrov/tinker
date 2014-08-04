@@ -5,9 +5,12 @@ struct
   structure Prover = IsaProver;
   type T = string
   type gnode = string (* or with term? *)
+  type data  = unit;
+
   exception gt_exp of string
   val default = "any";
   val default_gnode = "?";
+  val default_data = ();
 
   val ord = String.compare;
   fun eq (t1,t2) = case ord(t1,t2) of EQUAL => true | _ => false;
@@ -21,6 +24,9 @@ struct
   fun gnode_from_json (Json.String str) = str
   | gnode_from_json _ = raise gt_exp "gnode_from_json: ill-formed json structure"
 
+  fun data_to_json _ = Json.String "";
+  fun data_from_json _ = ()
+
 (*
   val to_json = Json.String;
   fun from_json (Json.String str) = str;
@@ -32,7 +38,7 @@ struct
   | from_json _ = raise gt_exp "from_json: ill-formed json structure"
 
 
-
+  fun pretty_data _ = Pretty.str "";
   val pretty_gnode = Pretty.str;
   val pretty = Pretty.str;
 
@@ -222,7 +228,7 @@ struct
    fun lift' pn str = lift_list pn (splitstr str)
    handle _ => raise gt_exp "int lift'";
 
-   fun init_lift str pn =
+   fun init_lift (_,str) pn =
      let 
         val ls = String.tokens (fn c => c = #";") str
         val _ = debug_print BASIC_INFO (("init goal " ^  (#pname pn) ^  " with goal type: " ^ str ))
@@ -255,6 +261,7 @@ struct
   struct
     type T = T
     type gnode = gnode
+    type data = data
   end
   end (* local open *)
 end(* struct *);

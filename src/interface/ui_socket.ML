@@ -33,7 +33,7 @@ struct
   (* internal data to store temp status *)
   val edata : FocusList.T option Unsynchronized.ref = Unsynchronized.ref NONE 
   val fn_init_edata : 
-    (PSGraph.PSTheory.PS_Theory.Graph.T 
+    (PSGraph.Theory.Graph.T 
       -> FocusList.data) option Unsynchronized.ref
     = Unsynchronized.ref NONE
 
@@ -56,7 +56,7 @@ struct
       (((FocusList_OP e' el) 
          |> update_data);
        (EData.pprint_goals e') ; 
-       PSGraph.PSTheory.out_json (EData.get_graph e')) end
+       PSGraph.Theory.out_json (EData.get_graph e')) end
   | update_new_eval_result _ (EVal.Good _) = (writeln "No Goal left" ; Json.String "SUCCESS")
   | update_new_eval_result _ (EVal.Bad) = (tracing "Err - Returned a Bad eval status" ; Json.Null)
 
@@ -69,7 +69,7 @@ struct
     (case el of SOME el' => FocusList.focus el'
                             |> (fn e => ((EData.pprint_goals e) ; e))
                             |> EData.get_graph
-                            |> PSGraph.PSTheory.out_json
+                            |> PSGraph.Theory.out_json
     | NONE => (tracing "Err - No edata is set-up: edata is empty, err in lifting"; Json.Null)) end
   handle _ => (tracing "Err - No edata is set-up: err in lift a graph"; Json.Null);
   
@@ -81,7 +81,7 @@ struct
       | SOME el' => 
         (update_data el';
          (EData.pprint_goals (FocusList.focus el'));
-         PSGraph.PSTheory.out_json (EData.get_graph (FocusList.focus el')))
+         PSGraph.Theory.out_json (EData.get_graph (FocusList.focus el')))
     end
   handle _ => (tracing "Err: No edata is set-up in backtracking"; Json.Null);
 
@@ -96,7 +96,7 @@ struct
        | SOME el' => 
           (update_data el';
            (fn x => ((EData.pprint_goals x) ; x));
-           PSGraph.PSTheory.out_json (EData.get_graph (FocusList.focus el')))
+           PSGraph.Theory.out_json (EData.get_graph (FocusList.focus el')))
     end
   handle _ => (tracing "Err - No edata is set-up: err in eval next proof step "; Json.Null);
   
@@ -124,7 +124,7 @@ struct
 
 more info: json -> graph, graph -> psgraph   (of_graph)
 *)
-        ((f' (PSGraph.PSTheory.in_json json)  (* init edata *)
+        ((f' (PSGraph.Theory.in_json json)  (* init edata *)
           |> (fn x => update_data(FocusList.of_single x)));(* store edata *)
          ui_eval_current ())
         | NONE  => (tracing "Err: No init_fn is setup in passive mode !"; Json.Null) end;
