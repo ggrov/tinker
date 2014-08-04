@@ -1,63 +1,38 @@
 structure IsaProver : PROVER =
 struct 
- local open DebugHandler in
-  type pos = int list
+
   type typ = typ
   type term = Term.term  
   type thm = Thm.thm
   type context = Proof.context
 
-  type fact = thm
-  type concl = term
+  datatype arg_data =  Str of string | Trm of term | Thm of thm
+
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term } 
-    (* could also hold the thm? *)
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
 
-  type tactic = Proof.context -> int -> Tactical.tactic
+  type tactic = Proof.context -> int -> arg_data list -> Tactical.tactic
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
-
-  datatype Object =  Fact of fact | Concl of concl
 
   exception gterm_exp
 
   val current_ctxt = @{context}
   val typ_of = Term.type_of
   fun match ctxt = Pattern.matches (Context.Proof_Context.theory_of ctxt)
-  fun eq_pos (pos1, pos2) = 
-    let 
-      fun if_eq pos1 (x :: xs) = if ( hd pos1 = x) then if_eq (tl pos1) xs else false
-        | if_eq _ [] = true
-    in 
-      if List.length pos1 = List.length pos2 then if_eq pos1 pos2 else false
-    end
-  fun root_of_trm trm = fst (Term.strip_comb trm)
-  fun subtrm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(Term.strip_comb t), x))) pos trm
-  fun trm_of_pos pos trm = fold (fn x => (fn t => List.nth (snd(Term.strip_comb t), x))) pos trm 
-                           |> Term.strip_comb 
-                           |> fst;
 
-  (*val trm_of_thm = Thm.prop_of;*)
-
+  (* fixme: I am not sure this will handle variables! *)
   val trm_of_string = Syntax.parse_term;
   val string_of_trm = Syntax.string_of_term;
   val pretty_trm = Syntax.pretty_term;
 
-  fun intlist_of_pos pos = pos
-  fun pos_of_intlist il = il
-  
   val asms_of_thm = Thm.prems_of
   val concl_of_thm = Thm.concl_of
 
 
-
-(* Atomi part *)
-
-  val psgraph_prover_i = "isabelle";
-
   exception atomic_exp of string
 
 
-  fun init ctxt trm =
+  fun init ctxt [] trm =
     let 
       val th = Proof_Context.theory_of ctxt
       val goal = Thm.cterm_of th trm
@@ -130,13 +105,8 @@ struct
     (newgoals,pplan')
   end;
 
-  fun lookup_fact (pnode:pnode) name =
-    let 
-      val ctxt = #pctxt pnode
-      val thy = Proof_Context.theory_of ctxt
-    in
-      SOME (Global_Theory.get_thm thy name) handle _ => NONE
-    end
+
+
 
   fun get_all_assms _ = []
 
@@ -155,7 +125,44 @@ struct
      Pretty.str " : ",
      Syntax.pretty_term (get_pnode_ctxt pnode) (get_pnode_concl pnode),
      Pretty.str " ]"]
-  
+
+  fun apply_tactic args tac (pnode,pplan) = 
+    tac args (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
+    |> Seq.map (update (pnode,pplan));
+
+  (* SOME default tactics *)
+
+  fun lookup_thm ctxt name =
+    Global_Theory.get_thm (Proof_Context.theory_of ctxt) name);
+
+  (* to do: debug etc *)
+  fun rule_tac _ i ((Thm thm)::_) = rtac thm i
+   |  rule_tac ctxt i ((String name)::_) = rtac (lookup_thm ctxt name) i
+   |  rule_tac _ _ _ = raise tactic_exp ("no such type")
+
+  fun erule_tac _ i ((Thm thm)::_) = etac thm i
+   |  erule_tac ctxt i ((String name)::_) = etac (lookup_thm ctxt name) i
+   |  erule_tac _ _ _ = raise tactic_exp ("no such type")
+
+  val default_tacs = [("rule"__tac),("erule",erule_tac)];
+
+  structure Sharing = 
+  struct
+    type typ = typ
+    type term = term
+    type thm = thm
+    type context = context
+    type tactic = tactic
+    type pplan = pplan
+    type pnode = pnode
+  end
+
+
+end (* struct *)
+
+
+(* OLD STUFF
+
   fun apply_rule name thm (pnode,pplan) = 
     (debug_print EVAL ("rule " ^ name);
     rtac thm (get_index pnode pplan) (#goal pplan) 
@@ -180,27 +187,4 @@ struct
   fun apply_subst_asm (_,fst_thm) (_,_) (pnode,pplan) =  
     EqSubst.eqsubst_asm_tac (#pctxt pnode) [0] [fst_thm] (get_index pnode pplan) (#goal pplan)
     |> Seq.map (update (pnode,pplan));
-
-  (* FIXME: currently ignores all the assumptions *)
-  fun apply_tactic _ _ tac (pnode,pplan) = 
-    tac (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
-    |> Seq.map (update (pnode,pplan));
-
-  fun intf_pprint pretty = Pretty.writeln pretty
-
-  structure Sharing = 
-  struct
-    type pos = pos
-    type typ = typ
-    type term = term
-    type thm = thm
-    type context = context
-    type tactic = tactic
-    type concl = concl
-    type fact = fact
-    type pplan = pplan
-    type pnode = pnode
-    type Object = Object
-  end
- end (* local open *)
-end (* struct *)
+*)

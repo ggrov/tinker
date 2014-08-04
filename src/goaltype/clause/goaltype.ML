@@ -101,45 +101,45 @@ struct
      JSON/PRETTY PRINTING
   ***********************)
 
-  fun pretty_arg ctxt (Name n) = Pretty.str n
-   |  pretty_arg ctxt (Var n) = Pretty.str ("?" ^ n)
-   |  pretty_arg ctxt (Concl) = Pretty.str "Concl"
-   |  pretty_arg ctxt (Hyps) = Pretty.str "Hyps"
-   |  pretty_arg ctxt (Term trm) = 
+  fun pretty_arg (Name n) = Pretty.str n
+   |  pretty_arg (Var n) = Pretty.str ("?" ^ n)
+   |  pretty_arg (Concl) = Pretty.str "Concl"
+   |  pretty_arg  (Hyps) = Pretty.str "Hyps"
+   |  pretty_arg  (Term trm) = 
         Pretty.block 
          [Pretty.str "\"",
-          Prover.pretty_trm ctxt trm,
+          Prover.pretty_trm Prover.default_context trm,
           Pretty.str "\""]
-   |  pretty_arg ctxt (Clause (str,args)) =
+   |  pretty_arg (Clause (str,args)) =
        Pretty.block 
         [Pretty.str str, Pretty.str "(",
-         Pretty.sep "," (map (pretty_arg ctxt) args),
+         Pretty.sep "," (map pretty_arg args),
          Pretty.str ")"]         
   
-  fun pretty_clause ctxt (Def (arg,args)) =
+  fun pretty_clause (Def (arg,args)) =
        Pretty.block 
-        [pretty_arg ctxt arg, Pretty.str "(",
-         Pretty.sep "," (map (pretty_arg ctxt) args),
+        [pretty_arg arg, Pretty.str "(",
+         Pretty.sep "," (map pretty_arg args),
          Pretty.str ").\n"]      
-   |  pretty_clause ctxt (Constraint arg) =
-       Pretty.block [pretty_arg ctxt arg, Pretty.str ".\n"]  
+   |  pretty_clause (Constraint arg) =
+       Pretty.block [pretty_arg arg, Pretty.str ".\n"]  
 
-  fun pretty_data ctxt (P {imports,defs}) =
+  fun pretty_data (P {imports,defs}) =
     Pretty.block (map pretty_clause defs);
 
-  fun pretty ctxt [] = Pretty.str ""
-   |  pretty ctxt ((s,[]) :: gts) = Pretty.block [Pretty.str s,pretty ctxt gts]
-   |  pretty ctxt ((s,args) :: gts) =
+  fun pretty [] = Pretty.str ""
+   |  pretty ((s,[]) :: gts) = Pretty.block [Pretty.str s,pretty gts]
+   |  pretty ((s,args) :: gts) =
         Pretty.block [Pretty.str s, Pretty.str "(", 
-                      Pretty.separate "," (map (pretty_args ctxt) args,
-                      Pretty.str ")", pretty ctxt gts] ;
+                      Pretty.separate "," (map pretty_args args,
+                      Pretty.str ")", pretty gts] ;
       
-  fun pretty_gnode ctxt (GN {name,env}) = Pretty.str name;
+  fun pretty_gnode (GN {name,env}) = Pretty.str name;
 
   (* JSON on goal types *)
-  fun to_json ctxt gt = 
+  fun to_json gt = 
      Json.mk_object [("type", Json.String "GT"), 
-                     ("gtype", Json.String (Pretty.str_of (pretty ctxt gt))] 
+                     ("gtype", Json.String (Pretty.str_of (pretty gt))] 
 
   fun from_json ctxt (Json.Object jobj) = 
         Json.get jobj "gtyp_name" 
@@ -149,9 +149,9 @@ struct
 
   (* JSON on goal nodes *)
 
-  fun gnode_to_json ctxt gn = Json.String;
+  fun gnode_to_json gn = Json.String;
      Json.mk_object [("type", Json.String "G"), 
-                     ("goalnode", Json.String (Pretty.str_of (pretty_gnode ctxt gt))] 
+                     ("goalnode", Json.String (Pretty.str_of (pretty_gnode gt))] 
 
   fun gnode_from_json ctxt (Json.Object jobj) = 
         Json.get jobj "goalnode" 
@@ -163,12 +163,12 @@ struct
 
   fun data_to_json ctxt gn = Json.String;
      Json.mk_object [("type", Json.String "GT_Data"), 
-                     ("gt_data", Json.String (Pretty.str_of (pretty_data ctxt gt))] 
+                     ("gt_data", Json.String (Pretty.str_of (pretty_data gt))] 
 
   fun data_from_json ctxt (Json.Object jobj) = 
         Json.get jobj "gt_data" 
         |> (fn Json.String x => x)
-        |> scan_data ctxt
+        |> scan_data Prover.default_context
   | gnode_from_json _ = raise gt_exp "from_json: ill-formed json structure"
 
   (**********************
