@@ -1,12 +1,14 @@
 signature TEXT_SOCKET =
 sig
   type T
-  val local_connect : int -> T (* connects to port *)
-  val write : T -> string -> unit (* write to stream *)
+  val local_server : int -> T (* setup a serve to port *)
+  val local_client : int -> T (* setup a client to port *)
+  val write : T -> string -> unit (* write to stream, but yet to be flushout *)
+  val flush: T -> unit (* flush to the other end *)
   val read : T -> string (* read from stream *)
   val close : T -> unit (* close stream *)
   (* donesn't work currently*)
-  val safe_local_connect : int -> T (* connects to port *)
+  val safe_local_server : int -> T (* connects to port *)
   val safe_close : T -> unit (* close stream *)
 
   val get_instream : T -> TextIO.instream
@@ -15,7 +17,7 @@ sig
   val get_socket : T -> Socket.active INetSock.stream_sock
 end
  
-structure TextSocket : TEXT_SOCKET =
+structure TextSocket_DB (*: TEXT_SOCKET*) =
 struct
   
   (* debugging, can be turned off or on *)
@@ -23,7 +25,7 @@ struct
 
   datatype T = SockData of { 
    sock : Socket.active INetSock.stream_sock,
-   passive : Socket.passive INetSock.stream_sock,
+   passive : Socket.passive INetSock.stream_sock option,
    sin : TextIO.instream,
    sout : TextIO.outstream
  }
@@ -109,25 +111,9 @@ struct
       (input, output)
     end
 
- (*fun init_server_socket opt_host port =
-  let
-    val sock = INetSock.TCP.socket ();
-    val addr =
-      (case opt_host of
-         NONE => INetSock.any port
-       | SOME host =>
-           NetHostDB.getByName host
-           |> the
-           |> NetHostDB.addr
-           |> rpair port
-           |> INetSock.toAddr
-           handle Option => raise Fail ("Cannot resolve hostname: " ^ host));
-    val _ = Socket.bind (sock, addr);
-    val _ = Socket.listen (sock, 5);
-  in sock end;*)
 
 (* setup a passive socket server *)
-fun init_server_socket port =
+fun init_socket port =
   let
     val sock = INetSock.TCP.socket ();
     val _ = Socket.Ctl.setREUSEADDR (sock, true);
@@ -136,23 +122,43 @@ fun init_server_socket port =
     val _ = Socket.listen (sock, 5);
   in sock end;
 
- fun local_connect port =
+fun local_client port =
+  let
+    val localhost =
+      NetHostDB.getByName "localhost" 
+      |> Option.valOf |>  NetHostDB.addr;
+    val addr = INetSock.toAddr(localhost, port)
+    val sock = INetSock.TCP.socket()
+    (*val _ = Socket.Ctl.setREUSEADDR (sock, true);*)
+    (*val _ = Socket.bind (sock, addr); *)
+    val _ = Socket.connect(sock, addr)
+    val (sin, sout) = make_streams sock;
+  in
+    SockData { sock = sock, passive = NONE (*dummy*),
+              sin = sin, sout = sout } end
+ handle OS.SysErr (msg, _) => raise Fail (msg ^ "\n")
+
+ fun local_server port =
   let  
-   val passive_sock = init_server_socket port;
+   val passive_sock = init_socket port;
    val (sock, _)= Socket.accept passive_sock;
    val (sin, sout) = make_streams sock;
   in
-   SockData { sock = sock, passive = passive_sock, sin = sin, sout = sout }
+   SockData { sock = sock, passive = SOME passive_sock, sin = sin, sout = sout }
   end;
 
- fun write (SockData data) msg = TextIO.output (#sout data,msg);
+ fun write (SockData data) msg = (TextIO.output (#sout data,msg); TextIO.flushOut (#sout data));
+ fun flush (SockData data) = TextIO.flushOut (#sout data);
  fun read (SockData data) = TextIO.input (#sin data);
 
  fun close (SockData data) =
-      (TextIO.closeOut (#sout data) handle e => warning ("can't close output stream");
-      TextIO.closeIn (#sin data) handle e => warning ("can't close input stream");
-      Socket.close (#sock data) handle e => warning ("can't close active socket");
-      Socket.close (#passive data) handle _ =>  warning ("can't close passive socket"));
+      (TextIO.closeOut (#sout data) handle _ => warning ("can't close output stream");
+      TextIO.closeIn (#sin data) handle _ => warning ("can't close input stream");
+      Socket.close (#sock data) handle _ => warning ("can't close active socket");
+      case (#passive data) 
+        of NONE => ()
+        | _ => (Socket.close (Option.valOf (#passive data))
+              handle _ =>  warning ("can't close passive socket")));
 
  val last_sock :
    { sock : Socket.active INetSock.stream_sock option,
@@ -182,10 +188,10 @@ fun init_server_socket port =
     DebugHandler.debug_warning ("faile to clear up last socket "))
 
   exception exp_text_socket of string
-  fun safe_local_connect port = 
+  fun safe_local_server port = 
     let  
       val _ = socket_tracing "start safe connect"
-      val passive_sock = init_server_socket port;
+      val passive_sock = init_socket port;
       val _ = 
         Synchronized.change 
           last_sock 
@@ -215,10 +221,10 @@ fun init_server_socket port =
           last_sock 
           (fn {sock, passive, sin, sout} =>  {sock = sock, passive = passive, sin = SOME sin0, sout = SOME sout0})
     in
-      SockData { sock = sock0, passive = passive_sock, sin = sin0, sout = sout0}
+      SockData { sock = sock0, passive = SOME passive_sock, sin = sin0, sout = sout0}
     end
   handle exp_text_socket msg => (clear_last_sock () ; raise exp_text_socket msg) (* timeout , stop trying *)
-        | _                  => (clear_last_sock () ; safe_local_connect port) (* address is in used, try again *)
+        | _                  => (clear_last_sock () ; safe_local_server port) (* address is in used, try again *)
 
   fun safe_close data = 
     let val _ = socket_tracing"cleaning by it self" in
@@ -229,3 +235,5 @@ fun init_server_socket port =
 
 
 end (* struct *)
+
+structure TextSocket : TEXT_SOCKET = TextSocket_DB
