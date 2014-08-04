@@ -2,12 +2,28 @@ structure Clause_GT =
 struct
  
  (* the types *)
+ (* what about built-in - e.g. concl and hyps? *)
  datatype Args = Name of string 
+                | Concl
+                | Hyps
                 | Term of string (* fix me: should we make this term? *)
                 | Clause of string * (Args list)
  datatype Prog = Def of Args * Args list
                | Constraint of Args;
- type Program = Prog list;          
+ type Program = Prog list;  
+
+ (* TO DO: write type checker *)
+ (*
+   atomics : should be registered in psgraph
+ *)
+ (* these will be prover specific! but language using them should be generic *)       
+ type atom = Arg list -> env -> env list (* empty is failure *)
+
+ (*
+   f(X,Y) :- a(X,Y), b(X,Y).
+   f(g(X),Y) :- b(X),c(Y).
+   f(g(test),h(test2)).
+ *)
 
  (* scan of letters and identifiers *)
  val valid_id_symbols = ["_"]
@@ -55,8 +71,18 @@ struct
        end;
   val scan_program = explode #> scan_all scan_prog; 
 
+(*
+  evaluation
+   - prolog by unification?
+   - or make it functional - I think the latter!
+*)
 
 (* 
+  add import clause!
+   - develop a module theory?
+  import(filename).
+
+
   grammar: 
     definitions ::= definition [ definitions ]
     definition ::= name [ '(' [ args ] ')' ] [ ':-' body ]

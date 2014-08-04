@@ -1,4 +1,4 @@
-structure IsaProver (*: PROVER*) =
+structure IsaProver : PROVER =
 struct 
  local open DebugHandler in
   type pos = int list

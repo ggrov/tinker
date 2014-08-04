@@ -67,6 +67,8 @@ sig
   val init : context -> term -> pnode * pplan
   val init_with_assm : context -> term list -> term -> pnode * pplan
 
+  (* TO DO: all of these should be removed and descrived in terms of apply_tactic *)
+
   (* we assume that prf contains the necessary context if required *)
   val apply_rule : string -> fact -> appf
   val apply_erule : string -> fact -> appf
@@ -75,6 +77,8 @@ sig
   val apply_subst : string -> fact -> appf
   (* first assumption, second the equality rule *)
   val apply_subst_asm : (string * fact) -> (string * fact) -> appf
+
+  (* ONLY REQUIRED ONE *)
   val apply_tactic : string -> fact list -> tactic -> appf
 
   val lookup_fact : pnode -> string -> fact option

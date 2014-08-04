@@ -1,3 +1,10 @@
+(*
+  TO DO: figure out how to do renaming!
+         figure out how to simplity code?
+         can we use wires better?
+         can code be added to bbox?
+*)
+
 (* contains graph combinators *)
 signature GRAPH_COMB = 
 sig
@@ -6,19 +13,22 @@ sig
 
   exception then_exp of Graph.T * V.name * V.name list * string;
 
-  val boundary_inputs : Graph.T -> (V.name * (E.name * Graph.EData.data) * V.name) list
-  val boundary_outputs : Graph.T -> (V.name * (E.name * Graph.EData.data) * V.name) list
+  val boundary_inputs : Graph.T -> (V.name * (E.name * Graph.edata) * V.name) list
+  val boundary_outputs : Graph.T -> (V.name * (E.name * Graph.edata) * V.name) list
 
+ (* fixme: add back *)
+(*
   val graph_then :  Graph.T -> Graph.T -> 
     ((Graph.VertexCRnm.renaming * Graph.EdgeCRnm.renaming) * Graph.T)
   val graph_tensor :  Graph.T -> Graph.T -> 
     (Graph.VertexCRnm.renaming * Graph.EdgeCRnm.renaming) * Graph.T
+*)
 
   (* use these *)
   val TENSOR :  Graph.T -> Graph.T -> Graph.T
   val THEN :  Graph.T -> Graph.T -> Graph.T
   val LOOP : Graph.T -> Graph.T
-  val LOOP_WITH : Graph.T -> Graph.EData.data -> Graph.T
+  val LOOP_WITH : Graph.T -> Graph.edata -> Graph.T
 
 end; (* sig *)
 
@@ -31,8 +41,8 @@ struct
 
   fun boundary_inputs g = 
     let val bvertexes = Graph.get_boundary g (* Vertex.NSet.T *)
-        fun dest_name bv e = let val ((_,ed),(_,v)) = Graph.get_edge g e in (bv,(e,ed),v) end
-        fun mk_pairs v = Graph.out_enames g v 
+        fun dest_name bv e = let val ((_,ed),(_,v)) = Graph.get_edge_info g e in (bv,(e,ed),v) end
+        fun mk_pairs v = Graph.get_out_dir_edges g v 
                   |> E.NSet.list_of
                   |> map (fn e => dest_name v e)
     in  
@@ -44,8 +54,8 @@ struct
 
   fun boundary_outputs g = 
     let val bvertexes = Graph.get_boundary g (* Vertex.NSet.T *)
-        fun src_name bv e =  let val ((_,ed),(v,_)) = Graph.get_edge g e in (v,(e,ed),bv) end
-        fun mk_pairs v = Graph.in_enames g v 
+        fun src_name bv e =  let val ((_,ed),(v,_)) = Graph.get_edge_info g e in (v,(e,ed),bv) end
+        fun mk_pairs v = Graph.get_in_dir_edges g v 
                   |> E.NSet.list_of
                   |> map (fn e => src_name v e)
     in  
@@ -59,10 +69,10 @@ struct
  fun graph_tensor g1 g2 =
   let 
      (* rename vertices *)
-     val v_rnm = V.Rnm.mk V.NSet.empty (Graph.get_vnames g1) V.NTab.empty;
+     val v_rnm = V.Rnm.mk V.NSet.empty (Graph.get_vertices g1) V.NTab.empty;
      val (rnm, g2') = Graph.VertexCRnm.rename v_rnm g2;
      (* rename edges *)
-     val e_rnm = E.Rnm.mk E.NSet.empty (Graph.get_enames g1) E.NTab.empty;
+     val e_rnm = E.Rnm.mk E.NSet.empty (Graph.get_edges g1) E.NTab.empty;
      val (rnme, g2'') = Graph.EdgeCRnm.rename e_rnm g2';
   in
      ((rnm,rnme),Graph.merge_by_vertices g1 g2'')
@@ -72,7 +82,7 @@ struct
 
  (* src, dest *)
  fun check_pluggable_el (_,(_,e1),_) (_,(_,e2),_) =
-   Graph.EData.data_eq (e1,e2);
+   Graph.edata_eq (e1,e2);
 
  fun check_pluggable src_b = filter (check_pluggable_el src_b);
 
@@ -118,7 +128,7 @@ struct
  (* DO TO: fixme - now hack: picks first *)
  fun LOOP_WITH g e =
    let
-    fun check_typ (_,(_,d),_) = Graph.EData.data_eq(e,d);
+    fun check_typ (_,(_,d),_) = Graph.edata_eq(e,d);
     val filter_typ = filter check_typ 
     val ins = filter_typ (boundary_inputs g)
     val outs = filter_typ (boundary_outputs g)
