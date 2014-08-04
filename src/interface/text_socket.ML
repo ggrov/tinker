@@ -4,7 +4,7 @@ sig
   val local_server : int -> T (* setup a serve to port *)
   val local_client : int -> T (* setup a client to port *)
   val write : T -> string -> unit (* write to stream, but yet to be flushout *)
-  val flush: T -> unit (* flush to the other end *)
+  val flushOut: T -> unit (* flush to the other end *)
   val read : T -> string (* read from stream *)
   val close : T -> unit (* close stream *)
   (* donesn't work currently*)
@@ -147,8 +147,8 @@ fun local_client port =
    SockData { sock = sock, passive = SOME passive_sock, sin = sin, sout = sout }
   end;
 
- fun write (SockData data) msg = (TextIO.output (#sout data,msg); TextIO.flushOut (#sout data));
- fun flush (SockData data) = TextIO.flushOut (#sout data);
+ fun write (SockData data) msg = TextIO.output (#sout data,msg);
+ fun flushOut (SockData data) = TextIO.flushOut (#sout data);
  fun read (SockData data) = TextIO.input (#sin data);
 
  fun close (SockData data) =
