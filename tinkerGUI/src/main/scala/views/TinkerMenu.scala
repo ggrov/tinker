@@ -5,6 +5,10 @@ import tinkerGUI.controllers._
 import event.Key
 import javax.swing.KeyStroke
 import java.awt.event.KeyEvent
+// for test purpose only
+import java.net._
+import java.io._
+import scala.io._
 
 class TinkerMenu() extends MenuBar{
 	val controller = Service.menuCtrl
@@ -93,5 +97,22 @@ class TinkerMenu() extends MenuBar{
 		}
 	}
 
-	contents += (FileMenu, EditMenu)
+	// for test purpose
+	val communication = new Menu("communication"){ menu =>
+		val createClient = new Action("Create client") {
+			menu.contents += new MenuItem(this)
+			def apply(){
+				println("Going to create client")
+				var socket = new Socket(InetAddress.getByName("localhost"), 1790)
+				println("Client created")
+				val out = new PrintStream(socket.getOutputStream)
+				println("Client speaking : sending message to server.")
+				out.println("Hello to server from client.")
+				var in = new BufferedSource(socket.getInputStream).getLines
+				println("Client received : "+in.next)
+			}
+		}
+	}
+
+	contents += (FileMenu, EditMenu, communication)
 }

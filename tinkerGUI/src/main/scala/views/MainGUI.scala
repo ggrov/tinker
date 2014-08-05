@@ -2,14 +2,10 @@ package tinkerGUI.views
 
 import scala.swing._
 import tinkerGUI.controllers.Service
-import tinkerGUI.controllers.CommunicationService
 import tinkerGUI.controllers.MainGUIController
 import tinkerGUI.controllers.DocumentTitleEvent
 
 object MainGUI extends SimpleSwingApplication {
-	
-	CommunicationService.init
-
 	val controller = Service.mainCtrl
 
 	object FourthSplit extends SplitPane {

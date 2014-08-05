@@ -9,6 +9,10 @@ import quanto.util.json._
 import tinkerGUI.utils.ArgumentParser
 
 object Service extends Publisher {
+
+	val c = CommunicationService
+
+
 	val hierarchyModel = new HierarchyModel()
 	val model = new PSGraph()
 	val mainCtrl = new MainGUIController()
