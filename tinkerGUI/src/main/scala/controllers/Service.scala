@@ -187,6 +187,10 @@ object Service extends Publisher {
 			case Some(j: Json) =>
 				if(!j.isEmpty){
 					model.loadJsonGraph(j)
+					hierarchyModel.rebuildHierarchy(model)
+					graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
+					graphBreadcrumsCtrl.addCrum(getCurrent)
+					graphNavCtrl.viewedGraphChanged(model.isMain, false)
 					refreshGraph
 				}
 				else{

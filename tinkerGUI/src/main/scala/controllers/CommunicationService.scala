@@ -32,9 +32,9 @@ object CommunicationService {
 		}
 	}
 
-	init onSuccess {
-		// actions to run when connection made
-	}
+	// init onSuccess {
+	// 	// actions to run when connection made
+	// }
 
 
 	
