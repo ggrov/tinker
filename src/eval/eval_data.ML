@@ -187,12 +187,11 @@ struct
          []    => NONE
      | (x::xs) => SOME (get_current edata,edata |> set_current x |> set_branches xs);
 
-  fun pprint_goals edata = 
+  fun pretty_goals edata = 
     Pretty.chunks
       ([Pretty.str "Open goals in the current psgraph :{"] @
-      (get_pplan edata |> Prover.get_open_pnodes |> map Prover.pretty_concl) @
+      (get_pplan edata |> Prover.get_open_pnodes |> map Prover.pretty_pnode) @
       [Pretty.str "}"])
-    |> Prover.intf_pprint
      
 end; (* functor *)
 

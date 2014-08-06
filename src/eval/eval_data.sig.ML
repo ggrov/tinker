@@ -97,7 +97,7 @@ sig
 
   val next_branch : T -> (branch * T) option (* moves to next branch *)
   
-  val pprint_goals : T -> unit
+  val pretty_goals : T -> Pretty.T
 
 
 end (* signature *)
