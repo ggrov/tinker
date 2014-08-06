@@ -49,9 +49,12 @@ sig
   val get_pnode_name : pnode -> string
   val get_pnode_concl : pnode -> term (* return type concl which would be type term*)
   val get_pnode_ctxt : pnode -> context
+
+  (* pretty printing *)
+  val pretty_pplan : pplan -> Pretty.T
+  val pretty_pnode : pnode -> Pretty.T
   
   structure Sharing : PROVER_SHARING
-    sharing type Sharing.pos = pos
     sharing type Sharing.typ = typ
     sharing type Sharing.term = term 
     sharing type Sharing.thm = thm

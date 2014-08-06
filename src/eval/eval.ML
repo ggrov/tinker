@@ -196,7 +196,7 @@ struct
          val facts = []
          val tac = EData.get_tactic edata name
        in 
-         Prover.apply_tactic name facts tac (pnode,pplan)
+         Prover.apply_tactic facts tac (pnode,pplan)
       end
    | apply_tactic _ gnode node = raise node_exp ("not atomic tactic node",gnode,node);
 
@@ -416,10 +416,10 @@ struct
         pnodes
         [edata];
 
- fun init psgraph ctxt goals =
+ fun init psgraph ctxt goal =
    let
      val _ = DebugHandler.clear_debug_msg ();
-     val (pnode,pplan) = Prover.init ctxt goals
+     val (pnode,pplan) = Prover.init ctxt [] goal
      val pnode_tab = 
        StrName.NTab.ins
          (Prover.get_pnode_name pnode,pnode)
@@ -448,7 +448,7 @@ struct
  fun init_with_assm psgraph ctxt assms goals =
    let
      val _ = DebugHandler.clear_debug_msg ();
-     val (pnode,pplan) = Prover.init_with_assm ctxt assms goals
+     val (pnode,pplan) = Prover.init ctxt assms goals
      val pnode_tab = 
        StrName.NTab.ins
          (Prover.get_pnode_name pnode,pnode)

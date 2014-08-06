@@ -16,7 +16,7 @@ struct
 
   exception gterm_exp
 
-  val current_ctxt = @{context}
+  val default_ctxt = @{context}
   val typ_of = Term.type_of
   fun match ctxt = Pattern.matches (Context.Proof_Context.theory_of ctxt)
 
@@ -118,7 +118,7 @@ struct
 
   fun get_pnode_concl (pnode:pnode) = #ptrm pnode;
   
-  fun pretty_concl pnode = 
+  fun pretty_pnode pnode = 
     Pretty.block
      [Pretty.str "[ Goal ",
      Pretty.str (get_pnode_name pnode),
@@ -126,25 +126,27 @@ struct
      Syntax.pretty_term (get_pnode_ctxt pnode) (get_pnode_concl pnode),
      Pretty.str " ]"]
 
+  fun pretty_pplan pnode = Pretty.str "Pretty PPLAN TOTO";
+   
   fun apply_tactic args tac (pnode,pplan) = 
-    tac args (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
+    tac (#pctxt pnode) (get_index pnode pplan) args (#goal pplan)
     |> Seq.map (update (pnode,pplan));
 
   (* SOME default tactics *)
 
   fun lookup_thm ctxt name =
-    Global_Theory.get_thm (Proof_Context.theory_of ctxt) name);
+    Global_Theory.get_thm (Proof_Context.theory_of ctxt) name;
 
   (* to do: debug etc *)
   fun rule_tac _ i ((Thm thm)::_) = rtac thm i
-   |  rule_tac ctxt i ((String name)::_) = rtac (lookup_thm ctxt name) i
-   |  rule_tac _ _ _ = raise tactic_exp ("no such type")
+   |  rule_tac ctxt i ((Str name)::_) = rtac (lookup_thm ctxt name) i
+   |  rule_tac _ _ _ = raise atomic_exp ("no such type")
 
   fun erule_tac _ i ((Thm thm)::_) = etac thm i
-   |  erule_tac ctxt i ((String name)::_) = etac (lookup_thm ctxt name) i
-   |  erule_tac _ _ _ = raise tactic_exp ("no such type")
+   |  erule_tac ctxt i ((Str name)::_) = etac (lookup_thm ctxt name) i
+   |  erule_tac _ _ _ = raise atomic_exp ("no such type")
 
-  val default_tacs = [("rule"__tac),("erule",erule_tac)];
+  val default_tacs = [("rule",rule_tac),("erule",erule_tac)];
 
   structure Sharing = 
   struct
