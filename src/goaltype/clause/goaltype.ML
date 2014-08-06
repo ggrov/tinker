@@ -20,17 +20,29 @@ struct
                 | Hyps
                 | Term of Prover.term (* fix me: should we make this term? *)
                 | Clause of string * (arg list)
-  datatype clause = Def of arg * arg list
+  datatype clause = Def of string * string list * arg list
                   | Constraint of arg;
 
   (* imports not supported yet *)
-  datatype data = P of {imports : clause list, defs : clause list}  
+  (* to do: add atomics as a field *)
+
+  (* binding environment: term or string *)
+  datatype env_data = ET_T of Prover.term
+                    | LT_T of Prover.term list 
+
+  type env = env_data StrName.NTab.T
+  datatype gnode = GN of { name : string, env : env  }
+
+  type state = env StrName.NTab.T 
+  datatype data = P of {imports : clause list, 
+                        defs : clause list,
+                        atomics : (string list -> state -> state list) StrName.NTab.T}  
   type T = (string * (arg list)) list
   
-  (* binding environment: term or string *)
-  type env_data = Prover.term StrName.NTab.T
-  datatype gnode = GN of { name : string,
-                           env : env_data  }
+  fun get_gnode_env (GN {env,...}) = env;
+  fun update_gnode_env f (GN {name,env}) = GN {name = name, env = f env};
+  val set_gnode_env = K update_gnode_env; 
+
 
   val default = [];
   val default_gnode = GN {name = "?", env = StrName.NTab.empty};
@@ -66,7 +78,6 @@ struct
  (* type restricted *)
  fun gen_scan_para_args (f:string list -> Args * string list) = gen_scan_para_args f;
 
- (* TODO: need to give context as part of scanner!! *)
  (* scan clause *)
  fun scan_term ctxt = $$ "\"" |--  Scan.many (fn s => not(s = "\"")) --| $$ "\"" >> implode >> (Term o (Prover.trm_of_string ctxt));  
  fun scan_clause ctxt xs  =  (scan_name -- ((scan_args ctxt) || scan_empty) >> Clause) xs 
@@ -103,8 +114,8 @@ struct
 
   fun pretty_arg (Name n) = Pretty.str n
    |  pretty_arg (Var n) = Pretty.str ("?" ^ n)
-   |  pretty_arg (Concl) = Pretty.str "Concl"
-   |  pretty_arg  (Hyps) = Pretty.str "Hyps"
+   |  pretty_arg (Concl) = Pretty.str "concl"
+   |  pretty_arg  (Hyps) = Pretty.str "hyps"
    |  pretty_arg  (Term trm) = 
         Pretty.block 
          [Pretty.str "\"",
@@ -185,6 +196,8 @@ struct
   fun project_name (Name nm) = nm
    |  project_name _         = raise error
 
+  (**************** EXAMPLE ATOMIC GOAL TYPES ******************)
+
   fun top_symbol ctxt args pnode gnode = 
     let 
       val top = project_terms pnode (hd args)
@@ -210,6 +223,8 @@ struct
       "top_symbol" => top_symbol ctxt args pnode gnode
     | "has_symbols" => has_symbols ctxt args pnode gnode;
 
+   (************** USING DEFINITIONS *********************)
+
    fun composef f ctxt  [] pnode gnode = SOME gnode
     |  composef f ctxt pnode (x::xs) gnode =
          case f ctxt pnode x gnode of
@@ -222,28 +237,23 @@ struct
                 | Hyps
                 | Term of Prover.term (* fix me: should we make this term? *)
                 | Clause of string * (arg list)
-  
+
+   
+
    fun eval_arg ctxt (Clause (cname,cargs) (name,args) pnode gnode =
 
-   fun eval_clause ctxt (Def (Clause (dname,dargs),dbody)) (name,args) pnode gnode =
+   fun eval_clause ctxt defs state (Def (Clause (dname,dargs),dbody)) (name,args) pnode gnode =
      if name = dname 
       then ...
       else []
-    
 
- f ctxt  [] pnode gnode
+   (* what about atomics? *)    
+   fun eval_goaltyp ctxt (defs as P {defs,...}) (name,args) pnode gnode = 
+     defs 
+     |> map (fn d => eval_clause ctxt defs (get_gnode_env gnode) d (name,args) pnode gnode) 
+     |> map (fn env => set_gnode_env env gnode);
+  
 
-  datatype arg = Name of string 
-                | Var of string
-                | Concl
-                | Hyps
-                | Term of Prover.term (* fix me: should we make this term? *)
-                | Clause of string * (arg list)
-  datatype clause = Def of arg * arg list
-                  | Constraint of arg;
-
-  (* imports not supported yet *)
-  datatype data = P of {imports : clause list, defs : clause list}  
 
 
 
@@ -253,7 +263,7 @@ struct
    atomics : should be registered in psgraph
  *)
  (* these will be prover specific! but language using them should be generic *)       
- type atom = Args list -> env -> env list (* empty is failure *)
+ type atom =  (* empty is failure *)
 
  (*
    f(X,Y) :- a(X,Y), b(X,Y).
