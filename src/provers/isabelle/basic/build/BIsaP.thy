@@ -4,7 +4,7 @@ imports
   "../../../../build/isabelle/BasicIsaPS"                                                                               
 begin 
  
- ML_file "../isa_prover.ML"               
+ ML_file "../isa_prover.ML"                     
 
 ML{*
   val rtechn_tracing = (*tracing*) (fn _ => ());
