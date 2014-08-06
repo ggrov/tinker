@@ -107,8 +107,23 @@ class TinkerMenu() extends MenuBar{
 				println("Client created")
 				val out = new PrintStream(socket.getOutputStream)
 				println("Client speaking : sending message to server.")
-				out.println("Hello to server from client.")
+				out.println("1.")
 				var in = new BufferedSource(socket.getInputStream).getLines
+				println("Client received : "+in.next)
+				out.println("2.")
+				in = new BufferedSource(socket.getInputStream).getLines
+				println("Client received : "+in.next)
+				out.println("3.")
+				in = new BufferedSource(socket.getInputStream).getLines
+				println("Client received : "+in.next)
+				out.println("4.")
+				in = new BufferedSource(socket.getInputStream).getLines
+				println("Client received : "+in.next)
+				out.println("5.")
+				in = new BufferedSource(socket.getInputStream).getLines
+				println("Client received : "+in.next)
+				out.println("CMD_CLOSE")
+				in = new BufferedSource(socket.getInputStream).getLines
 				println("Client received : "+in.next)
 			}
 		}

@@ -58,7 +58,7 @@ class EditControlsPanel() {
 		name = "addNSTVertex"
 	}
 	val AddEdgeButton = new ToggleButton() {
-		icon = new ImageIcon(MainGUI.getClass.getResource("draw-path.png"), "Add Edge")
+		icon = new ImageIcon(MainGUI.getClass.getResource("draw-edge.png"), "Add Edge")
 		tooltip = "Add edge"
 		name = "addEdge"
 	}
@@ -79,7 +79,6 @@ class EditControlsPanel() {
 		contents += (SelectButton, AddIDVertexButton, AddATMVertexButton, AddNSTVertexButton, AddEdgeButton)
 	}
 	val SecondaryToolBar = new ToolBar {
-
 		contents += (EditGoalTypesButton)
 	}
 }

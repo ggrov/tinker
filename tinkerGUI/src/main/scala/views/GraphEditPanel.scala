@@ -12,6 +12,7 @@ class GraphEditPanel() extends BorderPanel {
 	val controller = Service.graphEditCtrl
 	var graphPanel = controller.getGraph
 	val editControls = new EditControlsPanel()
+	val evalControls = new EvalControlsPanel()
 	val graphBreadcrums = new GraphBreadcrums()
 	val graphNav = new GraphNavigation
 	add(new BorderPanel(){
@@ -40,6 +41,7 @@ class GraphEditPanel() extends BorderPanel {
 		add(new BoxPanel(Orientation.Horizontal){
 			contents += editControls.SecondaryToolBar
 			contents += editControls.MainToolBar
+			contents += evalControls.EvalToolBar
 		}, BorderPanel.Position.South)
 	}, BorderPanel.Position.North)
 	add(graphPanel, BorderPanel.Position.Center)

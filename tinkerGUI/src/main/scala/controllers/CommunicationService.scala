@@ -22,11 +22,22 @@ object CommunicationService {
 			client = c
 			println("Server speaking : connected !")
 			connected = true
-			val in = new BufferedReader(new InputStreamReader(client.getInputStream)).readLine
-			val out = new PrintStream(client.getOutputStream)
-			println("Server received : "+in)
-			out.println("Hello to client from server")
-			out.flush
+			while(connected){
+				val in = new BufferedReader(new InputStreamReader(client.getInputStream)).readLine
+				val out = new PrintStream(client.getOutputStream)
+				println("Server received : "+in)
+				in match {
+					case "CMD_CLOSE" => 
+						out.println("Server requests close")
+						out.flush
+						client.close
+						server.close
+						connected = false
+					case _ => 
+						out.println("Server acquited message - '"+in+"'")
+						out.flush
+				}
+			}
 		case Failure(t) =>
 			println("Server speaking : Not connected, an error has occured: " + t.getMessage)
 	}
