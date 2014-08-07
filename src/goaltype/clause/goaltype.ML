@@ -223,10 +223,46 @@ struct
       "top_symbol" => top_symbol ctxt args pnode gnode
     | "has_symbols" => has_symbols ctxt args pnode gnode;
 
+   (*************** ENVIRONMENTS *********************)
+
+   fun is_var (Var _) = true
+    |  is_var _ = false
+
+   fun mk_env env (var::vars) (value::values) = 
+     if is_var value (* variables not added to env *)
+      then mk_env env vars values
+      else mk_env (StrName.NTab.ins (var,value) env) vars values 
+    |  mk_env env [] [] = env
+    |  mke_env  _ _ _ = raise error
+
+  (* not very efficient - creates a new: should be constant by keeping list of active
+     maybe add functionality in IsaPlib by updaing names field only of NTAB? *)
+  fun restrict_env vars ienv =  
+   fold 
+     (fn n => fn env =>  
+        case StrName.NTab.lookup ienv n of
+          NONE => env
+        | SOME v => StrName.NTab.ins (n,v) env)
+     vars
+     StrName.NTab.empty
+
+  val override = StrName.NTab.merge_joint (K true);
+ 
+  fun update_env vars old_env new_env = override old_env (restrict_env vars new_env);
+
+  (* FIXME: there will be multiple ones here!! when Hyps so should be list of list*)
+
+  (* name ? clause? *) 
+  fun inst_env pnode env ((Var x)::xs) = map (fn xs => x::xs) (inst_env pnode env xs)
+   |  inst_env pnode env (Concl::xs) = 
+   |  inst_env pnode env (Hyps::xs) = 
+   |  inst_env pnode env ((Term t)::xs) = 
+   |  inst_env pnode env [] = [] 
+ 
    (************** USING DEFINITIONS *********************)
 
    fun composef f ctxt  [] pnode gnode = SOME gnode
-    |  composef f ctxt pnode (x::xs) gnode =
+    |  composef f ctxt (x::xs) pnode gnode =
          case f ctxt pnode x gnode of
            SOME gnode' => composef f ctxt xs pnode gnode'
          | NONE => NONE
@@ -238,17 +274,33 @@ struct
                 | Term of Prover.term (* fix me: should we make this term? *)
                 | Clause of string * (arg list)
 
-   
+   fun eval_atomic_clause ctxt env defs (Clause (name,args)) pnode gnode =
 
-   fun eval_arg ctxt (Clause (cname,cargs) (name,args) pnode gnode =
+   (* no overloading so both atomic and non-atomic *)
+   fun eval_arg ctxt env defs (Clause (name,args)) pnode gnode =
 
-   fun eval_clause ctxt defs state (Def (Clause (dname,dargs),dbody)) (name,args) pnode gnode =
+    if is_atomic name 
+     then
+
+
+   (* to do : merge with eval_clause *)
+   fun eval_body ctxt env defs dbody pnode gnode =
+     fold 
+
+
+   fun eval_clause ctxt env defs (Def (Clause (dname,dargs),dbody)) (name,args) pnode gnode =
      if name = dname 
-      then ...
+      then 
+       let 
+          val new_env = mk_env StrName.NTab.empty dargs args 
+       in
+          eval_body ctxt new_env defs dbody pnode gnode
+          |> map (update_env dargs env)
+       end
       else []
 
    (* what about atomics? *)    
-   fun eval_goaltyp ctxt (defs as P {defs,...}) (name,args) pnode gnode = 
+   fun eval_goaltyp ctxt defs (name,args) pnode gnode = 
      defs 
      |> map (fn d => eval_clause ctxt defs (get_gnode_env gnode) d (name,args) pnode gnode) 
      |> map (fn env => set_gnode_env env gnode);

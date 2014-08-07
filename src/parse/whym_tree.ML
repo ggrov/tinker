@@ -61,14 +61,6 @@ struct
        ([],decode_assocl accls_tree, decode_term g_tree)
    | decode_ps tree = raise decode_exp ("PS has wrong args",tree);
 
-(*
-  fun encode_thm_name (Thm s) = XML.Elem (("Thm",[("name",s)]),[])
-    | encode_thm_name (Hyp s) = XML.Elem (("Hyp",[("name",s)]),[]);
-
-  fun decode_thm_name (XML.Elem (("Thm",[("name",s)]),[])) = Thm s
-   | decode_thm_name (XML.Elem (("Hyp",[("name",s)]),[])) = Hyp s
-   | decode_thm_name tree = raise decode_exp ("cannot decode thm_name",tree);
-*)
   fun encode_opts NONE = XML.Elem (("NONE",[]),[])
    | encode_opts (SOME v) = XML.Elem (("SOME",[]),v);
 
@@ -80,12 +72,6 @@ struct
 
   fun decode_opt e = Option.map hd (decode_opts e);
 
-(*
-  fun thm_elem name thm = XML.Elem ((name,[]),[encode_thm_name thm])
-  fun thms_elem name thms = XML.Elem ((name,[]),map encode_thm_name thms)
-  fun opt_thm_elem name thm = XML.Elem ((name,[]),[encode_opt(Option.map encode_thm_name thm)])
-  fun opt_thms_elem name thms = XML.Elem ((name,[]),[encode_opts(Option.map (map encode_thm_name) thms)])
-*)
 
   fun encode_tag_args arg = XML.Elem (("Arg",[]),map XML.Text arg)
 

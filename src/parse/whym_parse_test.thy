@@ -1,6 +1,7 @@
 theory whym_parse_test
-imports Main
+imports "../build/isabelle/PSGraph" 
 begin
 
+  ML_file "whym_tree.ML"       
 
 end
