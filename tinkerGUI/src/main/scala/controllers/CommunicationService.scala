@@ -34,8 +34,8 @@ object CommunicationService {
 	}
 
 	def listen {
-		var in = new BufferedReader(new InputStreamReader(client.getInputStream))
 		if(connected){
+			var in = new BufferedReader(new InputStreamReader(client.getInputStream))
 			var input : Future[String] = future {
 				in.readLine
 			}
