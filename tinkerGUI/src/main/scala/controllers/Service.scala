@@ -30,7 +30,7 @@ object Service extends Publisher {
 	def setMainFrame(c: Component) { mainFrame = c }
 	def getMainFrame : Component = mainFrame 
 	
-	def getJsonPSGraph = model.jsonPSGraph
+	def getJsonPSGraph = {model.updateJsonPSGraph; model.jsonPSGraph}
 
 	def changeGraphEditMouseState(state: String){
 		graphEditCtrl.changeMouseState(state)

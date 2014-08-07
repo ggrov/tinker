@@ -9,6 +9,9 @@ import java.awt.event.KeyEvent
 import java.net._
 import java.io._
 import scala.io._
+import scala.concurrent._
+import ExecutionContext.Implicits.global
+import scala.util.{Success, Failure}
 
 class TinkerMenu() extends MenuBar{
 	val controller = Service.menuCtrl
@@ -102,32 +105,90 @@ class TinkerMenu() extends MenuBar{
 		val createClient = new Action("Create client") {
 			menu.contents += new MenuItem(this)
 			def apply(){
-				println("Going to create client")
-				var socket = new Socket(InetAddress.getByName("localhost"), 1790)
-				println("Client created")
-				val out = new PrintStream(socket.getOutputStream)
-				println("Client speaking : sending message to server.")
-				out.println("1.")
-				var in = new BufferedSource(socket.getInputStream).getLines
-				println("Client received : "+in.next)
-				out.println("2.")
-				in = new BufferedSource(socket.getInputStream).getLines
-				println("Client received : "+in.next)
-				out.println("3.")
-				in = new BufferedSource(socket.getInputStream).getLines
-				println("Client received : "+in.next)
-				out.println("4.")
-				in = new BufferedSource(socket.getInputStream).getLines
-				println("Client received : "+in.next)
-				out.println("5.")
-				in = new BufferedSource(socket.getInputStream).getLines
-				println("Client received : "+in.next)
-				out.println("CMD_CLOSE")
-				in = new BufferedSource(socket.getInputStream).getLines
-				println("Client received : "+in.next)
+				val c = new ClientSocket
+				c.open()
 			}
 		}
 	}
 
 	contents += (FileMenu, EditMenu, communication)
+}
+
+class ClientSocket extends Frame {
+	title = "Tinker - sockets communication, client simulator"
+	minimumSize = new Dimension(300, 200)
+	var connected = false
+	var response = new Label("Response :")
+	var clientSocket: Socket = null
+	var out : PrintStream = null
+	val txtArea = new TextArea(""){editable = false}
+	val sendButton = new Button(new Action("Send message"){
+		def apply() {
+			if(clientSocket != null){
+				out.println(txtArea.text)
+				txtArea.text = ""
+			}
+		}
+	}){
+		enabled = false
+	}
+	val disconnectButton = new Button(new Action("Disconnect"){
+		def apply(){
+			out.println("{\"cmd\":\"CLOSE_CONNECT\"}")
+			connected = false
+			close()
+		}
+	}){
+		enabled = false
+	}
+	val connectButton = new Button(new Action("Connect"){
+		def apply(){
+			clientSocket = new Socket(InetAddress.getByName("localhost"), 1790)
+			out = new PrintStream(clientSocket.getOutputStream)
+			var in = new BufferedSource(clientSocket.getInputStream).getLines
+			if(in.next == "SRV_LISTENING"){
+				connected = true
+				enabled = false
+				sendButton.enabled = true
+				disconnectButton.enabled = true
+				txtArea.editable = true
+				listen
+			}
+		}
+	})
+	val box = new BoxPanel(Orientation.Vertical){
+		contents += connectButton
+		contents += disconnectButton
+		contents += txtArea
+		contents += sendButton
+		contents += response
+	}
+	def listen{
+		if(connected){
+			val in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream))
+			var input : Future[String] = future {
+				in.readLine
+			}
+			input onComplete{
+				case Success(s) =>
+					getMessage(in, s)
+				case Failure(t) => 
+			}
+		}
+	}
+	def getMessage(in: BufferedReader, firstLine: String){
+		if(connected){
+			val b = new StringBuilder()
+			b.append(firstLine)
+			while(in.ready){
+				b.append("\n")
+				b.append(in.readLine)
+			}
+			println(b.toString)
+			response.text = "Response : \n"+b.toString
+			box.repaint()
+			listen
+		}
+	}
+	contents = box
 }

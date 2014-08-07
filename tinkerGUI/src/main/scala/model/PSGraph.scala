@@ -31,8 +31,8 @@ class PSGraph() {
 			atomicTacticsJson = atomicTacticsJson :+ t.toJson
 		}
 		jsonPSGraph = JsonObject("current" -> current, "current_index" -> currentIndex, "graph" -> mainGraph, "graph_tactics" -> JsonArray(graphTacticsJson), "atomic_tactics" -> JsonArray(atomicTacticsJson), "goal_types" -> goalTypes)
-		println("---------------------------------------------------")
-		println(jsonPSGraph)
+		// println("---------------------------------------------------")
+		// println(jsonPSGraph)
 	}
 
 	def lookForGraphTactic(tactic: String): Option[GraphTactic] = {

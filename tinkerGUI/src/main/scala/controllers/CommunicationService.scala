@@ -6,69 +6,74 @@ import scala.io._
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import scala.util.{Success, Failure}
+import quanto.util.json._
 
 object CommunicationService {
 	var connected = false
-	val server = new ServerSocket(1790)
+	var server: ServerSocket = null
 	var client: Socket = null
+	reInitConnection
 
-	val init: Future[Socket] = future {
-		println("Server speaking : connecting ...")
-		server.accept
+	def reInitConnection {
+		server = new ServerSocket(1790)
+		val init: Future[Socket] = future {
+			println("Server speaking : connecting ...")
+			server.accept
+		}
+
+		init onComplete {
+			case Success(c) =>
+				client = c
+				println("Server speaking : connected !")
+				connected = true
+				listen
+			case Failure(t) =>
+				println("Server speaking : Not connected, an error has occured: " + t.getMessage)
+		}
 	}
 
-	init onComplete {
-		case Success(c) =>
-			client = c
-			println("Server speaking : connected !")
-			connected = true
-			while(connected){
-				val in = new BufferedReader(new InputStreamReader(client.getInputStream)).readLine
-				val out = new PrintStream(client.getOutputStream)
-				println("Server received : "+in)
-				in match {
-					case "CMD_CLOSE" => 
-						out.println("Server requests close")
-						out.flush
-						client.close
-						server.close
-						connected = false
-					case _ => 
-						out.println("Server acquited message - '"+in+"'")
-						out.flush
-				}
+	def listen {
+		var in: String = null
+		send("SRV_LISTENING")
+		while(connected){
+			in = new BufferedReader(new InputStreamReader(client.getInputStream)).readLine
+			// out = new PrintStream(client.getOutputStream)
+			println("Server received : "+in)
+			try { val j = Json.parse(in) ; parseAndExecute(j) }
+			catch { case e: Exception => println("diz iz no Json : "+e.getMessage)}
+		}
+	}
+
+	def parseAndExecute(j: Json){
+		(j ? "cmd") match {
+			case cmd: Json if(cmd == JsonNull) => send("no command")
+			case cmd: Json => cmd.stringValue match {
+				case "GET_PSGRAPH" =>
+					(j ? "param") match {
+						case param: JsonString =>
+							param.stringValue match {
+								case "goal_types" => send(Service.getGoalTypes)
+								case _ => println(param.stringValue)
+							}
+						case param: Json if(param == JsonNull) => send(Service.getJsonPSGraph.toString)
+					}
+				case "CLOSE_CONNECT" =>
+					client.close
+					server.close
+					connected = false
+					reInitConnection
+				case _ => send("bad command")
 			}
-		case Failure(t) =>
-			println("Server speaking : Not connected, an error has occured: " + t.getMessage)
+			case _ =>
+		}
 	}
 
-
-	// def init = Future {
-	// 	try{
-	// 		println("Server initialized")
-
-	// 		// server.setSoTimeout(5000)
-	// 		client = server.accept
-	// 		connected = true
-	// 		val in = new BufferedReader(new InputStreamReader(client.getInputStream)).readLine
-	// 		val out = new PrintStream(client.getOutputStream)
-
-	// 		println("Server received:" + in)
-	// 		out.println("Server: Message received - " + in)
-	// 		out.flush
-
-	// 		if (in.equals("CMD_CLOSE")) client.close; server.close; println("Server closing:")
-	// 	}
-	// 	catch {
-	// 		// case e: SocketTimeoutException => TinkerDialog.openErrorDialog("Timeout exception when launching communication with core."); connected = false
-	// 		case e: Exception => TinkerDialog.openErrorDialog("Unexpected error when launching communication with core."); println(e.getStackTrace); System.exit(1)
-	// 	}
-	// }
-
-	// init onSuccess {
-	// 	// actions to run when connection made
-	// }
-
-
+	def send(msg: String){
+		if(connected){
+			var out = new PrintStream(client.getOutputStream)
+			out.println(msg)
+			out.flush
+		}
+	}
 	
 }
