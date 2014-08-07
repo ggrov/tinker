@@ -26,6 +26,7 @@ object CommunicationService {
 				client = c
 				println("Server speaking : connected !")
 				connected = true
+				send("SRV_LISTENING")
 				listen
 			case Failure(t) =>
 				println("Server speaking : Not connected, an error has occured: " + t.getMessage)
@@ -33,14 +34,32 @@ object CommunicationService {
 	}
 
 	def listen {
-		var in: String = null
-		send("SRV_LISTENING")
-		while(connected){
-			in = new BufferedReader(new InputStreamReader(client.getInputStream)).readLine
-			// out = new PrintStream(client.getOutputStream)
-			println("Server received : "+in)
-			try { val j = Json.parse(in) ; parseAndExecute(j) }
+		var in = new BufferedReader(new InputStreamReader(client.getInputStream))
+		if(connected){
+			var input : Future[String] = future {
+				in.readLine
+			}
+			input onComplete {
+				case Success(s) => getMessage(in, s)
+				case Failure (t) => println("An error occured : "+t.getMessage)
+			}
+			// in = new BufferedReader(new InputStreamReader(client.getInputStream)).readLine
+			// // out = new PrintStream(client.getOutputStream)
+			// println("Server received : "+in)
+		}
+	}
+
+	def getMessage(in: BufferedReader, firstLine: String){
+		if(connected){
+			val b = new StringBuilder()
+			b.append(firstLine)
+			while(in.ready){
+				b.append("\n")
+				b.append(in.readLine)
+			}
+			try { val j = Json.parse(b.toString) ; parseAndExecute(j) }
 			catch { case e: Exception => println("diz iz no Json : "+e.getMessage)}
+			listen
 		}
 	}
 
