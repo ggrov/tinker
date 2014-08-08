@@ -1,0 +1,24 @@
+---
+layout: post
+category: talks
+tags:
+  - news
+slug: lpar13-talk
+publication: uitp14-paper
+
+title: "Tinker, tailor, solver, proof"
+author: Aleks Kissinger and Gudmund Grov
+type: talk
+event_date: 2014-07-107
+where: "User Interfaces for Theorem Provers, UITP 2014,  in Vienna, Austria"
+
+pdf:
+  title: Download slides as PDF
+  url: /talks/uitp14.pdf
+  ref: local
+links:
+  - title: Visit UITP(2014) website
+    url: http://www.informatik.uni-bremen.de/uitp/
+
+---
+<a href="talks/uitp14.pdf"> Talk: Tinker, Tailor, Solver, Proof</a>, Aleks Kissinger, 7th July 2014, Presented at _User Interfaces for Theorem Provers (UITP 2014)_. 
