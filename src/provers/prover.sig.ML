@@ -48,7 +48,13 @@ sig
   val get_open_pnodes : pplan -> pnode list
   val get_pnode_name : pnode -> string
   val get_pnode_concl : pnode -> term (* return type concl which would be type term*)
+  val get_pnode_hyps : pnode -> term list
   val get_pnode_ctxt : pnode -> context
+
+  (* goal type related *)
+  val top_symbol : term -> string
+  val symbols : term -> string list
+
 
   (* pretty printing *)
   val pretty_pplan : pplan -> Pretty.T
