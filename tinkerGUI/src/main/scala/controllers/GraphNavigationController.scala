@@ -38,7 +38,7 @@ class GraphNavigationController() extends Publisher {
 	}
 
 	def addNew() {
-		if(!disableAdd) Service.addSubgraph(Service.getCurrent, Service.isNestedOr(Service.getCurrent))
+		if(!disableAdd) Service.addSubgraph(Service.getCurrent)
 		else println("no add")
 	}
 
@@ -53,7 +53,7 @@ class GraphNavigationController() extends Publisher {
 				showNext()
 			case (1,_) => 
 				Service.deleteSubGraph(Service.getCurrent, currentIndex)	
-				Service.addSubgraph(Service.getCurrent, Service.isNestedOr(Service.getCurrent))
+				Service.addSubgraph(Service.getCurrent)
 			case (0,0) => 
 		}
 	}

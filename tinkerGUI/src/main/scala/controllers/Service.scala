@@ -39,9 +39,9 @@ object Service extends Publisher {
 	def getHierarchyRoot = hierarchyModel.root
 	def getHierarchyActive = hierarchyModel.activeElement
 
-	def addSubgraph(tactic: String, isOr: Boolean){
+	def addSubgraph(tactic: String){
 		DocumentService.setUnsavedChanges(true)
-		model.newSubGraph(tactic, isOr)
+		model.newSubGraph(tactic)
 		hierarchyModel.changeActive(tactic)
 		hierTreeCtrl.redraw
 		QuantoLibAPI.newGraph()
@@ -94,13 +94,13 @@ object Service extends Publisher {
 					hierTreeCtrl.redraw
 					return true
 				case None =>
-					addSubgraph(tactic, true)
+					addSubgraph(tactic)
 					return true
 			}
 		}
 		else{
 			DocumentService.setUnsavedChanges(true)
-			addSubgraph(tactic, true)
+			addSubgraph(tactic)
 			return true
 		}
 		return false

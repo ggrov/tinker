@@ -60,7 +60,7 @@ class SubGraphEditController() extends Publisher {
 		}
 	}
 	def add(){
-		Service.addSubgraph(tacticToShow, Service.isNestedOr(tacticToShow))
+		Service.addSubgraph(tacticToShow)
 	}
 
 	listenTo(QuantoLibAPI)

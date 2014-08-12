@@ -59,7 +59,7 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 			val addSubButton = new Button(
 				new Action("Add a sub-graph"){
 					def apply(){
-						ctrl.addNewSubgraph(nodeValue.text, orRadio.selected)
+						ctrl.addNewSubgraph(nodeValue.text)
 					}
 				})
 			contents += new FlowPanel(){ 
@@ -84,7 +84,7 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 			}
 		case "Breakpoint" =>
 			contents += new FlowPanel() {
-				contents += new Button(ctrl.removeBreakpoint)
+				contents += new Button(ctrl.removeBreakpoint(nam))
 			}
 	}
 
@@ -113,12 +113,12 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, ctrl
 	val edgeSrc = new TextField(src, 3)
 	val edgeTgt = new TextField(tgt, 3)
 	val delButton = new Button(
-		new Action("Delete node"){
+		new Action("Delete edge"){
 			def apply(){
 				ctrl.delete(nam)
 			}
 		})
-	ctrl.addEdgeValueListener(edgeValue)
+	ctrl.addEdgeValueListener(nam, edgeValue)
 	ctrl.addEdgeListener(nam, edgeSrc, edgeTgt)
 	contents += new FlowPanel(){
 		contents += new Label("Edge : " + nam)
@@ -134,7 +134,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, ctrl
 		contents += edgeTgt
 	}
 	contents += new FlowPanel(){
-		contents += new Button(ctrl.addBreakpoints)
+		contents += new Button(ctrl.breakpoint(nam))
 	}
 	contents += new FlowPanel(){
 		contents += delButton

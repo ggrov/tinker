@@ -77,23 +77,23 @@ class ElementEditController() extends Publisher {
 		publish(NothingSelectedEvent())
 	}
 
-	def addNewSubgraph(tactic: String, isOr: Boolean){
+	def addNewSubgraph(tactic: String){
 		val name = ArgumentParser.separateNameFromArgument(tactic)._1
 		if(elementName == "") elementName = name
-		Service.addSubgraph(elementName, isOr)
+		Service.addSubgraph(elementName)
 	}
 
 	def setIsNestedOr(eltName: String, isOr: Boolean) = Service.setIsOr(ArgumentParser.separateNameFromArgument(eltName)._1, isOr)
 	def getIsNestedOr(eltName: String) = Service.isNestedOr(ArgumentParser.separateNameFromArgument(eltName)._1)
 
-	def addEdgeValueListener(elt: TextField) {
+	def addEdgeValueListener(e: String, elt: TextField) {
 		var prevValue = ""
 		listenTo(elt.keys)
 		reactions += {
 			case KeyReleased(c, key, _, _) =>
 				if(c == elt && elt.text != "" && elt.text != prevValue){
 					prevValue = elt.text
-					QuantoLibAPI.editSelectedElementValue(elt.text)
+					QuantoLibAPI.setEdgeValue(e, elt.text)
 				}
 		}
 	}
@@ -108,15 +108,28 @@ class ElementEditController() extends Publisher {
 		}
 	}
 
-	val addBreakpoints = new Action("Add breakpoint") {
-		def apply() {
-			QuantoLibAPI.addBreakpointOnSelectedEdges()
+	def breakpoint(e: String): Action = {
+		if(QuantoLibAPI.hasBreak(e)){
+			new Action("Remove breakpoint") {
+				def apply() {
+					QuantoLibAPI.removeBreakpointFromEdge(e)
+				}
+			}
+		}
+		else {
+			new Action("Add breakpoint") {
+				def apply() {
+					QuantoLibAPI.addBreakpointOnEdge(e)
+				}
+			}
 		}
 	}
 
-	val removeBreakpoint = new Action("Remove breakpoint"){
-		def apply() {
-			QuantoLibAPI.removeSelectedBreakpoint()
+	def removeBreakpoint(n:String):Action = {
+		new Action("Remove breakpoint"){
+			def apply() {
+				QuantoLibAPI.removeBreakpoint(n)
+			}
 		}
 	}
 

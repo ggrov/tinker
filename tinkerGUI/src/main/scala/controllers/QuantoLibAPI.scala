@@ -173,25 +173,30 @@ object QuantoLibAPI extends Publisher{
 	  * @param v, the name of the vertex
 	  */
 	private def deleteVertex(v: VName) {
-		document.undoStack.start("Delete Vertex")
-		graph.adjacentEdges(v).foreach {deleteEdge}
-		if(graph.vdata.contains(v)){
-			val d = graph.vdata(v)
-			// Uncomment the next line to delete the node in the model too
-			// d match { case n: NodeV => if (n.typ == "RT_NST") Service.deleteTactic(n.label)}
-			view.invalidateVertex(v)
-			val selected = if(view.selectedVerts.contains(v)){
-				view.selectedVerts -= v; true
-			} else false
-			changeGraph(graph.deleteVertex(v))
-			document.undoStack += {
-				addVertex(v, d)
-				if(selected) view.selectedVerts += v
-			}
-			document.undoStack.commit()
-		}
-		else {
-			document.undoStack.cancel()
+		val d = graph.vdata(v)
+		d match { 
+			case data:NodeV if(data.typ == "break") =>
+				removeBreakpoint(v.s)
+			case _ =>
+				document.undoStack.start("Delete Vertex")
+				graph.adjacentEdges(v).foreach {deleteEdge}
+				if(graph.vdata.contains(v)){
+					// Uncomment the next line to delete the node in the model too
+					// d match { case n: NodeV => if (n.typ == "RT_NST") Service.deleteTactic(n.label)}
+					view.invalidateVertex(v)
+					val selected = if(view.selectedVerts.contains(v)){
+						view.selectedVerts -= v; true
+					} else false
+					changeGraph(graph.deleteVertex(v))
+					document.undoStack += {
+						addVertex(v, d)
+						if(selected) view.selectedVerts += v
+					}
+					document.undoStack.commit()
+				}
+				else {
+					document.undoStack.cancel()
+				}
 		}
 	}
 
@@ -434,7 +439,7 @@ object QuantoLibAPI extends Publisher{
 	  * @param modifiers, any modifier key to our selection (e.g. Shift key for multiple selection)
 	  * @param changeMouseStateCallback, a callback function to update the mouse state
 	  */
-	def selectElement(pt : java.awt.Point, modifiers: Modifiers, changeMouseStateCallback: (String, Any) => Unit) {
+	def selectElement(pt : java.awt.Point, modifiers: Modifiers, changeMouseStateCallback: (String, Any) => Unit){
 		publish(NothingSelectedEventAPI())
 		val vertexHit = view.vertexDisplay find { _._2.pointHit(pt) } map { _._1 }
 		val mouseDownOnSelectedVert = vertexHit.exists(view.selectedVerts.contains)
@@ -736,7 +741,7 @@ object QuantoLibAPI extends Publisher{
 	  * @param e, the name of the edge
 	  * @param str, the new value
 	  */
-	private def setEdgeValue(e: EName, str: String) {
+	def setEdgeValue(e: EName, str: String) {
 		val data = graph.edata(e)
 		val oldVal = data.label
 		if(oldVal != str){
@@ -772,6 +777,9 @@ object QuantoLibAPI extends Publisher{
 			case _ => // do nothing
 		}
 	}
+
+	def setVertexValue(s: String, str: String) {setVertexValue(VName(s), str)}
+	def setEdgeValue(s: String, str: String) {setEdgeValue(EName(s), str)}
 
 	/**
 	  * Method to edit an element value (goal type for edge, strategy for vertex)
@@ -813,6 +821,12 @@ object QuantoLibAPI extends Publisher{
 		else if (view.selectedVerts.size == 0 && view.selectedEdges.size == 1){
 			setEdgeValue((view.selectedEdges.head), newVal)
 		}
+	}
+
+	def getSelectedElementName() : Option[String] = {
+		if(view.selectedVerts.size == 1 && view.selectedEdges.size == 0) Some(view.selectedVerts.head.s)
+		else if (view.selectedVerts.size == 0 && view.selectedEdges.size == 1) Some(view.selectedEdges.head.s)
+		else None 
 	}
 
 	/**
@@ -865,49 +879,76 @@ object QuantoLibAPI extends Publisher{
 		}
 	}
 
+	def hasBreak(e: String) : Boolean = {
+		graph.vdata(graph.source(EName(e))) match {
+			case d:NodeV if(d.typ == "break") => true
+			case _ =>
+				graph.vdata(graph.target(EName(e))) match {
+					case d:NodeV if(d.typ == "break") => true
+					case _ => false
+				}
+		}
+	}
+
+	def addBreakpointOnEdge(edge:String){
+		val e = EName(edge)
+		if(view.selectedEdges.contains(e)) view.selectedEdges -= e
+		val esrc = graph.source(e)
+		val etgt = graph.target(e)
+		val edata = graph.edata(e)
+		val coordSrc = graph.vdata(esrc).coord
+		val coordTgt = graph.vdata(etgt).coord
+		val x = coordSrc._1 + ((coordTgt._1 - coordSrc._1)/2)
+		val y = coordSrc._2 + ((coordTgt._2 - coordSrc._2)/2)
+		val d = NodeV(data = theory.vertexTypes("break").defaultData, theory = theory).withCoord((x,y))
+		val n = graph.verts.freshWithSuggestion(VName("v0"))
+		graph.edgesBetween(esrc, etgt).foreach { view.invalidateEdge }
+		changeGraph(graph.deleteEdge(e))
+		changeGraph(graph.addVertex(n, d.withCoord((x,y))))
+		changeGraph(graph.addEdge(graph.edges.fresh, edata, (n, etgt)))
+		graph.edgesBetween(n, etgt).foreach { view.invalidateEdge }
+		changeGraph(graph.addEdge(graph.edges.fresh, edata, (esrc, n)))
+		graph.edgesBetween(esrc, n).foreach { view.invalidateEdge }
+		publish(NothingSelectedEventAPI())
+	}
+
 	/**
 	  * Method to add a breakpoint on selected edges
 	  */
 	def addBreakpointOnSelectedEdges() {
 		view.selectedEdges.foreach{ e =>
-			view.selectedEdges -= e
-			val esrc = graph.source(e)
-			val etgt = graph.target(e)
-			val edata = graph.edata(e)
-			val coordSrc = graph.vdata(esrc).coord
-			val coordTgt = graph.vdata(etgt).coord
-			val x = coordSrc._1 + ((coordTgt._1 - coordSrc._1)/2)
-			val y = coordSrc._2 + ((coordTgt._2 - coordSrc._2)/2)
-			val d = NodeV(data = theory.vertexTypes("break").defaultData, theory = theory).withCoord((x,y))
-			val n = graph.verts.freshWithSuggestion(VName("v0"))
-			graph.edgesBetween(esrc, etgt).foreach { view.invalidateEdge }
-			changeGraph(graph.deleteEdge(e))
-			changeGraph(graph.addVertex(n, d.withCoord((x,y))))
-			changeGraph(graph.addEdge(graph.edges.fresh, edata, (n, etgt)))
-			graph.edgesBetween(n, etgt).foreach { view.invalidateEdge }
-			changeGraph(graph.addEdge(graph.edges.fresh, edata, (esrc, n)))
-			graph.edgesBetween(esrc, n).foreach { view.invalidateEdge }
+			addBreakpointOnEdge(e.s)
 		}
-		publish(NothingSelectedEventAPI())
+	}
+
+	def removeBreakpointFromEdge(e:String){
+		if(hasBreak(e)){
+			graph.vdata(graph.source(EName(e))) match {
+				case d:NodeV if(d.typ == "break") => removeBreakpoint(graph.source(EName(e)).s)
+				case _ =>
+			}
+			graph.vdata(graph.target(EName(e))) match {
+				case d:NodeV if(d.typ == "break") => removeBreakpoint(graph.target(EName(e)).s)
+				case _ =>
+			}
+		}
 	}
 
 	/**
 	  * Method to remove the selected breakpoint
 	  */
-	def removeSelectedBreakpoint() {
-		if(view.selectedVerts.size == 1){
-			graph.vdata(view.selectedVerts.head) match {
-				case d:NodeV if(d.typ == "break") =>
-					val break = view.selectedVerts.head
-					val edata = graph.edata(graph.inEdges(break).head)
-					val src = graph.source(graph.inEdges(break).head)
-					val tgt = graph.target(graph.outEdges(break).head)
-					graph.adjacentEdges(break).foreach {e => view.invalidateEdge(e) ; changeGraph(graph.deleteEdge(e))}
-					view.invalidateVertex(break)
-					changeGraph(graph.deleteVertex(break))
-					changeGraph(graph.addEdge(graph.edges.fresh, edata, (src, tgt)))
-				case _ =>
-			}
+	def removeBreakpoint(v: String) {
+		graph.vdata(VName(v)) match {
+			case d:NodeV if(d.typ == "break") =>
+				val break = v
+				val edata = graph.edata(graph.inEdges(break).head)
+				val src = graph.source(graph.inEdges(break).head)
+				val tgt = graph.target(graph.outEdges(break).head)
+				graph.adjacentEdges(break).foreach {e => view.invalidateEdge(e) ; changeGraph(graph.deleteEdge(e))}
+				view.invalidateVertex(break)
+				changeGraph(graph.deleteVertex(break))
+				changeGraph(graph.addEdge(graph.edges.fresh, edata, (src, tgt)))
+			case _ =>
 		}
 	}
 
@@ -1066,8 +1107,8 @@ object QuantoLibAPI extends Publisher{
 			}
 		case MouseDragged(_, pt, _) =>
 			publish(GraphMouseDraggedEvent(pt))
-		case MouseReleased(_, pt, modifiers, _, _) =>
-			publish(GraphMouseReleasedEvent(pt, modifiers))
+		case e: MouseReleased if(e.peer.getButton == 1) =>
+			publish(GraphMouseReleasedEvent(e.point, e.modifiers))
 	}
 
 	/** listener to view keys events */

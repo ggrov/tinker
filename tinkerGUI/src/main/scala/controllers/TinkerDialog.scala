@@ -40,4 +40,41 @@ object TinkerDialog extends Dialog {
 		open()
 		centerOnScreen()
 	}
+
+	def openEditDialog(message: String, fields: Map[String,String], updateValueCallback: (Map[String,String]) => Unit) = {
+		title = "Tinker - Edition"
+		var newValMap = Map[String, String]()
+		var textfieldMap = Map[String, TextField]()
+		contents = new GridPanel(fields.size+2, 1){
+			contents += new FlowPanel() {
+				contents += new Label(message)
+			}
+			fields.foreach{ case (k,v)=>
+				contents += new FlowPanel() {
+					contents += new Label(k+" : ")
+					val t = new TextField(v, 15)
+					contents += t
+					textfieldMap = textfieldMap + (k -> t)
+				}
+			}
+			contents += new FlowPanel(){
+				contents += new Button(
+					new Action("Done"){
+						def apply() {
+							textfieldMap.foreach{ case (k,v) => newValMap = newValMap + (k -> v.text)}
+							updateValueCallback(newValMap)
+							close()
+						}
+					}
+				)
+				contents += new Button(
+					new Action("Cancel"){
+						def apply(){close()}
+					}
+				)
+			}
+		}
+		open()
+		centerOnScreen()
+	}
 }
