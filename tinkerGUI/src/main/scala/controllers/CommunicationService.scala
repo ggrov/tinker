@@ -15,6 +15,7 @@ object CommunicationService {
 	reInitConnection
 
 	def reInitConnection {
+		connected = false
 		server = new ServerSocket(1790)
 		val init: Future[Socket] = future {
 			println("Server speaking : connecting ...")
@@ -26,7 +27,7 @@ object CommunicationService {
 				client = c
 				println("Server speaking : connected !")
 				connected = true
-				send("SRV_LISTENING")
+				send("Server listening")
 				listen
 			case Failure(t) =>
 				println("Server speaking : Not connected, an error has occured: " + t.getMessage)
@@ -35,6 +36,7 @@ object CommunicationService {
 
 	def listen {
 		if(connected){
+			println("listening ...")
 			var in = new BufferedReader(new InputStreamReader(client.getInputStream))
 			var input : Future[String] = future {
 				in.readLine
@@ -57,8 +59,8 @@ object CommunicationService {
 				b.append("\n")
 				b.append(in.readLine)
 			}
-			try { val j = Json.parse(b.toString) ; parseAndExecute(j) }
-			catch { case e: Exception => println("diz iz no Json : "+e.getMessage)}
+			try { println(b.toString); val j = Json.parse(b.toString) ; parseAndExecute(j) }
+			catch { case e: Exception => println(b.toString+" -> diz iz no Json : "+e.getMessage)}
 			listen
 		}
 	}
@@ -74,9 +76,10 @@ object CommunicationService {
 								case "goal_types" => send(Service.getGoalTypes)
 								case _ => println(param.stringValue)
 							}
-						case param: Json if(param == JsonNull) => send(Service.getJsonPSGraph.toString)
+						case param: Json if(param == JsonNull) => send(Service.getJsonPSGraph)
 					}
 				case "CLOSE_CONNECT" =>
+					send("closing")
 					client.close
 					server.close
 					connected = false
@@ -91,6 +94,14 @@ object CommunicationService {
 		if(connected){
 			var out = new PrintStream(client.getOutputStream)
 			out.println(msg)
+			out.flush
+		}
+	}
+
+	def send(j:Json){
+		if(connected){
+			var out = new PrintStream(client.getOutputStream)
+			j.writeTo(out)
 			out.flush
 		}
 	}

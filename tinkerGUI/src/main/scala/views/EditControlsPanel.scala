@@ -5,6 +5,7 @@ import javax.swing.ImageIcon
 import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.EditControlsController
 import tinkerGUI.controllers.DocumentTitleEvent
+import tinkerGUI.utils.ToolBar
 import scala.swing.event.KeyReleased
 
 object GoalTypeEditor extends Frame {

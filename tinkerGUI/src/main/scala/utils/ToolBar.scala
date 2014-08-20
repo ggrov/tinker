@@ -2,7 +2,7 @@
   * This file is a copy of the tool bar file from Quantomatic
   */
 
-package tinkerGUI.views
+package tinkerGUI.utils
 
 import swing._
 import javax.swing.JToolBar

@@ -221,4 +221,15 @@ object Service extends Publisher {
 		model.updateJsonPSGraph
 		DocumentService.promptUnsaved(model.jsonPSGraph)
 	}
+
+	def newDoc {
+		if(DocumentService.promptUnsaved(model.jsonPSGraph)){
+			model.loadJsonGraph(JsonObject("current" -> "main", "current_index" -> 0, "graph" -> JsonObject(), "graph_tactics" -> JsonArray(Array()), "atomic_tactics" -> JsonArray(Array()), "goal_types" -> "")
+			hierarchyModel.rebuildHierarchy(model)
+			graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
+			graphBreadcrumsCtrl.addCrum(getCurrent)
+			graphNavCtrl.viewedGraphChanged(model.isMain, false)
+			refreshGraph
+		}
+	}
 }

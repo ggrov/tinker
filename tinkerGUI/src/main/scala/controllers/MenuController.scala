@@ -4,7 +4,7 @@ import scala.swing._
 
 class MenuController() extends Publisher{
 	def newAction = {
-		QuantoLibAPI.newDoc
+		Service.newDoc
 	}
 	def openAction = {
 		Service.loadJsonFromFile

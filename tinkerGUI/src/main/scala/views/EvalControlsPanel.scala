@@ -3,7 +3,7 @@ package tinkerGUI.views
 import scala.swing._
 import javax.swing.ImageIcon
 import tinkerGUI.controllers.Service
-// import tinkerGUI.controllers.EditControlsController
+import tinkerGUI.utils.ToolBar
 
 class EvalControlsPanel() {
 	val FinishButton = new Button(
