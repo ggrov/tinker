@@ -16,8 +16,9 @@ struct
    *)
   datatype arg = Name of string 
                 | Var of string
-                | Concl
+                | Concl 
                 | Hyps
+                | Ignore
                 | Term of Prover.term (* fix me: should we make this term? *)
                 | Clause of string * (arg list)
   datatype clause = Def of string * string list * arg list
@@ -26,15 +27,20 @@ struct
   (* imports not supported yet *)
   (* to do: add atomics as a field *)
 
-  (* binding environment: term or string *)
+  (* binding environment: maybe string is sufficient! just use singleton! *)
   datatype env_data = ET_T of Prover.term
                     | LT_T of Prover.term list 
+                    | ES_T of string
+                    | LS_T of string list
 
   type env = env_data StrName.NTab.T
+  (* I am not sure about env in goalnode - this has to be serialisable! *)
+  (* could this be added somewhere else? *)
   datatype gnode = GN of { name : string, env : env  }
 
+(*
   type state = env StrName.NTab.T 
-
+*)
   (* This will be very slow : maybe cluster all names and look up list of them? 
        - atomics can then be used as well, giving almost constant lookup...
      datatype newclause = Def of string list * arg list
@@ -45,15 +51,24 @@ struct
 
   datatype data = P of {imports : clause list, 
                         defs : clause list,
-                        atomics : (Prover.arg_data list -> env -> env list) StrName.NTab.T}  
-  type T = (string * (arg list)) list
+                        atomics : (env -> Prover.pnode -> arg list -> env list) StrName.NTab.T}  
+  type T = string * (arg list);
   
   fun get_gnode_env (GN {env,...}) = env;
+  fun goal_name (GN {name,...}) = name;
+
   fun update_gnode_env f (GN {name,env}) = GN {name = name, env = f env};
-  val set_gnode_env = K update_gnode_env; 
+  val set_gnode_env = update_gnode_env o K; 
+
+  fun update_gnode_name f (GN {name,env}) = GN {name = f name, env = env};
+  val set_gnode_name = update_gnode_name o K; 
 
 
-  val default = [];
+  fun update_data_defs f (P {imports,defs,atomics}) =
+    P {imports = imports, defs = f defs, atomics = atomics};
+  val set_data_defs = update_data_defs o K;
+
+  val default = ("any",[]); (* fixme: does not evaluate *)
   val default_gnode = GN {name = "?", env = StrName.NTab.empty};
   val default_data = P {imports = [], defs = [], atomics = StrName.NTab.empty};
 
@@ -69,9 +84,11 @@ struct
  (* scan of letters and identifiers *)
  val valid_id_symbols = ["_"]
  fun valid_letter x = Symbol.is_ascii_identifier x  orelse member (op =) valid_id_symbols x ;
+ fun valid_letter_or_digit x = Symbol.is_ascii_identifier x orelse Symbol.is_digit x orelse member (op =) valid_id_symbols x ;
  val scan_letter = Scan.one valid_letter;
- val scan_id  = (scan_letter || $$ "?") -- ((Scan.repeat scan_letter) >> implode) >> op ^ ;
- val scan_name  = (scan_letter) -- ((Scan.repeat scan_letter) >> implode) >> op ^ ;
+ val scan_letter_or_digit =  Scan.one valid_letter_or_digit
+ val scan_id  = (scan_letter || $$ "?") -- ((Scan.repeat scan_letter_or_digit) >> implode) >> op ^ ;
+ val scan_name  = (scan_letter) -- ((Scan.repeat scan_letter_or_digit) >> implode) >> op ^ ;
 
  (* turn string into list of singleton strings - throw away whitespace etc  *)
  val filter_pred' = member (op =) [" ","\n","\t"];
@@ -80,13 +97,24 @@ struct
  val explode = Symbol.explode #> filter_symbs;
  val scan_empty  = $$ "("  -- $$ ")" >> K ([]);
 
+ fun scan_arg_name xs =
+   let 
+     val (str,rest) = scan_id xs 
+     fun checkupper () = Symbol.is_ascii_upper (String.substring (str,0,1));
+   in 
+     case str of 
+       "_" => (Ignore,rest)
+     | "hyps" => (Hyps,rest)
+     | "concl" => (Concl,rest)
+     | _ => if checkupper () then (Var str,rest) else (Name str,rest)
+   end;
 
  (* scan clause *)
  fun scan_term ctxt = $$ "\"" |--  Scan.many (fn s => not(s = "\"")) --| $$ "\"" >> implode >> (Term o (Prover.trm_of_string ctxt));  
  fun scan_clause ctxt xs  =  (scan_name -- ((scan_args ctxt) || scan_empty) >> Clause) xs 
  (* Note does not turn into term *)
  (* note: terms not supported*)
- and scan_arg ctxt xs = ((scan_clause ctxt) || scan_id >> Name || scan_term ctxt) xs
+ and scan_arg ctxt xs = ((scan_clause ctxt) || scan_arg_name  || scan_term ctxt) xs
  and scan_args ctxt xs = (* gen_scan_para_args scan_arg xs *)
   ($$ "("  |--  (scan_arg ctxt) -- Scan.repeat ($$ "," |-- scan_arg ctxt) --| $$ ")" >> op :: ) xs; 
 
@@ -113,8 +141,182 @@ struct
 
   fun scan_gt_single ctxt = scan_name -- (scan_args ctxt || scan_empty)
   fun scan_gt_full ctxt = (scan_gt_single ctxt) -- Scan.repeat ($$ "," |-- (scan_gt_single ctxt)) --| $$ "." >> op :: ; 
-  fun scan_goaltyp ctxt = explode #> scan_all (scan_gt_full ctxt); 
+  fun scan_goaltyp ctxt = explode #> scan_gt_single ctxt #> #1; 
+
+
+  (**********************
+    EVALUATION
+   **********************)
+
+  fun project_terms _ _ (Name nm) = []
+   |  project_terms env pnode (Var v) = 
+        (case StrName.NTab.lookup env v of
+           NONE => [] (* or error? *)
+         | SOME (ET_T t) =>  [t]
+         | SOME (LT_T ts) => ts)
+   |  project_terms _ pnode Concl = [Prover.get_pnode_concl pnode]
+   |  project_terms _ pnode Hyps = Prover.get_pnode_hyps pnode
+   |  project_terms _ _ (Term t) = [t]
+   |  project_terms _ _ (Clause _) = []
+
+  fun project_name _ (Name nm) = nm
+  (* |  project_name env (Var v) = *)
+
+
+
+   (*************** ENVIRONMENTS *********************)
+
+   fun is_var (Var _) = true
+    |  is_var _ = false
+
+
+
+  (* not very efficient - creates a new: should be constant by keeping list of active
+     maybe add functionality in IsaPlib by updaing names field only of NTAB? *)
+  fun restrict_env vars state =  
+   fold 
+     (fn n => fn env =>  
+        case StrName.NTab.lookup state n of
+          NONE => env
+        | SOME v => StrName.NTab.ins (n,v) env)
+     vars
+     StrName.NTab.empty
+
+  fun override env new_env = 
+     StrName.NTab.fold
+       (fn (nm,arg) => fn env' =>
+         StrName.NTab.update (nm,arg) env')
+       new_env
+       env;
+
+  fun return_var a old_env b new_env =
+      (case StrName.NTab.lookup new_env b of
+           SOME e =>  StrName.NTab.update (a,e) old_env
+          | NONE => old_env)
+
+  fun return_vars ((Var a)::args) old_env (d::dargs) new_env =
+        return_vars args (return_var a old_env d new_env) dargs new_env
+   |  return_vars (_::args) old_env (_::dargs) new_env = 
+        return_vars args old_env dargs new_env
+   |  return_vars [] old_env [] new_env = old_env;
+
+  fun update_env vars old_env state = override old_env (restrict_env vars state);
+
+  fun inst_single pnode old_env (Name n) v new_env = StrName.NTab.ins (v,ES_T n) new_env
+   |  inst_single pnode old_env (Var n) v new_env =  
+        (case StrName.NTab.lookup old_env v of
+           SOME e =>  StrName.NTab.ins (v,e) new_env
+          | NONE => new_env)
+   |  inst_single pnode old_env Concl v new_env =   
+         StrName.NTab.ins (v, ET_T (Prover.get_pnode_concl pnode)) new_env
+   |  inst_single pnode old_env Hyps v new_env = 
+         StrName.NTab.ins (v, LT_T (Prover.get_pnode_hyps pnode)) new_env
+   |  inst_single pnode old_env Ignore v new_env = new_env
+   |  inst_single pnode old_env (Term t) v new_env = StrName.NTab.ins (v,ET_T t) new_env
+   |  inst_single pnode old_env (Clause _) v new_env = new_env
+
+  fun inst_env' pnode old_env (a::args) (v::vs) new_env =
+         inst_env' pnode old_env args vs (inst_single pnode old_env a v new_env)
+   |  inst_env' pnoe _ [] [] env = env;
+
+ fun inst_env pnode env args nms = 
+   if (length args = length nms)
+    then  inst_env' pnode env args nms StrName.NTab.empty
+    else raise error "error";
+ 
+   (************** USING DEFINITIONS *********************)
+
+   fun eval_atomic_clause env (data as (P {atomics,...})) (Clause (name,args)) pnode  =
+      case StrName.NTab.lookup atomics name of
+          NONE => [] 
+        | SOME f => f env pnode args  (* isn't ctxt in pnode? *)
+
+   (* no overriding so both atomic and non-atomic *)
+   fun eval_arg  (data as P {defs,...}) (cls as Clause (name,args)) pnode env =
+     (eval_atomic_clause env data cls pnode) @
+     (eval_clauses env data defs (name,args) pnode)
+
+   and eval_clause env data (Def (dname,dargs,dbody)) (name,args) pnode =
+     if name = dname 
+      then 
+       let 
+          val ienv = inst_env pnode env args dargs 
+          fun evalbody' arg cenv = 
+            eval_arg data arg pnode cenv
+          fun evalbody arg = maps (evalbody' arg)
+       in
+          fold evalbody dbody [ienv] 
+          |> (fn nenvs => map (return_vars args env dargs) nenvs) (* updates old env *)
+          (* |> map (update_env dargs env) *)
+       end
+      else []
+
+   and eval_clauses env data clauses (name,args) pnode = 
+         maps (fn c => eval_clause env data c (name,args) pnode) clauses;
+ 
+   fun eval_goaltyp (data as P {defs,...}) (name,args) pnode (gnode as GN {env, ...}) = 
+     eval_clauses env data defs (name,args) pnode
+     |> map (fn env => set_gnode_env env gnode);
   
+  (**************** EXAMPLE ATOMIC GOAL TYPES ******************)
+
+  fun split env _ [Var v]  = 
+    case StrName.NTab.lookup env v of
+       SOME (LT_T pt) => map (fn e => StrName.NTab.update (v, ET_T e) StrName.NTab.empty) pt
+      | SOME (LS_T st) => map (fn e => StrName.NTab.update (v, ES_T e) StrName.NTab.empty) st
+      | _ => []
+
+  fun top_symbol env pnode (t::var::symbs) = 
+    let 
+      val top = project_terms env pnode t
+              |> map (fn t => (t,Prover.top_symbol t))
+      val symbs = map (project_name env) symbs
+      val member = filter (fn (_,g) => List.exists (fn x => x = g) symbs) top
+    in 
+      if (length member = 0) then []
+      else 
+        case var of
+          (Var v) => if (length member = 1) then 
+                      [StrName.NTab.ins (v, ET_T (fst (hd member))) StrName.NTab.empty]
+                     else
+                      [StrName.NTab.ins (v, LT_T (map fst member)) StrName.NTab.empty]
+      | Ignore => [StrName.NTab.empty]
+    end;
+
+   fun has_symbols env pnode (t::var::symbs) = 
+    let 
+      val top = project_terms env pnode t
+              |> map (fn t => (t,Prover.symbols t))
+      val symbs = map (project_name env) symbs
+      (* basically sls subsetof symbs *)
+      fun check (_,sls) = List.all (fn g => List.exists (fn x => x = g) sls) symbs
+      val member = filter check top
+    in  
+      if (length member = 0) then []
+      else 
+        case var of
+          (Var v) => if (length member = 1) then 
+                      [StrName.NTab.ins (v, ET_T (fst (hd member))) StrName.NTab.empty]
+                     else
+                      [StrName.NTab.ins (v, LT_T (map fst member)) StrName.NTab.empty]
+      | Ignore => [StrName.NTab.empty]
+    end;
+ 
+   fun register_atomics tab =  
+     tab |> StrName.NTab.ins ("top_symbol",top_symbol)
+         |> StrName.NTab.ins ("has_symbols",has_symbols)
+         |> StrName.NTab.ins ("split",split);
+
+   val default_data = P {imports = [], defs = [], atomics = register_atomics StrName.NTab.empty};
+
+  (* Lifting / proper evaluation *)
+ 
+  fun init_lift (data,t) pnode =
+    eval_goaltyp data t pnode (GN {name = Prover.get_pnode_name pnode, env = StrName.NTab.empty});
+
+  fun lift gnode (data,t) pnode =
+    eval_goaltyp data t pnode (set_gnode_name (Prover.get_pnode_name pnode) gnode);
+
   (**********************
      JSON/PRETTY PRINTING
   ***********************)
@@ -144,13 +346,18 @@ struct
   fun pretty_data (P {imports,defs,atomics}) =
     Pretty.block (map pretty_clause defs);
 
+  fun pretty (s,args) = 
+        Pretty.block 
+         [Pretty.str s, 
+          Pretty.enclose "(" ")" (Pretty.separate "," (map pretty_arg args))];
+(*
   fun pretty [] = Pretty.str ""
    |  pretty ((s,[]) :: gts) = Pretty.block [Pretty.str s,pretty gts]
    |  pretty ((s,args) :: gts) =
         Pretty.block 
          [Pretty.str s, 
          Pretty.enclose "(" ")" (Pretty.separate "," (map pretty_arg args)),
-         pretty gts] ;
+         pretty gts] ; *)
       
   fun pretty_gnode (GN {name,env}) = Pretty.str name;
 
@@ -181,7 +388,7 @@ struct
 
  (* JSON for data (definitions *)
 
-  fun data_to_json ctxt gn = 
+  fun data_to_json gn = 
      Json.mk_object [("type", Json.String "GT_Data"), 
                      ("gt_data", Json.String (Pretty.str_of (pretty_data gn)))]; 
 
@@ -189,57 +396,21 @@ struct
         Json.get jobj "gt_data" 
         |> (fn Json.String x => x)
         |> scan_data Prover.default_ctxt
+        |> (fn defs => set_data_defs defs default_data)
   | data_from_json _ = raise gt_exp "from_json: ill-formed json structure"
 
-  (**********************
-    EVALUATION
-   **********************)
+ (* TO DO: write type checker *)
 
-  fun project_terms _ _ (Name nm) = []
-   |  project_terms env pnode (Var v) = 
-        (case StrName.NTab.lookup env v of
-           NONE => [] (* or error? *)
-         | SOME (ET_T t) =>  [t]
-         | SOME (LT_T ts) => ts)
-   |  project_terms _ pnode Concl = [Prover.get_pnode_concl pnode]
-   |  project_terms _ pnode Hyps = Prover.get_pnode_hyps pnode
-   |  project_terms _ _ (Term t) = [t]
-   |  project_terms _ _ (Clause _) = []
+  structure BasicSharing =
+  struct
+    type T = T
+    type gnode = gnode
+    type data = data
+  end
 
-  fun project_name (Name nm) = nm
-(*   |  project_name _         = raise error *)
+end (* struct *)
 
-  (**************** EXAMPLE ATOMIC GOAL TYPES ******************)
-
-  fun top_symbol ctxt args pnode gnode = 
-    let 
-      val top = project_terms ctxt pnode (hd args)
-              |> map Prover.top_symbol
-      val symbs = map project_name (tl args)
-      val member = List.exists (fn g => List.exists (fn x => x = g) symbs) top
-    in  
-      if member then SOME gnode else NONE
-    end;
-
-   fun has_symbols ctxt args pnode gnode = 
-    let 
-      val top = project_terms ctxt pnode (hd args)
-              |> maps Prover.symbols
-      val symbs = map project_name (tl args)
-      val member = List.exists (fn g => List.all (fn x => x = g) symbs) top
-    in  
-      if member then SOME gnode else NONE
-    end;
- 
-   fun atomic_lift ctxt (name,args) pnode gnode =
-    case name of 
-      "top_symbol" => top_symbol ctxt args pnode gnode
-    | "has_symbols" => has_symbols ctxt args pnode gnode;
-
-   (*************** ENVIRONMENTS *********************)
-
-   fun is_var (Var _) = true
-    |  is_var _ = false
+(*
 
    fun mk_state env (var::vars) (value::values) = 
      if is_var value (* variables not added to env *)
@@ -248,35 +419,6 @@ struct
     |  mk_state env [] [] = env
     |  mk_state  _ _ _ = raise gt_exp "mk_env: list of different lengths";
 
-  (* not very efficient - creates a new: should be constant by keeping list of active
-     maybe add functionality in IsaPlib by updaing names field only of NTAB? *)
-  fun restrict_state vars state =  
-   fold 
-     (fn n => fn env =>  
-        case StrName.NTab.lookup state n of
-          NONE => env
-        | SOME v => StrName.NTab.ins (n,v) env)
-     vars
-     StrName.NTab.empty
-
-  fun state_to_env_el (Term t) = SOME (ET_T t)
-   |  state_to_env_el _ = NONE
-
-  fun override env state = 
-     StrName.NTab.fold
-       (fn (nm,arg) => fn env' =>
-         case state_to_env_el arg of
-           NONE => env' (* keep env if not *)
-         | (SOME v) => StrName.NTab.update (nm,v) env')
-       state
-       env;
- 
-  fun update_env vars old_env state = override old_env (restrict_state vars state);
-
-  (* instantiaties environment -> this can result in multiple results, e.g multiple terms 
-     are bound: or for the hypothesis? 
-         - alternative: make this list of list ??
-         - what about clause? *) 
   fun inst_state pnode env ((Var x)::xs) =
      (case StrName.NTab.lookup env x of
           NONE => raise gt_exp ("variable " ^ x ^ " not bound") (* should print env too? *)
@@ -303,51 +445,4 @@ struct
         end
    |  inst_state pnode env ((Term t)::xs) = map (fn xs => (Prover.Trm t)::xs)(inst_state pnode env xs)
    |  inst_state pnode env [] = [] 
- 
-   (************** USING DEFINITIONS *********************)
-
-
-   fun eval_atomic_clause ctxt state (data as (P {atomics,...})) (Clause (name,args)) pnode gnode =
-      case StrName.NTab.lookup atomics name of
-          NONE => []
-        | SOME f => maps (fn arg => f arg state) (inst_state pnode state args); (* why is env required? *)     
-
-   (* no overriding so both atomic and non-atomic *)
-   fun eval_arg ctxt (data as P {defs,...}) (cls as Clause (name,args)) pnode gnode (state : arg StrName.NTab.T) =
-     (eval_atomic_clause ctxt state data cls pnode gnode) @
-     (eval_clauses ctxt state data defs (name,args) pnode gnode)
-
-   and eval_clause ctxt env data (Def (dname,dargs,dbody)) (name,args) pnode gnode =
-     if name = dname 
-      then 
-       let 
-          val state = mk_state StrName.NTab.empty dargs args 
-          fun evalbody arg = maps (eval_arg ctxt data arg pnode gnode)
-       in
-          fold evalbody dbody [state] 
-          |> map (update_env dargs env)
-       end
-      else []
-
-   and eval_clauses ctxt env data clauses (name,args) pnode gnode = 
-         map (fn c => eval_clause ctxt env data c (name,args) pnode gnode) clauses;
- 
-   fun eval_goaltyp ctxt (data as P {defs,...}) (name,args) pnode (gnode as GN {env, ...}) = 
-     eval_clauses ctxt env data defs (name,args) pnode gnode
-     |> map (fn env => set_gnode_env env gnode);
-  
-
-
-
-
-
- (* TO DO: write type checker *)
- (*
-   atomics : should be registered in psgraph
- *)
-
-
-
-
-
-end (* struct *)
+*)

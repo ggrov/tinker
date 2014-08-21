@@ -116,8 +116,9 @@ struct
   fun get_pnode_name (pnode:pnode) = #pname pnode;
   fun get_pnode_ctxt (pnode:pnode) = #pctxt pnode;
 
-  fun get_pnode_concl (pnode:pnode) = #ptrm pnode;
-  
+  fun get_pnode_concl (pnode:pnode) = #ptrm pnode |> Logic.strip_imp_concl;
+  fun get_pnode_hyps (pnode:pnode) = #ptrm pnode |> Logic.strip_imp_prems;
+
   fun pretty_pnode pnode = 
     Pretty.block
      [Pretty.str "[ Goal ",
@@ -147,6 +148,15 @@ struct
    |  erule_tac _ _ _ = raise atomic_exp ("no such type")
 
   val default_tacs = [("rule",rule_tac),("erule",erule_tac)];
+
+  (**************
+    Goal type related 
+  ******************)
+  fun symbols trm = StrName.NSet.list_of (TermFeatures.constants trm)
+                  |> map TermFeatures.ignore_module;
+  fun top_symbol trm = the (TermFeatures.top_level_str trm );
+
+  (* END goal type *)
 
   structure Sharing = 
   struct
