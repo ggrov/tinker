@@ -322,6 +322,7 @@ struct
   ***********************)
 
   fun pretty_arg (Name n) = Pretty.str n
+   |  pretty_arg Ignore = Pretty.str "_"
    |  pretty_arg (Var n) = Pretty.str ("?" ^ n)
    |  pretty_arg (Concl) = Pretty.str "concl"
    |  pretty_arg  (Hyps) = Pretty.str "hyps"

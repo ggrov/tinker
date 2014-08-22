@@ -4,7 +4,7 @@ imports
   "../../provers/isabelle/basic/build/BIsaP"    
 begin
 
-  ML_file "goaltype.ML"                                                                                                                       
+  ML_file "goaltype.ML"                                                                                                                        
   
  section "Test for Isabelle"
 
@@ -35,6 +35,13 @@ begin
    val (pnode,pplan) = C.Prover.init @{context} [] t;
    C.Prover.get_pnode_hyps pnode;
  *}
+
+-- "JSON test"
+ML{*
+  val fjson = C.data_to_json prog;
+  val tjson = C.data_from_json fjson
+*}
+
 
 ML{*
 val env = StrName.NTab.empty;
