@@ -4,10 +4,11 @@ imports Main
 begin 
 (* socket *)
 ML_file "../debug_handler.ML"
-ML_file "../interface/text_socket.ML"  
+ML_file "../interface/text_socket.ML"
 
-ML{*-
-val s = TextSocket.local_client 1797; 
+
+ML{*
+val s = TextSocket.local_client 1790; 
 (*TextSocket.write s "hello from client"; *)
 *}
 
@@ -17,8 +18,8 @@ TextSocket.write s "say hello from the client\n";
 TextSocket.flushOut s;
 *}
 
-ML{*-
+(*{*-
 TextSocket.close s;
-*}
+*}*)
 
 end

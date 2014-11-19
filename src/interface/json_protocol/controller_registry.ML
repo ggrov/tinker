@@ -14,7 +14,7 @@ struct
 
 open JsonControllerUtil
 
-val mtab0 = Symtab.make [("JsonSocket", (CModPsgraph.ftab, "Utility functions"))]
+val mtab0 = Symtab.make [("JsonSocket", ((*change here*)CModPsgraph.ftab, "Utility functions"))]
 val ctab = Symtab.make [("PSGraphCtrl", mtab0)]
 
 fun dispatch ((controller, module, function), json_input) =

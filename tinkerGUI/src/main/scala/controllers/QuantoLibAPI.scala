@@ -782,7 +782,7 @@ object QuantoLibAPI extends Publisher{
 	def setEdgeValue(s: String, str: String) {setEdgeValue(EName(s), str)}
 
 	/**
-	  * Method to edit an element value (goal type for edge, strategy for vertex)
+	  * Method to edit an element value via a dialog (goal type for edge, strategy for vertex)
 	  * Was used for double-click
 	  * @param pt, point where to find element to edit
 	  */

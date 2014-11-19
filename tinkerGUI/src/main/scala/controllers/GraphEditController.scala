@@ -16,10 +16,6 @@ class GraphEditController() extends Publisher {
 
 	def getGraph = QuantoLibAPI.getGraph
 
-	def resetGraph() {
-		publish(NewGraphEvent())
-	}
-
 	def changeMouseState(state: String) {
 		state match {
 			case "select" =>

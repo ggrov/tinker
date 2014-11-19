@@ -46,10 +46,4 @@ class GraphEditPanel() extends BorderPanel {
 	}, BorderPanel.Position.North)
 	add(graphPanel, BorderPanel.Position.Center)
 	preferredSize = new Dimension(800, 800)
-	listenTo(controller)
-	reactions += {
-		case NewGraphEvent() =>
-			graphPanel = controller.getGraph
-			add(graphPanel, BorderPanel.Position.Center)
-	}
 }

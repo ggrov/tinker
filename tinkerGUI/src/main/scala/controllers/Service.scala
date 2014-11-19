@@ -9,12 +9,12 @@ import quanto.util.json._
 import tinkerGUI.utils.ArgumentParser
 
 object Service extends Publisher {
-
-	val c = CommunicationService
-
-
+	// other services
+	val c = CommunicationService // the communication needs to be "instantiates" to actually listen for connections
+	// Models
 	val hierarchyModel = new HierarchyModel()
 	val model = new PSGraph()
+	// controllers
 	val mainCtrl = new MainGUIController()
 	val graphEditCtrl = new GraphEditController()
 	val eltEditCtrl = new ElementEditController()
@@ -26,109 +26,39 @@ object Service extends Publisher {
 	val hierTreeCtrl = new HierarchyTreeController()
 	val libraryTreeCtrl = new TinkerLibraryController()
 
+	// getter-setter of the main frame
 	private var mainFrame: Component = new BorderPanel()
 	def setMainFrame(c: Component) { mainFrame = c }
 	def getMainFrame : Component = mainFrame 
 	
+	// getters on the psgraph model
+	// the all json model
 	def getJsonPSGraph = {model.updateJsonPSGraph; model.jsonPSGraph}
-
-	def changeGraphEditMouseState(state: String){
-		graphEditCtrl.changeMouseState(state)
-	}
-
-	def getHierarchyRoot = hierarchyModel.root
-	def getHierarchyActive = hierarchyModel.activeElement
-
-	def addSubgraph(tactic: String){
-		DocumentService.setUnsavedChanges(true)
-		model.newSubGraph(tactic)
-		hierarchyModel.changeActive(tactic)
-		hierTreeCtrl.redraw
-		QuantoLibAPI.newGraph()
-		graphNavCtrl.viewedGraphChanged(model.isMain, true)
-		graphBreadcrumsCtrl.addCrum(tactic)
-		publish(NothingSelectedEvent())
-	}
-
-	def deleteSubGraph(tactic: String, index: Int){
-		DocumentService.setUnsavedChanges(true)
-		model.delSubGraph(tactic, index)
-	}
-
-	def deleteTactic(tactic: String){
-		DocumentService.setUnsavedChanges(true)
-		model.deleteTactic(tactic)
-		hierarchyModel.lookForElement(tactic) match {
-			case Some(e: TreeElement) => 
-				e.children.foreach { c =>
-					deleteTactic(c.name)
-				}
-				hierarchyModel.elementArray -= e
-				hierTreeCtrl.redraw
-			case None =>
-		}
-	}
-
+	// a specific subgraph
 	def getSpecificJsonFromModel(tactic: String, index: Int) = model.getSpecificJson(tactic, index)
+	// the size of a nested tactic
 	def getSizeOfTactic(tactic: String) = model.getSizeOfTactic(tactic)
-	def setIsOr(tactic: String, isOr: Boolean) = {
-		DocumentService.setUnsavedChanges(true)
-		model.graphTacticSetIsOr(tactic, isOr)
-	}
+	// the isOr value of a nested tactic
 	def isNestedOr(tactic: String) = model.isGraphTacticOr(tactic)
-
+	// the index of the current graph
 	def getCurrentIndex = model.currentIndex
+	// the size of the current nested tactic
 	def getCurrentSize = model.currentTactic.graphs.size
+	// the current tactic name
 	def getCurrent = if(model.isMain) "main" else model.currentTactic.name
+	// the tactic value of an atomic tactic
+	def getAtomicTacticValue(tactic: String): String = model.getAtomicTacticValue(tactic)
+	// the goal types
+	def getGoalTypes = model.goalTypes
 
-	def editSubGraph(tactic: String, index: Int): Boolean = {
-		if(model.changeCurrent(tactic, index)){
-			DocumentService.setUnsavedChanges(true)
-			publish(NothingSelectedEvent())
-			getSpecificJsonFromModel(tactic, index) match {
-				case Some(j: JsonObject) =>
-					QuantoLibAPI.loadFromJson(j)
-					graphNavCtrl.viewedGraphChanged(model.isMain, false)
-					graphBreadcrumsCtrl.addCrum(tactic)
-					hierarchyModel.changeActive(tactic)
-					hierTreeCtrl.redraw
-					return true
-				case None =>
-					addSubgraph(tactic)
-					return true
-			}
-		}
-		else{
-			DocumentService.setUnsavedChanges(true)
-			addSubgraph(tactic)
-			return true
-		}
-		return false
-	}
+	// getters on the hierarchy controller
+	// the root node element of the hierarchy tree
+	def getHierarchyRoot = hierarchyModel.root
+	// the active element
+	def getHierarchyActive = hierarchyModel.activeElement
+	// the parent list of a specific element
+	def getParentList(tactic: String) = hierarchyModel.buildParentList(tactic, Array[String]())
 
-	def refreshGraph {
-		model.getCurrentJson match {
-			case Some(j: JsonObject) =>
-				QuantoLibAPI.loadFromJson(j)
-				// graphBreadcrumsCtrl.addCrum(getCurrent)
-				hierarchyModel.changeActive(getCurrent)
-				hierTreeCtrl.redraw
-			case None => TinkerDialog.openErrorDialog("<html>Program tried to refresh current graph,<br>but json model could not be found.</html>")
-		}
-	}
-
-	def saveGraphSpecificTactic(tactic: String, graph: Json) = {
-		DocumentService.setUnsavedChanges(true)
-		model.saveGraphSpecificTactic(tactic, graph)
-	}
-
-	listenTo(QuantoLibAPI)
-	reactions += {
-		case GraphEventAPI(graph) =>
-			DocumentService.setUnsavedChanges(true)
-			model.saveCurrentGraph(graph)
-			graphNavCtrl.disableAdd = false
-	}
 
 	def createNode(n: String, isGraphTactic: Boolean, isOr: Boolean): String = {
 		DocumentService.setUnsavedChanges(true)
@@ -156,8 +86,19 @@ object Service extends Publisher {
 		actualNewVal
 	}
 
-	def getParentList(tactic: String) = hierarchyModel.buildParentList(tactic, Array[String]())
-	def changeTacticParent(tactic: String, parent: String) = hierarchyModel.changeParent(tactic, parent)
+	def deleteTactic(tactic: String){
+		DocumentService.setUnsavedChanges(true)
+		model.deleteTactic(tactic)
+		hierarchyModel.lookForElement(tactic) match {
+			case Some(e: TreeElement) => 
+				e.children.foreach { c =>
+					deleteTactic(c.name)
+				}
+				hierarchyModel.elementArray -= e
+				hierTreeCtrl.redraw
+			case None =>
+		}
+	}
 
 	def parseAndUpdateArguments(tactic: String, s: String): String = {
 		DocumentService.setUnsavedChanges(true)
@@ -174,17 +115,93 @@ object Service extends Publisher {
 		model.updateTacticArguments(tactic, args)
 	}
 
-	def getAtomicTacticValue(tactic: String): String = model.getAtomicTacticValue(tactic)
+	def changeTacticParent(tactic: String, parent: String) = hierarchyModel.changeParent(tactic, parent)
+
+	def addSubgraph(tactic: String){
+		DocumentService.setUnsavedChanges(true)
+		model.newSubGraph(tactic)
+		hierarchyModel.changeActive(tactic)
+		hierTreeCtrl.redraw
+		QuantoLibAPI.newGraph()
+		graphNavCtrl.viewedGraphChanged(model.isMain, true)
+		graphBreadcrumsCtrl.addCrum(tactic)
+		publish(NothingSelectedEvent())
+	}
+
+	def deleteSubGraph(tactic: String, index: Int){
+		DocumentService.setUnsavedChanges(true)
+		model.delSubGraph(tactic, index)
+	}
+
+	def editSubGraph(tactic: String, index: Int): Boolean = {
+		if(model.changeCurrent(tactic, index)){
+			DocumentService.setUnsavedChanges(true)
+			publish(NothingSelectedEvent())
+			getSpecificJsonFromModel(tactic, index) match {
+				case Some(j: JsonObject) =>
+					QuantoLibAPI.loadFromJson(j)
+					graphNavCtrl.viewedGraphChanged(model.isMain, false)
+					graphBreadcrumsCtrl.addCrum(tactic)
+					hierarchyModel.changeActive(tactic)
+					hierTreeCtrl.redraw
+					return true
+				case None =>
+					addSubgraph(tactic)
+					return true
+			}
+		}
+		else{
+			DocumentService.setUnsavedChanges(true)
+			addSubgraph(tactic)
+			return true
+		}
+		return false
+	}
+
+	def setIsOr(tactic: String, isOr: Boolean) = {
+		DocumentService.setUnsavedChanges(true)
+		model.graphTacticSetIsOr(tactic, isOr)
+	}
+
+	def saveGraphSpecificTactic(tactic: String, graph: Json) = {
+		DocumentService.setUnsavedChanges(true)
+		model.saveGraphSpecificTactic(tactic, graph)
+	}
+
 	def setAtomicTacticValue(tactic: String, value: String) = {
 		DocumentService.setUnsavedChanges(true)
 		model.setAtomicTacticValue(tactic, value)
 	}
 
-	def getGoalTypes = model.goalTypes
 	def setGoalTypes(s: String){
 		DocumentService.setUnsavedChanges(true)
 		model.goalTypes = s
 	}
+
+	def refreshGraph {
+		model.getCurrentJson match {
+			case Some(j: JsonObject) =>
+				QuantoLibAPI.loadFromJson(j)
+				// graphBreadcrumsCtrl.addCrum(getCurrent)
+				hierarchyModel.changeActive(getCurrent)
+				hierTreeCtrl.redraw
+			case None => TinkerDialog.openErrorDialog("<html>Program tried to refresh current graph,<br>but json model could not be found.</html>")
+		}
+	}
+
+	listenTo(QuantoLibAPI)
+	reactions += {
+		case GraphEventAPI(graph) =>
+			DocumentService.setUnsavedChanges(true)
+			model.saveCurrentGraph(graph)
+			graphNavCtrl.disableAdd = false
+	}
+	
+	def changeGraphEditMouseState(state: String){
+		graphEditCtrl.changeMouseState(state)
+	}
+
+	// function to change document service
 
 	def loadJsonFromFile() {
 		DocumentService.showOpenDialog(None) match {
@@ -223,8 +240,9 @@ object Service extends Publisher {
 	}
 
 	def newDoc {
+		model.updateJsonPSGraph
 		if(DocumentService.promptUnsaved(model.jsonPSGraph)){
-			model.loadJsonGraph(JsonObject("current" -> "main", "current_index" -> 0, "graph" -> JsonObject(), "graph_tactics" -> JsonArray(Array()), "atomic_tactics" -> JsonArray(Array()), "goal_types" -> "")
+			model.loadJsonGraph(JsonObject("current" -> "main", "current_index" -> 0, "graph" -> JsonObject(), "graph_tactics" -> JsonArray(Array[JsonObject]()), "atomic_tactics" -> JsonArray(Array[JsonObject]()), "goal_types" -> ""))
 			hierarchyModel.rebuildHierarchy(model)
 			graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
 			graphBreadcrumsCtrl.addCrum(getCurrent)
