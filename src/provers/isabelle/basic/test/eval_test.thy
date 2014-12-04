@@ -3,8 +3,13 @@ theory eval_test
 imports       
   "../build/BIsaP"    
 begin
-ML{*
-  val path = (*"/Users/yuhuilin/Desktop/"*) "/u1/staff/gg112/";
+
+
+ML{*-
+  val path = "/u1/staff/gg112/";
+*}
+ML{*-
+  val path = "/Users/yuhuilin/Desktop/" ;
 *}
 (* test more complicated comb *)
 ML{*
