@@ -15,7 +15,7 @@ sig
  val cancel : EData.T -> EData.T (* remove all goal nodes *)
 
  val start : string (* term to generate goal from *)
-             -> PSGraph.T
+             -> EData.PSGraph.T
              -> EData.T
 
  (* edit of PSGraph during evaluation? *) 
