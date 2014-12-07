@@ -4,6 +4,72 @@ imports
   "../build/BIsaP"    
 begin
 
+ML{*
+
+Theory.Graph.NVert;
+
+fun make_atomic_node name args = Data.T_Atomic {name = name, args = args};
+fun graph_of_node nv = Graph.new_node ((Data.get_name nv), nv) Graph.empty;
+Graph.add_edge;
+
+val nvode = make_atomic_node "impI" [[]];
+
+val (v,g) = Theory.Graph.add_vertex (Theory.Graph.NVert nvode) Theory.Graph.empty ;
+
+ Theory.Graph.add_vertex Theory.Graph.WVert g;
+Directed;
+fun in_wire edge g =
+ Theory.Graph.add_vertex Theory.Graph.WVert g
+ |> (fn (n,g) => Theory.Graph.add_edge (Directed,edge) n v g)
+ |> (fn (_,g') => g')
+
+fun out_wire edge g =
+      g |> Theory.Graph.add_vertex Theory.Graph.WVert
+        |> (fn (n,g) => Theory.Graph.add_edge (Directed, edge) v n g)
+        |> (fn (_,g') => g')  
+*}
+
+ML{*
+fun graph_of_node_edges_vertex nvode inedges outedges =  
+     let
+       val (v,g) = Theory.Graph.add_vertex (Theory.Graph.NVert nvode) Theory.Graph.empty 
+       fun in_wire edge g =
+            g |> Theory.Graph.add_vertex Theory.Graph.OVData.WVert
+              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
+              |> (fn (n,g) => Graph.add_edge (Graph.Directed,edge) n v g)
+              |> (fn (_,g') => g')
+       fun out_wire edge g =
+            g |> Graph.add_vertex Graph.OVData.WVert
+              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
+              |> (fn (n,g) => Graph.add_edge (Graph.Directed, edge) v n g)
+              |> (fn (_,g') => g')  
+     in 
+       (v, g |> fold in_wire inedges
+             |> fold out_wire outedges)
+     end
+*}
+ML{*
+
+  fun graph_of_node_edges_vertex node inedges outedges =  
+     let
+       val (v,g) = Graph.add_vertex (Graph.OVData.NVert node) Graph.empty 
+       fun in_wire edge g =
+            g |> Graph.add_vertex Graph.OVData.WVert
+              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
+              |> (fn (n,g) => Graph.add_edge (Graph.Directed,edge) n v g)
+              |> (fn (_,g') => g')
+       fun out_wire edge g =
+            g |> Graph.add_vertex Graph.OVData.WVert
+              |> (fn (n,g) => (n,Graph.add_to_boundary n g))
+              |> (fn (n,g) => Graph.add_edge (Graph.Directed, edge) v n g)
+              |> (fn (_,g') => g')  
+     in 
+       (v, g |> fold in_wire inedges
+             |> fold out_wire outedges)
+     end
+
+*}
+
 
 ML{*-
   val path = "/u1/staff/gg112/";

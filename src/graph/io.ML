@@ -1,5 +1,4 @@
 
-
 functor PSGraphIOFun(structure Data : PSGRAPH_DATA) : GRAPH_COMPONENT_DATA_IO =
 struct
      type nvdata = Data.nvdata;

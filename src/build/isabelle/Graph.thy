@@ -4,7 +4,7 @@ imports
   BasicGoalTyp                                                                            
   "~~/contrib/quantomatic/core/isabelle/QuantoCore"                                                           
 begin
-
+ 
   ML_file "../../debug_handler.ML"
   ML_file "../../graph/graph_data.sig.ML"          
   ML_file "../../graph/graph_data.ML"                                           

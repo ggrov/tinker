@@ -55,7 +55,8 @@ ML{*
   structure PSDataIO = PSGraphIOFun(structure Data = Data);
 *}
 ML{*
-structure Theory = PSGraph_TheoryFun(SimpleGoalTyp);
+structure Theory = PSGraph_TheoryFun(structure GoalTyp = SimpleGoalTyp  
+                                     structure Data = Data);
 *}
 ML{*
 structure PSGraph = PSGraphFun(Theory);
