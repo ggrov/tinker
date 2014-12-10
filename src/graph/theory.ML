@@ -14,6 +14,8 @@ sig
   sharing type Graph.edata = Data.edata
   sharing type PSDataIO.nvdata = Data.nvdata
   sharing type PSDataIO.edata = Data.edata
+  sharing type Theory.Graph.Sharing.nvdata = Data.nvdata
+  sharing type Theory.Graph.Sharing.edata = Data.edata
 
   structure Sharing : PS_THEORY_SHARING
     sharing Sharing.Data = Data.Sharing

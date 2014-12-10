@@ -37,4 +37,6 @@ sig
   (* load a list of atomics *)
   val load_atomics : (StrName.NTab.name * Theory.Data.GoalTyp.Prover.tactic) list -> T -> T
 
+  (* write_dot_to_file, write to json *)
+
 end

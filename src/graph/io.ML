@@ -82,6 +82,7 @@ struct
             "[style=filled,fillcolor=yellow,fontcolor=red,shape=square]"
     end; (* struct DotStyle *)
 
+
 end (* end functor *)
 
 

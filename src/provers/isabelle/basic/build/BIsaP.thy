@@ -59,11 +59,18 @@ structure Theory = PSGraph_TheoryFun(structure GoalTyp = SimpleGoalTyp
                                      structure Data = Data);
 *}
 ML{*
+structure Theory_IO = PSGraph_Theory_IOFun(structure PSTheory = Theory)
+*}
+ML{*
 structure PSGraph = PSGraphFun(Theory);
 *}     
           
 ML{*
  PSGraph.empty;
+*}
+
+ML{*
+structure PSComb = PSCombFun (structure PSGraph = PSGraph)
 *}
 
 ML{*

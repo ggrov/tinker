@@ -10,6 +10,7 @@ struct
         graph_tactics : (Theory.Graph.T list) StrName.NTab.T, (* only name of parent *)
         atomic_tactics : Prover.tactic StrName.NTab.T, (* what about args? *)
         goaltype_data : Theory.Data.GoalTyp.data
+        (* parent field ? *)
     }
 
    fun update_graph f (PSGraph rep) = 
