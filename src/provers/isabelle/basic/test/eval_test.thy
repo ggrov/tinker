@@ -17,6 +17,8 @@ Theory_IO.write_dot path
 
 ML{*
 val vnode =  Data.T_Atomic {name = "hello9", args = [[]]};
+val vnode1 =  Data.T_Atomic {name = "hello1", args = [[]]};
+val vnode2 =  Data.T_Atomic {name = "hello2", args = [[]]};
 val ins = [Data.GT "a", Data.GT "b", Data.GT "c"]
 val outs = [Data.GT "d", Data.GT "e"]
 val ins1 = [Data.GT "a", Data.GT "b"]
@@ -24,6 +26,7 @@ val ins2 = [Data.GT "c", Data.GT "d"]
 val outs1 = [Data.GT "c", Data.GT "d"]
 val outs2 = [Data.GT "e", Data.GT "c"]
 *}
+
 ML{*
 val g = PSComb.graph_of_node_edges vnode ins outs;
 PSComb.boundary_inputs g;
@@ -33,7 +36,11 @@ PSComb.graph_tensor g g |> snd |> Theory_IO.write_dot (path^"test2.dot");
 val g1 = PSComb.graph_of_node_edges vnode ins1 outs1;
 val g2 = PSComb.graph_of_node_edges vnode ins2 outs2;
 PSComb.graph_then g1 g2 |> snd |> Theory_IO.write_dot (path^"test_then1.dot");
-PSComb.LOOP_WITH g2 (Data.GT "c") |> Theory_IO.write_dot (path^"test_loop_with.dot");
+PSComb.LOOP_WITHG g2 (Data.GT "c") |> Theory_IO.write_dot (path^"test_loop_with.dot");
+
+val ps1 = PSComb.LIFT' (ins1, outs1) vnode1;
+val ps2 = PSComb.LIFT' (ins2, outs2) vnode2;
+PSComb.THEN (ps1, ps2) |> PSGraph.get_graph |> Theory_IO.write_dot (path^"test_psthen.dot");;
 *}
 
 

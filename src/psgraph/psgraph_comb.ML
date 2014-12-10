@@ -78,7 +78,7 @@ struct
     end;
    
 
-  fun TENSOR g1 g2 = graph_tensor g1 g2 |> snd;
+  fun TENSORG g1 g2 = graph_tensor g1 g2 |> snd;
   
   (* src, dest *)
   fun check_pluggable_el (_,(_,e1),_) (_,(_,e2),_) =
@@ -119,14 +119,14 @@ struct
      ((rnv,rne),g')
     end;
 
-  fun THEN g1 g2 = graph_then g1 g2 |> snd;
+  fun THENG g1 g2 = graph_then g1 g2 |> snd;
   
   (* essentially then without all the renaming... *)
-  fun LOOP g =  
+  fun LOOPG g =  
      fst (fold plug_one (boundary_outputs g) (g,boundary_inputs g));
   
   (* DO TO: fixme - now hack: picks first *)
-  fun LOOP_WITH g e =
+  fun LOOP_WITHG g e =
    let
     fun check_typ (_,(_,d),_) = Theory.Graph.edata_eq(e,d);
     val filter_typ = filter check_typ 
@@ -135,6 +135,43 @@ struct
    in
      fst (fold plug_one [hd outs] (g,[hd ins]))
    end;
+
+(* ---------------------- COMBOs for psgraph ---------------------- *)
+(* todo and fixme: need to handle duplications *)
+  fun THEN (ps1, ps2) =
+     let 
+       val g1 = PSGraph.get_graph ps1
+       val g2 = PSGraph.get_graph ps2
+       val g' = THENG g1 g2
+    in
+      PSGraph.merge_disjoint ps1 ps2 |> PSGraph.set_graph g' (* todo: merge and rename *)
+    end;
+
+  fun TENSOR (ps1, ps2) =
+   let 
+     val g1 = PSGraph.get_graph ps1
+     val g2 = PSGraph.get_graph ps2
+     val g = TENSORG g1 g2
+  in
+    PSGraph.merge_disjoint ps1 ps2 |> PSGraph.set_graph g
+  end;
+
+  fun LOOP_WITH psfn gt ps =
+    let
+      val ps1 = psfn ps
+      val graph = PSGraph.get_graph ps1
+      val edge = Theory.Data.GT gt
+      val graph' = LOOP_WITHG graph edge
+    in
+     PSGraph.set_graph graph' ps1
+   end;
+
+  fun LIFT (ins,outs) nvdata ps = 
+    ps |> PSGraph.set_graph (graph_of_node_edges nvdata ins outs);
+
+  fun LIFT' (ins,outs) nvdata = 
+     PSGraph.of_graph (graph_of_node_edges nvdata ins outs);
+
 
 end; (* end struct *)
 
