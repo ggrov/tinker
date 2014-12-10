@@ -18,7 +18,7 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 			}
 		})
 
-	ctrl.addValueListener(nodeValue, (typ == "RT_NST"))
+	ctrl.addValueListener(nodeValue, (typ == "Nested"))
 
 	contents += new FlowPanel(){
 		contents += new Label("Node : " + nam)
@@ -143,7 +143,8 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, ctrl
 
 class ElementEditPanel() extends BoxPanel(Orientation.Vertical) {
 	val controller = Service.eltEditCtrl
-	minimumSize = new Dimension(250, 250)
+	//minimumSize = new Dimension(250, 250)
+	preferredSize = new Dimension(250, 250)
 	listenTo(controller)
 	listenTo(Service)
 	reactions += {

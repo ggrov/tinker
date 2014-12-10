@@ -5,6 +5,7 @@ import scala.swing.BorderPanel
 import scala.swing.event.Event
 import scala.swing.event.Key.Modifiers
 import quanto.util.json.Json
+import scala.collection.mutable.ArrayBuffer
 
 case class GraphEventAPI(graph: Json) extends Event
 case class DocumentSaved() extends Event
@@ -34,3 +35,6 @@ case class HideNavigationEvent() extends Event
 case class ShowNavigationEvent() extends Event
 case class HierarchyTreeEvent() extends Event
 case class RebuildBreadcrumParentEvent(p: Array[String]) extends Event
+case class EnableEvalOptionsEvent(a:ArrayBuffer[String]) extends Event
+case class DisableEvalOptionsEvent() extends Event
+case class EvalOptionSelectedEvent(o:String) extends Event

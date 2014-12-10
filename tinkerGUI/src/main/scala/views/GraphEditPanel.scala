@@ -45,5 +45,5 @@ class GraphEditPanel() extends BorderPanel {
 		}, BorderPanel.Position.South)
 	}, BorderPanel.Position.North)
 	add(graphPanel, BorderPanel.Position.Center)
-	preferredSize = new Dimension(800, 800)
+	minimumSize = new Dimension(800, 800)
 }

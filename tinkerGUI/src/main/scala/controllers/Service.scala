@@ -7,6 +7,10 @@ import tinkerGUI.model.TreeElement
 import tinkerGUI.model.HasArguments
 import quanto.util.json._
 import tinkerGUI.utils.ArgumentParser
+import scala.collection.mutable.ArrayBuffer
+import scala.concurrent._
+import ExecutionContext.Implicits.global
+import scala.util.{Success, Failure}
 
 object Service extends Publisher {
 	// other services
@@ -20,6 +24,7 @@ object Service extends Publisher {
 	val eltEditCtrl = new ElementEditController()
 	val menuCtrl = new MenuController()
 	val editControlsCtrl = new EditControlsController()
+	val evalControlsCtrl = new EvalControlsController()
 	val graphBreadcrumsCtrl = new GraphBreadcrumsController()
 	val subGraphEditCtrl = new SubGraphEditController()
 	val graphNavCtrl = new GraphNavigationController()
@@ -201,6 +206,42 @@ object Service extends Publisher {
 		graphEditCtrl.changeMouseState(state)
 	}
 
+	def displayEvalGraph(tactic:String, index:Int, j:JsonObject){
+		model.changeCurrent(tactic, index)
+		DocumentService.setUnsavedChanges(true)
+		publish(NothingSelectedEvent())
+		QuantoLibAPI.loadFromJson(j)
+		graphNavCtrl.viewedGraphChanged(model.isMain, false)
+		graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
+		graphBreadcrumsCtrl.addCrum(getCurrent)
+		hierarchyModel.changeActive(getCurrent)
+		hierTreeCtrl.redraw
+	}
+
+	def loadJson(j:Json) {
+		if(!j.isEmpty){
+			model.loadJsonGraph(j)
+			hierarchyModel.rebuildHierarchy(model)
+			graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
+			graphBreadcrumsCtrl.addCrum(getCurrent)
+			graphNavCtrl.viewedGraphChanged(model.isMain, false)
+			refreshGraph
+		}
+		else{
+			TinkerDialog.openErrorDialog("<html>Error while loading json from file : object is empty.</html>")
+		}
+	}
+
+	def enableEvalOptions(v:ArrayBuffer[String]){
+		evalControlsCtrl.enableOptions(v)
+	}
+
+	def userEvalChoice:String = {
+		// asynchronous call here
+		// either get selected in evalController until different from "" --> not pretty
+		// or make asynchronous listener to event where user selects option
+	}
+
 	// function to change document service
 
 	def loadJsonFromFile() {
@@ -222,7 +263,7 @@ object Service extends Publisher {
 	}
 
 	def saveJsonToFile() {
-		model.updateJsonPSGraph
+		model.updateJsonPSGraph;
 		DocumentService.file match {
 			case Some(_) => DocumentService.save(None, model.jsonPSGraph)
 			case None => DocumentService.saveAs(None, model.jsonPSGraph)
