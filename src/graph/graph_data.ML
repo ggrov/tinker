@@ -235,6 +235,7 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
   struct
     type nvdata = nvdata
     type edata = edata
+    structure GoalTyp = GoalTyp.BasicSharing
   end
 
 end;

@@ -83,4 +83,9 @@ struct
      (fn (str, tac) => update_atomic_tactics (StrName.NTab.doadd (str, tac)))
      tacs ps;
 
+   structure Sharing = 
+   struct
+    type T = T
+    structure Theory = Theory.Sharing
+   end
 end

@@ -1,7 +1,7 @@
 (* simple test of proof representation *)
 theory Graph                                                                                           
 imports                            
-  BasicGoalTyp                                                                            
+  BasicGoalTyp                                                                           
   "~~/contrib/quantomatic/core/isabelle/QuantoCore"                                                           
 begin
  

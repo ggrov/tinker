@@ -1,6 +1,6 @@
 (* evaluation *)
 
-functor EValFun(EData : EVAL_DATA) =
+functor EValFun(EData : EVAL_DATA) : EVAL =
 struct
  structure EData = EData;
  structure Theory = EData.PSGraph.Theory;
@@ -314,9 +314,6 @@ struct
    eval_goal_atomic_node_names is_interactive gnode tnode gnode edata
   end;
 
-
-
-
    (* allows to step over gnodes *)
    fun try_get_out graph v =
     if Util.is_tactic graph v (* assume no variables *) 
@@ -459,7 +456,6 @@ struct
     |> (fn x => case x of [] => []
       | _ => x)
    end;
-
 
 end (* functor *)
 

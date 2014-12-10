@@ -1,3 +1,12 @@
+signature EVAL_DATA_SHARING =
+sig
+  type branch
+  type active
+  type T
+  type gnode
+  structure PSGraph : PS_GRAPH_SHARING
+end
+
 signature EVAL_DATA =
 sig 
   (* add sharing constraints *)
@@ -99,5 +108,11 @@ sig
   
   val pretty_goals : T -> Pretty.T
 
+  structure Sharing : EVAL_DATA_SHARING
+    sharing type branch = Sharing.branch
+    sharing type active = Sharing.active
+    sharing type T = Sharing.T
+    sharing type gnode = Sharing.gnode
+    sharing Sharing.PSGraph = PSGraph.Sharing
 
 end (* signature *)

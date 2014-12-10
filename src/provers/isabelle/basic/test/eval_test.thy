@@ -38,49 +38,152 @@ val g2 = PSComb.graph_of_node_edges vnode ins2 outs2;
 PSComb.graph_then g1 g2 |> snd |> Theory_IO.write_dot (path^"test_then1.dot");
 PSComb.LOOP_WITHG g2 (Data.GT "c") |> Theory_IO.write_dot (path^"test_loop_with.dot");
 
-val ps1 = PSComb.LIFT' (ins1, outs1) vnode1;
-val ps2 = PSComb.LIFT' (ins2, outs2) vnode2;
-PSComb.THEN (ps1, ps2) |> PSGraph.get_graph |> Theory_IO.write_dot (path^"test_psthen.dot");;
+val ps1 = PSComb.LIFT (ins1, outs1) vnode1;
+val ps2 = PSComb.LIFT (ins2, outs2) vnode2;
+PSComb.THEN (ps1, ps1) |> PSGraph.get_graph |> Theory_IO.write_dot (path^"test_psthen.dot");;
 *}
 
+
+ML{*
+fun atac_args ctxt i args = atac i
+*}
 
 
 (* test more complicated comb *)
 ML{*
-  val asm = RTechn.id
-          |> RTechn.set_name (RT.mk "assumption")
-          |> RTechn.set_atomic_appf (RTechn.Tactic (RTechn.TAllAsm, "atac"));
-  
-  val conjI = RTechn.id
-          |> RTechn.set_name (RT.mk "rule conjI")
-          |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["conjI"]));
-  
-  val impI = RTechn.id
-          |> RTechn.set_name (RT.mk "rule impI")
-          |> RTechn.set_atomic_appf (RTechn.Rule (StrName.NSet.of_list ["impI"]));
-  
-  
-  val gt = SimpleGoalTyp.default;
-  val gt_imp = "top_symbol(HOL.implies)";
-  val gt_conj = "top_symbol(HOL.conj)";
+  val asm =  Data.T_Atomic {name = "atac", args = [[]]}; 
+
+  val gt = Data.GT SimpleGoalTyp.default;
+  val gt_imp =  Data.GT "top_symbol(HOL.implies)";
+  val gt_conj = Data.GT "top_symbol(HOL.conj)";
   
   infixr 6 THENG;
-  val op THENG = PSComb.THENG;
+  val op THEN = PSComb.THEN;
   
-  val psconjI0 =  PSComb.LIFT ([gt_conj],[gt_conj, gt_imp]) (conjI);
-  val psconjI = PSComb.LIFT ([gt_conj],[gt]) (conjI);
-  val psimpI = PSComb.LIFT ([gt_imp],[gt]) (impI);
-  val psasm1 = PSComb.LIFT ([gt],[]) (asm);
-  val psasm2 = PSComb.LIFT ([gt,gt],[]) (asm);
-  val psfg3 = psconjI0 THENG  psconjI THENG psimpI THENG psasm2;
-  val psgraph = psfg3 PSGraph.empty;
+  val psasm =  PSComb.LIFT ([gt_conj],[gt]) (asm) |>  PSGraph.load_atomics [("atac", atac_args)];
 
-  PSGraph.PSTheory.write_dot (path ^ "graph.dot") ( PSGraph.get_graph psgraph);
+ Theory_IO.write_dot (path ^ "graph.dot") ( PSGraph.get_graph psasm);
+*}
+
+
+ML{*
+val edata0 = EVal.init psasm @{context} @{prop "A \<Longrightarrow>(A \<and> A)  \<and> (A \<longrightarrow> A)"} |> hd; 
+Theory_IO.write_dot (path ^ "graph0.dot") (EData.get_graph edata0)  
 *}
 
 ML{*
-val edata0 = EVal.init psgraph @{context} @{prop "A \<Longrightarrow>(A \<and> A)  \<and> (A \<longrightarrow> A)"} |> hd; 
-PSGraph.PSTheory.write_dot (path ^ "graph0.dot") (EData.get_graph edata0)  
+  fun eval_any edata = 
+   let 
+    val graph = (EData.get_graph edata) 
+    fun update_branches edata branches = 
+      let val new_branches = branches @ (EData.get_branches edata) in
+        case new_branches of 
+          [] => IEVal.Bad (* should never happen *)
+          | (x::xs) => (* fixme: this should be based on the search strategy *)
+               IEVal.Cont (edata 
+                    |> EData.set_current x 
+                    |> EData.set_branches xs)
+      end
+   in
+    if EVal.has_terminated edata then
+     (case EData.parent_lhs edata of
+       NONE =>  IEVal.Good edata
+       | _ =>  IEVal.Good edata) (* fixme: this should be hie one *)
+    else
+   (* todo: hierichecal one *)
+     EVal.Util.all_gnodes graph
+       |> map (EVal.Util.gnode_of graph)
+       |> map (EVal.Theory.GoalTyp.goal_name)
+       |> map (fn g => EVal.eval_goal_atomic true g edata
+                       |> Seq.list_of
+                       |> map fst)
+       |> List.concat
+       |> update_branches edata
+  end;
+
+*}
+ML{*
+ val graph = (EData.get_graph edata0); 
+val g = EVal.Util.all_gnodes graph |> hd |> EVal.Util.gnode_of graph;
+
+
+  val gnode = EVal.Util.all_gnodes graph
+               |> filter (fn gn => gname = GoalTyp.goal_name (EValUtil.gnode_of graph gn))
+               |> (fn [x] => x) (* raise exception: log if not singleton list *)
+     val goal = EVal.Util.gnode_of graph gnode
+*}
+
+ML{*
+eval_any edata0;
+(* val edata1 = EVal.normalise_gnode edata1; *)
+PSGraph.PSTheory.write_dot (path ^"graph1.dot") (EData.get_graph edata1)   
+*}
+
+ML{* - 
+(* do we need to normalise ? *) 
+val del_empty_gnode = 
+  let
+    val edge = Data.GT_Var "e";
+    (*val node = Data.G (GData.GN_Empty);*) (*do we still neeed this ? *)
+    val (inp,g0) = Theory.Graph.add_vertex Theory.Graph.WVert Theory.Graph.empty;
+    val (outp,g0) = Theory.Graph.add_vertex Theory.Graph.WVert g0;
+    val (bn,left) = Graph.add_vertex (Graph.OVData.NVert node) g0; 
+    val left = left |> Graph.doadd_edge (Graph.Directed,edge) inp bn
+                    |> Graph.doadd_edge (Graph.Directed,edge) bn outp;
+    val right = Graph.doadd_edge (Graph.Directed,edge) inp outp g0
+  in
+     Theory.Rule.mk (left,right)
+  end;
+ val gnode_rs = Theory.Ruleset.empty
+            |> Theory.Ruleset.add_fresh_rule (R.mk "del_empty",del_empty_gnode)
+            |> (fn (rn,rs) => Theory.Ruleset.activate_rule rn rs)
+            |> Theory.Ruleset.add_fresh_rule (R.mk "split_pair",split_gnode_pairs)
+            |> (fn (rn,rs) => Theory.Ruleset.activate_rule rn rs)
+
+ val gnode_one_step  = Theory.RulesetRewriter.apply gnode_rs
+                     #> Seq.map snd;
+
+ fun normalise_gnode g = 
+   case Seq.pull (gnode_one_step g) of
+      NONE => g
+*}
+
+ML{*
+val (EVal.Cont edata1) = EVal.evaluate_any edata0;
+val edata1 = EVal.normalise_gnode edata1;
+PSGraph.PSTheory.write_dot (path ^"graph1.dot") (EData.get_graph edata1)   
+*}
+
+ML{*
+local open EVal in
+
+
+    
+  fun evaluate edata v = 
+    case EGraph.Util.lookup_rtechn (EData.get_graph edata) v of
+      NONE => raise evaluate_exp (SOME v, "Vertex not a reasoning technique")
+    | SOME rt =>
+       if (RTechn.is_atomic rt) then eval_atomic edata v rt 
+       else if (RTechn.is_merge rt) then raise evaluate_exp (SOME v, "merge not supported")
+       else if (RTechn.is_identity rt) then raise evaluate_exp (SOME v, "identity not supported")
+       else if (RTechn.is_hgraph rt) then eval_nested edata v
+       else if (RTechn.is_or rt) then eval_or edata v
+       else if (RTechn.is_orelse rt) then raise evaluate_exp (SOME v, "orelse not supported")
+       else raise evaluate_exp (SOME v, "Unknown reasoning technique type")
+     ;
+   fun evaluate_any edata =
+    if has_terminated edata then
+     (case EData.parent_lhs edata of
+       NONE => Good edata
+       | _ =>  update_branches edata (fold_nested edata))
+    else
+     EGraph.Util.all_rtechns (EData.get_graph edata)
+     |> Seq.of_list
+     |> Seq.maps (evaluate edata)
+     |> update_branches edata
+
+end
+
 *}
 
 ML{*
