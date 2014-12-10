@@ -115,4 +115,17 @@ class HierarchyModel() {
 			case None => TinkerDialog.openErrorDialog("<html>Error while build hierarchy, element : "+parent.name+" not found in model.</html>")
 		}
 	}
+
+	def getJsonParentsList():Json = {
+		def getParents(elt:TreeElement):ArrayBuffer[Json] = {
+			var map = ArrayBuffer[Json]();
+			elt.children.foreach{c=>
+				map = map :+ JsonObject(c.name -> elt.name);
+				map = map ++ getParents(c);
+			}
+			map
+		}
+		var map = getParents(root);
+		JsonArray(map);
+	}
 }
