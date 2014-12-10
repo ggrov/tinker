@@ -1,4 +1,9 @@
 (* to do: all should be in a single file *)
+signature PSGRAPH_DATA_SHARING = 
+sig
+  type nvdata
+  type edata
+end
 
 signature PSGRAPH_DATA =
 sig
@@ -103,6 +108,9 @@ sig
   val subst_in_nvdata : subst -> nvdata -> subst * nvdata
   val subst_in_edata : subst -> edata -> subst * edata
 
+  structure Sharing : PSGRAPH_DATA_SHARING
+    sharing type Sharing.nvdata = nvdata
+    sharing type Sharing.edata = edata
 
 end
 

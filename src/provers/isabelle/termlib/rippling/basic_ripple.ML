@@ -45,13 +45,13 @@ struct
       EqSubst.eqsubst_tac ctxt occ [(Substset.thm_of_rule rule)] i thm |> Seq.hd |> Seq.single
    in 
      Seq.maps apply_subst (Seq.of_list params) 
-     |> (fn x => (rtechn_tracing ("rippling: " ^ Int.toString (length(Seq.list_of x))) ; x)) 
+     |> (fn x => (atomic_tracing ("rippling: " ^ Int.toString (length(Seq.list_of x))) ; x)) 
    end
 *)
 
   fun ripple_tac ctxt i thm = 
   let 
-    val _ = rtechn_tracing "****call ripple_tac****";
+    val _ = atomic_tracing "****call ripple_tac****";
     val sg = 
       Thm.prop_of thm 
       |> (fn t => Logic.get_goal t i) 
@@ -59,21 +59,21 @@ struct
     val hyps  = Logic.strip_imp_prems sg |> map TermFeatures.fix_alls_as_var
     val goal = Logic.strip_imp_concl sg (*|> TermFeatures.fix_alls_in_term*)
     val _ = Pretty.chunks ([Pretty.str "hyps in rippling: "] @ (map (Syntax.pretty_term ctxt) hyps)) 
-           |> Pretty.string_of |> rtechn_tracing
+           |> Pretty.string_of |> atomic_tracing
     val _ = Pretty.chunks ([Pretty.str "goal in rippling: "] @ [((Syntax.pretty_term ctxt goal))]) 
-           |> Pretty.string_of |> rtechn_tracing
+           |> Pretty.string_of |> atomic_tracing
     val skel = filter (fn hyp => TermFeatures.ctxt_embeds ctxt hyp goal) hyps |> hd (* only get the first embedding *)
     val _ = Pretty.chunks ([Pretty.str "skel in rippling: "] @ [((Syntax.pretty_term ctxt skel))]) 
-           |> Pretty.string_of |> rtechn_tracing
+           |> Pretty.string_of |> atomic_tracing
     val wrules = get_matched_wrules ctxt goal
     val params = TermFeatures.get_decreased_measure_params ctxt skel wrules goal;
     val pretty_params = map TermFeatures.Data.pretty_subst_params params;
-    val _ = rtechn_tracing ("**** apply rippling ****: " ^ (Pretty.string_of (Pretty.chunks pretty_params)))
+    val _ = atomic_tracing ("**** apply rippling ****: " ^ (Pretty.string_of (Pretty.chunks pretty_params)))
     fun pre_ripple_tac (occ, rule) =   
       EqSubst.eqsubst_tac ctxt occ [(Substset.thm_of_rule rule)] i thm |> Seq.hd |> Seq.single
   in 
     Seq.maps pre_ripple_tac (Seq.of_list params) 
-    |> (fn x => (rtechn_tracing ("rippling: " ^ Int.toString (length(Seq.list_of x))) ; x))
+    |> (fn x => (atomic_tracing ("rippling: " ^ Int.toString (length(Seq.list_of x))) ; x))
   end
     
 end;

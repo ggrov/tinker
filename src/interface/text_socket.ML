@@ -7,8 +7,9 @@ sig
   val flushOut: T -> unit (* flush to the other end *)
   val read : T -> string (* read from stream *)
   val close : T -> unit (* close stream *)
-  (* donesn't work currently*)
+
   val safe_local_server : int -> T (* connects to port *)
+  val safe_local_client: int -> T
   val safe_close : T -> unit (* close stream *)
 
   val get_instream : T -> TextIO.instream
@@ -188,9 +189,37 @@ fun local_client port =
     DebugHandler.debug_warning ("faile to clear up last socket "))
 
   exception exp_text_socket of string
+
+  fun safe_local_client port = 
+    let 
+      val _ = socket_tracing "start safe client"
+      (* get the synchornised sock *)
+      val {sock, passive, sin, sout} = Synchronized.value last_sock
+    in
+      case sock
+      (* exists a current connecntion, just return the current one*)
+        of (SOME _) => 
+          SockData {sock = Option.valOf sock, passive = NONE (*dummy*),
+              sin = Option.valOf sin, sout = Option.valOf sout } 
+      (* does not exist, create one *)
+        | NONE =>
+            (let 
+              val new_socket = local_client port 
+              val sin'=  get_instream new_socket 
+              val sout' =  get_outstream new_socket
+              val sock' =  get_socket new_socket
+            in
+              ((Synchronized.change last_sock 
+                (fn _ => 
+                  {sock = SOME sock', passive = NONE, sin = SOME sin' , sout = SOME sout'}));
+              (SockData {sock = sock', passive = NONE (*dummy*), sin = sin', sout = sout' }))
+             end)
+    end
+
+
   fun safe_local_server port = 
     let  
-      val _ = socket_tracing "start safe connect"
+      val _ = socket_tracing "start safe server"
       val passive_sock = init_socket port;
       val _ = 
         Synchronized.change 
@@ -236,4 +265,5 @@ fun local_client port =
 
 end (* struct *)
 
-structure TextSocket : TEXT_SOCKET = TextSocket_DB
+structure TextSocket : TEXT_SOCKET = TextSocket_DB;
+

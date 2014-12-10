@@ -1,5 +1,4 @@
 
-
 functor PSGraphIOFun(structure Data : PSGRAPH_DATA) : GRAPH_COMPONENT_DATA_IO =
 struct
      type nvdata = Data.nvdata;
@@ -82,6 +81,7 @@ struct
         | style_for_ivertex_data (Data.T_Var _) =
             "[style=filled,fillcolor=yellow,fontcolor=red,shape=square]"
     end; (* struct DotStyle *)
+
 
 end (* end functor *)
 

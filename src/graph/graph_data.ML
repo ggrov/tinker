@@ -231,6 +231,12 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
 
   (* add all configurations required here *)
 
+  structure Sharing = 
+  struct
+    type nvdata = nvdata
+    type edata = edata
+  end
+
 end;
 
 

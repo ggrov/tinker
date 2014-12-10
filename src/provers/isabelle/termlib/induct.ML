@@ -57,7 +57,7 @@ struct
   
   fun induct_tac' rule vars ith goalthm ifArbitrary= 
       let
-        val _ = rtechn_tracing ("apply induction on: " ^ (hd vars))
+        val _ = atomic_tracing ("apply induction on: " ^ (hd vars))
           (*Dummy context for the sake of Isar*)
         val ctxt = Proof_Context.init_global (Thm.theory_of_thm goalthm);
         val (ithings, non_ithings) = inductable_things_in_sg ith goalthm;
@@ -98,7 +98,7 @@ struct
   (* apply induction on the all applicable vars *)
   fun induct_tac i thm = 
     let 
-      val _ = rtechn_tracing "call induct_tac";
+      val _ = atomic_tracing "call induct_tac";
       val (vars, _) = inductable_things_in_sg i thm 
       val ivars = map (fn (x, _) => [x]) vars |> Seq.of_list
     in 
