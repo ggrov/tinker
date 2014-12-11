@@ -6,10 +6,10 @@ import scala.collection.mutable.ArrayBuffer
 
 class EvalControlsController() extends Publisher {
 	var evalOptions = ArrayBuffer[String]()
-	var selected:String = ""
+	// var selected:String = ""
 	def enableOptions(v:ArrayBuffer[String]){
 		evalOptions = v
-		selected = ""
+		// selected = ""
 		publish(EnableEvalOptionsEvent(evalOptions))
 	}
 
@@ -19,7 +19,7 @@ class EvalControlsController() extends Publisher {
 
 	def selectOption(o:String){
 		disableOptions
-		selected = o
-		// publish(EvalOptionSelectedEvent(o))
+		// selected = o
+		publish(EvalOptionSelectedEvent(o))
 	}
 }

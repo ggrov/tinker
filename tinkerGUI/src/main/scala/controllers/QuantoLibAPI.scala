@@ -218,25 +218,31 @@ object QuantoLibAPI extends Publisher{
 	  * @param e, the name of the edge
 	  */
 	private def deleteEdge(e: EName) {
-		val d = graph.edata(e)
-		val vs = (graph.source(e), graph.target(e))
+		var edge = e
+		var hadBreak = false;
+		if(hasBreak(e.s)){
+			hadBreak = true;
+			edge = EName(removeBreakpointFromEdge(e.s))
+		}
+		var d = graph.edata(edge)
+		val vs = (graph.source(edge), graph.target(edge))
 		val src = vs._1
 		val tgt = vs._2
 		val srcData = graph.vdata(vs._1)
 		val tgtData = graph.vdata(vs._2)
-		val delSource = (srcData.isBoundary || (srcData match { case d:NodeV => d.typ == "break"}))
-		val delTarget = (tgtData.isBoundary || (tgtData match { case d:NodeV => d.typ == "break"}))
+		val delSource = (srcData.isBoundary)
+		val delTarget = (tgtData.isBoundary)
 		val srcSelected = if(view.selectedVerts.contains(src)) {
 			view.selectedVerts -= src; true
 		} else false
 		val tgtSelected = if(view.selectedVerts.contains(tgt)) {
 			view.selectedVerts -= tgt; true
 		} else false
-		val selected = if (view.selectedEdges.contains(e)) {
-			view.selectedEdges -= e; true
+		val selected = if (view.selectedEdges.contains(edge)) {
+			view.selectedEdges -= edge; true
 		} else false
 		graph.edgesBetween(vs._1, vs._2).foreach { view.invalidateEdge }
-		changeGraph(graph.deleteEdge(e))
+		changeGraph(graph.deleteEdge(edge))
 		if(delSource){
 			view.invalidateVertex(src)
 			deleteVertex(src)
@@ -254,8 +260,9 @@ object QuantoLibAPI extends Publisher{
 				changeGraph(graph.addVertex(tgt, tgtData))
 				if (tgtSelected) view.selectedVerts += tgt
 			}
-			addEdge(e, d, vs)
-			if (selected) view.selectedEdges += e
+			addEdge(edge, d, vs)
+			if (selected) view.selectedEdges += edge
+			if(hadBreak) addBreakpointOnEdge(edge.toString)
 		}
 	}
 
@@ -838,7 +845,13 @@ object QuantoLibAPI extends Publisher{
 			deleteVertex(VName(eltName))
 		}
 		else if (graph.edata.contains(EName(eltName))){
-			deleteEdge(EName(eltName))
+			var ename = ""
+			if(hasBreak(eltName)){
+				ename = removeBreakpointFromEdge(eltName)
+			}
+			if(ename != ""){
+				deleteEdge(EName(ename))
+			}
 		}
 	}
 
@@ -921,35 +934,40 @@ object QuantoLibAPI extends Publisher{
 		}
 	}
 
-	def removeBreakpointFromEdge(e:String){
+	def removeBreakpointFromEdge(e:String):String = {
+		var newEdgeName = ""
 		if(hasBreak(e)){
 			graph.vdata(graph.source(EName(e))) match {
-				case d:NodeV if(d.typ == "break") => removeBreakpoint(graph.source(EName(e)).s)
-				case _ =>
-			}
-			graph.vdata(graph.target(EName(e))) match {
-				case d:NodeV if(d.typ == "break") => removeBreakpoint(graph.target(EName(e)).s)
-				case _ =>
+				case d:NodeV if(d.typ == "break") => newEdgeName = removeBreakpoint(graph.source(EName(e)).s)
+				case _ => graph.vdata(graph.target(EName(e))) match {
+					case d:NodeV if(d.typ == "break") => newEdgeName = removeBreakpoint(graph.target(EName(e)).s)
+					case _ =>
+				}
 			}
 		}
+		newEdgeName
 	}
 
 	/**
 	  * Method to remove the selected breakpoint
 	  */
-	def removeBreakpoint(v: String) {
+	def removeBreakpoint(v: String):String = {
+		var newEdgeName = ""
 		graph.vdata(VName(v)) match {
 			case d:NodeV if(d.typ == "break") =>
 				val break = v
-				val edata = graph.edata(graph.inEdges(break).head)
+				val edata = DirEdge.fromJson(theory.defaultEdgeData, theory)
 				val src = graph.source(graph.inEdges(break).head)
 				val tgt = graph.target(graph.outEdges(break).head)
 				graph.adjacentEdges(break).foreach {e => view.invalidateEdge(e) ; changeGraph(graph.deleteEdge(e))}
 				view.invalidateVertex(break)
 				changeGraph(graph.deleteVertex(break))
-				changeGraph(graph.addEdge(graph.edges.fresh, edata, (src, tgt)))
+				val ename = graph.edges.fresh
+				changeGraph(graph.addEdge(ename, edata, (src, tgt)))
+				newEdgeName = ename.toString
 			case _ =>
 		}
+		newEdgeName
 	}
 
 	/**

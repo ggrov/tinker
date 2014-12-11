@@ -38,3 +38,4 @@ case class RebuildBreadcrumParentEvent(p: Array[String]) extends Event
 case class EnableEvalOptionsEvent(a:ArrayBuffer[String]) extends Event
 case class DisableEvalOptionsEvent() extends Event
 case class EvalOptionSelectedEvent(o:String) extends Event
+case class UserSelectedEvalOptionEvent(o:String) extends Event
