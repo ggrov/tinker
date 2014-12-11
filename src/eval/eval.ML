@@ -94,7 +94,7 @@ struct
       end;
 
    (* assumes: 1/1 - so just replace by wire node *)
-   val del_gnode = Graph.update_vertex_data (K Theory.Graph.WVert) |> Theory.Graph.normalise;
+   fun del_gnode gnode g = Graph.update_vertex_data (K Theory.Graph.WVert) gnode g |> Theory.Graph.minimise;
 
    fun mk_binput edata dest graph =
      graph |> Graph.add_vertex Graph.WVert
@@ -288,8 +288,10 @@ struct
     | add_gnodes _ [] graph = graph
    in
       Seq.maps (fn (b,rs) 
-        => (map (fn res => (EData.set_bgraph (add_gnodes out_edges res graph') b, rs)) rs) 
-            |> Seq.of_list) result
+        => (case rs 
+             of [] => [(EData.set_bgraph  graph' b, rs)] |> Seq.of_list (* no new goal is produced *)
+               | _ => (map (fn res => (EData.set_bgraph (add_gnodes out_edges res graph') b, rs)) rs) 
+                       |> Seq.of_list)) result
    end
 
  fun eval_goal_atomic_goalnode is_interactive gnode edata = 

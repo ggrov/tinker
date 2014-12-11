@@ -67,7 +67,8 @@ struct
    fun merge_disjoint ps1 ps2 =      
     let 
       val graph_tactics' = StrName.NTab.merge_disjoint (get_graph_tactics ps1) (get_graph_tactics ps2)
-      val atomic_tactics' = StrName.NTab.merge_disjoint (get_atomic_tactics ps1) (get_atomic_tactics ps2)
+      val atomic_tactics' = StrName.NTab.merge_joint (fn (_,_) => true) (get_atomic_tactics ps1) (get_atomic_tactics ps2)
+      (*val atomic_tactics' = StrName.NTab.merge_disjoint (get_atomic_tactics ps1) (get_atomic_tactics ps2)*)
       val parents' = StrName.NTab.merge_disjoint (get_parents ps1) (get_parents ps2)
     in
         PSGraph { graph = Theory.Graph.empty,

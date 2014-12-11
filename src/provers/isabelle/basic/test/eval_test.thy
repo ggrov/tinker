@@ -3,7 +3,10 @@ theory eval_test
 imports        
   "../build/BIsaP"    
 begin
+ML{*
 
+val impI_tac = rule
+*}
 ML{*-
   val path = "/u1/staff/gg112/";
 *}
@@ -53,44 +56,28 @@ ML{*
   val gt_imp =  Data.GT "top_symbol(HOL.implies)";
   val gt_conj = Data.GT "top_symbol(HOL.conj)";
   
-  infixr 6 THENG;
+  infixr 6 THENG; 
   val op THEN = PSComb.THEN;
   
   val psasm =  PSComb.LIFT ([gt_conj],[gt]) (asm) |>  PSGraph.load_atomics [("all_tac", all_args), ("atac", atac_args)];
+  val psall =  PSComb.LIFT ([gt],[gt]) (allT) |>  PSGraph.load_atomics [("all_tac", all_args), ("atac", atac_args)];
+  val psasm = PSComb.THEN (psasm, psall);
   val psall =  PSComb.LIFT ([gt_conj],[gt]) (allT) |>  PSGraph.load_atomics [("all_tac", all_args), ("atac", atac_args)];
-   
+
  Theory_IO.write_dot (path ^ "graph.dot") ( PSGraph.get_graph psasm);
 *}
 
 ML{*
-val ctxt = @{context}
-val psgraph = psall
-val goal = @{prop "(A \<and> A)  \<Longrightarrow>(A --> A) "};
-
-     val _ = DebugHandler.clear_debug_msg ();
-     val (pnode,pplan) = EVal.Prover.init ctxt [] goal
-     val pnode_tab = 
-       StrName.NTab.ins
-         (EVal.Prover.get_pnode_name pnode,pnode)
-         StrName.NTab.empty;
-     val edata0 = EData.init psgraph pplan pnode_tab []
-   ;
-    EVal.init_goal pnode edata0;
-*}
-
-ML{*
 val edata0 = EVal.init psall @{context} @{prop "A \<Longrightarrow>(A \<and> A)  \<and> (A \<longrightarrow> A)"} |> hd; 
-val edata0' = EVal.init psasm @{context} @{prop "(A \<and> A)  \<Longrightarrow>(A \<and>A) "} |> hd; 
+val edata0  = EVal.init psasm @{context} @{prop "(A \<and> A)  \<Longrightarrow>(A \<and> A) "} |> hd; 
 Theory_IO.write_dot (path ^ "graph0.dot") (EData.get_graph edata0)  
-*}
-ML{*
-EVal.Util.del_gnode;
 *}
 
 ML{*
 val (IEVal.Cont edata1) = IEVal.eval_any edata0;
 (* val edata1 = EVal.normalise_gnode edata1; *)
-Theory_IO.write_dot (path ^"graph1.dot") (EData.get_graph edata1)   
+Theory_IO.write_dot (path ^"graph1.dot") (EData.get_graph edata1) ; 
+val (IEVal.Good _) =  IEVal.eval_any edata1;
 *}
 
 ML{*
@@ -124,6 +111,7 @@ ML{*
   end;
 
 *}
+
 ML{*
  val graph = (EData.get_graph edata0); 
 val g = EVal.Util.all_gnodes graph |> hd |> EVal.Util.gnode_of graph;
@@ -156,8 +144,7 @@ val gname = g;
 *}
 
 ML{*
-EVal.eval_goal_atomic true gname edata0;
-EVal.eval_goal_atomic_node_names true gnode gnode tnode edata0;
+EVal.eval_goal_atomic true gname edata0 |> Seq.pull
 *}
 
 ML{*
@@ -173,24 +160,14 @@ ML{*
 *}
 
 ML{*
-   
-val graph' = Theory.Graph.delete_vertex gnode graph;
-val graph' = EVal.Util.del_gnode gnode graph |> Theory.Graph.normalise;
-val graph'' = EVal.Util.del_gnode gnode graph ;
+ fun del_gnode gnode g = Theory.Graph.update_vertex_data (K Theory.Graph.WVert) gnode g 
+      |> Theory.Graph.minimise;
 
-Theory_IO.write_dot (path ^ "dgraph.dot") graph';
-Theory_IO.write_dot (path ^ "dgraph0.dot") graph'';
-get_in_edges
-(* vertices connected to a directed out-edge of the given one *)
-val get_successor_vertices : T -> V.name -> V.NSet.T
+Theory_IO.write_dot (path ^ "dgraph.dot")  graph'
+*}
 
-(* vertices connected to a directed in-edge of the given one *)
-val get_predecessor_vertices : T -> V.name -> V.NSet.T
-
-val update_edge_data   : (edata -> edata) -> E.name -> T -> T
-
-
-
+ML{*
+result |> Seq.pull |> Option.valOf |> #1 |> #2
 *}
 
 ML{*
@@ -210,19 +187,15 @@ ML{*
 *}
 
 ML{*
-val res =  Seq.pull result |> Option.valOf |> #1 |> #2 |> hd;
-*}
 
-ML{*
  Seq.maps (fn (b,rs) 
         => (map (fn res => (EData.set_bgraph (add_gnodes out_edges res graph') b,rs)) rs) 
-            |> Seq.of_list) result
+            |> Seq.of_list) result 
 *}
 
 ML{*
 val testg = Seq.pull result |> Option.valOf |> #1 |> #1 |> EData.get_bgraph;
 Theory_IO.write_dot (path ^ "graphx.dot") testg; 
-Theory_IO.write_dot (path ^ "1graph.dot") graph'; 
 *}
 
 ML{*
