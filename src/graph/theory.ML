@@ -6,6 +6,7 @@ end
 signature PS_THEORY = 
 sig
   structure Data : PSGRAPH_DATA
+  structure GoalTyp : BASIC_GOALTYPE
   structure Theory : GRAPHICAL_THEORY
   structure PSDataIO : GRAPH_COMPONENT_DATA_IO
   include GRAPHICAL_THEORY
@@ -16,6 +17,7 @@ sig
   sharing type PSDataIO.edata = Data.edata
   sharing type Theory.Graph.Sharing.nvdata = Data.nvdata
   sharing type Theory.Graph.Sharing.edata = Data.edata
+  sharing GoalTyp.BasicSharing = Data.Sharing.GoalTyp
 
   structure Sharing : PS_THEORY_SHARING
     sharing Sharing.Data = Data.Sharing
@@ -24,7 +26,8 @@ sig
 end (* signature *)
 
 functor PSGraph_TheoryFun (structure GoalTyp : BASIC_GOALTYPE
-                           structure  Data : PSGRAPH_DATA) =
+                           structure  Data : PSGRAPH_DATA
+                           sharing GoalTyp.BasicSharing = Data.Sharing.GoalTyp ) =
 struct
   structure GoalTyp = GoalTyp;
 

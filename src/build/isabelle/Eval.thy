@@ -1,12 +1,12 @@
 (* simple test of proof representation *)
-theory Eval                                                                                                                                                                                            
+theory Eval                                                                                                                                                                                           
 imports           
-  PSGraph                                                                          
-begin         
+  PSGraph                                                                         
+begin          
 
   ML_file "../../eval/eval_data.sig.ML"                                               
   ML_file "../../eval/eval_data.ML"                                                       
-
+ 
 
   ML_file "../../eval/eval.sig.ML"                                     
   ML_file "../../eval/eval.ML"                                                         

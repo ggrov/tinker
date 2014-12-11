@@ -3,6 +3,7 @@ signature PSGRAPH_DATA_SHARING =
 sig
   type nvdata
   type edata
+  structure GoalTyp : BASIC_GOALTYPE_SHARING
 end
 
 signature PSGRAPH_DATA =
@@ -111,6 +112,7 @@ sig
   structure Sharing : PSGRAPH_DATA_SHARING
     sharing type Sharing.nvdata = nvdata
     sharing type Sharing.edata = edata
+    sharing Sharing.GoalTyp = GoalTyp.BasicSharing
 
 end
 

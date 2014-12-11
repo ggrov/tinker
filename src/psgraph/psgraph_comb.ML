@@ -1,3 +1,4 @@
+(* todo: add sharing stuffs *)
 signature PS_COMB =
 sig
   structure PSGraph : PS_GRAPH
@@ -166,10 +167,10 @@ struct
      PSGraph.set_graph graph' ps1
    end;
 
-  fun LIFT (ins,outs) nvdata ps = 
+  fun LIFT' (ins,outs) nvdata ps = 
     ps |> PSGraph.set_graph (graph_of_node_edges nvdata ins outs);
 
-  fun LIFT' (ins,outs) nvdata = 
+  fun LIFT (ins,outs) nvdata = 
      PSGraph.of_graph (graph_of_node_edges nvdata ins outs);
 
 

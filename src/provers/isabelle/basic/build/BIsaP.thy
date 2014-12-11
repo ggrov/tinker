@@ -76,6 +76,7 @@ structure PSComb = PSCombFun (structure PSGraph = PSGraph)
 ML{*
 structure EData =  EDataFun( PSGraph);
 structure EVal = EValFun(EData);
+structure IEVal = InteractiveEvalFun (EVal);
 
 *}
 end

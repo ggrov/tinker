@@ -193,6 +193,15 @@ struct
       (get_pplan edata |> Prover.get_open_pnodes |> map Prover.pretty_pnode) @
       [Pretty.str "}"])
      
+   structure Sharing =
+   struct
+     type branch = branch
+     type active = active
+     type T = T
+     type gnode = gnode
+     structure PSGraph = PSGraph.Sharing
+   end
+
 end; (* functor *)
 
 

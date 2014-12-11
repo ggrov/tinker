@@ -1,3 +1,9 @@
+signature PS_GRAPH_SHARING = 
+sig
+  type T
+  structure Theory: PS_THEORY_SHARING
+end
+
 (* contains the data structure for a proof strategy graph *)
 signature PS_GRAPH =
 sig
@@ -46,4 +52,7 @@ sig
 
   (* write_dot_to_file, write to json *)
 
+  structure Sharing: PS_GRAPH_SHARING
+    sharing type Sharing.T = T
+    sharing Sharing.Theory = Theory.Sharing
 end
