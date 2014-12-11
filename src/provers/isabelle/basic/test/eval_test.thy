@@ -3,10 +3,6 @@ theory eval_test
 imports        
   "../build/BIsaP"    
 begin
-ML{*
-
-val impI_tac = rule
-*}
 ML{*-
   val path = "/u1/staff/gg112/";
 *}
@@ -47,10 +43,21 @@ PSComb.THEN (ps1, ps1) |> PSGraph.get_graph |> Theory_IO.write_dot (path^"test_p
 
 (* test more complicated comb *)
 ML{*
+  fun at_impI_tac ctxt i args = rtac @{thm impI} i;
+  fun at_conjI_tac ctxt i args = rtac @{thm conjI} i;
+  fun at_atac ctxt i args = atac i;
+  fun at_all_tac  ctxt i args = all_tac
+
+*}
+ML{*
   val asm =  Data.T_Atomic {name = "atac", args = [[]]}; 
   val allT =  Data.T_Atomic {name = "all_tac", args = [[]]}; 
-  fun atac_args ctxt i args = atac i
-  fun all_args  ctxt i args = all_tac
+  val impI =  Data.T_Atomic {name = "impI", args = [[]]}; 
+  val conjI =  Data.T_Atomic {name = "conjI", args = [[]]}; 
+
+  fun load_atom ps =  PSGraph.load_atomics 
+    [("all_tac", at_all_tac), ("atac", at_atac), ("impI", at_impI_tac), ("conjI", at_conjI_tac)] 
+    ps;
 
   val gt = Data.GT SimpleGoalTyp.default;
   val gt_imp =  Data.GT "top_symbol(HOL.implies)";
@@ -58,27 +65,98 @@ ML{*
   
   infixr 6 THENG; 
   val op THEN = PSComb.THEN;
-  
-  val psasm =  PSComb.LIFT ([gt_conj],[gt]) (asm) |>  PSGraph.load_atomics [("all_tac", all_args), ("atac", atac_args)];
-  val psall =  PSComb.LIFT ([gt],[gt]) (allT) |>  PSGraph.load_atomics [("all_tac", all_args), ("atac", atac_args)];
-  val psasm = PSComb.THEN (psasm, psall);
-  val psall =  PSComb.LIFT ([gt_conj],[gt]) (allT) |>  PSGraph.load_atomics [("all_tac", all_args), ("atac", atac_args)];
 
- Theory_IO.write_dot (path ^ "graph.dot") ( PSGraph.get_graph psasm);
+  
+  val psasm =  PSComb.LIFT ([gt],[gt]) (asm);
+  val psall =  PSComb.LIFT ([gt],[gt]) (allT);
+  val psimpI = PSComb.LIFT ([gt_imp, gt_imp],[gt_imp, gt]) (impI);
+  val psconjI =  PSComb.LIFT ([gt_conj],[gt_imp]) (conjI);
+
+  val ps = psconjI THEN ((PSComb.LOOP_WITH gt_imp psimpI) THEN psasm)
+    |> load_atom;
+
+ Theory_IO.write_dot (path ^ "graph.dot") ( PSGraph.get_graph ps);
 *}
 
 ML{*
-val edata0 = EVal.init psall @{context} @{prop "A \<Longrightarrow>(A \<and> A)  \<and> (A \<longrightarrow> A)"} |> hd; 
-val edata0  = EVal.init psasm @{context} @{prop "(A \<and> A)  \<Longrightarrow>(A \<and> A) "} |> hd; 
-Theory_IO.write_dot (path ^ "graph0.dot") (EData.get_graph edata0)  
+val edata0 = EVal.init ps @{context} @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"} |> hd; 
+
+Theory_IO.write_dot (path ^ "graph0.dot")
 *}
 
 ML{*
 val (IEVal.Cont edata1) = IEVal.eval_any edata0;
 (* val edata1 = EVal.normalise_gnode edata1; *)
 Theory_IO.write_dot (path ^"graph1.dot") (EData.get_graph edata1) ; 
-val (IEVal.Good _) =  IEVal.eval_any edata1;
 *}
+
+ML{*
+val (IEVal.Cont edata2) = IEVal.eval_any edata1;
+(* val edata1 = EVal.normalise_gnode edata1; *)
+Theory_IO.write_dot (path ^"graph2.dot") (EData.get_graph edata1) ; 
+*}
+ML{*
+val (IEVal.Cont edata3) = IEVal.eval_any edata2;
+(* val edata1 = EVal.normalise_gnode edata1; *)
+Theory_IO.write_dot (path ^"graph3.dot") (EData.get_graph edata3) ; 
+*}
+ML{*
+val (IEVal.Cont edata4) = IEVal.eval_any edata3;
+(* val edata1 = EVal.normalise_gnode edata1; *)
+Theory_IO.write_dot (path ^"graph4.dot") (EData.get_graph edata4) ; 
+*}
+ML{*
+val (IEVal.Cont edata5) = IEVal.eval_any edata4;
+(* val edata1 = EVal.normalise_gnode edata1; *)
+Theory_IO.write_dot (path ^"graph5.dot") (EData.get_graph edata5) ; 
+*}
+ML{*
+val (IEVal.Cont edata6) = IEVal.eval_any edata5;
+(* val edata1 = EVal.normalise_gnode edata1; *)
+Theory_IO.write_dot (path ^"graph6.dot") (EData.get_graph edata6) ; 
+*}
+ML{*
+IEVal.eval_any edata6;
+*}
+
+
+
+ML{*
+val edata0 = edata1;
+*}
+
+ML{*
+    val graph = (EData.get_graph edata0) ;
+    fun update_branches edata branches = 
+      let val new_branches = branches @ (EData.get_branches edata) in
+        case new_branches of 
+          [] => IEVal.Bad (* should never happen *)
+          | (x::xs) => (* fixme: this should be based on the search strategy *)
+               IEVal.Cont (edata 
+                    |> EData.set_current x 
+                    |> EData.set_branches xs)  end
+*}
+ML{*
+val gnode =  EVal.Util.all_gnodes graph |> tl |> hd;
+fun proc gnode = EVal.Util.gnode_of graph gnode |> EVal.Theory.GoalTyp.goal_name 
+  |> (fn g => EVal.eval_goal_atomic true g edata0
+                       |> Seq.list_of
+                       |> map fst);
+proc gnode;
+val ret = 
+
+     EVal.Util.all_gnodes graph
+       |> map (EVal.Util.gnode_of graph)
+       |> map (EVal.Theory.GoalTyp.goal_name)
+       |> map (fn g => EVal.eval_goal_atomic true g edata0
+                       |> Seq.list_of
+                       |> map fst)
+       |> List.concat
+       |> update_branches edata0
+
+
+*}
+
 
 ML{*
   fun eval_any edata = 
@@ -114,16 +192,15 @@ ML{*
 
 ML{*
  val graph = (EData.get_graph edata0); 
-val g = EVal.Util.all_gnodes graph |> hd |> EVal.Util.gnode_of graph;
+val g = EVal.Util.all_gnodes graph |> hd  |> EVal.Util.gnode_of graph;
 val gname = g;
 val gnode = EVal.Util.all_gnodes graph
              |> filter (fn gn => gname =  EData.PSGraph.Theory.Data.GoalTyp.goal_name (EVal.Util.gnode_of graph gn))
              |> (fn [x] => x) (* raise exception: log if not singleton list *)
 val goal = EVal.Util.gnode_of graph gnode;
 
- val tnode = EVal.Util.out_edges graph gnode
-           |> (fn [x] => x) (* raise exception: log if not singleton list *)
-           |> EVal.Util.edge_dest graph;
+ val tnode = EVal.get_next_tnode graph gnode
+          
 
 (*EVal.eval_goal_atomic true g edata0;*)
 *}
@@ -131,21 +208,15 @@ val goal = EVal.Util.gnode_of graph gnode;
 ML{*
 val g = EVal.Util.all_gnodes graph |> hd |> EVal.Util.gnode_of graph;
 val gname = g;
-     val graph = EData.get_graph edata0
-     val gnode = EVal.Util.all_gnodes graph
-               |> filter (fn gn => gname = EVal.GoalTyp.goal_name (EVal.Util.gnode_of graph gn))
-               |> (fn [x] => x) (* raise exception: log if not singleton list *)
-     val goal = EVal.Util.gnode_of graph gnode
-     val tnode = EVal.Util.out_edges graph gnode
-               |> (fn [x] => x) (* raise exception: log if not singleton list *)
-               |> EVal.Util.edge_dest graph
-  ;
-   EVal.eval_goal_atomic_node_names true gnode tnode gnode edata0;
+val graph = EData.get_graph edata0
+val gnode = EVal.Util.all_gnodes graph
+         |> filter (fn gn => gname = EVal.GoalTyp.goal_name (EVal.Util.gnode_of graph gn))
+         |> (fn [x] => x) (* raise exception: log if not singleton list *)
+val goal = EVal.Util.gnode_of graph gnode
+val tnode = EVal.get_next_tnode graph gnode
+
 *}
 
-ML{*
-EVal.eval_goal_atomic true gname edata0 |> Seq.pull
-*}
 
 ML{*
  val graph = EData.get_graph edata0
@@ -164,6 +235,11 @@ ML{*
       |> Theory.Graph.minimise;
 
 Theory_IO.write_dot (path ^ "dgraph.dot")  graph'
+*}
+ML{*
+EVal.eval_goal_atomic true gname edata0 |> Seq.pull |> Option.valOf |> #1 |> #1
+|> EData.get_bgraph
+|>Theory_IO.write_dot (path ^ "fgraph.dot") ; 
 *}
 
 ML{*

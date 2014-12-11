@@ -23,7 +23,7 @@ struct
     fun update_branches edata branches = 
       let val new_branches = branches @ (EData.get_branches edata) in
         case new_branches of 
-          [] => Bad (* should never happen *)
+          [] => Bad (* this is because tactic fails *)
           | (x::xs) => (* fixme: this should be based on the search strategy *)
               Cont (edata 
                     |> EData.set_current x 

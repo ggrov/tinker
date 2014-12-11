@@ -254,6 +254,7 @@ struct
       handle partition_exp _ => Seq.empty
    in
    apply_tactic edata gnode tac
+   |> (fn x => case (Seq.pull x) of NONE => ; x)
    |> Seq.maps apply_one
   end
 
@@ -294,14 +295,21 @@ struct
                        |> Seq.of_list)) result
    end
 
+ fun get_next_tnode graph node = 
+  if Util.is_gnode graph node
+  then
+    get_next_tnode graph
+      (Util.out_edges graph node
+      |> (fn [x] => x) (* raise exception: log if not singleton list *)
+      |> Util.edge_dest graph)
+  else node
+
  fun eval_goal_atomic_goalnode is_interactive gnode edata = 
    let
      val graph = EData.get_graph edata
      val gname = GoalTyp.goal_name (Util.gnode_of graph gnode)
      val goal = Util.gnode_of graph gnode
-     val tnode = Util.out_edges graph gnode
-               |> (fn [x] => x) (* raise exception: log if not singleton list *)
-               |> Util.edge_dest graph
+     val tnode = get_next_tnode graph gnode          
   in
    eval_goal_atomic_node_names is_interactive gnode tnode gnode edata
   end;
@@ -313,9 +321,7 @@ struct
                |> filter (fn gn => gname = GoalTyp.goal_name (Util.gnode_of graph gn))
                |> (fn [x] => x) (* raise exception: log if not singleton list *)
      val goal = Util.gnode_of graph gnode
-     val tnode = Util.out_edges graph gnode
-               |> (fn [x] => x) (* raise exception: log if not singleton list *)
-               |> Util.edge_dest graph
+     val tnode = get_next_tnode graph gnode
   in
    eval_goal_atomic_node_names is_interactive gnode tnode gnode edata
   end;
