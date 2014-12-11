@@ -46,4 +46,5 @@ struct
        |> update_branches edata
   end;
 
+(* Theory.Graph.normalise *)
 end (* functor *)

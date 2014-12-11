@@ -1,6 +1,6 @@
 (* evaluation *)
 
-functor EValFun(EData : EVAL_DATA) : EVAL =
+functor EValFun(EData : EVAL_DATA) (*: EVAL*) =
 struct
  structure EData = EData;
  structure Theory = EData.PSGraph.Theory;
@@ -94,7 +94,7 @@ struct
       end;
 
    (* assumes: 1/1 - so just replace by wire node *)
-   val del_gnode = Graph.update_vertex_data (K Graph.WVert);
+   val del_gnode = Graph.update_vertex_data (K Theory.Graph.WVert) |> Theory.Graph.normalise;
 
    fun mk_binput edata dest graph =
      graph |> Graph.add_vertex Graph.WVert
@@ -264,7 +264,7 @@ struct
   *)
 
  (* evaluates a single goal node *)
- fun eval_goal_atomic_node_names is_interactive gname gnode tnode edata = 
+ fun eval_goal_atomic_node_names is_interactive gname tnode gnode edata = 
    let
      val graph = EData.get_graph edata
      val goal = Util.gnode_of graph gnode
@@ -284,8 +284,12 @@ struct
        fold (fn gn => fn (e,gr) => add_gnode (Theory.Data.G gn) e gr) res (edge,graph)
        |> #2
        |> add_gnodes edges ress
+    | add_gnodes [] _ graph = graph
+    | add_gnodes _ [] graph = graph
    in
-      Seq.maps (fn (b,rs) => (map (fn res => (b,add_gnodes out_edges res graph')) rs) |> Seq.of_list) result
+      Seq.maps (fn (b,rs) 
+        => (map (fn res => (EData.set_bgraph (add_gnodes out_edges res graph') b, rs)) rs) 
+            |> Seq.of_list) result
    end
 
  fun eval_goal_atomic_goalnode is_interactive gnode edata = 
@@ -423,7 +427,7 @@ struct
          StrName.NTab.empty;
      val edata0 = EData.init psgraph pplan pnode_tab []
    in
-    init_goal pnode edata0
+    init_goal pnode edata0 (* fixme: logging info when no input wire is suitable for the goal *)
    end;
 
 
