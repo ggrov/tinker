@@ -236,10 +236,10 @@ object Service extends Publisher {
 		evalControlsCtrl.enableOptions(v)
 	}
 
-	def userEvalChoice:String = {
-		// asynchronous call here
-		// either get selected in evalController until different from "" --> not pretty
-		// or make asynchronous listener to event where user selects option
+	listenTo(evalControlsCtrl)
+	reactions+={
+		case EvalOptionSelectedEvent(opt) =>
+			publish(UserSelectedEvalOptionEvent(opt))
 	}
 
 	// function to change document service

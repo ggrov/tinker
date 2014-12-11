@@ -4,6 +4,7 @@ import java.net._
 import java.io._
 import scala.io._
 import scala.concurrent._
+import scala.swing._
 import ExecutionContext.Implicits.global
 import scala.util.{Success, Failure}
 import quanto.util.json._
@@ -13,7 +14,7 @@ object CommunicationState extends Enumeration {
 	val WaitingForPsgraph, NotConnected, WaitingForEvalOptions, WaitingForUserChoice, WaitingForPsgraphUpdate = Value
 }
 
-object CommunicationService {
+object CommunicationService extends Publisher {
 	var connected = false
 	var gui: ServerSocket = null
 	var prover: Socket = null
@@ -168,11 +169,9 @@ object CommunicationService {
 								// change state
 								state = CommunicationState.WaitingForUserChoice
 								// future for user interaction
-								var choice : Future[String] = future {
-									Service.userEvalChoice
-								}
-								choice onComplete {
-									case Success(opt) => 
+								listenTo(Service)
+								reactions+={
+									case UserSelectedEvalOptionEvent(opt) =>
 										// check if correct state
 										if(state == CommunicationState.WaitingForUserChoice){
 											// send option chosen
@@ -180,8 +179,21 @@ object CommunicationService {
 											// change state
 											state = CommunicationState.WaitingForPsgraphUpdate
 										}
-									case Failure(t) => println("An error occured : "+t.getMessage)
 								}
+								// var choice : Future[String] = future {
+								// 	Service.userEvalChoice
+								// }
+								// choice onComplete {
+								// 	case Success(opt) => 
+								// 		// check if correct state
+								// 		if(state == CommunicationState.WaitingForUserChoice){
+								// 			// send option chosen
+								// 			send(JsonObject("cmd" -> "RSP_EVAL_PSGRAPH", "opt" -> opt))
+								// 			// change state
+								// 			state = CommunicationState.WaitingForPsgraphUpdate
+								// 		}
+								// 	case Failure(t) => println("An error occured : "+t.getMessage)
+								// }
 						}
 					}
 				// update command
