@@ -254,7 +254,6 @@ struct
       handle partition_exp _ => Seq.empty
    in
    apply_tactic edata gnode tac
-   |> (fn x => case (Seq.pull x) of NONE => ; x)
    |> Seq.maps apply_one
   end
 
