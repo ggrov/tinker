@@ -974,7 +974,7 @@ object QuantoLibAPI extends Publisher{
 	  * Method to check if given node has goals before
 	  */
 	def hasGoalsBefore(n:String):Boolean = {
-		res = false
+		var res = false
 		graph.inEdges(n).foreach{e =>
 			graph.vdata(graph.source(e)) match {
 				case d:NodeV if(d.typ == "GN") => res = true

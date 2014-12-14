@@ -228,7 +228,7 @@ object CommunicationService extends Publisher {
 										}
 										gr match {
 											case Some(g:Json) => graph = g.asObject
-											case _ => send(JsonObject("cmd" -> "RSP_ERROR_INIT_PSGRAPH", "msg" -> "could not find graph to display in eval"))
+											case _ => send(JsonObject("cmd" -> "RSP_ERROR_DISPLAY_PSGRAPH", "msg" -> "could not find graph to display in eval"))
 										}
 								}
 						}
