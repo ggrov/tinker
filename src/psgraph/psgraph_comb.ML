@@ -157,14 +157,12 @@ struct
     PSGraph.merge_disjoint ps1 ps2 |> PSGraph.set_graph g
   end;
 
-  fun LOOP_WITH psfn gt ps =
+  fun LOOP_WITH  gt ps =
     let
-      val ps1 = psfn ps
-      val graph = PSGraph.get_graph ps1
-      val edge = Theory.Data.GT gt
-      val graph' = LOOP_WITHG graph edge
+      val graph = PSGraph.get_graph ps
+      val graph' = LOOP_WITHG graph gt
     in
-     PSGraph.set_graph graph' ps1
+     PSGraph.set_graph graph' ps
    end;
 
   fun LIFT' (ins,outs) nvdata ps = 

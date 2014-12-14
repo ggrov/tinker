@@ -55,8 +55,9 @@ sig
     val rewrite_lazy : Theory.Rewriter.Rule.T -> Graph.T -> Graph.T Seq.seq
     val rewrite : Theory.Rewriter.Rule.T -> Graph.T -> Graph.T list
     val output_boundary : Graph.T -> (V.name * (E.name * Graph.edata) * V.name) list
-    val out_edges : Graph.T -> V.name -> E.NSet.name list 
-    val mk_lhs : Graph.T -> V.name -> Graph.T list
+*)
+    val out_edges : EData.PSGraph.Theory.Graph.T -> V.name -> E.NSet.name list 
+(*   val mk_lhs : Graph.T -> V.name -> Graph.T list
     val mk_gnode : GoalTyp.gnode -> GData.nvdata 
     val mk_boutput : Graph.edata -> V.name -> Graph.T -> Graph.T
     val mk_binput : Graph.edata -> V.name -> Graph.T -> Graph.T
@@ -75,7 +76,9 @@ sig
     val all_gnodes :  EData.PSGraph.Theory.Graph.T -> V.name list
 (*    val get_vertex_list : Graph.T -> V.NSet.name list
     val edge_src : Graph.T -> E.name -> V.name 
-    val edge_dest : Graph.T -> E.name -> V.name
+*)
+    val edge_dest : EData.PSGraph.Theory.Graph.T -> E.name -> V.name
+(*
     val edge_data : Graph.T -> E.name -> Graph.edata val del_gnode : V.name -> Graph.T -> Graph.T
     val all_tactics : Graph.T -> V.name list 
     val add_outs : E.name list -> Graph.nvdata list -> Graph.T -> Graph.T *)

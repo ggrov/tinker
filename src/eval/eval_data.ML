@@ -155,7 +155,6 @@ struct
   handle x => (DebugHandler.add_debug_msg (Pretty.str ("No such a tac : " ^ tac) );raise x )
 
   (* push and pop of hierarchies *)
-
   fun parent_lhs edata =
      case get_parent edata of 
         NONE => NONE
