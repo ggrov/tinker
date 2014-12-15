@@ -9,7 +9,6 @@ ML{*-
 ML{*
   val path = "/Users/yuhuilin/Desktop/" ;
 *}
-ML{*Theory.Graph.normalise*}
 ML{*
 val vnode =  Data.T_Atomic {name = "hello9", args = [[]]};
 val vnode1 =  Data.T_Atomic {name = "hello1", args = [[]]};

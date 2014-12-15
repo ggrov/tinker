@@ -54,7 +54,7 @@ struct
     fun has_symbol strs pn = TF.has_constants strs (Logic.strip_imp_concl (#ptrm pn));
 
     fun liftp pn pred = 
-     if pred then SOME (#pname pn) else NONE; 
+     if pred then  [(#pname pn)] else []; 
  
     val splitstr =  String.tokens (member (op =) [#" ",#",",#"(",#")",#"[",#"]"]);
     
@@ -233,7 +233,7 @@ struct
         val _ = debug_print BASIC_INFO (("init goal " ^  (#pname pn) ^  " with goal type: " ^ str ))
     in 
      case ls of 
-       [] => (debug_print BASIC_INFO "warning; No goal types !"; NONE)
+       [] => (debug_print BASIC_INFO "warning; No goal types !"; [])
       | _ => ls |> map (lift' pn)
                 |> forall I 
                 |> liftp pn
@@ -245,8 +245,8 @@ struct
   (* assume gn is the name of pn *)
   fun match _ gt pn = 
     case init_lift gt pn of
-     NONE => false
-    | SOME _ => true;
+     [] => false
+    | _ => true;
 
   val lift = K init_lift;
 
