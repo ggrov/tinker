@@ -22,6 +22,13 @@ sig
              | G_Var of string (* variable of gnode *)
   datatype edata = GT of GoalTyp.T
                  | GT_Var of string (* variable of goalnode *)
+  
+  exception gdata_json_exp of string * Json.json
+
+  val nvdata_to_json : nvdata -> Json.json
+  val nvdata_from_json : Json.json -> nvdata
+  val edata_to_json : edata -> Json.json
+  val edata_from_json : Json.json -> edata
 
   datatype subst = Subst of { tactic : nvdata StrName.NTab.T,
                               gnode : GoalTyp.gnode StrName.NTab.T,

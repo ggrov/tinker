@@ -31,10 +31,9 @@ struct
   val to_json = Json.String;
   fun from_json (Json.String str) = str;
 *)
-  fun to_json str = 
-     Json.mk_object [("type", Json.String "GT"), ("gtyp_name", Json.String str)] 
+  fun to_json str = Json.String str
 
-  fun from_json (Json.Object jobj) = Json.get jobj "gtyp_name" |> (fn Json.String x => x)
+  fun from_json (Json.String str) = str
   | from_json _ = raise gt_exp "from_json: ill-formed json structure"
 
 

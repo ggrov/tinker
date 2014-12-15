@@ -93,7 +93,7 @@ Theory_IO.write_dot (path ^"graph1.dot") (EData.get_graph edata1) ;
 ML{*
 val (IEVal.Cont edata2) = IEVal.eval_any edata1;
 (* val edata1 = EVal.normalise_gnode edata1; *)
-Theory_IO.write_dot (path ^"graph2.dot") (EData.get_graph edata1) ; 
+Theory_IO.write_dot (path ^"graph2.dot") (EData.get_graph edata2) ; 
 *}
 ML{*
 val (IEVal.Cont edata3) = IEVal.eval_any edata2;
