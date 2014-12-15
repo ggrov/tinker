@@ -209,11 +209,11 @@ struct
    |  partition_one' gtype_data (gt::gts) gnode pnode bres (r::ares) = 
     (case lift gnode (gtype_data,gt) pnode of
       (* fails to lift *)
-      NONE => partition_one' gtype_data gts gnode pnode (bres@[r]) ares
+      [] => partition_one' gtype_data gts gnode pnode (bres@[r]) ares
       (* succeeds, and check for further successes *)
-    | (SOME g') =>
+    | gs =>
         (* adds the succeded to the current result *)
-        (bres @ [g'::r] @ ares) ::
+        (bres @ [gs @ r] @ ares) ::
         (* goes through and see if more succeeds (thus branching) *)
          partition_one' gtype_data gts gnode pnode (bres@[r]) ares)
   | partition_one' _ _ _ _ _ _ = [];
@@ -410,8 +410,8 @@ struct
                   |> maps (fn (_,(e,_),_) => to_gt e)
      fun new_graph (e,gt) = 
        case GoalTyp.init_lift (gt_data,gt) pnode of
-         NONE => []
-         | SOME gn => [(gn, #3 (Util.insert_node_on_edge (Util.mk_gnode gn) e graph))] 
+         [] => [] (* not needed *)
+         | gns => map (fn gn => (gn, #3 (Util.insert_node_on_edge (Util.mk_gnode gn) e graph))) gns 
      val new_graphs = maps new_graph in_edges
    in  (* fixme: this should be updated according to strategy *)
        map (fn (gn,g) => edata |> EData.update_gnodes (fn gs => gn::gs) 
