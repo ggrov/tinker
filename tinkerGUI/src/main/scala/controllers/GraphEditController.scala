@@ -21,11 +21,11 @@ class GraphEditController() extends Publisher {
 			case "select" =>
 				mouseState = SelectTool()
 			case "addIDVertex" =>
-				mouseState = AddVertexTool("RT_ID")
+				mouseState = AddVertexTool("T_Identity")
 			case "addATMVertex" =>
-				mouseState = AddVertexTool("RT_ATM")
+				mouseState = AddVertexTool("T_Atomic")
 			case "addNSTVertex" =>
-				mouseState = AddVertexTool("RT_NST")
+				mouseState = AddVertexTool("T_Graph")
 			case "addEdge" =>
 				mouseState = AddEdgeTool()
 		}
@@ -65,10 +65,10 @@ class GraphEditController() extends Publisher {
 				eltValue = value
 				eltName = name
 				typ match {
-					case "RT_ID" => elt = "Identity" 
-					case "RT_ATM" => elt = "Atomic"
-					case "RT_NST" => elt = "Nested"
-					case "break" => elt = "Breakpoint"
+					case "T_Identity" => elt = "Identity"
+					case "T_Atomic" => elt = "Atomic"
+					case "T_Graph" => elt = "Nested"
+					case "G_Break" => elt = "Breakpoint"
 				}
 			case OneEdgeSelectedEventAPI(name, value, source, target) =>
 				elt = "Edge"; eltName = name; eltValue = value; edgeSource = source; edgeTarget = target
@@ -108,9 +108,9 @@ class GraphEditController() extends Publisher {
 			contents.clear()
 			elt match {
 				case "None" =>
-					contents += new MenuItem(new Action("Add an identity node") {def apply = QuantoLibAPI.userAddVertex(new java.awt.Point(x, y), "RT_ID")})
-					contents += new MenuItem(new Action("Add an atomic tactic node") {def apply = QuantoLibAPI.userAddVertex(new java.awt.Point(x, y), "RT_ATM")})
-					contents += new MenuItem(new Action("Add a nested tactic node") {def apply = QuantoLibAPI.userAddVertex(new java.awt.Point(x, y), "RT_NST")})
+					contents += new MenuItem(new Action("Add an identity node") {def apply = QuantoLibAPI.userAddVertex(new java.awt.Point(x, y), "T_Identity")})
+					contents += new MenuItem(new Action("Add an atomic tactic node") {def apply = QuantoLibAPI.userAddVertex(new java.awt.Point(x, y), "T_Atomic")})
+					contents += new MenuItem(new Action("Add a nested tactic node") {def apply = QuantoLibAPI.userAddVertex(new java.awt.Point(x, y), "T_Graph")})
 				case "Identity" => 
 					contents += new MenuItem(deleteNodeAction)
 				case "Atomic" =>

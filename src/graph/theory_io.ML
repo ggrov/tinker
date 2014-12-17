@@ -14,7 +14,7 @@ functor GraphJSON(
 functor PSGraph_Theory_IOFun (structure PSTheory : PS_THEORY) : PSGRAPH_THEORY_IO =
 struct
   structure Data = PSTheory.Data
-  structure Theory = PSTheory.Theory
+  structure PS_Theory = PSTheory
   structure PSDataIO = PSTheory.PSDataIO
 
 (*   datatype nvdata = T_Atomic of { name : string, args : arg_typ}
@@ -53,14 +53,14 @@ struct
       val output = Data.edata_to_json
     end;
 
-  structure GraphJSON = GraphJSON (structure Graph = Theory.Graph
+  structure GraphJSON = GraphJSON (structure Graph = PS_Theory.Theory.Graph
                                    structure InputVertexData = InputVertexData
                                    structure InputEdgeData = InputEdgeData
                                    structure OutputVertexData = OutputVertexData
                                    structure OutputEdgeData = OutputEdgeData);
 
   structure OutputGraphDot = OutputGraphDot(
-    structure Graph = Theory.Graph
+    structure Graph = PS_Theory.Theory.Graph
     structure DotStyle = PSDataIO.DotStyle
   );
 
@@ -73,7 +73,7 @@ struct
  (* fix it : currently output some unecessary string on the top of dot fule, a new version of Graphz is needed ? *)
  fun write_dot path g = File_Io.write_string path (dot_graph g)
 
- fun write_json_file path g = ();
+ fun write_json_file path g =  File_Io.write_string path (out_json g |> Json.encode);
  
  structure Sharing = 
  struct

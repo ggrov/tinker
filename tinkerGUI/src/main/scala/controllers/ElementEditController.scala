@@ -161,10 +161,10 @@ class ElementEditController() extends Publisher {
 			publish(NothingSelectedEvent())
 		case OneVertexSelectedEventAPI(name, typ, value) =>
 			typ match {
-				case "RT_ID" => publish(OneVertexSelectedEvent(name, "Identity", value))
-				case "RT_ATM" => publish(OneVertexSelectedEvent(name, "Atomic", value))
-				case "RT_NST" => publish(OneVertexSelectedEvent(name, "Nested", value))
-				case "break" => publish(OneVertexSelectedEvent(name, "Breakpoint", value))
+				case "T_Identity" => publish(OneVertexSelectedEvent(name, "Identity", value))
+				case "T_Atomic" => publish(OneVertexSelectedEvent(name, "Atomic", value))
+				case "T_Graph" => publish(OneVertexSelectedEvent(name, "Nested", value))
+				case "G_Break" => publish(OneVertexSelectedEvent(name, "Breakpoint", value))
 			}
 		case OneEdgeSelectedEventAPI(name, value, source, target) =>
 			publish(OneEdgeSelectedEvent(name, value, source, target))

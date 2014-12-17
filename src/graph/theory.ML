@@ -11,6 +11,7 @@ sig
   structure PSDataIO : GRAPH_COMPONENT_DATA_IO
   include GRAPHICAL_THEORY
 
+  sharing type Graph.T = Theory.Graph.T
   sharing type Graph.nvdata = Data.nvdata
   sharing type Graph.edata = Data.edata
   sharing type PSDataIO.nvdata = Data.nvdata

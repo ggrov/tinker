@@ -8,7 +8,7 @@ begin
   ML_file "../../debug_handler.ML"
   ML_file "../../graph/graph_data.sig.ML"          
   ML_file "../../graph/graph_data.ML"                                           
-  ML_file "../../graph/io.ML" 
+  ML_file "../../graph/io.ML"
   ML_file "../../graph/theory.ML"
   ML_file "../../graph/theory_io.sig.ML"    
   ML_file "../../graph/theory_io.ML"

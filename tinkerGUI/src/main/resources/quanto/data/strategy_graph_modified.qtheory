@@ -2,9 +2,9 @@
   "name" : "Proof strategy graph",
   "core_name" : "ps_graph",
   "vertex_types" : {
-    "RT_ID" : {
+    "T_Identity" : {
       "value" : {
-        "path" : "$.rt_name",
+        "path" : "$.id_name",
         "validate_with_core" : false,
         "latex_constants" : false,
         "type" : "string"
@@ -19,14 +19,13 @@
         "shape" : "triangle"
       },
       "default_data" : {
-        "rt_name" : "",
-        "appf" : {"type" : "Identity"},
-        "type" : "RT_ID"
+        "id_name" : "",
+        "type" : "T_Identity"
       }
     },
-    "break" : {
+    "G_Break" : {
       "value" : {
-        "path" : "$.rt_name",
+        "path" : "$.break_name",
         "validate_with_core" : false,
         "latex_constants" : false,
         "type" : "string"
@@ -41,14 +40,13 @@
         "shape" : "octagon"
       },
       "default_data" : {
-        "rt_name" : "STOP",
-        "appf" : {"type" : "Breakpoint"},
-        "type" : "break"
+        "break_name" : "STOP",
+        "type" : "G_Break"
       }
     },
-    "RT_ATM" : {
+    "T_Atomic" : {
       "value" : {
-        "path" : "$.rt_name",
+        "path" : "$.atm",
         "validate_with_core" : false,
         "latex_constants" : false,
         "type" : "string"
@@ -63,14 +61,13 @@
         "shape" : "rectangle"
       },
       "default_data" : {
-        "rt_name" : "rtech",
-        "appf" : {"type" : "Atomic"},
-        "type" : "RT_ATM"
+        "atm" : "tactic",
+        "type" : "T_Atomic"
       }
     },
-    "RT_NST" : {
+    "T_Graph" : {
       "value" : {
-        "path" : "$.rt_name",
+        "path" : "$.subgraph",
         "validate_with_core" : false,
         "latex_constants" : false,
         "type" : "string"
@@ -85,14 +82,13 @@
         "shape" : "multirect"
       },
       "default_data" : {
-        "rt_name" : "nested",
-        "appf" : {"type" : "Nested"},
-        "type" : "RT_NST"
+        "subgraph" : "nested",
+        "type" : "T_Graph"
       }
     },
-    "GN" : {
+    "G" : {
       "value" : {
-        "path" : "$.gn_name",
+        "path" : "$.gn",
         "validate_with_core" : false,
         "latex_constants" : false,
         "type" : "string"
@@ -107,15 +103,15 @@
         "shape" : "circle"
       },
       "default_data" : {
-        "gn_name" : "g",
-        "type" : "GN"
+        "gn" : "g",
+        "type" : "G"
       }
      }
   },
   "edge_types" : {
     "GT" : {
       "value" : {
-        "path" : "$.gtyp_name",
+        "path" : "$.gtyp",
         "validate_with_core" : false,
         "latex_constants" : false,
         "type" : "string"
@@ -129,9 +125,9 @@
           "bg_color" : [ 0.8, 0.8, 1.0, 0.7 ]
         }
       },
-      "default_data" : {"gtyp_name" : "any", "type" : "GT", "break" : false}
+      "default_data" : {"gtyp" : "any", "type" : "GT", "break" : false}
     }
   },
-  "default_vertex_type" : "RT_ID",
+  "default_vertex_type" : "T_Atomic",
   "default_edge_type" : "GT"
 }

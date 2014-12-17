@@ -235,43 +235,43 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
  fun arg_typ_to_json args = Json.Array (map (fn y => (Json.Array (map (fn x => Json.String x) y))) args)
  fun arg_typ_from_json (Json.Array args) = map (fn (Json.Array x) => map (fn y => case y of (Json.String str) => str) x) args 
 
- fun atomic_to_json atom = Json.mk_object[("name", Json.String (get_name atom)), ("args", arg_typ_to_json (get_args atom))]
- fun atomic_from_json (Json.Object jobj) = T_Atomic { name = JsonInputUtils.get_string jobj "name", 
+ fun atomic_to_json atom = [("atm", Json.String (get_name atom)), ("args", arg_typ_to_json (get_args atom))]
+ fun atomic_from_json (Json.Object jobj) = T_Atomic { name = JsonInputUtils.get_string jobj "atm", 
                                                       args = (arg_typ_from_json (Json.get jobj "args"))}
 
- fun t_graph_to_json tg = Json.mk_object[("name", Json.String (get_name tg)), 
-                                         ("args", arg_typ_to_json (get_args tg)), 
-                                         ("is_or", Json.Bool (get_is_or tg))]
- fun t_graph_from_json (Json.Object jobj) = T_Graph { name = JsonInputUtils.get_string jobj "name", 
+ fun t_graph_to_json tg = [("subgraph", Json.String (get_name tg)), 
+                           ("args", arg_typ_to_json (get_args tg)), 
+                           ("is_or", Json.Bool (get_is_or tg))]
+ fun t_graph_from_json (Json.Object jobj) = T_Graph { name = JsonInputUtils.get_string jobj "subgraph",
                                               args = (arg_typ_from_json (Json.get jobj "args")),
                                               is_or =  JsonInputUtils.get_bool jobj "is_or"}
 
  exception gdata_json_exp of string * Json.json
 
  fun nvdata_to_json (T_Atomic atom) = 
-      Json.mk_object [("type", Json.String "T_Atomic"), ("data", atomic_to_json (T_Atomic atom))]
+      Json.mk_object ([("type", Json.String "T_Atomic")] @ (atomic_to_json (T_Atomic atom)))
    | nvdata_to_json (T_Graph tg) = 
-      Json.mk_object [("type", Json.String "T_Graph"), ("data", t_graph_to_json (T_Graph tg))]
+      Json.mk_object ([("type", Json.String "T_Graph")] @ (t_graph_to_json (T_Graph tg)))
    | nvdata_to_json T_Identity = 
       Json.mk_object [("type", Json.String "T_Identity")]
    | nvdata_to_json G_Break = 
       Json.mk_object [("type", Json.String "G_Break")] 
    | nvdata_to_json (G gn) = 
-      Json.mk_object [("type", Json.String "G"), ("data", GoalTyp.gnode_to_json gn)]
+      Json.mk_object [("type", Json.String "G"), ("gn", GoalTyp.gnode_to_json gn)]
    | nvdata_to_json (T_Var t_var) =
-      Json.mk_object [("type", Json.String "T_Var"), ("data", Json.String t_var)]
+      Json.mk_object [("type", Json.String "T_Var"), ("t_var", Json.String t_var)]
    | nvdata_to_json (G_Var g_var) =
-      Json.mk_object [("type", Json.String "G_Var"), ("data", Json.String g_var)]
+      Json.mk_object [("type", Json.String "G_Var"), ("g_var", Json.String g_var)]
    
  fun nvdata_from_json (Json.Object jobj) (* has to be jobj *) = 
        (case JsonInputUtils.get_string jobj "type" of
-              "T_Atomic" =>  atomic_from_json (JsonInputUtils.get jobj "data")
-            | "T_Graph" => t_graph_from_json (JsonInputUtils.get jobj "data")
+              "T_Atomic" =>  atomic_from_json (Json.Object jobj) 
+            | "T_Graph" => t_graph_from_json (Json.Object jobj) 
             | "T_Identity"=> T_Identity
             | "G_Break" => G_Break
-            | "G" => G (GoalTyp.gnode_from_json (JsonInputUtils.get jobj "data"))
-            | "T_Var" => T_Var (JsonInputUtils.get_string jobj "data")
-            | "G_Var" => T_Var (JsonInputUtils.get_string jobj "data")
+            | "G" => G (GoalTyp.gnode_from_json (Json.Object jobj) )
+            | "T_Var" => T_Var (JsonInputUtils.get_string jobj "t_var")
+            | "G_Var" => T_Var (JsonInputUtils.get_string jobj "g_var")
        )
     | nvdata_from_json x = 
         raise gdata_json_exp 
@@ -281,15 +281,15 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
 
   fun edata_to_json (GT gt) = 
       Json.mk_object [("type", Json.String "GT"), 
-                        ("data", GoalTyp.to_json gt)]
+                        ("gtyp", GoalTyp.to_json gt)]
     | edata_to_json (GT_Var var) = 
         Json.mk_object [("type", Json.String "GT_Var"), 
-                        ("data", Json.String var)]
+                        ("gtyp_var", Json.String var)]
        
   fun edata_from_json (Json.Object jobj) (* has to be jobj *) = 
       (case JsonInputUtils.get_string jobj "type" of
-              ("GT_Var") => GT_Var (JsonInputUtils.get_string jobj "data")
-            | ("GT") => GT (GoalTyp.from_json (JsonInputUtils.get jobj "data")))
+              ("GT_Var") => GT_Var (JsonInputUtils.get_string jobj "gtyp_var")
+            | ("GT") => GT (GoalTyp.from_json (JsonInputUtils.get jobj "gtyp")))
     | edata_from_json x = 
         raise gdata_json_exp 
               ("Fail to parse edata from json, the expected formate of json has to be jobj",

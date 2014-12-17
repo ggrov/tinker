@@ -50,7 +50,10 @@ sig
   (* load a list of atomics *)
   val load_atomics : (StrName.NTab.name * Theory.Data.GoalTyp.Prover.tactic) list -> T -> T
 
-  (* write_dot_to_file, write to json *)
+  (* json i/o *)
+  val output_json : T -> Json.json
+  val input_json : Json.json -> T
+  val write_json_file : string -> T -> unit
 
   structure Sharing: PS_GRAPH_SHARING
     sharing type Sharing.T = T

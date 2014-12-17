@@ -62,7 +62,7 @@ ML{*
 structure Theory_IO = PSGraph_Theory_IOFun(structure PSTheory = Theory)
 *}
 ML{*
-structure PSGraph = PSGraphFun(Theory);
+structure PSGraph = PSGraphFun(Theory_IO);
 *}     
           
 ML{*
