@@ -6,7 +6,7 @@
       "dir_edges" : {
         "e0" : {
           "data" : {
-            "gtyp_name" : "any",
+            "gtyp" : "any",
             "type" : "GT",
             "break" : false
           },
@@ -15,7 +15,7 @@
         },
         "e1" : {
           "data" : {
-            "gtyp_name" : "any",
+            "gtyp" : "any",
             "type" : "GT",
             "break" : false
           },
@@ -24,7 +24,7 @@
         },
         "e2" : {
           "data" : {
-            "gtyp_name" : "any",
+            "gtyp" : "any",
             "type" : "GT",
             "break" : false
           },
@@ -33,7 +33,7 @@
         },
         "e3" : {
           "data" : {
-            "gtyp_name" : "any",
+            "gtyp" : "any",
             "type" : "GT",
             "break" : false
           },
@@ -64,11 +64,8 @@
       "node_vertices" : {
         "v1" : {
           "data" : {
-            "rt_name" : "imp(exl : y z, add : g)",
-            "appf" : {
-              "type" : "Atomic"
-            },
-            "type" : "RT_ATM",
+            "atm" : "imp(exl : y z, add : g)",
+            "type" : "T_Atomic",
             "label" : "imp(exl : y z, add : g)"
           },
           "annotation" : {
@@ -77,11 +74,8 @@
         },
         "v0" : {
           "data" : {
-            "rt_name" : "ripl(r : a b)",
-            "appf" : {
-              "type" : "Atomic"
-            },
-            "type" : "RT_ATM",
+            "atm" : "ripl(r : a b)",
+            "type" : "T_Atomic",
             "label" : "ripl(r : a b)"
           },
           "annotation" : {
@@ -93,7 +87,7 @@
       "dir_edges" : {
         "e0" : {
           "data" : {
-            "gtyp_name" : "any",
+            "gtyp" : "any",
             "type" : "GT",
             "break" : false
           },
@@ -102,7 +96,7 @@
         },
         "e1" : {
           "data" : {
-            "gtyp_name" : "any",
+            "gtyp" : "any",
             "type" : "GT",
             "break" : false
           },
@@ -111,7 +105,7 @@
         },
         "e2" : {
           "data" : {
-            "gtyp_name" : "any",
+            "gtyp" : "any",
             "type" : "GT",
             "break" : false
           },
@@ -120,7 +114,7 @@
         },
         "e3" : {
           "data" : {
-            "gtyp_name" : "any",
+            "gtyp" : "any",
             "type" : "GT",
             "break" : false
           },
@@ -151,11 +145,8 @@
       "node_vertices" : {
         "v1" : {
           "data" : {
-            "rt_name" : "",
-            "appf" : {
-              "type" : "Identity"
-            },
-            "type" : "RT_ID"
+            "id_name" : "",
+            "type" : "T_Identity"
           },
           "annotation" : {
             "coord" : [ 0.02, 1.1899999999999993 ]
@@ -163,11 +154,8 @@
         },
         "v0" : {
           "data" : {
-            "rt_name" : "ripl(r : a b)",
-            "appf" : {
-              "type" : "Atomic"
-            },
-            "type" : "RT_ATM",
+            "atm" : "ripl(r : a b)",
+            "type" : "T_ATomic",
             "label" : "ripl(r : a b)"
           },
           "annotation" : {
@@ -197,7 +185,7 @@
     "dir_edges" : {
       "e1" : {
         "data" : {
-          "gtyp_name" : "any",
+          "gtyp" : "any",
           "type" : "GT",
           "break" : false
         },
@@ -206,7 +194,7 @@
       },
       "e0" : {
         "data" : {
-          "gtyp_name" : "any",
+          "gtyp" : "any",
           "type" : "GT",
           "break" : false
         },
@@ -215,7 +203,7 @@
       },
       "e4" : {
         "data" : {
-          "gtyp_name" : "any",
+          "gtyp" : "any",
           "type" : "GT",
           "break" : false
         },
@@ -224,7 +212,7 @@
       },
       "e3" : {
         "data" : {
-          "gtyp_name" : "any",
+          "gtyp" : "any",
           "type" : "GT",
           "break" : false
         },
@@ -233,7 +221,7 @@
       },
       "e2" : {
         "data" : {
-          "gtyp_name" : "any",
+          "gtyp" : "any",
           "type" : "GT",
           "break" : false
         },
@@ -258,11 +246,8 @@
     "node_vertices" : {
       "v1" : {
         "data" : {
-          "rt_name" : "nested()",
-          "appf" : {
-            "type" : "Nested"
-          },
-          "type" : "RT_NST",
+          "subgraph" : "nested()",
+          "type" : "T_Graph",
           "label" : "nested()"
         },
         "annotation" : {
@@ -271,11 +256,8 @@
       },
       "v0" : {
         "data" : {
-          "rt_name" : "simp(x : y, a : b)",
-          "appf" : {
-            "type" : "Atomic"
-          },
-          "type" : "RT_ATM",
+          "atm" : "simp(x : y, a : b)",
+          "type" : "T_Atomic",
           "label" : "simp(x : y, a : b)"
         },
         "annotation" : {
@@ -284,11 +266,8 @@
       },
       "v2" : {
         "data" : {
-          "rt_name" : "",
-          "appf" : {
-            "type" : "Identity"
-          },
-          "type" : "RT_ID"
+          "id_name" : "",
+          "type" : "T_Identity"
         },
         "annotation" : {
           "coord" : [ -0.48000000000000015, 1.1199999999999983 ]
