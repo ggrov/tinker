@@ -175,7 +175,7 @@ object QuantoLibAPI extends Publisher{
 	private def deleteVertex(v: VName) {
 		val d = graph.vdata(v)
 		d match { 
-			case data:NodeV if(data.typ == "break") =>
+			case data:NodeV if(data.typ == "G_Break") =>
 				removeBreakpoint(v.s)
 			case _ =>
 				document.undoStack.start("Delete Vertex")
@@ -493,7 +493,7 @@ object QuantoLibAPI extends Publisher{
 							}
 							else if(dSrc<=0.5){
 								graph.vdata(graph.source(e)) match {
-									case d:NodeV if(d.typ != "break" && d.typ != "GN") =>
+									case d:NodeV if(d.typ != "G_Break" && d.typ != "G") =>
 										movingEdge = true
 										movingEdgeSource = true
 										movedEdge = e
@@ -508,7 +508,7 @@ object QuantoLibAPI extends Publisher{
 							}
 							else if(dTgt<=0.5){
 								graph.vdata(graph.target(e)) match {
-									case d:NodeV if(d.typ != "break" && d.typ != "GN") =>
+									case d:NodeV if(d.typ != "G_Break" && d.typ != "G") =>
 										movingEdge = true
 										movingEdgeSource = false
 										movedEdge = e
@@ -627,7 +627,7 @@ object QuantoLibAPI extends Publisher{
 		}
 		vertexHit map { startV =>
 			graph.vdata(startV) match {
-				case d:NodeV if(d.typ != "break" && d.typ != "GN") =>
+				case d:NodeV if(d.typ != "G_Break" && d.typ != "G") =>
 						changeMouseStateCallback("dragEdge", startV.s)
 						view.edgeOverlay = Some(EdgeOverlay(pt, src = startV, tgt = Some(startV)))
 						view.repaint()
@@ -652,7 +652,7 @@ object QuantoLibAPI extends Publisher{
 		vertexHit match {
 			case Some(v:VName) =>
 				graph.vdata(v) match {
-					case d:NodeV if(d.typ != "break" && d.typ != "GN") =>
+					case d:NodeV if(d.typ != "D_Break" && d.typ != "G") =>
 						view.edgeOverlay = Some(EdgeOverlay(pt, startV, vertexHit))
 						view.repaint()
 					case _ =>
@@ -682,7 +682,7 @@ object QuantoLibAPI extends Publisher{
 		}
 		vertexHit map { endV =>
 			graph.vdata(endV) match {
-				case d:NodeV if(d.typ != "break" && d.typ != "GN") =>
+				case d:NodeV if(d.typ != "G_Break" && d.typ != "G") =>
 					if(movingEdge){
 						moveEdge(VName(startV), endV, movedEdge, movingEdgeSource)
 						changeMouseStateCallback("select")
@@ -755,12 +755,12 @@ object QuantoLibAPI extends Publisher{
 			changeGraph(graph.updateEData(e) { _ => data.withValue(str) })
 			graph.edgesBetween(graph.source(e), graph.target(e)).foreach { view.invalidateEdge }
 			graph.vdata(graph.source(e)) match {
-				case d:NodeV if(d.typ == "break" || d.typ == "GN") =>
+				case d:NodeV if(d.typ == "G_Break" || d.typ == "G") =>
 					setEdgeValue(graph.inEdges(graph.source(e)).head, str)
 				case _ => // do nothing special
 			}
 			graph.vdata(graph.target(e)) match {
-				case d:NodeV if(d.typ == "break" || d.typ == "GN") =>
+				case d:NodeV if(d.typ == "G_Break" || d.typ == "G") =>
 					setEdgeValue(graph.outEdges(graph.target(e)).head, str)
 				case _ => // do nothing special
 			}
@@ -869,10 +869,10 @@ object QuantoLibAPI extends Publisher{
 		if (graph.vdata.contains(src) && graph.vdata.contains(tgt)) {
 			if(graph.source(e) == src && graph.target(e) != tgt) {
 				graph.vdata(graph.target(e)) match {
-					case d:NodeV if(d.typ == "break" || d.typ == "GN") => // do nothing
+					case d:NodeV if(d.typ == "G_Break" || d.typ == "G") => // do nothing
 					case _ => 
 						graph.vdata(tgt) match {
-							case d:NodeV if(d.typ == "break" || d.typ == "GN") => // do nothing
+							case d:NodeV if(d.typ == "G_Break" || d.typ == "G") => // do nothing
 							case d:WireV if(graph.adjacentEdges(tgt).size >= 1) => // do nothing
 							case _ => moveEdge(src, tgt, edge, false)
 						}
@@ -880,10 +880,10 @@ object QuantoLibAPI extends Publisher{
 			}
 			else if (graph.source(e) != src && graph.target(e) == tgt){
 				graph.vdata(graph.source(e)) match {
-					case d:NodeV if(d.typ == "break" || d.typ == "GN") => // do nothing
+					case d:NodeV if(d.typ == "G_Break" || d.typ == "G") => // do nothing
 					case _ => 
 						graph.vdata(src) match {
-							case d:NodeV if(d.typ == "break" || d.typ == "GN") => // do nothing
+							case d:NodeV if(d.typ == "G_Break" || d.typ == "G") => // do nothing
 							case d:WireV if(graph.adjacentEdges(src).size >= 1) => // do nothing
 							case _ => moveEdge(tgt, src, edge, true)
 						}
@@ -894,10 +894,10 @@ object QuantoLibAPI extends Publisher{
 
 	def hasBreak(e: String) : Boolean = {
 		graph.vdata(graph.source(EName(e))) match {
-			case d:NodeV if(d.typ == "break") => true
+			case d:NodeV if(d.typ == "G_Break") => true
 			case _ =>
 				graph.vdata(graph.target(EName(e))) match {
-					case d:NodeV if(d.typ == "break") => true
+					case d:NodeV if(d.typ == "G_Break") => true
 					case _ => false
 				}
 		}
@@ -913,7 +913,7 @@ object QuantoLibAPI extends Publisher{
 		val coordTgt = graph.vdata(etgt).coord
 		val x = coordSrc._1 + ((coordTgt._1 - coordSrc._1)/2)
 		val y = coordSrc._2 + ((coordTgt._2 - coordSrc._2)/2)
-		val d = NodeV(data = theory.vertexTypes("break").defaultData, theory = theory).withCoord((x,y))
+		val d = NodeV(data = theory.vertexTypes("G_Break").defaultData, theory = theory).withCoord((x,y))
 		val n = graph.verts.freshWithSuggestion(VName("v0"))
 		graph.edgesBetween(esrc, etgt).foreach { view.invalidateEdge }
 		changeGraph(graph.deleteEdge(e))
@@ -938,9 +938,9 @@ object QuantoLibAPI extends Publisher{
 		var newEdgeName = ""
 		if(hasBreak(e)){
 			graph.vdata(graph.source(EName(e))) match {
-				case d:NodeV if(d.typ == "break") => newEdgeName = removeBreakpoint(graph.source(EName(e)).s)
+				case d:NodeV if(d.typ == "G_Break") => newEdgeName = removeBreakpoint(graph.source(EName(e)).s)
 				case _ => graph.vdata(graph.target(EName(e))) match {
-					case d:NodeV if(d.typ == "break") => newEdgeName = removeBreakpoint(graph.target(EName(e)).s)
+					case d:NodeV if(d.typ == "G_Break") => newEdgeName = removeBreakpoint(graph.target(EName(e)).s)
 					case _ =>
 				}
 			}
@@ -954,7 +954,7 @@ object QuantoLibAPI extends Publisher{
 	def removeBreakpoint(v: String):String = {
 		var newEdgeName = ""
 		graph.vdata(VName(v)) match {
-			case d:NodeV if(d.typ == "break") =>
+			case d:NodeV if(d.typ == "G_Break") =>
 				val break = v
 				val edata = DirEdge.fromJson(theory.defaultEdgeData, theory)
 				val src = graph.source(graph.inEdges(break).head)
