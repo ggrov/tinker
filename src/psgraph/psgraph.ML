@@ -105,9 +105,20 @@ struct
     ]
   end
 
- fun input_json (Json.Object object) = empty
+ fun input_json (Json.Object object) = 
+  let
+    val in_graph = Theory_IO.in_json (JsonInputUtils.get object "graph")
+    (*FIXME: all the remain field are dummy, just for now *)
+    (*
+    val in_cur = JsonInputUtils.get_string object "current"
+    val in_cur_idx = JsonInputUtils.get_int object "current_index"
+    ...
+    *)
+  in
+    of_graph in_graph
+  end
 
- fun write_json_file path ps =   File_Io.write_string path (output_json ps |> Json.encode);
+ fun write_json_file path ps =  File_Io.write_string path (output_json ps |> Json.encode);
 
  structure Sharing = 
  struct

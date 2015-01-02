@@ -51,6 +51,14 @@ Theory_IO.write_json_file (path^"test.psgraph") g;
 *}
 
 ML{*
+(* the file should be identical with the one above *)
+val out_test = Theory_IO.out_json g;
+val in_test = Theory_IO.in_json out_test;
+Theory_IO.write_json_file (path^"in_test.psgraph") in_test;
+*}
+
+
+ML{*
 
 
  PSGraph.write_json_file (path^"test0.psgraph") ps;

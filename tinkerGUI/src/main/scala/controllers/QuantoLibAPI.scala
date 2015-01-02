@@ -652,7 +652,7 @@ object QuantoLibAPI extends Publisher{
 		vertexHit match {
 			case Some(v:VName) =>
 				graph.vdata(v) match {
-					case d:NodeV if(d.typ != "D_Break" && d.typ != "G") =>
+					case d:NodeV if(d.typ != "G_Break" && d.typ != "G") =>
 						view.edgeOverlay = Some(EdgeOverlay(pt, startV, vertexHit))
 						view.repaint()
 					case _ =>
