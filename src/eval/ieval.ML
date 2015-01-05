@@ -6,15 +6,11 @@ functor InteractiveEvalFun(EVal : EVAL) =
 struct
    structure EData = EVal.EData;
    
-   
-
 (************************************************************
   
       Evaluation Steps (maybe move to ieval)
 
 *************************************************************)
-
-
  datatype result = Good of EData.T | Bad | Cont of EData.T
 
   fun eval_any edata = 
@@ -45,6 +41,24 @@ struct
        |> List.concat
        |> update_branches edata
   end;
+
+  fun output_json cmd edata = 
+    Json.mk_object[
+      ("cmd", Json.String cmd),
+      ("psgraph", 
+       EData.get_psgraph edata 
+       |> EData.PSGraph.output_json),
+      (* FIXME: hacky *)
+      ("eval_psgraph",
+        EData.get_graph edata
+        |> EData.PSGraph.of_graph
+        |> EData.PSGraph.output_json_as_eval_field)      
+    ]
+  fun output_string cmd edata = 
+   output_json cmd edata
+   |> Json.encode
+   |> (fn x => x ^ " \n")
+
 
 (* Theory.Graph.normalise *)
 end (* functor *)

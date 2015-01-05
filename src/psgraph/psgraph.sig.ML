@@ -52,6 +52,7 @@ sig
 
   (* json i/o *)
   val output_json : T -> Json.json
+  val output_json_as_eval_field : T -> Json.json
   val input_json : Json.json -> T
   val write_json_file : string -> T -> unit
 

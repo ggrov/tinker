@@ -102,7 +102,7 @@ object CommunicationService extends Publisher {
 								var i:Int = 0
 								var graph:JsonObject = JsonObject()
 								// get eval field
-								(j ? "eval") match {
+								(j ? "eval_psgraph") match {
 									// if eval field not found
 									case eval: Json if(eval == JsonNull) => 
 										send(JsonObject("cmd" -> "RSP_ERROR_INIT_PSGRAPH", "msg" -> "no eval field"))

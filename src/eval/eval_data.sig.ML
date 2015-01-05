@@ -108,6 +108,7 @@ sig
   
   val pretty_goals : T -> Pretty.T
 
+
   structure Sharing : EVAL_DATA_SHARING
     sharing type branch = Sharing.branch
     sharing type active = Sharing.active

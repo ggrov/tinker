@@ -9,6 +9,7 @@ ML{*
   val path = "/Users/yuhuilin/Desktop/" ;
 *}
 
+
 (* test psgraph level *)
 
 ML{*
@@ -59,7 +60,44 @@ Theory_IO.write_json_file (path^"in_test.psgraph") in_test;
 
 
 ML{*
-
-
  PSGraph.write_json_file (path^"test0.psgraph") ps;
+*}
+ML{*
+  val edata0 = EVal.init ps @{context} @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"} |> hd; 
+*}
+(* socket testing *) 
+
+ML{*
+val msg = IEVal.output_string "CMD_INIT_PSGRAPH" edata0;
+*}
+ML{* TextSocket.safe_close;  *}
+ML{* -
+TextSocket.safe_close; 
+val s = TextSocket.safe_local_server 1790; 
+TextSocket.write s msg; 
+TextSocket.flushOut s;
+*}
+
+ML{*
+TextSocket.read s; (* expect to be "can you hear me" *) 
+*}
+
+ML{*  
+TextSocket.write s "say hello from the client\n"; 
+TextSocket.flushOut s;
+*}
+
+ML{*
+val s = TextSocket.safe_local_client 1790; 
+TextSocket.write s "hello 2 from client \n"; 
+TextSocket.flushOut s;
+TextSocket.read s; (* expect to be "can you hear me" *)
+
+TextSocket.write s "say hello 2  from the client\n"; 
+TextSocket.flushOut s;
+*}
+ 
+ML{*-
+TextSocket.write s "CMD_CLOSE\n";
+TextSocket.flushOut s;
 *}

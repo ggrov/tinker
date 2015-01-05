@@ -105,6 +105,23 @@ struct
     ]
   end
 
+ fun output_json_as_eval_field ps = 
+  Json.mk_object 
+  [
+    ("name_current", Json.String "main"),
+    ("index_current", Json.Int 0),
+    ("graphs",
+     Json.mk_object[
+      ("name", Json.String "main"),
+      ("isOr", Json.Bool true),
+      ("args", Json.Array[]),
+      ("graphs", Json.Array [Theory_IO.out_json (get_graph ps)])])
+  ]
+
+(* expect to out put as an eval field *)
+
+
+
  fun input_json (Json.Object object) = 
   let
     val in_graph = Theory_IO.in_json (JsonInputUtils.get object "graph")

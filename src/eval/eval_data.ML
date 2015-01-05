@@ -191,7 +191,8 @@ struct
       ([Pretty.str "Open goals in the current psgraph :{"] @
       (get_pplan edata |> Prover.get_open_pnodes |> map Prover.pretty_pnode) @
       [Pretty.str "}"])
-     
+         
+
    structure Sharing =
    struct
      type branch = branch
