@@ -34,8 +34,12 @@ object Service extends Publisher {
 	// getter-setter of the main frame
 	private var mainFrame: Component = new BorderPanel()
 	def setMainFrame(c: Component) { mainFrame = c }
-	def getMainFrame : Component = mainFrame 
-	
+	def getMainFrame : Component = mainFrame
+
+  private var topFrame: MainFrame = null
+  def setTopFrame(c: MainFrame) { topFrame = c }
+  def getTopFrame : MainFrame = topFrame
+
 	// getters on the psgraph model
 	// the all json model
 	def getJsonPSGraph = {model.updateJsonPSGraph; model.jsonPSGraph}
@@ -291,4 +295,8 @@ object Service extends Publisher {
 			refreshGraph
 		}
 	}
+
+  def showTinkerGUI (b : Boolean) {
+    getTopFrame.visible_=(b)
+  }
 }

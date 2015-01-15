@@ -45,6 +45,10 @@ object MainGUI extends SimpleSwingApplication {
 			case DocumentTitleEvent(t) =>
 				title = "Tinker - " + t
 		}
+
+    Service.setTopFrame(this)
 	}
+
+
 
 }

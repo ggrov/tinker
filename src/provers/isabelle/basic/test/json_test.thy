@@ -58,27 +58,27 @@ val in_test = Theory_IO.in_json out_test;
 Theory_IO.write_json_file (path^"in_test.psgraph") in_test;
 *}
 
-
+ 
 ML{*
  PSGraph.write_json_file (path^"test0.psgraph") ps;
-*}
-ML{*
+*}  
+ML{* 
   val edata0 = EVal.init ps @{context} @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"} |> hd; 
-*}
-(* socket testing *) 
+*} 
+(* socket testing *)  
+      
+ML{* val s = TextSocket.local_client 1790; *}
+ML{*  
+val msg = IEVal.output_string "CMD_INIT_PSGRAPH" (SOME edata0);
 
-ML{*
-val msg = IEVal.output_string "CMD_INIT_PSGRAPH" edata0;
-*}
-ML{* TextSocket.safe_close;  *}
-ML{* -
-TextSocket.safe_close; 
-val s = TextSocket.safe_local_server 1790; 
+*}  
+ML{*-
 TextSocket.write s msg; 
 TextSocket.flushOut s;
+TextSocket.read s; (* expect to be "can you hear me" *) 
 *}
 
-ML{*
+ML{*-
 TextSocket.read s; (* expect to be "can you hear me" *) 
 *}
 

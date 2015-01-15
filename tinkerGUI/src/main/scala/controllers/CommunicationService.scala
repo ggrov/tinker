@@ -66,14 +66,14 @@ object CommunicationService extends Publisher {
 				b.append("\n")
 				b.append(in.readLine)
 			}
-			try { 
+			//try {
 				println(b.toString); 
 				val j = Json.parse(b.toString); 
 				parseAndExecute(j)
-			}
-			catch {
-				case e: Exception => println(b.toString+" -> diz iz no Json : "+e.getMessage)
-			}
+		//	}
+			//catch {
+			//	case e: Exception => println(b.toString+" -> diz iz no Json : "+e.getMessage)
+			//}
 			listen
 		}
 	}
@@ -84,6 +84,11 @@ object CommunicationService extends Publisher {
 			case cmd: Json if(cmd == JsonNull) => send(JsonObject("cmd" -> "RSP_ERROR_NO_CMD"))
 			// if command found
 			case cmd: Json => cmd.stringValue match {
+        //show and hide tinker gui from the tinker core
+       case "CMD_SHOW_GUI" =>
+          Service.showTinkerGUI(true)
+       case "CMD_HIDE_GUI" =>
+          Service.showTinkerGUI(false)
 				// initialisation command
 				case "CMD_INIT_PSGRAPH" =>
 					// if correct state
@@ -121,6 +126,7 @@ object CommunicationService extends Publisher {
 											case index: Json => i = index.intValue
 										}
 										// get current graph (should be main[0] at first)
+
 										(eval ? "graphs") match {
 											// error send if graphs array not found
 											case graphs:Json if(graphs == JsonNull) => send(JsonObject("cmd" -> "RSP_ERROR_INIT_PSGRAPH", "msg" -> "no graphs field in eval"))
@@ -138,9 +144,12 @@ object CommunicationService extends Publisher {
 													case _ => send(JsonObject("cmd" -> "RSP_ERROR_INIT_PSGRAPH", "msg" -> "could not find graph to display in eval"))
 												}
 										}
+
 								}
+
 								// display current graph on view
 								Service.displayEvalGraph(tactic, i, graph)
+
 								// change state
 								state = CommunicationState.WaitingForEvalOptions
 								// send respond command

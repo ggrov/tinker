@@ -54,11 +54,25 @@ struct
         |> EData.PSGraph.of_graph
         |> EData.PSGraph.output_json_as_eval_field)      
     ]
-  fun output_string cmd edata = 
-   output_json cmd edata
-   |> Json.encode
-   |> (fn x => x ^ " \n")
 
+  fun output_cmd_json cmd = 
+    Json.mk_object[
+      ("cmd", Json.String cmd),
+      ("psgraph", Json.Null),
+      (* FIXME: hacky *)
+      ("eval_psgraph", Json.Null)      
+    ]
+
+  fun output_string cmd edata = 
+   if (Option.isSome edata)
+   then 
+    output_json cmd (Option.valOf edata)
+    |> Json.encode
+    |> (fn x => x ^ " \n")
+   else
+    output_cmd_json cmd
+    |> Json.encode
+    |> (fn x => x ^ " \n")
 
 (* Theory.Graph.normalise *)
 end (* functor *)

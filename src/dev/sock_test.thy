@@ -6,9 +6,9 @@ begin
 ML_file "../debug_handler.ML"  
 ML_file "../interface/text_socket.ML"
 
-ML{*   
+ML{*-
 TextSocket.safe_close; 
-val s = TextSocket.safe_local_client 1797; 
+val s = TextSocket.safe_local_client 1790; 
 TextSocket.write s "hello from client \n"; 
 TextSocket.flushOut s;
 *}
