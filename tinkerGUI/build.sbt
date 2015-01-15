@@ -26,6 +26,9 @@ libraryDependencies += "org.scala-lang" % "scala-swing" % "2.10.0"
 
 //exportJars := true
 
+
+unmanagedSourceDirectories in Compile += baseDirectory.value / "tinker_library"
+
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
 mainClass in (Compile, run) := Some("tinkerGUI.views.MainGUI")
