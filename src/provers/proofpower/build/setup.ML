@@ -1,7 +1,26 @@
+val cur_path = OS.FileSys.getDir();
+OS.FileSys.chDir (cur_path ^ "/psgraph/src/provers/proofpower/build");
+
 (* some useful combinators *)
   fun I x = x;
   fun K x = fn _ => x;
   fun x |> f = f x;
+
+(* basic goaltype *)
+  use "../../../rtechn_names.ML"; 
+  use "../../prover.sig.ML";   
+  use "../../../goaltype/basic_goaltyp.sig.ML";
+
+(* graph *)
+  use "../../../debug_handler.ML";
+  use "../../../graph/graph_data.sig.ML" ;         
+  use "../../../graph/graph_data.ML" ;                                          
+  use "../../../graph/io.ML";
+  use "../../../graph/theory.ML";
+  use "../../../graph/theory_io.sig.ML";    
+  use "../../../graph/theory_io.ML";
+       
+
   
   use "../../../debug_handler.ML";
   use "../termlib/termlib.ML";

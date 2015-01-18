@@ -12,6 +12,11 @@ ML{*
 *}
 
 (* wrapping trm with name structure *)
+  ML_file "../../termlib/rippling/unif_data.ML" 
+  ML_file "../../termlib/rippling/collection.ML"   
+  ML_file "../../termlib/rippling/pregraph.ML"  
+  ML_file "../../termlib/rippling/rgraph.ML" 
+  
   ML_file "../../termlib/rippling/embedding/paramtab.ML" 
   ML_file "../../termlib/rippling/embedding/trm.ML"  
   ML_file "../../termlib/rippling/embedding/isa_trm.ML"
