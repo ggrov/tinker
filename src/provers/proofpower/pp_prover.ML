@@ -8,16 +8,11 @@ struct
   type tactic = TACTIC
   type context = string list * string (* context string list * theory string *)
 
-  type fact = thm
-  type concl = term
-
-  datatype Object =  Fact of fact | Concl of concl
-
   (* get_current_pc () open_theory, set_pc *)
 
   exception gterm_exp
   
-  val current_ctxt = get_current_pc (); (* used in those place need context in general *)
+  val default_ctxt = get_current_pc (); (* used in those place need context in general *)
   val typ_of = type_of
   fun match ctxt = (op ~=$) 
 
@@ -58,8 +53,7 @@ struct
   (* there is no interface to init a pnode and pplan ?*)
   (* if paralle evalation then it would be problematic*)
   
-  fun init _ _  = raise atomic_exp "init is not expected to be called in pp"
-  fun init_with_assm ctxt asms_trms concl_trm : (pnode * pplan) =
+  fun init ctxt asms_trms concl_trm : (pnode * pplan) =
     let
       val (pcs, thy) = ctxt
       val _ = (set_merge_pcs pcs; set_goal (asms_trms, concl_trm)); (* setup goal *)
@@ -127,20 +121,8 @@ struct
       )
      end
   
-  (* TACTIC in pp is always determined, no branching ?? *)
-  fun apply_rule _ thm pinfo = update (bc_thm_tac thm) pinfo |> Seq.single
- 
-  fun apply_erule _ _ _ = raise atomic_exp "apply_erule is not supported"
-  
-  (* first assumption, next rule, but in pp ,it's applied blindly *)
-  fun apply_frule _ (_ , thm) pinfo =  update (all_fc_tac [thm]) pinfo |> Seq.single
-  
-  fun apply_subst _ thm pinfo = update (rewrite_tac [thm]) pinfo|> Seq.single
-  
-  (* first assumption, second the equality rule *)
-  fun apply_subst_asm _ (_ , thm) pinfo = update (rewrite_tac [thm]) pinfo |> Seq.single
-  
-  fun apply_tactic _ _ tactic pinfo = (writeln "call apply_tactic in psg" ; update tactic pinfo |> Seq.single)
+ (* FIXME: arg_data list *)
+  fun apply_tactic _ tactic pinfo = (writeln "call apply_tactic in psg" ; update tactic pinfo |> Seq.single)
 
   (* only look up *)
   fun lookup_fact pnode key = 
@@ -153,8 +135,6 @@ struct
   			      |> fst (* a list of term *)
   			      |> map asm_rule (* to thm type *)
   			      
-  (* need to think about more for this *)			 
-  fun get_all_named_facts_pair _ = [] (*pnode -> (string * fact) list*)
 
   fun get_pnode_name (pnode:pnode) = #pname pnode;
   

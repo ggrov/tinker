@@ -3,7 +3,7 @@ theory Graph
 imports                            
   BasicGoalTyp                                                                           
 (*  "~~/contrib/quantomatic/core/isabelle/QuantoCore"  *)
-  "~~/contrib/quantomatic/core/quanto"                 (*quanto new core, require Isabelle 2014*)                                                  
+(*  "~~/contrib/quantomatic/core/quanto"       quanto new core, require Isabelle 2014*)                                                  
 begin
  
   ML_file "../../debug_handler.ML"
