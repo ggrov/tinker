@@ -58,6 +58,8 @@ struct
         |> EData.PSGraph.output_json_as_eval_field)      
     ]
 
+  fun mk_cmd_str_arg_json args_str_list = 
+     Json.Array (map (fn x => Json.String x) args_str_list)
 
   fun output_cmd_only_json cmd args_list_json = 
     Json.mk_object[
