@@ -42,9 +42,12 @@ struct
        |> update_branches edata
   end;
 
-  fun output_json cmd edata = 
+  fun output_json cmd  args_list_json edata = 
     Json.mk_object[
-      ("cmd", Json.String cmd),
+      ("cmd", 
+        Json.mk_object[
+           ("name", Json.String cmd),
+           ("args", args_list_json)]),
       ("psgraph", 
        EData.get_psgraph edata 
        |> EData.PSGraph.output_json),
@@ -55,22 +58,26 @@ struct
         |> EData.PSGraph.output_json_as_eval_field)      
     ]
 
-  fun output_cmd_json cmd = 
+
+  fun output_cmd_only_json cmd args_list_json = 
     Json.mk_object[
-      ("cmd", Json.String cmd),
+     ("cmd", 
+           Json.mk_object[
+           ("name", Json.String cmd),
+           ("args", args_list_json)]),     
       ("psgraph", Json.Null),
       (* FIXME: hacky *)
       ("eval_psgraph", Json.Null)      
     ]
 
-  fun output_string cmd edata = 
+  fun output_string cmd args_list_json edata = 
    if (Option.isSome edata)
    then 
-    output_json cmd (Option.valOf edata)
+    output_json cmd args_list_json (Option.valOf edata)
     |> Json.encode
     |> (fn x => x ^ " \n")
    else
-    output_cmd_json cmd
+    output_cmd_only_json cmd args_list_json
     |> Json.encode
     |> (fn x => x ^ " \n")
 

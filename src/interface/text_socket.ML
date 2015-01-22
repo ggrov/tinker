@@ -256,7 +256,7 @@ fun local_client port =
         | _                  => (clear_last_sock () ; safe_local_server port) (* address is in used, try again *)
 
   fun safe_close data = 
-    let val _ = socket_tracing"cleaning by it self" in
+    let val _ = socket_tracing "cleaning by it self" in
     (close data;
      Synchronized.change 
       last_sock 
