@@ -1,17 +1,50 @@
-signature INTERACTIVE_EVAL = 
-sig
-end
 
-functor InteractiveEvalFun(EVal : EVAL) =
+functor InteractiveEvalFun (EVal : EVAL) =
 struct
-   structure EData = EVal.EData;
+  structure EVal= EVal
+  structure EData = EVal.EData;
    
 (************************************************************
   
       Evaluation Steps (maybe move to ieval)
 
 *************************************************************)
- datatype result = Good of EData.T | Bad | Cont of EData.T
+  datatype result = Good of EData.T | Bad | Cont of EData.T
+
+  structure EVal= EVal
+  structure EData = EVal.EData;
+   
+(************************************************************
+  
+      Evaluation Steps (maybe move to ieval)
+
+*************************************************************)
+  datatype result = Good of EData.T | Bad | Cont of EData.T
+
+  fun eval_goal g  edata = 
+   let 
+    val graph = (EData.get_graph edata) 
+    fun update_branches edata branches = 
+      let val new_branches = branches @ (EData.get_branches edata) in
+        case new_branches of 
+          [] => Bad (* this is because tactic fails szx *)
+          | (x::xs) => (* fixme: this should be based on the search strategy *)
+              Cont (edata 
+                    |> EData.set_current x 
+                    |> EData.set_branches xs)
+      end
+    in
+     if EVal.has_terminated edata then
+      (case EData.parent_lhs edata of
+        NONE => Good edata
+        | _ => Good edata) (* fixme: this should be hie one *)
+     else
+     (* todo: hierichecal one *)
+       EVal.eval_goal_atomic true g edata
+       |> Seq.list_of (* get a list of eval results *)
+       |> map fst (* map out branches *)
+       |> update_branches edata
+   end
 
   fun eval_any edata = 
    let 
@@ -84,4 +117,18 @@ struct
     |> (fn x => x ^ " \n")
 
 (* Theory.Graph.normalise *)
+
+(*
+ val step_into : V.name option -> EData.T -> EData.T
+ val step_over : V.name option -> EData.T -> EData.T
+ val backtrack : EData.T -> EData.T 
+ val complete : EData.T -> EData.T  *)
+
+   structure Sharing =
+   struct
+     type result = result
+     structure EData = EData.Sharing
+   end
+
+
 end (* functor *)

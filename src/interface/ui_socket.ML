@@ -1,14 +1,9 @@
-signature UI_SOCKET = 
-sig
-  
-end (* end of sig *)
 
-(* TODO: need to be functorised *)
-structure UISocket = 
+functor UISocket (IEVal : IEVAL) = 
 struct
   structure FocusList = 
     struct   
-      type data = EVal.EData.T 
+      type data = IEVal.EData.T 
       (* list structure with focus, functionalities are similar to zipper *)
       type T = data list * data * data list
 
@@ -33,7 +28,7 @@ struct
   (* internal data to store temp status *)
   val edata : FocusList.T option Unsynchronized.ref = Unsynchronized.ref NONE 
   val fn_init_edata : 
-    (PSGraph.Theory.Graph.T 
+    (IEVal.EVal.Theory.Graph.T 
       -> FocusList.data) option Unsynchronized.ref
     = Unsynchronized.ref NONE
 
@@ -48,7 +43,7 @@ struct
 
   fun strip_some (SOME x) = x
 
-  fun update_new_eval_result FocusList_OP (EVal.Cont e)  = 
+  fun update_new_eval_result FocusList_OP (IEVal.Cont e)  = 
     let 
       val e' = EVal.normalise_gnode e 
       val (SOME el) = get_data()
@@ -107,7 +102,7 @@ struct
       case FocusList.move_next el of NONE (* only the the top edata can apply backtracking *)
         =>  let val edata = FocusList.focus el in
             case EData.get_branches edata (* get a list branches from current edata *) 
-            of [] => Json.String "TOP" (* no backtracking*)
+            of [] => Json.String "TOP" (* no backtrack *)
             | _ => ( EVal.evaluate_backtrack edata
                      |> update_new_eval_result FocusList.replace_tl(* replace the top edata *)) end
        | SOME el' => 

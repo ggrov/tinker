@@ -68,7 +68,7 @@ ML{*
 (* socket testing *)  
 ML{* val s = TextSocket.local_client 1790; *}
 ML{*  
-val msg = IEVal.output_string "CMD_INIT_PSGRAPH" (Json.Array [Json.String "abc"]) (SOME edata0);
+val msg = IEVal.output_string "CMD_INIT_PSGRAPH" (IEVal.mk_cmd_str_arg_json ["abc", "bbc"]) (SOME edata0);
 val msg = IEVal.output_string "CMD_INIT_PSGRAPH" Json.Null (SOME edata0);
 File_Io.write_string (path^"/msg.json") msg;
 *}  
