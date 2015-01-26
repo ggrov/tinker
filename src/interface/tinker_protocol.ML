@@ -15,21 +15,22 @@ let
     val (json_list, src') = Source.get src
     val json = case json_list of [x] => x | _ =>
       raise protocol_exn "Expected: exactly one JSON object"
-    val json_output = dispatch json
-    (*val _ = Json.string_of output |> tracing;*)
+    val (Json.Object json_obj_output) = dispatch json (* this output is always a json object *)
   in 
-    (case output of Json.String "REQUEST_CLOSE" => ((*tracing "server is closing" ;*) ())
+    (case JsonInputUtils.get_string json_obj_output "cmd"
+        of "Dummy_RSP" => ((); protocol_loop src')
+        | "PRINT_ONLY_RSP" => 
+          ((JsonInputUtils.get_string json_obj_output "msg"
+          |> ( fn x => writeln ("PRINT_RSP" ^ x)));
+           protocol_loop src')
         | _ =>
-           (TextIO.output (outstream, Json.encode json_output);
+           (TextIO.output (outstream, Json.encode (Json.Object json_obj_output));
            TextIO.flushOut outstream;
            protocol_loop src')
     )
   end
 in protocol_loop (Json.json_source instream)
 end
-handle protocol_exn msg => 
-  (TextIO.output (outstream, (* an error default msg *)));
-   TextIO.flushOut outstream)
 
 end
 

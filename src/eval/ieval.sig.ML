@@ -12,14 +12,8 @@ sig
 
  sharing EVal.EData.Sharing = EData.Sharing
  datatype result = Good of EData.T | Bad | Cont of EData.T
- 
- val step_into : V.name option -> EData.T -> result
- val step_over : V.name option -> EData.T -> result
-
- val backtrack : EData.T -> EData.T 
 
  (* debug / breakpoint / logging ??*)
-
  val complete : EData.T -> EData.T (* current hierarchy *)
  val cancel : EData.T -> EData.T (* remove all goal nodes *)
 
@@ -39,6 +33,9 @@ sig
  
  val eval_any : EData.T -> result
  val eval_goal: string -> EData.T -> result (* goal to be eval -> current eval status *)
+ val eval_backtrack : EData.T -> result 
+ val eval_step_into : V.name option -> EData.T -> result
+ val eval_step_over : V.name option -> EData.T -> result
 
  structure Sharing : IEVAL_SHARING
   sharing type result = Sharing.result

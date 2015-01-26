@@ -11,6 +11,29 @@ fun get_cmd_name (Json.Object obj) =
 
 fun register (cmd : string) f = Symtab.update_new (cmd, f)
 
+(* 
+  Dummy_RSP: cmd: string
+  PRINT_ONLY_RSP: cmd: string, msg: string
+*)
+(*
+RSP_INIT_PSGRAPH
+RSP_ERROR_INIT_PSGRAPH
+*)
+
+(*
+RSP_EVAL_PSGRAPH
+RSP_ERROR_EVAL_PSGRAPH
+
+*)
+
+(*
+RSP_DISPLAY_PSGRAPH
+RSP_ERROR_DISPLAY_PSGRAPH
+*)
+
+(*
+*)
+
 val ftab = Symtab.empty
 (*
 val ftab = ftab |> register

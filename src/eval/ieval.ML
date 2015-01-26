@@ -3,12 +3,7 @@ functor InteractiveEvalFun (EVal : EVAL) =
 struct
   structure EVal= EVal
   structure EData = EVal.EData;
-   
-(************************************************************
-  
-      Evaluation Steps (maybe move to ieval)
 
-*************************************************************)
   datatype result = Good of EData.T | Bad | Cont of EData.T
 
   structure EVal= EVal
@@ -16,7 +11,7 @@ struct
    
 (************************************************************
   
-      Evaluation Steps (maybe move to ieval)
+      Evaluation options
 
 *************************************************************)
   datatype result = Good of EData.T | Bad | Cont of EData.T
@@ -45,6 +40,13 @@ struct
        |> map fst (* map out branches *)
        |> update_branches edata
    end
+
+ fun eval_backtrack edata = 
+   case EData.get_branches edata  
+   of [] => Bad
+    | branch  => 
+        Cont( EData.set_current (hd branch) edata 
+              |> EData.set_branches (tl branch)) 
 
   fun eval_any edata = 
    let 
@@ -75,6 +77,12 @@ struct
        |> update_branches edata
   end;
 
+
+(************************************************************
+  
+     JSON output
+
+*************************************************************)
   fun output_json cmd  args_list_json edata = 
     Json.mk_object[
       ("cmd", 
