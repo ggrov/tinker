@@ -242,8 +242,8 @@ object Service extends Publisher {
 
 	listenTo(evalControlsCtrl)
 	reactions+={
-		case EvalOptionSelectedEvent(opt) =>
-			publish(UserSelectedEvalOptionEvent(opt))
+		case EvalOptionSelectedEvent(opt, node) =>
+			publish(UserSelectedEvalOptionEvent(opt, node))
 	}
 
 	// function to change document service

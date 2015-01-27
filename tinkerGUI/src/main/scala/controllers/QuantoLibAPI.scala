@@ -182,7 +182,7 @@ object QuantoLibAPI extends Publisher{
 				graph.adjacentEdges(v).foreach {deleteEdge}
 				if(graph.vdata.contains(v)){
 					// Uncomment the next line to delete the node in the model too
-					// d match { case n: NodeV => if (n.typ == "RT_NST") Service.deleteTactic(n.label)}
+					// d match { case n: NodeV => if (n.typ == "T_Graph") Service.deleteTactic(n.label)}
 					view.invalidateVertex(v)
 					val selected = if(view.selectedVerts.contains(v)){
 						view.selectedVerts -= v; true
@@ -730,12 +730,12 @@ object QuantoLibAPI extends Publisher{
 		addVertex(vertexName, vertexData.withCoord(coord))
 		graph.vdata(vertexName) match {
 			case data: NodeV =>
-				if(typ == "RT_NST") {
+				if(typ == "T_Graph") {
 					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.createNode(data.label, true, true)) })
 					view.invalidateVertex(vertexName)
 					graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
 				}
-				else if (typ == "RT_ATM") {
+				else if (typ == "T_Atomic") {
 					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.createNode(data.label, false, false)) })
 					view.invalidateVertex(vertexName)
 					graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
@@ -977,7 +977,22 @@ object QuantoLibAPI extends Publisher{
 		var res = false
 		graph.inEdges(n).foreach{e =>
 			graph.vdata(graph.source(e)) match {
-				case d:NodeV if(d.typ == "GN") => res = true
+				case d:NodeV if(d.typ == "G") => res = true
+				case _ =>
+			}
+		}
+		res
+	}
+
+	/**
+	  * Method to check if given node has nested tactic after
+	  */
+	def hasNestedTacticAfter(n:String):Boolean = {
+		var res = false
+		graph.outEdges(n).foreach{e =>
+			graph.vdata(graph.target(e)) match {
+				case d:NodeV if(d.typ == "T_Graph") => res = true
+				case _ =>
 			}
 		}
 		res
@@ -1003,7 +1018,7 @@ object QuantoLibAPI extends Publisher{
 		val newX = (minX+maxX)/2
 		val newY = (minY+maxY)/2
 		// creating new node (cannot use userAddVertex as we don't have the mouse point coordinates)
-		var newData = NodeV(data = theory.vertexTypes("RT_NST").defaultData, theory = theory).withCoord((newX,newY))
+		var newData = NodeV(data = theory.vertexTypes("T_Graph").defaultData, theory = theory).withCoord((newX,newY))
 		val newName = graph.verts.freshWithSuggestion(VName("v0"))
 		changeGraph(graph.addVertex(newName, newData.withCoord((newX,newY))))
 		graph.vdata(newName) match {
@@ -1018,7 +1033,7 @@ object QuantoLibAPI extends Publisher{
 			// we update the hierarchy if v is nested
 			graph.vdata(v) match {
 				case d:NodeV =>
-					if(d.typ == "RT_NST"){
+					if(d.typ == "T_Graph"){
 						Service.changeTacticParent(ArgumentParser.separateNameFromArgument(d.label)._1, ArgumentParser.separateNameFromArgument(newData.label)._1)
 					}
 			}

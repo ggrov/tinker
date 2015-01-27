@@ -38,7 +38,7 @@
 						"appf":{
 							"type":"Atomic" // type name (Atomic/Identity/Nested)
 						},
-						"type":"RT_ATM" // type id (RT_ATM/RT_ID/RT_NST)
+						"type":"T_Atomic" // type id (RT_ATM/RT_ID/RT_NST)
 					},
 					"annotation":{
 						"coord":[-1.14,1.51] // node coordinates

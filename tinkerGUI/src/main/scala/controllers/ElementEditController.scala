@@ -165,6 +165,7 @@ class ElementEditController() extends Publisher {
 				case "T_Atomic" => publish(OneVertexSelectedEvent(name, "Atomic", value))
 				case "T_Graph" => publish(OneVertexSelectedEvent(name, "Nested", value))
 				case "G_Break" => publish(OneVertexSelectedEvent(name, "Breakpoint", value))
+				case "G" => publish(OneVertexSelectedEvent(name, "Goal", value))
 			}
 		case OneEdgeSelectedEventAPI(name, value, source, target) =>
 			publish(OneEdgeSelectedEvent(name, value, source, target))

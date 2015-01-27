@@ -86,6 +86,7 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 			contents += new FlowPanel() {
 				contents += new Button(ctrl.removeBreakpoint(nam))
 			}
+		case "Goal" => // do nothing
 	}
 
 }

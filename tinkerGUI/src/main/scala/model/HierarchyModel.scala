@@ -94,7 +94,7 @@ class HierarchyModel() {
 		root.children = ArrayBuffer()
 		activeElement = root
 		(model.mainGraph ? "node_vertices").asObject.map { 
-			case (k, v) if ((v / "data").asObject / "type").stringValue == "RT_NST" =>
+			case (k, v) if ((v / "data").asObject / "type").stringValue == "T_Graph" =>
 				addElement(ArgumentParser.separateNameFromArgument((v / "data" / "rt_name").stringValue)._1)
 			case _ => // do nothing
 		}
@@ -106,7 +106,7 @@ class HierarchyModel() {
 			case Some(t: GraphTactic) => 
 				t.graphs.foreach {g => 
 					(g ? "node_vertices").asObject.map {
-						case (k, v) if ((v / "data").asObject / "type").stringValue == "RT_NST" =>
+						case (k, v) if ((v / "data").asObject / "type").stringValue == "T_Graph" =>
 							addElement(ArgumentParser.separateNameFromArgument((v / "data" / "rt_name").stringValue)._1, parent.name)
 						case _ => // do nothing
 					}
