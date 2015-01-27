@@ -18,5 +18,8 @@ begin
   (* socket communication for the tinker gui *)
   ML_file "../../debug_handler.ML"  
   ML_file "../../interface/text_socket.ML"
+  ML_file "../../interface/tinker_model.ML"
+
+(*  ML_file "../../interface/ui_socket.ML" *)
 end
 
