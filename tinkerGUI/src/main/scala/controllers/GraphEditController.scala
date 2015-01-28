@@ -69,6 +69,7 @@ class GraphEditController() extends Publisher {
 					case "T_Atomic" => elt = "Atomic"
 					case "T_Graph" => elt = "Nested"
 					case "G_Break" => elt = "Breakpoint"
+					case "G" => elt = "Goal"
 				}
 			case OneEdgeSelectedEventAPI(name, value, source, target) =>
 				elt = "Edge"; eltName = name; eltValue = value; edgeSource = source; edgeTarget = target

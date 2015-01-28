@@ -32,4 +32,4 @@ unmanagedSourceDirectories in Compile += baseDirectory.value / "tinker_library"
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
 mainClass in (Compile, run) := Some("tinkerGUI.views.MainGUI")
-mainClass := Some("tinkerGUI.views.MainGUI")
+//mainClass := Some("tinkerGUI.views.MainGUI")

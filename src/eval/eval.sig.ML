@@ -41,6 +41,7 @@ sig
       -> EData.PSGraph.Theory.Data.nvdata (* tactic assumption *)
       -> (EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list * EData.PSGraph.Theory.Data.GoalTyp.Prover.pplan) Seq.seq
   val init : EData.PSGraph.T -> EData.PSGraph.Theory.Data.GoalTyp.Prover.context 
+    -> EData.PSGraph.Theory.Data.GoalTyp.Prover.term list 
     -> EData.PSGraph.Theory.Data.GoalTyp.Prover.term 
     -> EData.T list
   val eval_goal_atomic_goalnode : bool -> V.name -> EData.T 

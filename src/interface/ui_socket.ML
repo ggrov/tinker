@@ -1,14 +1,9 @@
-signature UI_SOCKET = 
-sig
-  
-end (* end of sig *)
 
-(* TODO: need to be functorised *)
-structure UISocket = 
+functor UISocket (IEVal : IEVAL) = 
 struct
   structure FocusList = 
     struct   
-      type data = EVal.EData.T 
+      type data = IEVal.EData.T 
       (* list structure with focus, functionalities are similar to zipper *)
       type T = data list * data * data list
 
@@ -29,11 +24,13 @@ struct
       |   replace_tl e (h, f , t) = (h, e, (fn x => List.take (x, List.length x - 1)) t @ [e])
       
     end (* end of FocusList *)
-  
+
+  structure EData = IEVal.EData
+
   (* internal data to store temp status *)
   val edata : FocusList.T option Unsynchronized.ref = Unsynchronized.ref NONE 
   val fn_init_edata : 
-    (PSGraph.Theory.Graph.T 
+    (IEVal.EVal.Theory.Graph.T 
       -> FocusList.data) option Unsynchronized.ref
     = Unsynchronized.ref NONE
 
@@ -48,18 +45,19 @@ struct
 
   fun strip_some (SOME x) = x
 
-  fun update_new_eval_result FocusList_OP (EVal.Cont e)  = 
+  fun update_new_eval_result FocusList_OP (IEVal.Cont e)  = 
     let 
-      val e' = EVal.normalise_gnode e 
+      val e' = (*EVal.normalise_gnode*) e (* no longer need to normalise node ?*) 
       val (SOME el) = get_data()
     in
       (((FocusList_OP e' el) 
          |> update_data);
-       (EData.pprint_goals e') ; 
+       (EData.pretty_goals e') ; 
        PSGraph.Theory.out_json (EData.get_graph e')) end
   | update_new_eval_result _ (EVal.Good _) = (writeln "No Goal left" ; Json.String "SUCCESS")
   | update_new_eval_result _ (EVal.Bad) = (tracing "Err - Returned a Bad eval status" ; Json.Null)
 
+(* currently do not support the current mode
   fun ui_mode_choice _ = 
     case get_data () of NONE => Json.Bool false 
     | _ => Json.Bool true
@@ -72,7 +70,7 @@ struct
                             |> PSGraph.Theory.out_json
     | NONE => (tracing "Err - No edata is set-up: edata is empty, err in lifting"; Json.Null)) end
   handle _ => (tracing "Err - No edata is set-up: err in lift a graph"; Json.Null);
-  
+*)
   fun ui_eval_prev _ = 
     let 
       val (SOME el) = get_data ()
@@ -107,8 +105,8 @@ struct
       case FocusList.move_next el of NONE (* only the the top edata can apply backtracking *)
         =>  let val edata = FocusList.focus el in
             case EData.get_branches edata (* get a list branches from current edata *) 
-            of [] => Json.String "TOP" (* no backtracking*)
-            | _ => ( EVal.evaluate_backtrack edata
+            of [] => Json.String "TOP" (* no backtrack *)
+            | _ => ( EVal.eval_backtrack edata
                      |> update_new_eval_result FocusList.replace_tl(* replace the top edata *)) end
        | SOME el' => 
            (tracing "Err - Backtracking can only apply to the top status ! "; Json.Null)
@@ -118,17 +116,11 @@ struct
   fun ui_passive_init json = 
     let val f = get_fn () in
       case f of SOME f'=> 
-(*
-  1) need a protocal to send / receive a list of json !
-  2)
-
-more info: json -> graph, graph -> psgraph   (of_graph)
-*)
         ((f' (PSGraph.Theory.in_json json)  (* init edata *)
           |> (fn x => update_data(FocusList.of_single x)));(* store edata *)
          ui_eval_current ())
         | NONE  => (tracing "Err: No init_fn is setup in passive mode !"; Json.Null) end;
- 
+
   fun ui_eval_close _ = init_data();
 
   val ui_active_init = ui_eval_current

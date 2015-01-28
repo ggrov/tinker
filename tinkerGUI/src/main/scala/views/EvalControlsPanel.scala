@@ -14,7 +14,7 @@ class EvalControlsPanel() {
 	val FinishButton = new Button(
 		new Action(""){
 			def apply(){
-				ctrl.selectOption("finish")
+				ctrl.selectOption("OPT_EVAL_FINISH")
 			}
 		}){
 		enabled = false
@@ -23,14 +23,14 @@ class EvalControlsPanel() {
 		listenTo(ctrl)
 		reactions += {
 			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="finish") enabled = true}
+				opt.foreach{o => if(o=="OPT_EVAL_FINISH") enabled = true}
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
 	val CompleteButton = new Button(
 		new Action(""){
 			def apply(){
-				ctrl.selectOption("complete")
+				ctrl.selectOption("OPT_EVAL_COMPLETE")
 			}
 		}){
 		enabled = false
@@ -39,14 +39,14 @@ class EvalControlsPanel() {
 		listenTo(ctrl)
 		reactions += {
 			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="complete") enabled = true}
+				opt.foreach{o => if(o=="OPT_EVAL_COMPLETE") enabled = true}
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
 	val UndoButton = new Button(
 		new Action(""){
 			def apply(){
-				ctrl.selectOption("undo")
+				ctrl.selectOption("OPT_EVAL_UNDO")
 			}
 		}){
 		enabled = false
@@ -55,14 +55,14 @@ class EvalControlsPanel() {
 		listenTo(ctrl)
 		reactions += {
 			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="undo") enabled = true}
+				opt.foreach{o => if(o=="OPT_EVAL_UNDO") enabled = true}
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
 	val StepInButton = new Button(
 		new Action(""){
 			def apply(){
-				ctrl.selectOption("stepInto")
+				ctrl.selectOption("OPT_EVAL_STEP_INTO")
 			}
 		}){
 		enabled = false
@@ -71,14 +71,14 @@ class EvalControlsPanel() {
 		listenTo(ctrl)
 		reactions += {
 			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="stepInto") enabled = true}
+				opt.foreach{o => if(o=="OPT_EVAL_STEP_INTO") enabled = true}
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
 	val StepOverButton = new Button(
 		new Action(""){
 			def apply(){
-				ctrl.selectOption("stepOver")
+				ctrl.selectOption("OPT_EVAL_STEP_OVER")
 			}
 		}){
 		enabled = false
@@ -87,14 +87,14 @@ class EvalControlsPanel() {
 		listenTo(ctrl)
 		reactions += {
 			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="stepOver") enabled = true}
+				opt.foreach{o => if(o=="OPT_EVAL_STEP_OVER") enabled = true}
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
 	val StopButton = new Button(
 		new Action(""){
 			def apply() {
-				ctrl.selectOption("stop")
+				ctrl.selectOption("OPT_EVAL_STOP")
 			}
 		}){
 		enabled = false
@@ -103,22 +103,63 @@ class EvalControlsPanel() {
 		listenTo(ctrl)
 		reactions += {
 			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="stop") enabled = true}
+				opt.foreach{o => if(o=="OPT_EVAL_STOP") enabled = true}
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
-	val DebugButton = new ToggleButton(
-		// new Action(""){
-		// 	def apply(){
-		// 		println("Debug")
-		// 	}
-		// }
+	val UntilBreakButton = new Button(
+		new Action(""){
+			def apply(){
+				ctrl.selectOption("OPT_EVAL_UNTIL_BREAK")
+			}
+		}
 		){
-		icon = new ImageIcon(MainGUI.getClass.getResource("eval-debug.png"), "Debug")
-		tooltip = "Debug"
+		enabled = false
+		icon = new ImageIcon(MainGUI.getClass.getResource("eval-debug.png"), "Until Break")
+		tooltip = "Until Break"
+		listenTo(ctrl)
+		reactions += {
+			case EnableEvalOptionsEvent(opt) =>
+				opt.foreach{o => if(o=="OPT_EVAL_UNTIL_BREAK") enabled = true}
+			case DisableEvalOptionsEvent() => enabled = false
+		}
+	}
+	val NextButton = new Button(
+		new Action(""){
+			def apply(){
+				ctrl.selectOption("OPT_EVAL_NEXT")
+			}
+		}
+		){
+		enabled = false
+		icon = new ImageIcon(MainGUI.getClass.getResource("eval-next.png"), "Next")
+		tooltip = "Next"
+		listenTo(ctrl)
+		reactions += {
+			case EnableEvalOptionsEvent(opt) =>
+				opt.foreach{o => if(o=="OPT_EVAL_NEXT") enabled = true}
+			case DisableEvalOptionsEvent() => enabled = false
+		}
+	}
+	val BacktrackButton = new Button(
+		new Action(""){
+			def apply(){
+				ctrl.selectOption("OPT_EVAL_BACKTRACK")
+			}
+		}
+		){
+		enabled = false
+		icon = new ImageIcon(MainGUI.getClass.getResource("eval-backtrack.png"), "Backtrack")
+		tooltip = "Backtrack"
+		listenTo(ctrl)
+		reactions += {
+			case EnableEvalOptionsEvent(opt) =>
+				opt.foreach{o => if(o=="OPT_EVAL_BACKTRACK") enabled = true}
+			case DisableEvalOptionsEvent() => enabled = false
+		}
 	}
 
 	val EvalToolBar = new ToolBar{
-		contents += (UndoButton, StepInButton, StepOverButton, CompleteButton, FinishButton, StopButton, DebugButton)
+		contents += (NextButton, UndoButton, StepInButton, StepOverButton, BacktrackButton, CompleteButton, FinishButton, StopButton, UntilBreakButton)
 	}
 }

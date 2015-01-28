@@ -67,7 +67,7 @@ object CommunicationService extends Publisher {
 				b.append(in.readLine)
 			}
 			//try {
-				println(b.toString); 
+				println("message : "+b.toString); 
 				val j = Json.parse(b.toString); 
 				parseAndExecute(j)
 		//	}
@@ -81,182 +81,244 @@ object CommunicationService extends Publisher {
 	def parseAndExecute(j: Json){
 		(j ? "cmd") match {
 			// if no command found
-			case cmd: Json if(cmd == JsonNull) => send(JsonObject("cmd" -> "RSP_ERROR_NO_CMD"))
+			case cmd: Json if(cmd == JsonNull) => sendSimpleResponse("RSP_ERROR_NO_CMD", "")
 			// if command found
-			case cmd: Json => cmd.stringValue match {
-        //show and hide tinker gui from the tinker core
-       case "CMD_SHOW_GUI" =>
-          Service.showTinkerGUI(true)
-       case "CMD_HIDE_GUI" =>
-          Service.showTinkerGUI(false)
-				// initialisation command
-				case "CMD_INIT_PSGRAPH" =>
-					// if correct state
-					if(state == CommunicationState.WaitingForPsgraph){
-						// get psgraph
-						(j ? "psgraph") match {
-							// if psgraph not found
-							case psgraph: Json if(psgraph == JsonNull) => 
-								send(JsonObject("cmd" -> "RSP_ERROR_INIT_PSGRAPH", "msg" -> "no psgraph field"))
-							// if psgraph found
-							case psgraph:Json =>
-								// loading in model
-								Service.loadJson(psgraph)
-								// preparing current eval graph variables
-								var tactic:String = ""
-								var i:Int = 0
-								var graph:JsonObject = JsonObject()
-								// get eval field
-								(j ? "eval_psgraph") match {
-									// if eval field not found
-									case eval: Json if(eval == JsonNull) => 
-										send(JsonObject("cmd" -> "RSP_ERROR_INIT_PSGRAPH", "msg" -> "no eval field"))
-									// if eval field found
-									case eval: Json =>
-										// get current name
-										(eval ? "name_current") match {
-											// error send if name not found
-											case name: Json if(name == JsonNull) => send(JsonObject("cmd" -> "RSP_ERROR_INIT_PSGRAPH", "msg" -> "no current name field in eval"))
-											case name: Json => tactic = name.stringValue
-										}
-										// get current index
-										(eval ? "index_current") match {
-											// error send if index not found
-											case index: Json if(index == JsonNull) => send(JsonObject("cmd" -> "RSP_ERROR_INIT_PSGRAPH", "msg" -> "no current index field in eval"))
-											case index: Json => i = index.intValue
-										}
-										// get current graph (should be main[0] at first)
-
-										(eval ? "graphs") match {
-											// error send if graphs array not found
-											case graphs:Json if(graphs == JsonNull) => send(JsonObject("cmd" -> "RSP_ERROR_INIT_PSGRAPH", "msg" -> "no graphs field in eval"))
-											case graphs:JsonArray =>
-												var graphList = graphs.vectorValue
-												var gr:Option[Json] = None;
-												graphList.foreach{g =>
-													if((g ? "name").stringValue == tactic){
-														gr = (g ? "graphs").get(i)
-													}
-												}
-												gr match {
-													case Some(g:Json) => graph = g.asObject
-													// error send if not found
-													case _ => send(JsonObject("cmd" -> "RSP_ERROR_INIT_PSGRAPH", "msg" -> "could not find graph to display in eval"))
-												}
-										}
-
-								}
-
-								// display current graph on view
-								Service.displayEvalGraph(tactic, i, graph)
-
-								// change state
-								state = CommunicationState.WaitingForEvalOptions
-								// send respond command
-								send(JsonObject("cmd" -> "RSP_INIT_PSGRAPH", "status" -> "WaitingForEvalOptions"))
-						}
-					}
-				// evaluation command
-				case "CMD_EVAL_PSGRAPH" =>
-					// check if correct state
-					if(state == CommunicationState.WaitingForEvalOptions){
-						// get options
-						(j ? "options") match {
-							// if options not found
-							case options: Json if(options == JsonNull) =>
-								send(JsonObject("cmd" -> "RSP_ERROR_EVAL_PSGRAPH", "msg" -> "no options field"))
-							// if options found
-							case options: JsonArray =>
-								// get optios as vector
-								var optsTmp = options.vectorValue
-								var opts = ArrayBuffer[String]()
-								optsTmp.foreach{ o =>
-									opts = opts :+ o.stringValue
-								}
-								// enable in view
-								Service.enableEvalOptions(opts)
-								// change state
-								state = CommunicationState.WaitingForUserChoice
-								// future for user interaction
-								listenTo(Service)
-								reactions+={
-									case UserSelectedEvalOptionEvent(opt) =>
-										// check if correct state
-										if(state == CommunicationState.WaitingForUserChoice){
-											// send option chosen
-											send(JsonObject("cmd" -> "RSP_EVAL_PSGRAPH", "opt" -> opt))
-											// change state
-											state = CommunicationState.WaitingForPsgraphUpdate
-										}
-								}
-								// var choice : Future[String] = future {
-								// 	Service.userEvalChoice
-								// }
-								// choice onComplete {
-								// 	case Success(opt) => 
-								// 		// check if correct state
-								// 		if(state == CommunicationState.WaitingForUserChoice){
-								// 			// send option chosen
-								// 			send(JsonObject("cmd" -> "RSP_EVAL_PSGRAPH", "opt" -> opt))
-								// 			// change state
-								// 			state = CommunicationState.WaitingForPsgraphUpdate
-								// 		}
-								// 	case Failure(t) => println("An error occured : "+t.getMessage)
-								// }
-						}
-					}
-				// update command
-				case "CMD_UPDATE_PSGRAPH" =>
-					// check if correct state
-					if(state == CommunicationState.WaitingForPsgraphUpdate){
-						// same protocol used in initialisation
-						var tactic:String = ""
-						var i:Int = 0
-						var graph:JsonObject = JsonObject()
-						(j ? "eval") match {
-							case eval: Json if(eval == JsonNull) => 
-								send(JsonObject("cmd" -> "RSP_ERROR_DISPLAY_PSGRAPH", "msg" -> "no eval field"))
-							case eval: Json =>
-								(eval ? "name_current") match {
-									case name: Json if(name == JsonNull) => send(JsonObject("cmd" -> "RSP_ERROR_DISPLAY_PSGRAPH", "msg" -> "no current name field in eval"))
-									case name: Json => tactic = name.stringValue
-								}
-								(eval ? "index_current") match {
-									case index: Json if(index == JsonNull) => send(JsonObject("cmd" -> "RSP_ERROR_DISPLAY_PSGRAPH", "msg" -> "no current index field in eval"))
-									case index: Json => i = index.intValue
-								}
-								(eval ? "graphs") match {
-									case graphs:Json if(graphs == JsonNull) => send(JsonObject("cmd" -> "RSP_ERROR_DISPLAY_PSGRAPH", "msg" -> "no graphs field in eval"))
-									case graphs:JsonArray =>
-										var graphList = graphs.vectorValue
-										var gr:Option[Json] = None;
-										graphList.foreach{g =>
-											if((g ? "name").stringValue == tactic){
-												gr = (g ? "graphs").get(i)
+			case cmd: Json => 
+				(cmd ? "name") match {
+				// if no name found
+				case name: Json if(name == JsonNull) => sendSimpleResponse("RSP_ERROR_NO_CMD_NAME", "")
+				// if no name found
+				case name: Json => name.stringValue match{
+					//show and hide tinker gui from the tinker core
+					case "CMD_SHOW_GUI" =>
+						Service.showTinkerGUI(true)
+					case "CMD_HIDE_GUI" =>
+						Service.showTinkerGUI(false)
+					// initialisation command
+					case "CMD_INIT_PSGRAPH" =>
+						// if correct state
+						if(state == CommunicationState.WaitingForPsgraph){
+							// get psgraph
+							(j ? "psgraph") match {
+								// if psgraph not found
+								case psgraph: Json if(psgraph == JsonNull) => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no psgraph field")
+								// if psgraph found
+								case psgraph:Json =>
+									// loading in model
+									Service.loadJson(psgraph)
+									// preparing current eval graph variables
+									var tactic:String = ""
+									var i:Int = 0
+									var graph:JsonObject = JsonObject()
+									// get eval field
+									(j ? "eval_psgraph") match {
+										// if eval field not found
+										case eval: Json if(eval == JsonNull) => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no eval field")
+										// if eval field found
+										case eval: Json =>
+											// get current name
+											(eval ? "name_current") match {
+												// error send if name not found
+												case currentTacticName: Json if(currentTacticName == JsonNull) => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no current name field in eval")
+												case currentTacticName: Json => tactic = currentTacticName.stringValue
 											}
-										}
-										gr match {
-											case Some(g:Json) => graph = g.asObject
-											case _ => send(JsonObject("cmd" -> "RSP_ERROR_DISPLAY_PSGRAPH", "msg" -> "could not find graph to display in eval"))
-										}
-								}
+											// get current index
+											(eval ? "index_current") match {
+												// error send if index not found
+												case currentTacticIndex: Json if(currentTacticIndex == JsonNull) => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no current index field in eval")
+												case currentTacticIndex: Json => i = currentTacticIndex.intValue
+											}
+											// get current graph (should be main[0] at first)
+
+											(eval ? "graphs") match {
+												// error send if graphs array not found
+												case graphs:Json if(graphs == JsonNull) => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no graphs field in eval")
+												case graphs:JsonArray =>
+													var graphList = graphs.vectorValue
+													var gr:Option[Json] = None;
+													graphList.foreach{g =>
+														if((g ? "name").stringValue == tactic){
+															gr = (g ? "graphs").get(i)
+														}
+													}
+													gr match {
+														case Some(g:Json) => graph = g.asObject
+														// error send if not found
+														case _ => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "could not find graph to display in eval")
+													}
+											}
+
+									}
+
+									// display current graph on view
+									Service.displayEvalGraph(tactic, i, graph)
+
+									// change state
+									state = CommunicationState.WaitingForEvalOptions
+									// send respond command
+									sendSimpleResponse("RSP_INIT_PSGRAPH", "WaitingForEvalOptionFromUser")
+							}
 						}
-						Service.displayEvalGraph(tactic, i, graph)
-						state = CommunicationState.WaitingForEvalOptions
-						send(JsonObject("cmd" -> "RSP_DISPLAY_PSGRAPH", "status" -> "WaitingForEvalOptions"))
-					}
-				// close connection command
-				case "CMD_CLOSE_CONNECT" =>
-					send(JsonObject("cmd" -> "RSP_CLOSE_CONNECT", "status" -> "closing connection"))
-					prover.close
-					gui.close
-					connected = false
-					reInitConnection
-				// unsupported command
-				case _ => 
-					send(JsonObject("cmd" -> "RSP_ERROR_BAD_CMD"))
+						// check if correct state
+						if(state == CommunicationState.WaitingForEvalOptions){
+							// get options
+							(cmd ? "args") match {
+								// if arguments not found
+								case args: Json if(args == JsonNull) => sendSimpleResponse("RSP_ERROR_ARGS", "arguments not found")
+								// arguments found
+								case args: JsonArray =>
+									// getting first argument, should be list of eval options
+									args.vectorValue(0) match {
+										// if nothing found
+										case options: Json if(options == JsonNull) => sendSimpleResponse("RSP_ERROR_ARGS", "expected arguments but list is empty")
+										// if array found, good format
+										case options: JsonArray =>
+											// get options as vector
+											var optsTmp = options.vectorValue
+											var opts = ArrayBuffer[String]()
+											optsTmp.foreach{ o =>
+												o match {
+													case option: JsonString =>
+														opts = opts :+ option.stringValue
+													// if not string
+													case _ =>
+														sendSimpleResponse("RSP_ERROR_EVAL_PSGRAPH", "expected list of string as first argument")
+												}
+											}
+											// enable in view
+											Service.enableEvalOptions(opts)
+											// change state
+											state = CommunicationState.WaitingForUserChoice
+											// future for user interaction
+											listenTo(Service)
+											reactions+={
+												case UserSelectedEvalOptionEvent(opt, node) =>
+													// check if correct state
+													if(state == CommunicationState.WaitingForUserChoice){
+														// send option chosen
+														send(JsonObject("cmd" -> JsonObject("name" -> "RSP_EVAL_PSGRAPH", "args" -> JsonArray(Vector(JsonString(opt), JsonString(node))))))
+														// change state
+														state = CommunicationState.WaitingForPsgraphUpdate
+													}
+											}
+
+									}
+							}
+						}
+					// update command
+					case "CMD_UPDATE_PSGRAPH" =>
+						// check if correct state
+						if(state == CommunicationState.WaitingForPsgraphUpdate){
+							// preparing current eval graph variables
+							var tactic:String = ""
+							var i:Int = 0
+							var graph:JsonObject = JsonObject()
+							// get eval field
+							(j ? "eval_psgraph") match {
+								// if eval field not found
+								case eval: Json if(eval == JsonNull) => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "no eval field")
+								// if eval field found
+								case eval: Json =>
+									// get current name
+									(eval ? "name_current") match {
+										// error send if name not found
+										case currentTacticName: Json if(currentTacticName == JsonNull) => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "no current name field in eval")
+										case currentTacticName: Json => tactic = currentTacticName.stringValue
+									}
+									// get current index
+									(eval ? "index_current") match {
+										// error send if index not found
+										case currentTacticIndex: Json if(currentTacticIndex == JsonNull) => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "no current index field in eval")
+										case currentTacticIndex: Json => i = currentTacticIndex.intValue
+									}
+									// get current graph (should be main[0] at first)
+									(eval ? "graphs") match {
+										// error send if graphs array not found
+										case graphs:Json if(graphs == JsonNull) => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "no graphs field in eval")
+										case graphs:JsonArray =>
+											var graphList = graphs.vectorValue
+											var gr:Option[Json] = None;
+											graphList.foreach{g =>
+												if((g ? "name").stringValue == tactic){
+													gr = (g ? "graphs").get(i)
+												}
+											}
+											gr match {
+												case Some(g:Json) => graph = g.asObject
+												// error send if not found
+												case _ => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "could not find graph to display in eval")
+											}
+									}
+
+							}
+
+							// display current graph on view
+							Service.displayEvalGraph(tactic, i, graph)
+
+							// change state
+							state = CommunicationState.WaitingForEvalOptions
+							// send respond command
+							sendSimpleResponse("RSP_UPDATE_PSGRAPH", "WaitingForEvalOptionFromUser")
+						}
+						// check if correct state
+						if(state == CommunicationState.WaitingForEvalOptions){
+							// get options
+							(cmd ? "args") match {
+								// if arguments not found
+								case args: Json if(args == JsonNull) => sendSimpleResponse("RSP_ERROR_ARGS", "arguments not found")
+								// arguments found
+								case args: JsonArray =>
+									// getting first argument, should be list of eval options
+									args.vectorValue(0) match {
+										// if nothing found
+										case options: Json if(options == JsonNull) => sendSimpleResponse("RSP_ERROR_ARGS", "expected arguments but list is empty")
+										// if array found, good format
+										case options: JsonArray =>
+											// get options as vector
+											var optsTmp = options.vectorValue
+											var opts = ArrayBuffer[String]()
+											optsTmp.foreach{ o =>
+												o match {
+													case option: JsonString =>
+														opts = opts :+ option.stringValue
+													// if not string
+													case _ =>
+														sendSimpleResponse("RSP_ERROR_EVAL_PSGRAPH", "expected list of string as first argument")
+												}
+											}
+											// enable in view
+											Service.enableEvalOptions(opts)
+											// change state
+											state = CommunicationState.WaitingForUserChoice
+											// future for user interaction
+											listenTo(Service)
+											reactions+={
+												case UserSelectedEvalOptionEvent(opt, node) =>
+													// check if correct state
+													if(state == CommunicationState.WaitingForUserChoice){
+														// send option chosen
+														send(JsonObject("cmd" -> JsonObject("name" -> "RSP_EVAL_PSGRAPH", "args" -> JsonArray(Vector(JsonString(opt), JsonString(node))))))
+														// change state
+														state = CommunicationState.WaitingForPsgraphUpdate
+													}
+											}
+
+									}
+							}
+						}
+					// close connection command
+					case "CMD_CLOSE_CONNECT" =>
+						sendSimpleResponse("RSP_CLOSE_CONNECT", "closing connection")
+						prover.close
+						gui.close
+						connected = false
+						reInitConnection
+					// unsupported command
+					case _ => 
+						sendSimpleResponse("RSP_ERROR_BAD_CMD", "")
+				}
 			}
-			case _ =>
+			case _ => sendSimpleResponse("RSP_ERROR_NO_CMD", "")
 		}
 	}
 
@@ -274,6 +336,10 @@ object CommunicationService extends Publisher {
 			j.writeTo(out)
 			out.flush
 		}
+	}
+
+	def sendSimpleResponse(c:String, m:String){
+		send(JsonObject("cmd" -> JsonObject("name" -> c, "args" -> JsonArray(Vector(JsonString(m))))))
 	}
 	
 }

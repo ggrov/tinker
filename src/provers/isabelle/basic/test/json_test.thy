@@ -63,41 +63,11 @@ ML{*
  PSGraph.write_json_file (path^"test0.psgraph") ps;
 *}  
 ML{* 
-  val edata0 = EVal.init ps @{context} @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"} |> hd; 
+  val edata0 = EVal.init ps @{context} [] @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"} |> hd; 
 *} 
 (* socket testing *)  
-      
-ML{* val s = TextSocket.local_client 1790; *}
-ML{*  
-val msg = IEVal.output_string "CMD_INIT_PSGRAPH" (SOME edata0);
-
-*}  
-ML{*-
-TextSocket.write s msg; 
-TextSocket.flushOut s;
-TextSocket.read s; (* expect to be "can you hear me" *) 
-*}
-
-ML{*-
-TextSocket.read s; (* expect to be "can you hear me" *) 
-*}
-
-ML{*  
-TextSocket.write s "say hello from the client\n"; 
-TextSocket.flushOut s;
-*}
-
 ML{*
-val s = TextSocket.safe_local_client 1790; 
-TextSocket.write s "hello 2 from client \n"; 
-TextSocket.flushOut s;
-TextSocket.read s; (* expect to be "can you hear me" *)
+Tinker.start_ieval @{context} ps [] @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"};
 
-TextSocket.write s "say hello 2  from the client\n"; 
-TextSocket.flushOut s;
 *}
- 
-ML{*-
-TextSocket.write s "CMD_CLOSE\n";
-TextSocket.flushOut s;
-*}
+
