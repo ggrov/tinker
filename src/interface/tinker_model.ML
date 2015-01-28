@@ -1,8 +1,17 @@
-structure CModTinker  =
+signature CMOD =
+sig
+  type T
+  val ftab : T
+  val dispatch Json.json -> Json.json
+end
+
+
+functor CModTinker (IEVal : IEVAL) : CMOD =
 struct
 exception user_exn of string
+structure EData = IEVal.EData
 
-type ftab = ((Json.json -> Json.json) * string) Symtab.table
+type T = ((Json.json -> Json.json) * string) Symtab.table
 
 fun get_cmd_name (Json.Object obj) =  
   JsonInputUtils.get_obj obj "cmd" 
@@ -10,11 +19,12 @@ fun get_cmd_name (Json.Object obj) =
 | get_cmd_name _ = raise user_exn "wrong json type in get_cmd_name"
 
 fun register (cmd : string) f = Symtab.update_new (cmd, f)
-
+val ftab = Symtab.empty
 (* 
   Dummy_RSP: cmd: string
   PRINT_ONLY_RSP: cmd: string, msg: string
 *)
+
 (*
 RSP_INIT_PSGRAPH
 RSP_ERROR_INIT_PSGRAPH
@@ -34,7 +44,12 @@ RSP_ERROR_DISPLAY_PSGRAPH
 (*
 *)
 
-val ftab = Symtab.empty
+
+val ftab = ftab |> register
+  "RSP_INIT_PSGRAPH" RSP_INIT_PSGRAPH
+
+fun RSP_EVAL_PSGRAPH json = 
+
 (*
 val ftab = ftab |> register
   "mode_choice" (* should be the fisrt command received after init *)
