@@ -68,11 +68,12 @@ struct
       val opts = get_str_cmd_args_list json (* args option from users *)
       val opt = hd opts
       val (SOME edata0) = get_data();
-      fun get_eval_gnode _ =  hd (tl opts)
+      val gnode =  hd (tl opts)
+      val eval_fn = case gnode of "" => K IEVal.eval_any | _ => IEVal.eval_goal
     in
       case opt 
         of "OPT_EVAL_NEXT" =>
-          (case IEVal.eval_goal (get_eval_gnode()) edata0
+          (case eval_fn gnode edata0
             of (IEVal.Cont edata1) => 
                  (set_data edata1;
                   IEVal.output_json "CMD_UPDATE_PSGRAPH" 
@@ -90,6 +91,7 @@ struct
         | "OPT_EVAL_STOP" =>
            (reset_data();
            Json.mk_object[("cmd", Json.mk_object[("name", Json.String  "CMD_CLOSE_CONNECT")])])
+        | x => raise protocol_exn ("ERR: protocol unkown option: " ^ x)
     end
   val ftab = ftab |> register "RSP_EVAL_PSGRAPH" RSP_EVAL_PSGRAPH
 
@@ -115,7 +117,7 @@ struct
         case init_msg 
         of (SOME j) => (TextIO.output (outstream, j);TextIO.flushOut outstream)
         |  NONE => ()
-      val (json_list, src') = Source.get src
+      val (json_list, src') = RawSource.get src
       val json = case json_list of [x] => x | _ =>
         raise protocol_exn "Expected: exactly one JSON object"
       val json_output = dispatch json (* this output is always a json object *)
