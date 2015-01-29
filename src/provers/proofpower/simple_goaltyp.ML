@@ -8,9 +8,13 @@ struct
   structure Prover = PPProver;
   type T = string
   type gnode = string (* or with term? *)
+  type data  = unit;
+
+  
   exception gt_exp of string
   val default = "any";
   val default_gnode = "?";
+  val default_data = ();
 
   val ord = String.compare;
   fun eq (t1,t2) = case ord(t1,t2) of EQUAL => true | _ => false;
@@ -54,7 +58,7 @@ struct
       strs ;
 
     fun liftp pn pred = 
-     if pred then SOME (get_pnode_name pn) else NONE; 
+     if pred then [(get_pnode_name pn)] else []; 
  
     val splitstr =  String.tokens (member (op =) [#" ",#",",#"(",#")",#"[",#"]"]);
     
@@ -85,7 +89,7 @@ struct
        |> (fn x => default_GT := x));
     
     fun get_GOAL_from_pnode pn = 
-    	(map Prover.concl_of_thm (Prover.get_all_assms pn),
+    	(Prover.get_pnode_hyps pn,
     	 Prover.get_pnode_concl pn)
     	 
     fun lift_list pn [] = false
@@ -104,12 +108,12 @@ struct
    fun lift' pn str = lift_list pn (splitstr str)
    handle _ => raise gt_exp "int lift'";
 
-   fun init_lift str pn =
+   fun init_lift (_,str) pn =
      let 
         val ls = String.tokens (fn c => c = #";") str
      in 
        case ls of 
-         []  =>  NONE
+         []  =>  []
          | _ => ls |> map (lift' pn)
                 |> forall I 
                 |> liftp pn
@@ -120,21 +124,26 @@ struct
 
   (* assume gn is the name of pn *)
   fun match gn gt pn = 
-    case init_lift gt pn of
-     NONE => false
-    | SOME _ => true;
+    case init_lift ((), gt) pn of
+     [] => false
+    | _ => true;
 
-  val lift : gnode -> T -> Prover.pnode -> gnode option = K init_lift;
+  val lift : gnode -> (data * T) -> Prover.pnode -> gnode list = K init_lift;
 
   (* delete *)
   fun lookup_fact_names _ _ = NONE;
   (* need to pretend there is a single fact *)
   fun get_fact_names _ _ = StrName.NSet.single ("True_def");
+  
+  fun data_to_json _ = Json.String "";
+  fun data_from_json _ = ()
+  fun pretty_data _ = Pretty.str "";
 
   structure BasicSharing =
   struct
     type T = T
     type gnode = gnode
+    type data = data
   end
   
 end;

@@ -9,12 +9,14 @@ struct
   type context = string list * string (* context string list * theory string *)
 
   (* get_current_pc () open_theory, set_pc *)
+  
+  datatype arg_data =  Str of string | Trm of term | Thm of thm
 
   exception gterm_exp
   
   val default_ctxt = get_current_pc (); (* used in those place need context in general *)
   val typ_of = type_of
-  fun match ctxt = (op ~=$) 
+  fun match _ = (op ~=$) 
 
   val eq_pos = PPTermLib.eq_pos
     
@@ -32,7 +34,7 @@ struct
   
 (* TODO: how to print those fancy symbols in proofpower ?*)
   fun string_of_trm _ = fn trm => PrettyPrinter.format_term true trm |> String.concat
-  fun pretty_trm dummy t = Pretty.str "pretty term - not supported in pp"
+  fun pretty_trm _ _ = Pretty.str "pretty term - not supported in pp"
 
 (* atomic part *)
   type pnode = 
@@ -124,14 +126,8 @@ struct
  (* FIXME: arg_data list *)
   fun apply_tactic _ tactic pinfo = (writeln "call apply_tactic in psg" ; update tactic pinfo |> Seq.single)
 
-  (* only look up *)
-  fun lookup_fact pnode key = 
-    (get_axiom (snd (#pctxt pnode)) key |> SOME
-    handle _ => 
-      (get_thm (snd (#pctxt pnode)) key |> SOME
-       handle _ => NONE))
 
-  fun get_all_assms pnode  = (#g pnode) 
+  fun get_all_assms (pnode : pnode)  = (#g pnode) 
   			      |> fst (* a list of term *)
   			      |> map asm_rule (* to thm type *)
   			      
@@ -139,6 +135,7 @@ struct
   fun get_pnode_name (pnode:pnode) = #pname pnode;
   
   fun get_pnode_concl (pnode:pnode) = (#g pnode) |> snd
+  fun get_pnode_hyps (pnode:pnode) = (#g pnode) |> fst
   
   fun get_pnode_ctxt (pnode:pnode) = (#pctxt pnode)
   
@@ -147,6 +144,19 @@ struct
   fun pretty_concl _ = Pretty.str "pretty_concl - not supported in pp"
   
   fun intf_pprint _ = ();
+  
+  fun symbols _ = []
+  fun top_symbol trm = the (TermFeature.top_level_str trm );
+  
+  fun pretty_pnode pnode = 
+    Pretty.block
+    [Pretty.str "[ Goal ", 
+    Pretty.str (get_pnode_name pnode),
+    Pretty.str " : ",
+    pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode),
+    Pretty.str " ]"];
+  
+  fun pretty_pplan pnode = Pretty.str "Pretty PPLAN TOTO";
 
   structure Sharing = 
   struct   
@@ -156,10 +166,7 @@ struct
     type thm = thm
     type context = context
     type tactic = tactic
-    type concl = concl
-    type fact = fact
     type pplan = pplan
     type pnode = pnode
-    type Object = Object
   end
 end

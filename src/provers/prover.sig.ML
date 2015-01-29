@@ -51,6 +51,7 @@ sig
   val get_pnode_hyps : pnode -> term list
   val get_pnode_ctxt : pnode -> context
 
+  
   (* goal type related *)
   val top_symbol : term -> string
   val symbols : term -> string list
