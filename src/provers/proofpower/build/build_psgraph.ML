@@ -63,8 +63,11 @@
   structure EVal = EValFun(EData);
   structure IEVal = InteractiveEvalFun (EVal);
   structure Tinker = TinkerProtocol (IEVal);  
-(*  use "../pp_intf.ML"; *)
+ 
+  use "../pp_intf.ML"; 
   
   
 (* enable the subgoal package printing *)
   reset_flag "subgoal_package_quiet";
+  new_pc "zed_psgraph";
+  set_pc "zed_psgraph";
