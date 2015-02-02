@@ -33,6 +33,10 @@ val _ = PolyML.Compiler.forgetFixity "ORELSE";
 
 use "ROOT.ML";
 
+(*Export all files to a heap file*)
+PolyML.Project.ensure_at_latest_heap ();
+PolyML.shareCommonData run; PolyML.fullGC ();
+
 (*restore functions*)
 exception Fail  = backdoor_Fail;
 val diff = backdoor_diff;
@@ -50,3 +54,4 @@ infix 5 from;
 infix 5 to;
 
 save();
+quit();

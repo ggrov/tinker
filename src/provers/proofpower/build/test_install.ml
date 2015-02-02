@@ -5,3 +5,4 @@ set_goal;(*proof power is OK*)
 
 (*Theor Hierarchy is OK*)
 get_theory_names();
+get_current_pc();

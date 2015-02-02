@@ -159,7 +159,7 @@ struct
     in
       SockData { sock = sock, passive = NONE (*dummy*),
                 sin = sin, sout = sout} end
-   handle OS.SysErr (msg, _) => raise Fail (msg ^ "\n")
+   (*handle OS.SysErr (msg, _) => raise Fail (msg ^ "\n")*)
  
   fun local_client port =
     run_in_atomic (local_client0 port)

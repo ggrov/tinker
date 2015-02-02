@@ -1,7 +1,8 @@
 (* simple test of proof representation *)
 theory IsaTerm                                                                                                                                                                                            
 imports         
- "~~/contrib/isaplib/isabelle/isaplib/isaplib"                                                                          
+ (*"~~/contrib/isaplib/isabelle/isaplib/isaplib"*)
+ "~~/contrib/quantomatic/core/quanto" 
 begin         
 ML{*
   val isar_tracing = (*tracing*) (fn _ => ());

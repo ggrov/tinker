@@ -1,3 +1,5 @@
+
+structure StrTable = Table(struct type key = string; val ord = String.compare end);
 structure TermFeature =
 struct
   local open PPTermLib in
@@ -26,6 +28,7 @@ struct
 
   fun has_constant subtrm t = term_any (fn x => subtrm ~=$ x) t;
   fun has_constants ss t = forall (fn s => has_constant s t) ss;
+  
 
   end
 end

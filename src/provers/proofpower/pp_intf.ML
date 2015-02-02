@@ -2,8 +2,12 @@
  structure PPIntf = 
   struct
   
-   val (default_tacs : (string * TACTIC) list Unsynchronized.ref) = Unsynchronized.ref [("step_strip_any_tac", step_strip_tac), ("step_strip_conj", step_strip_tac), 
-   		      ("step_strip_imp", step_strip_tac), ("step_assm", step_strip_tac)];
+   val (default_tacs : (string * TACTIC) list Unsynchronized.ref) = 
+     Unsynchronized.ref 
+       [("step_strip_any_tac", step_strip_tac), 
+        ("step_strip_conj", step_strip_tac), 
+        ("step_strip_imp", step_strip_tac), 
+        ("step_assm", step_strip_tac)];
 
    fun add_default_tacs ntacs = default_tacs := (!default_tacs) @ ntacs;
    
@@ -12,7 +16,16 @@
      |> (fn x => [Pretty.str "{-------- default tactic names"] @ x @ [Pretty.str "----------------}"] |> Pretty.chunks)
      |> Pretty.string_of
      |> DebugHandler.debug_print DebugHandler.TACTIC;
-  
+
+     
+  fun set_psg_goal (assms, goal) ps = 
+    let 
+      val ctxt = get_current_pc() 
+      val ps' = PSGraph.load_atomics (!default_tacs) ps
+    in
+      Tinker.start_ieval ctxt ps' assms goal 
+    end
+ (*    
    fun set_psg_goal (assms, goal) mode psg searchf goalf = 
      let
        val ctxt = get_current_pc()
@@ -27,7 +40,7 @@
        fun init_edata psgraph = 
          EVal.init_with_assm (PSGraph.load_atomics (!default_tacs) psgraph) ctxt assms goal 
          |> map (set_goalf o set_searchf)
-         |> hd (* FIXME: only handle the first branch *);
+         |> hd;
        fun init_edata_with_graph graph = 
          PSGraph.empty
          |> PSGraph.set_graph graph 
@@ -40,8 +53,8 @@
        UISocket.ui_eval JsonControllerProtocol'.run_in_textstreams edata init_edata_with_graph ;
        print_goal_state (top_goal_state()) 
     end
-    
-    
+*)
+(* 
   fun psgraph_auto (assms, goal) psg searchf goalf  =
    let 
      val ctxt = get_current_pc()
@@ -56,7 +69,7 @@
      fun init_edata psgraph = 
          EVal.init_with_assm (PSGraph.load_atomics (!default_tacs) psgraph) ctxt assms goal 
          |> map (set_goalf o set_searchf)
-         |> hd (* FIXME: only handle the first branch *);
+         |> hd;
          
    in
      init_edata psg
@@ -67,6 +80,6 @@
     fun run_psg_goal g mode psg = 
       	case mode of "auto" => psgraph_auto g psg "dummy" "dummy"	
       	| _ => set_psg_goal g mode psg "dummy" "dummy"
-      			
+*)     			
  
   end (* end of struct PPIntf*)
