@@ -77,7 +77,7 @@ structure Wf : SNAME = Ectxt.Wf;
 structure Ectxt : ECTXT = Ectxt;
 
 structure Eterm : ETERM = Ectxt;
-open Eterm;
+open Eterm Envir Pattern
 
 (* the type of an embedding is the instantiation environemtn (for sinks & meta vars) 
 and the embedding term *)
@@ -436,8 +436,8 @@ fun embed ectxt s t =
     in
     (* Seq.map (fn e => (check e; e)
                 handle *** _ => raise embed_exp (ectxt, s, t)) *)
-      (app_embeddings ectxt (Term.strip_comb (Envir.eta_long [] s), 
-                             Term.strip_comb (Envir.eta_long [] t)))
+      (app_embeddings ectxt (Term.strip_comb (eta_long [] s), 
+                             Term.strip_comb (eta_long [] t)))
     end;
 (*     handle *** _ => raise embed_exp (ectxt, s, t) *)
 

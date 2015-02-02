@@ -1,9 +1,6 @@
 (* simple test of proof representation *)
 theory BasicGoalTyp   
-imports Pure
- (* isalib is now part of quanto lib *) 
-  Main       
-  "~~/contrib/quantomatic/core/quanto"                                             
+imports LoadQuantoLib13       (*LoadQuantoLib*)                  
 begin
   ML_file "../../rtechn_names.ML" 
   ML_file "../../provers/prover.sig.ML"   
