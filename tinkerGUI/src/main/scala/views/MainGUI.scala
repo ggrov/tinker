@@ -36,7 +36,7 @@ object MainGUI extends SimpleSwingApplication {
 	}
 
 	def top = new MainFrame{
-		minimumSize = new Dimension (1400,800)
+		minimumSize = new Dimension (1280,800)
 		title = "Tinker - " + controller.getTitle
 		menuBar = new TinkerMenu()
 		contents = MainSplit
