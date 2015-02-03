@@ -28,9 +28,7 @@ struct
   val asms_of_thm = Thm.prems_of
   val concl_of_thm = Thm.concl_of
 
-
   exception atomic_exp of string
-
 
   fun init ctxt [] trm =
     let 

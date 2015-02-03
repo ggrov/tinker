@@ -16,9 +16,11 @@ struct
 *************************************************************)
   datatype result = Good of EData.T | Bad | Cont of EData.T
 
-  fun eval_goal g  edata = 
+  fun eval_goal node_name edata = 
    let 
     val graph = (EData.get_graph edata) 
+    val g = EVal.Util.gnode_of graph (V.mk node_name) 
+            |> EData.PSGraph.Theory.Data.GoalTyp.goal_name
     fun update_branches edata branches = 
       let val new_branches = branches @ (EData.get_branches edata) in
         case new_branches of 
@@ -100,7 +102,7 @@ struct
     ]
 
   fun mk_cmd_str_arg_json args_str_list = 
-     Json.Array (map (fn x => Json.String x) args_str_list)
+     Json.Array[Json.Array (map (fn x => Json.String x) args_str_list)]
 
   fun output_cmd_only_json cmd args_list_json = 
     Json.mk_object[
@@ -131,6 +133,10 @@ struct
  val step_over : V.name option -> EData.T -> EData.T
  val backtrack : EData.T -> EData.T 
  val complete : EData.T -> EData.T  *)
+(* FIXME: to be implmented *)
+ fun update_graph x = x
+ fun eval_step_into _ _ = Bad
+ fun eval_step_over _ _ = Bad
 
    structure Sharing =
    struct

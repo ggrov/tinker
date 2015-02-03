@@ -33,10 +33,6 @@ val _ = PolyML.Compiler.forgetFixity "ORELSE";
 
 use "ROOT.ML";
 
-(*Export all files to a heap file*)
-PolyML.Project.ensure_at_latest_heap ();
-PolyML.shareCommonData run; PolyML.fullGC ();
-
 (*restore functions*)
 exception Fail  = backdoor_Fail;
 val diff = backdoor_diff;
@@ -53,7 +49,4 @@ infix 4 ORELSE;
 infix 5 from;
 infix 5 to;
 
-PolyML.SaveState.saveState "supertac_psgraph.heap";
-
-(*The next step is to use_file "PolyML.SaveState.loadState" the heap file, and then "save_and_exit" in pp interface so
-* that the isaplib + quanto + psgraph heap will stored in pp*)
+save();

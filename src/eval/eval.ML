@@ -424,20 +424,6 @@ struct
         pnodes
         [edata];
 
- fun init psgraph ctxt goal =
-   let
-     val _ = DebugHandler.clear_debug_msg ();
-     val (pnode,pplan) = Prover.init ctxt [] goal
-     val pnode_tab = 
-       StrName.NTab.ins
-         (Prover.get_pnode_name pnode,pnode)
-         StrName.NTab.empty;
-     val edata0 = EData.init psgraph pplan pnode_tab []
-   in
-    init_goal pnode edata0 (* fixme: logging info when no input wire is suitable for the goal *)
-   end;
-
-
  fun init_of psgraph (pnds,pplan) =
    let
      val _ = DebugHandler.clear_debug_msg ();
@@ -453,7 +439,7 @@ struct
       | _ => x)
    end;
 
- fun init_with_assm psgraph ctxt assms goals =
+ fun init  psgraph ctxt assms goals =
    let
      val _ = DebugHandler.clear_debug_msg ();
      val (pnode,pplan) = Prover.init ctxt assms goals

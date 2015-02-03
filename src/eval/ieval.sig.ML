@@ -14,13 +14,13 @@ sig
  datatype result = Good of EData.T | Bad | Cont of EData.T
 
  (* debug / breakpoint / logging ??*)
- val complete : EData.T -> EData.T (* current hierarchy *)
- val cancel : EData.T -> EData.T (* remove all goal nodes *)
-
- val start : string (* term to generate goal from *)
+(* val complete : EData.T -> EData.T  current hierarchy *)
+(* val cancel : EData.T -> EData.T  remove all goal nodes *)
+(* term to generate goal from *)
+(* val start : string 
              -> EData.PSGraph.T
              -> EData.T
-
+*)
  (* edit of PSGraph during evaluation? *) 
  (* how to deal with other changes *)
  (* allow to re-evaluate until given point? *)

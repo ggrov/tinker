@@ -1,6 +1,6 @@
 name := "tinkerGUI"
 
-version := "0.1"
+version := "0.2"
 
 scalaVersion := "2.10.0"
 
@@ -31,5 +31,6 @@ unmanagedSourceDirectories in Compile += baseDirectory.value / "tinker_library"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
-mainClass in (Compile, run) := Some("tinkerGUI.views.MainGUI")
 //mainClass := Some("tinkerGUI.views.MainGUI")
+mainClass in (Compile, run) := Some("tinkerGUI.views.MainGUI")
+mainClass in assembly := Some("tinkerGUI.views.MainGUI")
