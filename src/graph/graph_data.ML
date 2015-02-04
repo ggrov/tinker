@@ -6,8 +6,8 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
   type arg_typ = string list list
   
   (* note: variables only for evaluation! *)
-  datatype nvdata = T_Atomic of { name : string, args : arg_typ}
-                  | T_Graph of { name : string, args : arg_typ, is_or : bool}
+  datatype nvdata = T_Atomic of {name : string, tactic: string, args : arg_typ} (* only name is used *)
+                  | T_Graph of {name : string, args : arg_typ, is_or : bool} (* only name is used *)
                   | T_Identity 
                   | G_Break (* breakpoint *)
                   | G of GoalTyp.gnode 
@@ -41,13 +41,13 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
    |  get_is_or nd = raise node_exp ("not nested tactic node",nd);
 
   fun update_name f (T_Atomic rep) = 
-      T_Atomic { name = f (#name rep), args = #args rep}
+      T_Atomic { name = f (#name rep), tactic = #tactic rep, args = #args rep}
    | update_name f (T_Graph rep) = 
       T_Graph { name = f (#name rep), args = #args rep, is_or = #is_or rep}
    | update_name _ nd = raise node_exp ("node does not have a name",nd);
 
   fun update_args  f (T_Atomic rep) = 
-        T_Atomic { name = (#name rep), args = f (#args rep)}
+        T_Atomic { name = (#name rep), tactic = #tactic rep, args = f (#args rep)}
    |  update_args  f (T_Graph rep) = 
         T_Graph { name = #name rep, args = f (#args rep), is_or = #is_or rep}
    | update_args  _ nd =  raise node_exp ("node does not have args",nd);
@@ -144,7 +144,6 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
             edge = StrName.NTab.merge_joint edata_eq (#edge s1) (#edge s2)};
 
   (* matching *)
-
   fun match_nvdata (T_Var v,nd) subst = 
       (if (is_tactic_node nd)
        then
@@ -209,7 +208,7 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
 
   val pretty_theory_name = Pretty.str "PSGraph";
   (* fixme *)
-  fun pretty_nvdata (T_Atomic {name,args}) = Pretty.str name
+  fun pretty_nvdata (T_Atomic {name,...}) = Pretty.str name
    |  pretty_nvdata (T_Graph {name,args,is_or}) = Pretty.str name
    |  pretty_nvdata (T_Identity) = Pretty.str "id"
    |  pretty_nvdata (G_Break) = Pretty.str "break_point"
@@ -231,27 +230,39 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
   val print_subst = Pretty.writeln o pretty_subst;  
 
   (* add all configurations required here *)
+ fun atomic_from_json (Json.Object jobj) = T_Atomic { name = JsonInputUtils.get_string jobj "atm", 
+                                                      tactic = "",
+                                                      args =[[]]}
 
+ fun t_graph_from_json (Json.Object jobj) = T_Graph { name = JsonInputUtils.get_string jobj "subgraph",
+                                              args = [[]],
+                                              is_or =  false}
+(*
  fun arg_typ_to_json args = Json.Array (map (fn y => (Json.Array (map (fn x => Json.String x) y))) args)
  fun arg_typ_from_json (Json.Array args) = map (fn (Json.Array x) => map (fn y => case y of (Json.String str) => str) x) args 
 
- fun atomic_to_json atom = [("atm", Json.String (get_name atom)), ("args", arg_typ_to_json (get_args atom))]
- fun atomic_from_json (Json.Object jobj) = T_Atomic { name = JsonInputUtils.get_string jobj "atm", 
+ fun atomic_to_json atom = [("name", Json.String (get_name atom)), 
+                            ("tactic", Json.String (get_tactic atom)), 
+                            ("args", arg_typ_to_json (get_args atom))]
+
+ fun atomic_from_json (Json.Object jobj) = T_Atomic { name = JsonInputUtils.get_string jobj "name", 
+                                                      tactic = JsonInputUtils.get_string jobj "tactic",
                                                       args = (arg_typ_from_json (Json.get jobj "args"))}
 
- fun t_graph_to_json tg = [("subgraph", Json.String (get_name tg)), 
+ fun t_graph_to_json tg = [("name", Json.String (get_name tg)), 
                            ("args", arg_typ_to_json (get_args tg)), 
                            ("is_or", Json.Bool (get_is_or tg))]
- fun t_graph_from_json (Json.Object jobj) = T_Graph { name = JsonInputUtils.get_string jobj "subgraph",
+
+ fun t_graph_from_json (Json.Object jobj) = T_Graph { name = JsonInputUtils.get_string jobj "name",
                                               args = (arg_typ_from_json (Json.get jobj "args")),
                                               is_or =  JsonInputUtils.get_bool jobj "is_or"}
-
+*)
  exception gdata_json_exp of string * Json.json
 
  fun nvdata_to_json (T_Atomic atom) = 
-      Json.mk_object ([("type", Json.String "T_Atomic")] @ (atomic_to_json (T_Atomic atom)))
+      Json.mk_object ([("type", Json.String "T_Atomic"), ("atm", get_name (T_Atomic atom) |> Json.String)])
    | nvdata_to_json (T_Graph tg) = 
-      Json.mk_object ([("type", Json.String "T_Graph")] @ (t_graph_to_json (T_Graph tg)))
+      Json.mk_object ([("type", Json.String "T_Graph"), ("subgraph", get_name (T_Graph tg) |> Json.String)]) 
    | nvdata_to_json T_Identity = 
       Json.mk_object [("type", Json.String "T_Identity")]
    | nvdata_to_json G_Break = 

@@ -110,6 +110,7 @@ object CommunicationService extends Publisher {
 									var tactic:String = ""
 									var i:Int = 0
 									var graph:JsonObject = JsonObject()
+                println ("end of loading psgraph")
 									// get eval field
 									(j ? "eval_psgraph") match {
 										// if eval field not found

@@ -8,66 +8,36 @@ ML{*-
 ML{*
   val path = "/Users/yuhuilin/Desktop/" ;
 *}
-
-
-(* test psgraph level *)
-
 ML{*
-(* setting up a psgraph for testing *)
-  fun at_impI_tac _ i _ = rtac @{thm impI} i;
-  fun at_conjI_tac _ i _ = rtac @{thm conjI} i;
-  fun at_atac _ i _ = atac i;
-  fun at_all_tac  _ _ _ = all_tac
-
-  val asm =  Data.T_Atomic {name = "atac", args = [[]]}; 
-  val allT =  Data.T_Atomic {name = "all_tac", args = [[]]}; 
-  val impI =  Data.T_Atomic {name = "impI", args = [[]]}; 
-  val conjI =  Data.T_Atomic {name = "conjI", args = [[]]}; 
-
-  fun load_atom ps =  PSGraph.load_atomics 
-    [("all_tac", at_all_tac), ("atac", at_atac), ("impI", at_impI_tac), ("conjI", at_conjI_tac)] 
-    ps;
-
-  val gt = Data.GT SimpleGoalTyp.default;
-  val gt_imp =  Data.GT "top_symbol(HOL.implies)";
-  val gt_conj = Data.GT "top_symbol(HOL.conj)";
-  
-  infixr 6 THENG; 
-  val op THEN = PSComb.THEN;
-
-  
-  val psasm =  PSComb.LIFT ([gt],[gt]) (asm);
-  val psall =  PSComb.LIFT ([gt],[gt]) (allT);
-  val psimpI = PSComb.LIFT ([gt_imp, gt_imp],[gt_imp, gt]) (impI);
-  val psconjI =  PSComb.LIFT ([gt_conj],[gt_imp]) (conjI);
-
-  val ps = psconjI THEN ((PSComb.LOOP_WITH gt_imp psimpI) THEN psasm)
-    |> load_atom;
+fun impI_tac  _ i _ = rtac @{thm impI} i;
+fun conjI_tac _ i _ = rtac @{thm conjI} i
+fun id_tac  _ _ _ = all_tac;
+fun assm_tac  _ i _ = atac i;
+*}
+ML{* "top_symbol(HOL.implies)"; "top_symbol(HOL.conj)";*}
+(* read and load a psgraph created by gui *)
+ML{* 
+  val ps = PSGraph.read_json_file (path^"demo.psgraph");
+ (*  PSGraph.write_json_file (path^"demo1.psgraph") ps; *)
 *}
 
-ML{*
-
-val g = PSGraph.get_graph ps;
-Theory_IO.write_json_file (path^"test.psgraph") g;
-*}
-
-ML{*
-(* the file should be identical with the one above *)
-val out_test = Theory_IO.out_json g;
-val in_test = Theory_IO.in_json out_test;
-Theory_IO.write_json_file (path^"in_test.psgraph") in_test;
-*}
-
- 
-ML{*
- PSGraph.write_json_file (path^"test0.psgraph") ps;
-*}  
 ML{* 
   val edata0 = EVal.init ps @{context} [] @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"} |> hd; 
+IEVal.output_string 
+          "CMD_INIT_PSGRAPH" 
+           (IEVal.mk_cmd_str_arg_json [
+              "OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) (SOME edata0);
+
+EData.get_tactic edata0 "conjI()";
+
 *} 
-(* socket testing *)  
-ML{*  
+
+ML{*-
+  TextSocket.safe_close();
+*}
+ML{*  -
 Tinker.start_ieval @{context} ps [] @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"};
 
 *}
+
 

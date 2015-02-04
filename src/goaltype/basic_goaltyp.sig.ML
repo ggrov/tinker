@@ -3,6 +3,7 @@ sig
   type T
   type gnode
   type data
+  type gt_pred
 end
 
 (* BASIC GOAL TYPE which is used for graph *)
@@ -12,6 +13,7 @@ sig
   type T
   type gnode
   type data
+  type gt_pred
    
   val default : T
   val default_gnode : gnode
@@ -43,6 +45,7 @@ sig
     sharing type BasicSharing.T = T
     sharing type BasicSharing.gnode = gnode
     sharing type BasicSharing.data = data    
+    sharing type BasicSharing.gt_pred = gt_pred    
 end;
 
 

@@ -148,6 +148,8 @@ struct
   fun symbols _ = []
   fun top_symbol trm = the (TermFeature.top_level_str trm );
   
+  val exec_str = use_string;
+
   fun pretty_pnode pnode = 
     Pretty.block
     [Pretty.str "[ Goal ", 

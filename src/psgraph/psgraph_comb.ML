@@ -111,13 +111,13 @@ struct
           NONE => name
         | SOME n => n;
       fun check_rnm_tuple rnm (v1,e,v2) = (check_rnm rnm v1,e,check_rnm rnm v2)
-      val ((rnv,rne,_),g) = graph_tensor g1 g2
+      val ((rnv,rne,rnb),g) = graph_tensor g1 g2
       val src_out = boundary_outputs g1 
       val dest_in = map (check_rnm_tuple rnv) (boundary_inputs g2)
       val g' = fold plug_one src_out (g,dest_in) 
              |> fst
     in
-     ((rnv,rne),g')
+     ((rnv,rne,rnb),g')
     end;
 
   fun THENG g1 g2 = graph_then g1 g2 |> snd;

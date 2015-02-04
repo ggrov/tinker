@@ -40,8 +40,8 @@ sig
   (* more get methods *)
   val lookup_goal : T -> string -> PSGraph.Theory.Data.GoalTyp.Prover.pnode option
   val get_goal : T -> string -> PSGraph.Theory.Data.GoalTyp.Prover.pnode
-  val lookup_tactic : T -> string -> PSGraph.Theory.Data.GoalTyp.Prover.tactic option
-  val get_tactic : T -> string -> PSGraph.Theory.Data.GoalTyp.Prover.tactic
+  val lookup_tactic : T ->  StrName.NTab.name -> PSGraph.Theory.Data.GoalTyp.Prover.tactic option
+  val get_tactic : T ->  StrName.NTab.name -> PSGraph.Theory.Data.GoalTyp.Prover.tactic
 
   (* set methods *)
   val set_psgraph : PSGraph.T -> T -> T

@@ -149,7 +149,7 @@ struct
   fun add_bgoals pnods = update_bgoals (fold ins_tab pnods);
   fun del_goal pname = update_goals (StrName.NTab.delete pname);
 
-  val get_tactics = get_psgraph #> PSGraph.get_atomic_tactics;
+  val get_tactics = get_psgraph #> PSGraph.get_tactics;
   val lookup_tactic = get_tactics #> StrName.NTab.lookup
   fun get_tactic data tac = StrName.NTab.get (get_tactics data) tac
   handle x => (DebugHandler.add_debug_msg (Pretty.str ("No such a tac : " ^ tac) );raise x )

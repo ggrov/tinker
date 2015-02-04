@@ -50,12 +50,13 @@ sig
   val get_pnode_concl : pnode -> term (* return type concl which would be type term*)
   val get_pnode_hyps : pnode -> term list
   val get_pnode_ctxt : pnode -> context
-
   
   (* goal type related *)
   val top_symbol : term -> string
   val symbols : term -> string list
 
+  (* exec the string as ML code *)
+  val exec_str : string -> unit
 
   (* pretty printing *)
   val pretty_pplan : pplan -> Pretty.T

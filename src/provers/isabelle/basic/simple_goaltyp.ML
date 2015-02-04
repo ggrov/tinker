@@ -182,7 +182,29 @@ struct
       in
         TF.is_subterm thy goal embedd_hyp
       end
-    
+  
+    type gt_pred = Prover.context -> Prover.term list -> Prover.term -> bool
+
+    val exec_buffer : gt_pred option Unsynchronized.ref = Unsynchronized.ref NONE ;
+
+    fun exec_gt_exp (s : string) : gt_pred option = (
+      let	val cmd = 
+          "SimpleGoalTyp.exec_buffer := ((" ^ s ^ ") |> SOME handle _ => NONE)";
+        val _ =  Prover.exec_str cmd;
+      in	!exec_buffer
+      end
+    );
+
+    fun eval_gt pn str = 
+     let
+        val pred =  case exec_gt_exp str 
+          of SOME gt_pred => gt_pred
+          | NONE => raise gt_exp ("ERR: fail to eval " ^ str ^ " as a goal type predicate." )
+        val (hyps, goal) = get_hyps_and_goal (#ptrm pn)
+     in
+        pred (#pctxt pn) hyps goal
+     end
+
     fun debug_trace str b = 
       if b then (debug_print GOALTYP (str ^ " is good !"); b) 
       else (debug_print GOALTYP (str ^ " fails !"); b);
@@ -220,8 +242,8 @@ struct
            | "or"        => exists I (map (lift_list pn) (split_args xs)) |> debug_trace x
            | "any"       => true (* default *)
            | "anything"   => true (* default *)
-           | "label" => true
-           | _           => false)
+           | "label"      => true
+           |  exp         => eval_gt pn exp)
         handle _ => false);
 
    fun lift' pn str = lift_list pn (splitstr str)
@@ -261,6 +283,7 @@ struct
     type T = T
     type gnode = gnode
     type data = data
+    type gt_pred = gt_pred
   end
   end (* local open *)
 end(* struct *);

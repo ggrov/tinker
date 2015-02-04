@@ -13,7 +13,7 @@ sig
   type arg_typ = string list list
 
   (* note: variables only for evaluation! *)
-  datatype nvdata =  T_Atomic of { name : string, args : arg_typ}
+  datatype nvdata =  T_Atomic of { name : string, tactic : string, args : arg_typ}
              | T_Graph of { name : string, args : arg_typ, is_or : bool}
              | T_Identity 
              | G_Break (* breakpoint *)

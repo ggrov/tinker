@@ -10,9 +10,9 @@ ML{*
   val path = "/Users/yuhuilin/Desktop/" ;
 *}
 ML{*
-val vnode =  Data.T_Atomic {name = "hello9", args = [[]]};
-val vnode1 =  Data.T_Atomic {name = "hello1", args = [[]]};
-val vnode2 =  Data.T_Atomic {name = "hello2", args = [[]]};
+val vnode =  Data.T_Atomic {name = "hello9", tactic = "", args = [[]]};
+val vnode1 =  Data.T_Atomic {name = "hello1", tactic = "", args = [[]]};
+val vnode2 =  Data.T_Atomic {name = "hello2", tactic = "", args = [[]]};
 val ins = [Data.GT "a", Data.GT "b", Data.GT "c"]
 val outs = [Data.GT "d", Data.GT "e"]
 val ins1 = [Data.GT "a", Data.GT "b"]
@@ -49,10 +49,10 @@ ML{*
 
 *}
 ML{*
-  val asm =  Data.T_Atomic {name = "atac", args = [[]]}; 
-  val allT =  Data.T_Atomic {name = "all_tac", args = [[]]}; 
-  val impI =  Data.T_Atomic {name = "impI", args = [[]]}; 
-  val conjI =  Data.T_Atomic {name = "conjI", args = [[]]}; 
+  val asm =  Data.T_Atomic {name = "atac", tactic = "atac", args = [[]]}; 
+  val allT =  Data.T_Atomic {name = "all_tac", tactic = "all_tac", args = [[]]}; 
+  val impI =  Data.T_Atomic {name = "impI_\<longrightarrow>", tactic = "impI", args = [[]]}; 
+  val conjI =  Data.T_Atomic {name = "conjI", tactic = "conjI", args = [[]]}; 
 
   fun load_atom ps =  PSGraph.load_atomics 
     [("all_tac", at_all_tac), ("atac", at_atac), ("impI", at_impI_tac), ("conjI", at_conjI_tac)] 

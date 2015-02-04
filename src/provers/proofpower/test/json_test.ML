@@ -10,9 +10,9 @@
   val gt_imp =  Data.GT "top_symbol(implies)";
   val gt_conj = Data.GT "top_symbol(and)";
   
-  val step_assm =  Data.T_Atomic {name = "step_assm", args = [[]]}; 
-  val step_strip_imp =  Data.T_Atomic {name = "step_strip_imp", args = [[]]}; 
-  val step_strip_conj =  Data.T_Atomic {name = "step_strip_conj", args = [[]]}; 
+  val step_assm =  Data.T_Atomic {name = "step_assm", ,tactic = "step_assm", args = [[]]}; 
+  val step_strip_imp =  Data.T_Atomic {name = "step_strip_imp", tactic = "step_strip_imp", args = [[]]}; 
+  val step_strip_conj =  Data.T_Atomic {name = "step_strip_conj", tactic = "step_strip_conj", args = [[]]}; 
 
   val psasm =  PSComb.LIFT ([gt],[gt]) (step_assm);
   val psimpI = PSComb.LIFT ([gt_imp, gt_imp],[gt_imp, gt]) (step_strip_imp);

@@ -388,9 +388,6 @@ struct
        | SOME v => next_tactic_vertex graph v
     end;
     
-
-
-
 (************************************************************
   
       INITIALISATION
