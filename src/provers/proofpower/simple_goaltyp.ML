@@ -3,7 +3,7 @@ fun init_symbol_table l = symbol_table := StrName.NTab.of_list l;
 (* "use_file" can only be used in the top level, otherwise some strange problem will occur,
  this hack is to avoid the probelm *)
 
-structure SimpleGoalTyp (*: BASIC_GOALTYPE *)= 
+structure SimpleGoalTyp : BASIC_GOALTYPE = 
 struct
   structure Prover = PPProver;
   type T = string
@@ -72,10 +72,13 @@ struct
        ( x ::p1,p2) end )
       | get_args [] = ([],[]);
 
+(*
     fun split_args xs = 
       let val (args, l) = get_args (tl xs) in 
       if l = [] then [(hd xs) :: args]
       else ((hd xs) :: args) :: (split_args l) end;
+*)
+    val split_args = String.tokens (member (op =) [#"|"]);
 
     fun debug_print pn gt ret = 
       if ret then writeln ("GoalType: " ^ gt ^ " is OK for " ^ (get_pnode_name pn))
@@ -91,19 +94,42 @@ struct
     fun get_GOAL_from_pnode pn = 
     	(Prover.get_pnode_hyps pn,
     	 Prover.get_pnode_concl pn)
-    	 
+    
+    type gt_pred = Prover.context -> Prover.term list -> Prover.term -> bool
+
+    val exec_buffer : gt_pred option Unsynchronized.ref = Unsynchronized.ref NONE ;
+
+    fun exec_gt_exp (s : string) : gt_pred option = (
+      let	val cmd = 
+          "SimpleGoalTyp.exec_buffer := ((" ^ s ^ ") |> SOME handle _ => NONE)";
+        val _ =  Prover.exec_str cmd;
+      in	!exec_buffer
+      end
+    );
+
+    fun eval_gt pn str = 
+     let
+        val pred =  case exec_gt_exp str 
+          of SOME gt_pred => gt_pred
+          | NONE => raise gt_exp ("ERR: fail to eval " ^ str ^ " as a goal type predicate." )
+     in
+        pred (get_pnode_ctxt pn) (get_pnode_hyps pn) (get_pnode_concl pn)
+     end
+
+	 
     fun lift_list pn [] = false
      |  lift_list pn (x::xs) =
-          ((case x of 
+          (case x of 
              "top_symbol" => exists I (top_level xs pn) |> (fn r => (debug_print pn x r; r))
            | "has_symbol" => has_symbol xs pn |> (fn r => (debug_print pn x r; r))
            | "not"       => not (lift_list pn xs) 
-           | "or"        => exists I (map (lift_list pn) (split_args xs)) 
+           | "or"        => exists I (map (lift_list pn) (map split_args (xs)))
            | "any"       => true (* default *)
-           | others      => case (StrName.NTab.lookup (!default_GT) others) 
+           |  exp         => eval_gt pn exp 
+          (* | others      => case (StrName.NTab.lookup (!default_GT) others) 
            			of (SOME gt) => gt (get_GOAL_from_pnode pn)
-           			| _ => false)
-        (*handle _ => (writeln "exception catched when checking goaltypes "; false)*));
+           			| _ => false) *)
+        (*handle _ => (writeln "exception catched when checking goaltypes "; false)*))
 
    fun lift' pn str = lift_list pn (splitstr str)
    (*handle _ => raise gt_exp "int lift'";*)
@@ -144,6 +170,7 @@ struct
     type T = T
     type gnode = gnode
     type data = data
+    type gt_pred = gt_pred
   end
   
 end;
