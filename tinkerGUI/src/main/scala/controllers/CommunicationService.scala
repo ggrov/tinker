@@ -67,8 +67,8 @@ object CommunicationService extends Publisher {
 				b.append(in.readLine)
 			}
 			//try {
-				println("message : "+b.toString); 
-				val j = Json.parse(b.toString); 
+				println("message : "+b.toString);
+				val j = Json.parse(b.toString);
 				parseAndExecute(j)
 		//	}
 			//catch {
@@ -83,7 +83,7 @@ object CommunicationService extends Publisher {
 			// if no command found
 			case cmd: Json if(cmd == JsonNull) => sendSimpleResponse("RSP_ERROR_NO_CMD", "")
 			// if command found
-			case cmd: Json => 
+			case cmd: Json =>
 				(cmd ? "name") match {
 				// if no name found
 				case name: Json if(name == JsonNull) => sendSimpleResponse("RSP_ERROR_NO_CMD_NAME", "")
@@ -110,7 +110,7 @@ object CommunicationService extends Publisher {
 									var tactic:String = ""
 									var i:Int = 0
 									var graph:JsonObject = JsonObject()
-                println ("end of loading psgraph")
+                  println ("end of loading psgraph")
 									// get eval field
 									(j ? "eval_psgraph") match {
 										// if eval field not found
@@ -314,12 +314,20 @@ object CommunicationService extends Publisher {
 						gui.close
 						connected = false
 						reInitConnection
-					// unsupported command
-					case _ => 
+          // end of the eval session, but keep the current socket connection
+          case "CMD_END_EVAL_SESSION" =>
+            println ("receive cmd CMD_END_EVAL_SESSION: reset state")
+            state = CommunicationState.WaitingForPsgraph
+          // unsupported command
+          case _ =>
 						sendSimpleResponse("RSP_ERROR_BAD_CMD", "")
+            // reset status
+            state = CommunicationState.WaitingForPsgraph
 				}
 			}
-			case _ => sendSimpleResponse("RSP_ERROR_NO_CMD", "")
+			case _ =>
+          sendSimpleResponse("RSP_ERROR_NO_CMD", "")
+          state = CommunicationState.WaitingForPsgraph
 		}
 	}
 

@@ -85,16 +85,18 @@ struct
      JSON output
 
 *************************************************************)
-  fun output_json cmd  args_list_json edata = 
+  fun output_json cmd args_list_json edata ps = 
     Json.mk_object[
       ("cmd", 
         Json.mk_object[
            ("name", Json.String cmd),
            ("args", args_list_json)]),
       ("psgraph", 
-       EData.get_psgraph edata 
-       |> EData.PSGraph.output_json),
-      (* FIXME: hacky *)
+       (* FIXME: very hacky, do not get psgrapph from edata, as this one contains the goal node *)
+       (case ps of (SOME ps0) => EData.PSGraph.output_json ps0
+       | NONE => Json.Null)
+       (*EData.get_psgraph edata 
+       |> EData.PSGraph.output_json*)),
       ("eval_psgraph",
         EData.get_graph edata
         |> EData.PSGraph.of_graph
@@ -115,16 +117,14 @@ struct
       ("eval_psgraph", Json.Null)      
     ]
 
-  fun output_string cmd args_list_json edata = 
+  fun output_string cmd args_list_json edata ps = 
    if (Option.isSome edata)
    then 
-    output_json cmd args_list_json (Option.valOf edata)
+    output_json cmd args_list_json (Option.valOf edata) ps
     |> Json.encode
-    |> (fn x => x ^ " \n")
    else
     output_cmd_only_json cmd args_list_json
     |> Json.encode
-    |> (fn x => x ^ " \n")
 
 (* Theory.Graph.normalise *)
 

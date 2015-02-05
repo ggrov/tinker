@@ -17,8 +17,8 @@ fun assm_tac  _ i _ = atac i;
 ML{* "top_symbol(HOL.implies)"; "top_symbol(HOL.conj)";*}
 (* read and load a psgraph created by gui *)
 ML{* 
-  val ps = PSGraph.read_json_file (path^"demo.psgraph");
- (*  PSGraph.write_json_file (path^"demo1.psgraph") ps; *)
+  val ps = PSGraph.read_json_file (path^"demo_flat.psgraph");
+   PSGraph.write_json_file (path^"demo1.psgraph") ps; 
 *}
 
 ML{* 
@@ -29,13 +29,12 @@ IEVal.output_string
               "OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) (SOME edata0);
 
 EData.get_tactic edata0 "conjI()";
-
 *} 
 
 ML{*-
   TextSocket.safe_close();
 *}
-ML{*  -
+ML{*
 Tinker.start_ieval @{context} ps [] @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"};
 
 *}

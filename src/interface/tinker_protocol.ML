@@ -78,19 +78,19 @@ struct
                  (set_data edata1;
                   IEVal.output_json "CMD_UPDATE_PSGRAPH" 
                    (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
-                   edata1) |> pp_goal edata1
+                   edata1 NONE) |> pp_goal edata1
             | (IEVal.Good edata1) => 
                 (set_data edata1;
                  IEVal.output_json "CMD_UPDATE_PSGRAPH" 
                   (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
-                  edata1) |> pp_goal edata1
+                  edata1 NONE) |> pp_goal edata1
             |(IEVal.Bad) => 
                 IEVal.output_json "CMD_UPDATE_PSGRAPH" 
                   (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
-                  edata0)
+                  edata0 NONE) 
         | "OPT_EVAL_STOP" =>
            (reset_data();
-           Json.mk_object[("cmd", Json.mk_object[("name", Json.String  "CMD_CLOSE_CONNECT")])])
+           Json.mk_object[("cmd", Json.mk_object[("name", Json.String  "CMD_END_EVAL_SESSION")])])
         | x => raise protocol_exn ("ERR: protocol unkown option: " ^ x)
     end
   val ftab = ftab |> register "RSP_EVAL_PSGRAPH" RSP_EVAL_PSGRAPH
@@ -111,27 +111,31 @@ struct
 
   fun run_in_textstreams (instream, outstream) init_msg =
   let
+    fun send_msg str =
+      (TextIO.output (outstream, str  ^ " \n");TextIO.flushOut outstream)
+    val _ = (* send the init msg if there is any *)
+        case init_msg 
+        of (SOME j) => (send_msg j)
+        |  NONE => ()
     fun protocol_loop src =
     let
-      val _ = (* send the init msg if there is any *)
-        case init_msg 
-        of (SOME j) => (TextIO.output (outstream, j);TextIO.flushOut outstream)
-        |  NONE => ()
       val (json_list, src') = RawSource.get src
       val json = case json_list of [x] => x | _ =>
         raise protocol_exn "Expected: exactly one JSON object"
       val json_output = dispatch json (* this output is always a json object *)
+      val _ = (writeln "JSON IN: "; writeln (Json.encode json))
+      val _ = (writeln "JSON OUT: "; writeln ( Json.encode json_output))
     in 
       (case get_cmd_name json_output
-          of "CMD_CLOSE_CONNECT" => () (* do nothing and exit *)
+          of "CMD_CLOSE_CONNECT" => () (* do nothing and exit: need to be consider what to do *)
+          | "CMD_END_EVAL_SESSION" => send_msg (Json.encode json_output) (* send to stop cmd and quit *)
           | "Dummy_RSP" => ((); protocol_loop src')
           | "PRINT_ONLY_RSP" => 
             ((get_print_only_msg  json_output
             |> ( fn x => writeln ("PRINT_RSP: " ^ x)));
              protocol_loop src')
           | _ =>
-             (TextIO.output (outstream, Json.encode json_output);
-             TextIO.flushOut outstream;
+             (send_msg (Json.encode json_output);
              protocol_loop src')
       )
     end
@@ -151,7 +155,9 @@ struct
      val init_msg = IEVal.output_string 
           "CMD_INIT_PSGRAPH" 
            (IEVal.mk_cmd_str_arg_json [
-              "OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) (SOME edata0);
+              "OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
+           (SOME edata0) 
+           (SOME ps);
       val _ = (reset_data (); set_data edata0)
     in
       run_in_textstreams (ins, outs) (SOME init_msg);

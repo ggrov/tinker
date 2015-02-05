@@ -231,7 +231,26 @@ struct
   end
 
  fun write_json_file path ps =  File_Io.write_string path (output_json ps |> Json.encode);
- fun read_json_file path = File_Io.read_string path |> Json.of_string |> input_json
+
+(* a hack to fix the problem in gui *)
+ fun filter_empty_brk0 (x::xs) = 
+  if x = #"(" then 
+   case xs 
+     of (y :: ys) => if y = #")" then (filter_empty_brk0 ys) else  x :: (filter_empty_brk0 xs)
+     | [] =>  x :: (filter_empty_brk0 xs)
+  else x :: (filter_empty_brk0 xs)
+  |filter_empty_brk0 [] = []
+
+ fun filter_empty_brk str = 
+  String.explode str
+  |> filter_empty_brk0
+  |> String.implode;
+
+ fun read_json_file path = 
+  File_Io.read_string path 
+  |> filter_empty_brk
+  |> Json.of_string 
+  |> input_json
 
  structure Sharing = 
  struct
