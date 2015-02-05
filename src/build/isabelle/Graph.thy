@@ -5,7 +5,7 @@ imports
 (*  "~~/contrib/quantomatic/core/isabelle/QuantoCore"  *)
 (*  "~~/contrib/quantomatic/core/quanto"       quanto new core, require Isabelle 2014*)                                                
 begin
- 
+
   ML_file "../../debug_handler.ML"
   ML_file "../../graph/graph_data.sig.ML"          
   ML_file "../../graph/graph_data.ML"                                           

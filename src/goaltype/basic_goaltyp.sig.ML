@@ -41,6 +41,8 @@ sig
   val lift :  gnode -> data * T -> Prover.pnode -> gnode list
   val init_lift :  data * T -> Prover.pnode -> gnode list
 
+  val exec_buffer : gt_pred option Unsynchronized.ref;
+
   structure BasicSharing : BASIC_GOALTYPE_SHARING
     sharing type BasicSharing.T = T
     sharing type BasicSharing.gnode = gnode

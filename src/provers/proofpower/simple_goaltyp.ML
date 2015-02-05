@@ -103,10 +103,10 @@ struct
            | others      => case (StrName.NTab.lookup (!default_GT) others) 
            			of (SOME gt) => gt (get_GOAL_from_pnode pn)
            			| _ => false)
-        handle _ => (writeln "exception catched when checking goaltypes "; false));
+        (*handle _ => (writeln "exception catched when checking goaltypes "; false)*));
 
    fun lift' pn str = lift_list pn (splitstr str)
-   handle _ => raise gt_exp "int lift'";
+   (*handle _ => raise gt_exp "int lift'";*)
 
    fun init_lift (_,str) pn =
      let 
@@ -118,7 +118,7 @@ struct
                 |> forall I 
                 |> liftp pn
      end
-     handle _ => raise gt_exp "in init lift";
+     (*handle _ => raise gt_exp "in init lift";*)
 
   end; (* local open *)
 

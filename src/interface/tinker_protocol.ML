@@ -1,6 +1,6 @@
 functor TinkerProtocol (IEVal : IEVAL)=
 struct
-  open JsonControllerUtil
+  open JsonControllerUtil DebugHandler
 
   exception protocol_exn of string
   exception user_exn of string
@@ -85,9 +85,10 @@ struct
                   (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
                   edata1 NONE) |> pp_goal edata1
             |(IEVal.Bad) => 
+                (debug_print BASIC_INFO "ERR: Fail to Eval.";
                 IEVal.output_json "CMD_UPDATE_PSGRAPH" 
                   (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
-                  edata0 NONE) 
+                  edata0 NONE) )
         | "OPT_EVAL_STOP" =>
            (reset_data();
            Json.mk_object[("cmd", Json.mk_object[("name", Json.String  "CMD_END_EVAL_SESSION")])])
@@ -123,8 +124,8 @@ struct
       val json = case json_list of [x] => x | _ =>
         raise protocol_exn "Expected: exactly one JSON object"
       val json_output = dispatch json (* this output is always a json object *)
-      val _ = (writeln "JSON IN: "; writeln (Json.encode json))
-      val _ = (writeln "JSON OUT: "; writeln ( Json.encode json_output))
+      val _ = (debug_print TINKER "JSON IN: "; debug_print TINKER (Json.encode json))
+      val _ = (debug_print TINKER "JSON OUT: "; debug_print TINKER ( Json.encode json_output))
     in 
       (case get_cmd_name json_output
           of "CMD_CLOSE_CONNECT" => () (* do nothing and exit: need to be consider what to do *)
@@ -132,7 +133,7 @@ struct
           | "Dummy_RSP" => ((); protocol_loop src')
           | "PRINT_ONLY_RSP" => 
             ((get_print_only_msg  json_output
-            |> ( fn x => writeln ("PRINT_RSP: " ^ x)));
+            |> ( fn x => debug_print TINKER ("PRINT_RSP: " ^ x)));
              protocol_loop src')
           | _ =>
              (send_msg (Json.encode json_output);

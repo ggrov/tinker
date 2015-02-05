@@ -219,11 +219,13 @@ struct
         let val (p1,p2) = get_args xs in
        ( x ::p1,p2) end )
       | get_args [] = ([],[]);
-
+(*
     fun split_args xs = 
       let val (args, l) = get_args (tl xs) in 
       if l = [] then [(hd xs) :: args]
       else ((hd xs) :: args) :: (split_args l) end;
+*)
+    val split_args = String.tokens (member (op =) [#"|"]);
 
     fun lift_list _ [] = false
      |  lift_list pn (x::xs) =
@@ -239,15 +241,15 @@ struct
            | "hyp_subst" => hyp_subst pn  |> debug_trace x
            | "rippled" => (is_rippled pn) |> debug_trace x
            | "not"       => not (lift_list pn xs) 
-           | "or"        => exists I (map (lift_list pn) (split_args xs)) |> debug_trace x
+           | "or"        => exists I (map (lift_list pn) (map split_args (xs))) |> debug_trace x
            | "any"       => true (* default *)
            | "anything"   => true (* default *)
            | "label"      => true
-           |  exp         => eval_gt pn exp)
-        handle _ => false);
+           |  exp         => eval_gt pn exp |> debug_trace x)
+        (*handle _ => false*));
 
    fun lift' pn str = lift_list pn (splitstr str)
-   handle _ => raise gt_exp "int lift'";
+   (*handle _ => raise gt_exp "int lift'";*)
 
    fun init_lift (_,str) pn =
      let 
@@ -260,7 +262,7 @@ struct
                 |> forall I 
                 |> liftp pn
    end
-   handle _ => raise gt_exp "in init lift";
+   (*handle _ => raise gt_exp "in init lift";*)
 
   end; (* local open *)
 

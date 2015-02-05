@@ -1,5 +1,5 @@
 theory json_test                                           
-imports        
+imports       
   "../build/BIsaP"    
 begin
 ML{*-
@@ -13,12 +13,18 @@ fun impI_tac  _ i _ = rtac @{thm impI} i;
 fun conjI_tac _ i _ = rtac @{thm conjI} i
 fun id_tac  _ _ _ = all_tac;
 fun assm_tac  _ i _ = atac i;
+
+(* test gty pred *)
+fun test_pred _ _ _ = true
+fun test_failed_pred _ _ _ = false
 *}
 ML{* "top_symbol(HOL.implies)"; "top_symbol(HOL.conj)";*}
 (* read and load a psgraph created by gui *)
-ML{* 
+ML{*
   val ps = PSGraph.read_json_file (path^"demo_flat.psgraph");
-   PSGraph.write_json_file (path^"demo1.psgraph") ps; 
+  val ps = PSGraph.read_json_file (path^"demo_pred.psgraph");
+
+  PSGraph.write_json_file (path^"demo1.psgraph") ps; 
 *}
 
 ML{* 
@@ -28,7 +34,6 @@ IEVal.output_string
            (IEVal.mk_cmd_str_arg_json [
               "OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) (SOME edata0);
 
-EData.get_tactic edata0 "conjI()";
 *} 
 
 ML{*-

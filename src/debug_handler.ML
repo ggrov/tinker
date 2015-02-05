@@ -8,10 +8,10 @@ struct
     GOALTYP |
     SUPERGRAPH|
     TACTIC|
-    SOCKET|
+    TINKER|
     EVAL
 
-  val debug_flag = Unsynchronized.ref NO_INFO;
+  val debug_flag = Unsynchronized.ref BASIC_INFO;
   
   val set_debug_flag = fn x => debug_flag := x;
 
