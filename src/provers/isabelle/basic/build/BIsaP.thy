@@ -1,7 +1,7 @@
 (* simple test of proof representation *)
 theory BIsaP                                             
 imports       
-  "../../../../build/isabelle/Eval"                                                                               
+  "../../../../build/isabelle/Tinker"                                                                               
 begin 
  
 (* simple test of proof representation *)

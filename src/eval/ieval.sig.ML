@@ -27,7 +27,7 @@ sig
  val update_graph : EData.T -> EData.T (* other arguments *)
 
  val output_string : string -> Json.json -> EData.T option -> EData.PSGraph.T option -> string
- val output_json : string -> Json.json -> EData.T ->  EData.PSGraph.T option -> Json.json
+ val output_json : string -> Json.json -> EData.T -> EData.PSGraph.T option -> Json.json
  val output_cmd_only_json : string -> Json.json -> Json.json 
  val mk_cmd_str_arg_json : string list -> Json.json
  

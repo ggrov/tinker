@@ -16,32 +16,31 @@ struct
 *************************************************************)
   datatype result = Good of EData.T | Bad | Cont of EData.T
 
+  fun update_branches edata branches = 
+   let val new_branches = branches @ (EData.get_branches edata) in
+    case new_branches of 
+      [] => Bad (* this is because tactic fails szx *)
+      | (x::xs) => (* fixme: this should be based on the search strategy *)
+          Cont (edata 
+                |> EData.set_current x 
+                |> EData.set_branches xs)
+   end
+
   fun eval_goal node_name edata = 
    let 
     val graph = (EData.get_graph edata) 
     val g = EVal.Util.gnode_of graph (V.mk node_name) 
             |> EData.PSGraph.Theory.Data.GoalTyp.goal_name
-    fun update_branches edata branches = 
-      let val new_branches = branches @ (EData.get_branches edata) in
-        case new_branches of 
-          [] => Bad (* this is because tactic fails szx *)
-          | (x::xs) => (* fixme: this should be based on the search strategy *)
-              Cont (edata 
-                    |> EData.set_current x 
-                    |> EData.set_branches xs)
-      end
-    in
-     if EVal.has_terminated edata then
-      (case EData.parent_lhs edata of
-        NONE => Good edata
-        | _ => Good edata) (* fixme: this should be hie one *)
+   in
+     if EVal.has_psgraph_terminated edata then Good edata
      else
      (* todo: hierichecal one *)
-       EVal.eval_goal_atomic true g edata
+       EVal.eval_goal_goalname true g edata
        |> Seq.list_of (* get a list of eval results *)
-       |> map fst (* map out branches *)
+       (*|> map fst  map out branches *)
        |> update_branches edata
    end
+
 
  fun eval_backtrack edata = 
    case EData.get_branches edata  
@@ -50,31 +49,23 @@ struct
         Cont( EData.set_current (hd branch) edata 
               |> EData.set_branches (tl branch)) 
 
+
   fun eval_any edata = 
    let 
     val graph = (EData.get_graph edata) 
-    fun update_branches edata branches = 
-      let val new_branches = branches @ (EData.get_branches edata) in
-        case new_branches of 
-          [] => Bad (* this is because tactic fails szx *)
-          | (x::xs) => (* fixme: this should be based on the search strategy *)
-              Cont (edata 
-                    |> EData.set_current x 
-                    |> EData.set_branches xs)
-      end
    in
-    if EVal.has_terminated edata then
-     (case EData.parent_lhs edata of
-       NONE => Good edata
-       | _ => Good edata) (* fixme: this should be hie one *)
+    if EVal.has_psgraph_terminated edata then Good edata
+    else
+    if EVal.has_current_graph_terminated edata 
+    then EVal.exit_hgraph_no_goal_node edata |> Seq.list_of |>update_branches edata
     else
    (* todo: hierichecal one *)
      EVal.Util.all_gnodes graph
        |> map (EVal.Util.gnode_of graph)
        |> map (EVal.Theory.GoalTyp.goal_name)
-       |> map (fn g => EVal.eval_goal_atomic true g edata
+       |> map (fn g => EVal.eval_goal_goalname true g edata
                        |> Seq.list_of
-                       |> map fst)
+                       (*|> map fst*))
        |> List.concat
        |> update_branches edata
   end;
@@ -98,9 +89,12 @@ struct
        (*EData.get_psgraph edata 
        |> EData.PSGraph.output_json*)),
       ("eval_psgraph",
-        EData.get_graph edata
-        |> EData.PSGraph.of_graph
-        |> EData.PSGraph.output_json_as_eval_field)      
+        EData.get_psgraph edata
+        |> (fn e => EData.PSGraph.output_json_as_eval_field 
+                    (EData.get_name_current edata) 
+                    (EData.get_index_current edata) 
+                    e)
+           )      
     ]
 
   fun mk_cmd_str_arg_json args_str_list = 

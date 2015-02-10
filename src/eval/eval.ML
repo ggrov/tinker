@@ -1,6 +1,6 @@
 (* evaluation *)
 
-functor EValFun(EData : EVAL_DATA) (*: EVAL*) =
+functor EValFun(EData : EVAL_DATA) : EVAL =
 struct
  structure EData = EData;
  structure Theory = EData.PSGraph.Theory;
@@ -19,7 +19,6 @@ struct
   (* helper functions to work with graphs *)
   structure Util =
   struct
-
     (* actual rewriting *)
     fun rewrite_lazy rule graph = 
       let 
@@ -71,6 +70,11 @@ struct
           (Graph.NVert nv) => SOME nv
         | _ => NONE
 
+    fun lookup_ivertex_data g v = 
+      case Graph.get_vertex_data g v of 
+          (Graph.NVert nv) => SOME nv
+        | _ => NONE
+
    val vertex_data = the oo lookup_ivertex_data;
 
    fun out_edges graph v = 
@@ -114,6 +118,11 @@ struct
        | SOME GData.T_Identity => true
        | _ => false; 
 
+   fun is_hgragh_with_graph_name graph n v = 
+     case lookup_ivertex_data graph v of 
+       SOME (GData.T_Graph {name, ...}) => n = name
+       | _ => false; 
+
    fun is_gnode graph v = 
      case lookup_ivertex_data graph v of 
          SOME (GData.G _) => true
@@ -125,10 +134,12 @@ struct
        | _ => NONE; 
 
    fun goaltype_of graph e = 
-     case edge_data graph e of (GData.GT g) => g   (* |  _ => raise error *);
+     case edge_data graph e of (GData.GT g) => g   
+     |  _ => raise Fail "Err: Unknown goaltype type.";
 
    fun gnode_of graph v = 
      case vertex_data graph v of (GData.G gn) => gn
+     | _ => raise Fail "Err: This vetrtice is not a gnode."
 
    fun mk_gnode gnode = GData.G gnode;
 
@@ -143,6 +154,18 @@ struct
    fun all_gnodes graph = 
      get_vertex_list graph
      |> filter (is_gnode graph);
+(*
+   fun all_hgraghs graph =  
+     Graph.get_vertices graph
+     |> filter (is_hgragh graph);
+*)
+   fun lookup_hgragh_by_graph_name graph graph_name =  
+     get_vertex_list graph
+     |> filter (is_hgragh_with_graph_name graph graph_name)
+     |> (fn x => (case x of 
+                   [] => raise Fail ("ERR: fail to find hgraph by name: " ^ graph_name)
+                 | [h] => h
+                 | _ => raise Fail ("ERR: fail to find hgraph by name, more than one result are returned: " ^ graph_name)))
 
    (* FIXME: makes one for each input - can be generalised by vars on the edges  instead - then we only need on lhs per rule  *)
    fun mk_lhs graph v =
@@ -198,7 +221,7 @@ struct
        in 
          Prover.apply_tactic facts tac (pnode,pplan)
       end
-   | apply_tactic _ gnode node = raise node_exp ("not atomic tactic node",gnode,node);
+   | apply_tactic _ gnode node = raise node_exp ("not an atomic tactic node",gnode,node);
 
   val lift  = GoalTyp.lift;
 
@@ -239,115 +262,43 @@ struct
         |> fold (fn pnd => maps (partition_one gtype_data goal_typs gnode pnd)) pnds;
 
   val partition_to_gnodes = map (map GData.G);
-
-  (* fixme: make this into branch instead *)
-  fun apply_atomic edata gnode tac goal_typs = 
-     let 
-       val gt_data = edata 
-                    |> EData.get_psgraph  
-                    |> EData.PSGraph.get_goaltype_data
-       fun apply_one (pnds,pplan) =
-         Seq.single (EData.get_current edata
-           |> EData.set_bpplan pplan
-           |> EData.add_bgoals pnds,
-         partition gt_data pnds gnode goal_typs)
-      handle partition_exp _ => Seq.empty
-   in
-   apply_tactic edata gnode tac
-   |> Seq.maps apply_one
-  end
-
-
-  (* information to capture 
-         1: debug
-         2: logging for learning/analysis
-  *)
-
- (* evaluates a single goal node *)
- fun eval_goal_atomic_node_names is_interactive gname tnode gnode edata = 
-   let
-     val graph = EData.get_graph edata
-     val goal = Util.gnode_of graph gnode
-     val (SOME tactic) = Util.lookup_ivertex_data graph tnode
-     val out_edges = Util.out_edges graph tnode
-     val out_goaltypes = map (Util.goaltype_of graph) out_edges
-     (* (EData.branch * EData.PSGraph.Theory.Data.GoalTyp.gnode list list list) Seq.seq *)
-     val result = apply_atomic edata goal tactic out_goaltypes
-     val graph' = Util.del_gnode gnode graph 
-     fun add_gnode n e g =
-        let 
-          val (from,_,g') = Util.insert_node_on_edge n e g 
-        in
-          (from,g')
-       end
-    fun add_gnodes (edge::edges) (res::ress) graph = 
-       fold (fn gn => fn (e,gr) => add_gnode (Theory.Data.G gn) e gr) res (edge,graph)
-       |> #2
-       |> add_gnodes edges ress
-    | add_gnodes [] _ graph = graph
-    | add_gnodes _ [] graph = graph
-   in
-      Seq.maps (fn (b,rs) 
-        => (case rs 
-             of [] => [(EData.set_bgraph  graph' b, rs)] |> Seq.of_list (* no new goal is produced *)
-               | _ => (map (fn res => (EData.set_bgraph (add_gnodes out_edges res graph') b, rs)) rs) 
-                       |> Seq.of_list)) result
-   end
-
- fun get_next_tnode graph node = 
-  if Util.is_gnode graph node
-  then
-    get_next_tnode graph
-      (Util.out_edges graph node
-      |> (fn [x] => x) (* raise exception: log if not singleton list *)
-      |> Util.edge_dest graph)
-  else node
-
- fun eval_goal_atomic_goalnode is_interactive gnode edata = 
-   let
-     val graph = EData.get_graph edata
-     val gname = GoalTyp.goal_name (Util.gnode_of graph gnode)
-     val goal = Util.gnode_of graph gnode
-     val tnode = get_next_tnode graph gnode          
-  in
-   eval_goal_atomic_node_names is_interactive gnode tnode gnode edata
-  end;
-
- fun eval_goal_atomic is_interactive gname edata = 
-   let
-     val graph = EData.get_graph edata
-     val gnode = Util.all_gnodes graph
-               |> filter (fn gn => gname = GoalTyp.goal_name (Util.gnode_of graph gn))
-               |> (fn [x] => x) (* raise exception: log if not singleton list *)
-     val goal = Util.gnode_of graph gnode
-     val tnode = get_next_tnode graph gnode
-  in
-   eval_goal_atomic_node_names is_interactive gnode tnode gnode edata
-  end;
+ 
+  fun get_next_tnode graph node = 
+    if Util.is_gnode graph node
+    then
+      get_next_tnode graph
+        (Util.out_edges graph node
+        |> (fn [x] => x) (* raise exception: log if not singleton list *)
+        |> Util.edge_dest graph)
+    else node
 
    (* allows to step over gnodes *)
-   fun try_get_out graph v =
-    if Util.is_tactic graph v (* assume no variables *) 
-     then NONE
-     else 
-      case Util.out_edges graph v  of
-          [] => SOME v (* output *)
-       | [e] => try_get_out graph (Util.edge_dest graph e) (* gnode or  *)
-       |  _  => NONE (* many outputs (shouldn't happen) *);
+  fun try_get_out graph v =
+   if Util.is_tactic graph v (* assume no variables *) 
+    then NONE
+    else 
+     case Util.out_edges graph v  of
+         [] => SOME v (* output *)
+      | [e] => try_get_out graph (Util.edge_dest graph e) (* gnode or  *)
+      |  _  => NONE (* many outputs (shouldn't happen) *);
 
    (* allows to step over gnodes *)
-   fun try_get_in graph v =
-    if Util.is_tactic graph v (* assume no variables *) 
-     then NONE
-     else 
-      case Util.in_edges graph v  of
-          [] => SOME v (* output *)
-       | [e] => try_get_in graph (Util.edge_src graph e) (* gnode or  *)
-       |  _  => NONE (* many outputs (shouldn't happen) *);
+  fun try_get_in graph v =
+   if Util.is_tactic graph v (* assume no variables *) 
+    then NONE
+    else 
+     case Util.in_edges graph v  of
+         [] => SOME v (* output *)
+      | [e] => try_get_in graph (Util.edge_src graph e) (* gnode or  *)
+      |  _  => NONE (* many outputs (shouldn't happen) *);
 
-   fun has_terminated edata = 
-     Util.all_gnodes (EData.get_graph edata)
-     |> forall (is_some o (try_get_out (EData.get_graph edata)));
+  fun has_current_graph_terminated edata = 
+    Util.all_gnodes (EData.get_graph edata)
+    |> forall (is_some o (try_get_out (EData.get_graph edata)));
+
+  fun has_psgraph_terminated edata = 
+    has_current_graph_terminated edata andalso (* current graph is terminated *)
+    (EData.get_parent edata |> StrName.NTab.list_of) = []
 
   (* assume exact same boundary *)
   fun move_gnode from' v to' =
@@ -389,11 +340,8 @@ struct
     end;
     
 (************************************************************
-  
       INITIALISATION
-
 *************************************************************)
-
  (* fixme: may loose goals! *)
  fun init_goal pnode edata  = 
    let
@@ -436,7 +384,7 @@ struct
       | _ => x)
    end;
 
- fun init  psgraph ctxt assms goals =
+ fun init psgraph ctxt assms goals =
    let
      val _ = DebugHandler.clear_debug_msg ();
      val (pnode,pplan) = Prover.init ctxt assms goals
@@ -449,6 +397,205 @@ struct
     init_goal pnode edata0
     |> (fn x => case x of [] => []
       | _ => x)
+   end;
+
+(************************************************************
+      Gnode evaluation
+*************************************************************)
+  (* fixme: make this into branch instead *)
+  fun apply_atomic edata gnode tac goal_typs = 
+   let 
+     val gt_data = edata 
+                  |> EData.get_psgraph  
+                  |> EData.PSGraph.get_goaltype_data
+     fun apply_one (pnds,pplan) =
+       Seq.single (EData.get_current edata
+         |> EData.set_bpplan pplan
+         |> EData.add_bgoals pnds,
+       partition gt_data pnds gnode goal_typs)
+    handle partition_exp _ => Seq.empty
+   in
+     apply_tactic edata gnode tac
+     |> Seq.maps apply_one
+   end
+
+  fun add_gnode n e g =
+    let 
+      val (from,_,g') = Util.insert_node_on_edge n e g 
+    in
+      (from,g')
+   end
+
+  fun add_gnodes (edge::edges) (res::ress) graph = 
+     fold (fn gn => fn (e,gr) => add_gnode (Theory.Data.G gn) e gr) res (edge,graph)
+     |> #2
+     |> add_gnodes edges ress
+  | add_gnodes [] _ graph = graph
+  | add_gnodes _ [] graph = graph
+
+  fun eval_apply_atomic gnode_name tnode edata =
+   let
+     val graph = EData.get_graph edata (* has to be the current one *)
+     val out_edges = Util.out_edges graph tnode
+     val out_goaltypes = map (Util.goaltype_of graph) out_edges
+     val graph' = Util.del_gnode gnode_name graph
+     val goal = Util.gnode_of graph gnode_name
+     val (SOME tactic) = Util.lookup_ivertex_data graph tnode
+     val result =  apply_atomic edata goal tactic out_goaltypes
+   in
+      Seq.maps (fn (b,rs) 
+        => (case rs 
+             of [] => [(EData.set_bgraph graph' b(*, rs*))] |> Seq.of_list (* no new goal is produced *)
+               | _ => (map (fn res => (EData.set_bgraph (add_gnodes out_edges res graph') b(*, rs*))) rs) (* comment out gnode list *) 
+                       |> Seq.of_list)) result
+   end
+
+ fun enter_hgraph gnode_name hgraph_nv edata = 
+   let
+    val graph = EData.get_graph edata
+    val goal = Util.gnode_of graph gnode_name
+    val pnode = EData.get_goal edata (GoalTyp.goal_name goal)
+    val hgraph_name = GData.get_name hgraph_nv
+    val cur_name = EData.get_name_current edata
+    val cur_idx =  EData.get_index_current edata
+    val gt_data =  EData.get_psgraph edata |> EData.PSGraph.get_goaltype_data
+    val graph' = Util.del_gnode gnode_name graph
+    fun set_hgraph_idx 0 b = [EData.set_bindex_current 0 b]
+    | set_hgraph_idx i b = (EData.set_bindex_current i b) :: (set_hgraph_idx (i-1) b)
+    fun insert_gnode b = 
+      let 
+        fun gen_in_edges g0 = 
+          Util.input_boundary g0 
+          |> maps (fn (_,(e,_),_) => [(e,Util.goaltype_of g0 e)])
+        val g = EData.get_bgraph b
+        fun gen_new_graph (e,gt) = 
+         case GoalTyp.init_lift (gt_data,gt) pnode of
+            [] => [] 
+          | gns => map (fn gn => (gn, #3 (Util.insert_node_on_edge (Util.mk_gnode gn) e g))) gns 
+        fun new_hgraphs g0 = 
+          maps gen_new_graph (gen_in_edges g0) 
+          |> map snd (* to project graph *)
+          |> (fn x => case x of 
+                [] => raise Fail ("All edges fail to move goal: " ^  GoalTyp.goal_name goal)
+
+               | _ => x)
+      in
+        map (fn g0 => EData.set_bgraph g0 b) (new_hgraphs (EData.get_bgraph b))
+      end
+   in
+     (* update and delete the gnode in the current graph *)
+     EData.set_bgraph graph' (EData.get_current edata) 
+     (* move to the subgraph and save the current grah hie in the parent *)
+     |> EData.update_bparent (StrName.NTab.ins (hgraph_name, (cur_name, cur_idx)) handle _ => raise Fail "fail to re insert the hgraph")
+     |> EData.set_bname_current hgraph_name
+     (* get subgraphs, for each subgraph, create a branch *)
+     |> (fn b => set_hgraph_idx (EData.get_bgraphs_gen hgraph_name b |> List.length |> (fn x => x -1)) b)
+     |> maps insert_gnode
+     |> Seq.of_list
+   end
+
+ fun move_upto_parent b = 
+   let 
+    val cur_name = EData.get_bname_current b
+    val (name, idx) = StrName.NTab.get  (EData.get_bparent b) cur_name  
+   in
+     EData.set_bname_current name b
+     |> EData.set_bindex_current idx  
+     |> EData.update_bparent (StrName.NTab.delete cur_name)
+   end
+
+ fun exit_hgraph_no_goal_node edata = move_upto_parent (EData.get_current edata) |> Seq.single
+ 
+ fun exit_hgraph gnode_name edata = 
+  let 
+    val graph = EData.get_graph edata
+    val graph' = Util.del_gnode gnode_name graph
+    val gt_data = edata |> EData.get_psgraph |> EData.PSGraph.get_goaltype_data
+    val goal = Util.gnode_of graph gnode_name
+    val pnode = EData.get_goal edata (GoalTyp.goal_name goal)
+    val cur_b = EData.get_current edata
+    val (par_name, par_idx) = StrName.NTab.get (EData.get_parent edata) (EData.get_name_current edata)
+    val parent_graph = EData.get_bgraph_gen par_name par_idx cur_b
+    val parent_hgraph_node = Util.lookup_hgragh_by_graph_name parent_graph (EData.get_name_current edata)
+    val out_edges = Util.out_edges parent_graph parent_hgraph_node
+    val out_goaltypes = map (fn e => (e, Util.goaltype_of parent_graph e)) out_edges
+    fun gen_new_graph (e,gt) = 
+     case GoalTyp.init_lift (gt_data,gt) pnode of
+        [] => [] 
+      | gns => map (fn gn => (gn, #3 (Util.insert_node_on_edge (Util.mk_gnode gn) e parent_graph))) gns 
+    val new_parent_graphs = 
+      maps gen_new_graph out_goaltypes 
+      |> map snd (* to project graph *)
+      |> (fn x => case x of 
+            [] => raise Fail ("All edges fail to move goal: " ^  GoalTyp.goal_name goal)
+           | _ => x)
+  in
+    if List.length (Util.all_gnodes (EData.get_graph edata)) > 1 (* more than one goal node *)
+    then (* delete the g; add it in the parent graph; update both graph as a branche *)
+      EData.set_bgraph graph' (EData.get_current edata)
+      |> (fn b => (map (fn g => EData.set_bgraph_gen par_name par_idx g b) new_parent_graphs)) 
+      |> Seq.of_list
+    else (* also need to remove the current graph from the parent map, as no goal nodes in this graph *)
+      EData.set_bgraph graph' (EData.get_current edata)
+      |> (fn b => (map (fn g => EData.set_bgraph_gen par_name par_idx g b) new_parent_graphs)) 
+      |> map move_upto_parent
+      |> Seq.of_list
+  end
+(*
+ fun eval_apply_id gnode id_node edata 
+   let
+     val graph = EData.get_graph edata
+     val out_edges = Util.out_edges graph id_node
+     val out_goaltypes = map (Util.goaltype_of graph) out_edges
+     val graph' = Util.del_gnode gnode graph
+     val result = 
+   in
+      Seq.maps (fn (b,rs) 
+        => (case rs 
+             of [] => [(EData.set_bgraph  graph' b, rs)] |> Seq.of_list
+               | _ => (map (fn res => (EData.set_bgraph (add_gnodes out_edges res graph') b, rs)) rs) 
+                       |> Seq.of_list)) result
+   end
+*)
+
+ (* evaluates a single goal node *)
+  fun eval_goal_gen gname graph_name0 index0 edata = 
+   let
+     val graph = 
+      if is_some graph_name0 then raise Fail "ERR: NOT Support to switch between subgraph yet" 
+      else EData.get_graph edata
+     val gnode = Util.gnode_of graph gname
+   in
+     if (is_some o (try_get_out (EData.get_graph edata))) gname
+     (* the goal is terminated in the current graph *)
+     then (* either exit or raise an exception if it is in the main *)
+       if EData.get_name_current edata  = "main" then raise Fail "ERR: main has already been terminated "
+       else (* exit the current hie *) exit_hgraph gname edata
+     else (* not terminated, so either apply atomic or apply hgraph*)
+     (
+      let      
+        val tnode = get_next_tnode graph gname
+        val (SOME nv) = Util.lookup_ivertex_data graph tnode
+      in
+        case nv of
+           (GData.T_Atomic _) => eval_apply_atomic gname tnode edata
+         | (GData.T_Identity) => raise Fail "ERR: no support for the ID node, use an id_tac instead "
+         | (GData.T_Graph _) => enter_hgraph gname nv edata
+         | _ => raise node_exp ("ERR: unexpected node type to apply eval ", gnode, nv)
+      end
+     )
+  end
+ 
+  fun eval_goal_gnodename is_interactive gnode_name edata = eval_goal_gen gnode_name NONE NONE edata
+
+  fun eval_goal_goalname is_interactive gname edata = 
+   let
+     val graph = EData.get_graph edata
+     val gnode_name = Util.all_gnodes graph
+               |> filter (fn gn => gname = GoalTyp.goal_name (Util.gnode_of graph gn))
+               |> (fn [x] => x) (* raise exception: log if not singleton list *)
+   in
+     eval_goal_gen gnode_name NONE NONE edata
    end;
 
 end (* functor *)

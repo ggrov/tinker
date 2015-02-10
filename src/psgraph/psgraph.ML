@@ -12,7 +12,8 @@ struct
   datatype subgraph = Subgraph of {
     name : StrName.NTab.name,
     isOr : bool,
-    graphs: Theory.Graph.T list
+    graphs: Theory.Graph.T list,
+    args : Theory.Data.arg_typ
   }
 
   datatype atomic_tacs = Atomic_Tacs of {
@@ -33,7 +34,7 @@ struct
   
  exception tactic_exp of string
 
- fun update_graph f (PSGraph rep) = 
+ fun update_top_graph f (PSGraph rep) = 
    PSGraph { graph = f (#graph rep), graph_tactics = #graph_tactics rep, 
              atomic_tactics = #atomic_tactics rep, tactics = #tactics rep,
              goaltype_data = #goaltype_data rep, parents = #parents rep}
@@ -59,19 +60,46 @@ struct
              goaltype_data = #goaltype_data rep, parents = f(#parents rep)}
 
 
- fun get_graph (PSGraph rep) = #graph rep;
+ fun get_top_graph (PSGraph rep) = #graph rep;
  fun get_graph_tactics (PSGraph rep) = #graph_tactics rep;
  fun get_atomic_tactics (PSGraph rep) = #atomic_tactics rep;
  fun get_tactics (PSGraph rep) = #tactics rep;
  fun get_goaltype_data (PSGraph rep) = #goaltype_data rep;
  fun get_parents (PSGraph rep) = #parents rep;
+ fun get_graphs ps name = 
+  case name 
+    of "main" => [get_top_graph ps]
+    | _ => 
+      StrName.NTab.get (get_graph_tactics ps) name 
+      |> (fn (Subgraph {graphs,...})=> graphs)
+ fun get_graph ps name idx = 
+  case name 
+    of "main" => get_top_graph ps
+    | _ => 
+      StrName.NTab.get (get_graph_tactics ps) name 
+      |> (fn (Subgraph {graphs,...})=> (fn x =>List.nth (x, idx)) graphs)
 
- val set_graph = update_graph o K;
+ val set_top_graph = update_top_graph o K;
  val set_graph_tactics = update_graph_tactics o K;
  val set_atomic_tactics = update_atomic_tactics o K;
  val set_tactics = update_tactics o K;
  val set_goaltype_data = update_goaltype_data o K;
  val set_parents = update_parents o K;
+ fun replace_nth l nth h = 
+  List.take (l, nth + 1) |> rev |> tl |> rev(* but last *)
+  |> (fn x => x @ [h] @(List.drop (l, nth + 1)))
+
+ fun set_graph name idx g ps = 
+  case name
+    of "main" => set_top_graph g ps
+    | _ =>
+      StrName.NTab.get (get_graph_tactics ps) name
+      |> (fn (Subgraph rep) => 
+        (Subgraph{args = #args rep, name = #name rep, 
+                  isOr = #isOr rep,
+                  graphs = replace_nth (#graphs rep) idx g}))
+      |> (fn x => StrName.NTab.update (name, x)  (get_graph_tactics ps))
+      |> (fn x => set_graph_tactics x ps)
 
  fun of_graph graph = 
    PSGraph { graph = graph,
@@ -138,20 +166,22 @@ struct
    Json.mk_object [
     ("name", Json.String name),
     ("isOr", Json.Bool (#isOr subgraph)),
-    ("graphs", map Theory_IO.out_json (#graphs subgraph) |> Json.Array)]
+    ("graphs", map Theory_IO.out_json (#graphs subgraph) |> Json.Array),
+    ("args", arg_typ_to_json (#args subgraph))]
 
  fun input_subgraph_json (Json.Object jobj) =
   let 
     val name =  JsonInputUtils.get_string jobj "name"
     val isOr = JsonInputUtils.get_bool jobj "isOr"
     val graphs = JsonInputUtils.get_array jobj "graphs" |> map Theory_IO.in_json
+     val args = (arg_typ_from_json (Json.get jobj "args"))
   in
-    (name, Subgraph {name = name, isOr = isOr, graphs = graphs})
+    (name, Subgraph {name = name, isOr = isOr, graphs = graphs, args = args})
   end
 
  fun output_json ps = 
   let 
-    val graph = Theory_IO.out_json (get_graph ps)
+    val graph = Theory_IO.out_json (get_top_graph ps)
     val graph_tactics = 
      Json.Array 
        (StrName.NTab.list_of (get_graph_tactics ps) 
@@ -174,20 +204,27 @@ struct
     ]
   end
 
- fun output_json_as_eval_field ps = 
+ fun output_json_as_eval_field name_current index_current ps = 
+  let
+    val graph_tactics = 
+       (StrName.NTab.list_of (get_graph_tactics ps) 
+       |> map output_subgraph_json) 
+  in
   Json.mk_object 
   [
-    ("name_current", Json.String "main"),
-    ("index_current", Json.Int 0),
+    ("name_current", Json.String name_current),
+    ("index_current", Json.Int index_current),
     ("graphs", 
-     Json.Array[
+     Json.Array
+     ([
        Json.mk_object[
         ("name", Json.String "main"),
         ("isOr", Json.Bool false),
         ("args", Json.Array[]),
-        ("graphs", Json.Array [Theory_IO.out_json (get_graph ps)])]
-     ])
+        ("graphs", Json.Array [Theory_IO.out_json (get_top_graph ps)])]
+     ] @ graph_tactics))
   ]
+  end
 
 	val exec_buffer :Prover.tactic option Unsynchronized.ref = Unsynchronized.ref NONE ;
 	fun exec_tac_exp (s : string) : Prover.tactic option = (

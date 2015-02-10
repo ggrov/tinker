@@ -17,7 +17,7 @@ sig
   type T
 
   type gnode = PSGraph.Theory.Data.GoalTyp.gnode
-   (* initialisations *)
+   (* initialisation *)
   val init : 
     PSGraph.T 
     -> PSGraph.Theory.Data.GoalTyp.Prover.pplan 
@@ -35,7 +35,9 @@ sig
   val get_graph : T -> PSGraph.Theory.Graph.T
   val get_current : T -> branch
   val get_branches : T -> branch list
-
+  val get_parent : T -> (StrName.NTab.name * int) StrName.NTab.T
+  val get_name_current: T -> StrName.NTab.name
+  val get_index_current : T -> int 
 
   (* more get methods *)
   val lookup_goal : T -> string -> PSGraph.Theory.Data.GoalTyp.Prover.pnode option
@@ -58,16 +60,15 @@ sig
   val update_psgraph : (PSGraph.T -> PSGraph.T) -> T -> T
   val update_pplan : (PSGraph.Theory.Data.GoalTyp.Prover.pplan -> PSGraph.Theory.Data.GoalTyp.Prover.pplan) -> T -> T
   val update_goals : (PSGraph.Theory.Data.GoalTyp.Prover.pnode StrName.NTab.T -> PSGraph.Theory.Data.GoalTyp.Prover.pnode StrName.NTab.T)  -> T -> T
-  val update_graph : (PSGraph.Theory.Graph.T -> PSGraph.Theory.Graph.T) -> T -> T
   val update_gnodes : (gnode list -> gnode list) -> T -> T
   val update_searchf : (string -> string) -> T -> T
   val update_evalf : (string -> string) -> T -> T
   val update_current : (branch -> branch) -> T -> T
   val update_branches : (branch list -> branch list) -> T -> T
+  val update_parent : ((StrName.NTab.name * int) StrName.NTab.T -> (StrName.NTab.name * int) StrName.NTab.T) -> T -> T
 
   val add_goals : PSGraph.Theory.Data.GoalTyp.Prover.pnode list -> T -> T
   val add_bgoals : PSGraph.Theory.Data.GoalTyp.Prover.pnode list -> branch -> branch
-
 
   (* methods for branches *)
   val get_bactive : branch -> active
@@ -85,9 +86,25 @@ sig
   val set_bevalf : string -> branch -> branch
   val get_bevalf : branch -> string
 
+  val update_bparent : ((StrName.NTab.name * int) StrName.NTab.T  -> (StrName.NTab.name * int) StrName.NTab.T )
+                        -> branch -> branch
+  val set_bparent : (StrName.NTab.name * int) StrName.NTab.T -> branch -> branch
+  val get_bparent : branch -> (StrName.NTab.name * int) StrName.NTab.T
+
   val get_bgraph : branch -> PSGraph.Theory.Graph.T 
   val set_bgraph : PSGraph.Theory.Graph.T -> branch -> branch
+  val get_bgraph_gen : StrName.NTab.name -> int -> branch -> PSGraph.Theory.Graph.T 
+  val get_bgraphs_gen : StrName.NTab.name -> branch -> PSGraph.Theory.Graph.T list
+  val set_bgraph_gen : StrName.NTab.name -> int -> PSGraph.Theory.Graph.T -> branch -> branch
 
+  val update_bname_current : (StrName.NTab.name -> StrName.NTab.name)  -> branch -> branch
+  val set_bname_current : StrName.NTab.name -> branch -> branch
+  val get_bname_current : branch ->  StrName.NTab.name 
+  val update_bindex_current : (int -> int) -> branch -> branch
+  val set_bindex_current : int -> branch -> branch
+  val get_bindex_current : branch -> int
+
+  
   val update_bactive : (active -> active) -> branch -> branch 
   val update_bpplan : (PSGraph.Theory.Data.GoalTyp.Prover.pplan
                        -> PSGraph.Theory.Data.GoalTyp.Prover.pplan)
@@ -97,17 +114,9 @@ sig
                       -> branch -> branch
 
   (* push and pop methods for parent *)
-  val parent_lhs : T -> PSGraph.Theory.Graph.T option
-  val pop_active : T -> T (* identify if it fails *)
-  val push_active : PSGraph.Theory.Graph.T -> PSGraph.Theory.Graph.T -> gnode list -> T -> T
-
-  val pop_bactive : branch -> branch (* identify if it fails *)
-  val push_bactive : PSGraph.Theory.Graph.T -> PSGraph.Theory.Graph.T -> gnode list -> branch -> branch
-
   val next_branch : T -> (branch * T) option (* moves to next branch *)
   
   val pretty_goals : T -> Pretty.T
-
 
   structure Sharing : EVAL_DATA_SHARING
     sharing type branch = Sharing.branch

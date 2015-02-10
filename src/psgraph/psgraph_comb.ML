@@ -141,32 +141,32 @@ struct
 (* todo and fixme: need to handle duplications *)
   fun THEN (ps1, ps2) =
      let 
-       val g1 = PSGraph.get_graph ps1
-       val g2 = PSGraph.get_graph ps2
+       val g1 = PSGraph.get_top_graph ps1
+       val g2 = PSGraph.get_top_graph ps2
        val g' = THENG g1 g2
     in
-      PSGraph.merge_disjoint ps1 ps2 |> PSGraph.set_graph g' (* todo: merge and rename *)
+      PSGraph.merge_disjoint ps1 ps2 |> PSGraph.set_top_graph g' (* todo: merge and rename *)
     end;
 
   fun TENSOR (ps1, ps2) =
    let 
-     val g1 = PSGraph.get_graph ps1
-     val g2 = PSGraph.get_graph ps2
+     val g1 = PSGraph.get_top_graph ps1
+     val g2 = PSGraph.get_top_graph ps2
      val g = TENSORG g1 g2
   in
-    PSGraph.merge_disjoint ps1 ps2 |> PSGraph.set_graph g
+    PSGraph.merge_disjoint ps1 ps2 |> PSGraph.set_top_graph g
   end;
 
   fun LOOP_WITH  gt ps =
     let
-      val graph = PSGraph.get_graph ps
+      val graph = PSGraph.get_top_graph ps
       val graph' = LOOP_WITHG graph gt
     in
-     PSGraph.set_graph graph' ps
+     PSGraph.set_top_graph graph' ps
    end;
 
   fun LIFT' (ins,outs) nvdata ps = 
-    ps |> PSGraph.set_graph (graph_of_node_edges nvdata ins outs);
+    ps |> PSGraph.set_top_graph (graph_of_node_edges nvdata ins outs);
 
   fun LIFT (ins,outs) nvdata = 
      PSGraph.of_graph (graph_of_node_edges nvdata ins outs);

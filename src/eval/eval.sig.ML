@@ -26,7 +26,8 @@ sig
    EData.PSGraph.Theory.Data.GoalTyp.gnode list list  
    -> EData.PSGraph.Theory.Data.nvdata  list list
 
-  val has_terminated : EData.T -> bool
+  val has_current_graph_terminated : EData.T -> bool
+  val has_psgraph_terminated : EData.T -> bool
 
   val apply_atomic : 
         EData.T 
@@ -44,10 +45,11 @@ sig
     -> EData.PSGraph.Theory.Data.GoalTyp.Prover.term list 
     -> EData.PSGraph.Theory.Data.GoalTyp.Prover.term 
     -> EData.T list
-  val eval_goal_atomic_goalnode : bool -> V.name -> EData.T 
-    -> (EData.branch *  EData.PSGraph.Theory.Data.GoalTyp.gnode list list list) Seq.seq
-  val eval_goal_atomic : bool -> string -> EData.T 
-    -> (EData.branch *  EData.PSGraph.Theory.Data.GoalTyp.gnode list list list) Seq.seq
+  val exit_hgraph_no_goal_node : EData.T -> EData.branch Seq.seq
+  val eval_goal_gnodename :  bool -> V.name -> EData.T 
+    -> (EData.branch (* *  EData.PSGraph.Theory.Data.GoalTyp.gnode list list list*)) Seq.seq
+  val eval_goal_goalname :  bool -> string -> EData.T 
+    -> (EData.branch (* * EData.PSGraph.Theory.Data.GoalTyp.gnode list list list*)) Seq.seq
 
  structure Util :
   sig 

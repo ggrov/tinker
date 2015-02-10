@@ -22,23 +22,26 @@ sig
   val of_graph : Theory.Graph.T -> T
 
   (* get methods *)
-  val get_graph : T -> Theory.Graph.T
+  val get_top_graph : T -> Theory.Graph.T
   val get_graph_tactics : T -> subgraph StrName.NTab.T
   val get_atomic_tactics : T -> atomic_tacs StrName.NTab.T
   val get_tactics : T -> Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T
   val get_goaltype_data : T -> Theory.Data.GoalTyp.data
   val get_parents: T -> (StrName.NTab.name) StrName.NTab.T
-
-  (* set methods *)
-  val set_graph : Theory.Graph.T -> T -> T
+  val get_graph : T -> StrName.NTab.name -> int -> Theory.Graph.T
+  val get_graphs : T -> StrName.NTab.name  -> Theory.Graph.T list
+  
+ (* set methods *)
+  val set_top_graph : Theory.Graph.T -> T -> T
   val set_graph_tactics : subgraph StrName.NTab.T -> T -> T
   val set_atomic_tactics : atomic_tacs StrName.NTab.T  -> T -> T  
   val set_tactics : Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T -> T -> T
   val set_goaltype_data :  Theory.Data.GoalTyp.data -> T -> T
   val set_parents : (StrName.NTab.name) StrName.NTab.T -> T -> T
+  val set_graph :  StrName.NTab.name -> int -> Theory.Graph.T -> T -> T
 
   (* update methods *)
-  val update_graph : (Theory.Graph.T -> Theory.Graph.T) -> T -> T
+  val update_top_graph : (Theory.Graph.T -> Theory.Graph.T) -> T -> T
   val update_graph_tactics : (subgraph StrName.NTab.T 
                                   -> subgraph StrName.NTab.T) 
                               -> T -> T
@@ -64,7 +67,7 @@ sig
 
   (* json i/o *)
   val output_json : T -> Json.json
-  val output_json_as_eval_field : T -> Json.json
+  val output_json_as_eval_field : StrName.NTab.name -> int -> T -> Json.json
   val input_json : Json.json -> T
   val write_json_file : string -> T -> unit
   val read_json_file: string -> T

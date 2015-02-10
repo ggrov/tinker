@@ -95,7 +95,7 @@ class HierarchyModel() {
 		activeElement = root
 		(model.mainGraph ? "node_vertices").asObject.map { 
 			case (k, v) if ((v / "data").asObject / "type").stringValue == "T_Graph" =>
-				addElement(ArgumentParser.separateNameFromArgument((v / "data" / "rt_name").stringValue)._1)
+				addElement(ArgumentParser.separateNameFromArgument((v / "data" / "subgraph").stringValue)._1)
 			case _ => // do nothing
 		}
 		root.children.foreach{ c => buildPartialHierarchy(c, model)}
@@ -107,7 +107,7 @@ class HierarchyModel() {
 				t.graphs.foreach {g => 
 					(g ? "node_vertices").asObject.map {
 						case (k, v) if ((v / "data").asObject / "type").stringValue == "T_Graph" =>
-							addElement(ArgumentParser.separateNameFromArgument((v / "data" / "rt_name").stringValue)._1, parent.name)
+							addElement(ArgumentParser.separateNameFromArgument((v / "data" / "subgraph").stringValue)._1, parent.name)
 						case _ => // do nothing
 					}
 				}
