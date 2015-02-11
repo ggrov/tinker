@@ -1,6 +1,7 @@
 
 functor InteractiveEvalFun (EVal : EVAL) =
 struct
+  open DebugHandler
   structure EVal= EVal
   structure EData = EVal.EData;
 
@@ -17,7 +18,10 @@ struct
   datatype result = Good of EData.T | Bad | Cont of EData.T
 
   fun update_branches edata branches = 
-   let val new_branches = branches @ (EData.get_branches edata) in
+   let 
+    val _ = case branches of [] => debug_print BASIC_INFO "Err: No new branch is successful, backtrack" | _ => ();
+    val new_branches = branches @ (EData.get_branches edata) 
+   in
     case new_branches of 
       [] => Bad (* this is because tactic fails szx *)
       | (x::xs) => (* fixme: this should be based on the search strategy *)
@@ -41,7 +45,6 @@ struct
        |> update_branches edata
    end
 
-
  fun eval_backtrack edata = 
    case EData.get_branches edata  
    of [] => Bad
@@ -49,20 +52,25 @@ struct
         Cont( EData.set_current (hd branch) edata 
               |> EData.set_branches (tl branch)) 
 
-
   fun eval_any edata = 
    let 
     val graph = (EData.get_graph edata) 
+    val cur_gnodenames = EVal.Util.all_gnodes graph
    in
     if EVal.has_psgraph_terminated edata then Good edata
     else
-    if EVal.has_current_graph_terminated edata 
+    if EVal.has_current_graph_terminated edata andalso (List.null cur_gnodenames)
     then EVal.exit_hgraph_no_goal_node edata |> Seq.list_of |>update_branches edata
     else
    (* todo: hierichecal one *)
-     EVal.Util.all_gnodes graph
+     cur_gnodenames
        |> map (EVal.Util.gnode_of graph)
        |> map (EVal.Theory.GoalTyp.goal_name)
+       |> (fn x => 
+            (((Pretty.str "[[- all goals in the current graph: " ::
+              (map (fn y => Pretty.block [Pretty.str y, Pretty.str " "] ) x)) |> Pretty.block 
+              |> Pretty.str_of |> debug_print EVAL);
+            x))
        |> map (fn g => EVal.eval_goal_goalname true g edata
                        |> Seq.list_of
                        (*|> map fst*))

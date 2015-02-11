@@ -123,8 +123,8 @@ struct
       val (json_list, src') = RawSource.get src
       val json = case json_list of [x] => x | _ =>
         raise protocol_exn "Expected: exactly one JSON object"
-      val json_output = dispatch json (* this output is always a json object *)
       val _ = (debug_print TINKER "JSON IN: "; debug_print TINKER (Json.encode json))
+      val json_output = dispatch json (* this output is always a json object *)
       val _ = (debug_print TINKER "JSON OUT: "; debug_print TINKER ( Json.encode json_output))
     in 
       (case get_cmd_name json_output

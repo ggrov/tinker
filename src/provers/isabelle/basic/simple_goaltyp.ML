@@ -254,7 +254,7 @@ struct
    fun init_lift (_,str) pn =
      let 
         val ls = String.tokens (fn c => c = #";") str
-        val _ = debug_print BASIC_INFO (("init goal " ^  (#pname pn) ^  " with goal type: " ^ str ))
+        val _ = debug_print GOALTYP (("init goal " ^  (#pname pn) ^  " with goal type: " ^ str ))
     in 
      case ls of 
        [] => (debug_print BASIC_INFO "warning; No goal types !"; [])

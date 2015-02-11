@@ -1,6 +1,6 @@
 structure IsaProver : PROVER =
 struct 
-
+  open DebugHandler
   type typ = typ
   type term = Term.term  
   type thm = Thm.thm
@@ -103,9 +103,6 @@ struct
     (newgoals,pplan')
   end;
 
-
-
-
   fun get_all_assms _ = []
 
   fun get_all_named_facts_pair _ = []
@@ -129,7 +126,8 @@ struct
    
   fun apply_tactic args tac (pnode,pplan) = 
     tac (#pctxt pnode) (get_index pnode pplan) args (#goal pplan)
-    |> Seq.map (update (pnode,pplan));
+    |> Seq.map (update (pnode,pplan))
+    |> (fn x => (case Seq.pull x of NONE => (debug_print BASIC_INFO "Err: Fail to apply tactic" ; x) | _ => x ))
 
   (* SOME default tactics *)
 

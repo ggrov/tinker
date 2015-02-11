@@ -124,7 +124,7 @@ struct
      end
   
  (* FIXME: arg_data list *)
-  fun apply_tactic _ tactic pinfo = (writeln "call apply_tactic in psg" ; update tactic pinfo |> Seq.single)
+  fun apply_tactic _ tactic pinfo = (update tactic pinfo |> Seq.single)
 
 
   fun get_all_assms (pnode : pnode)  = (#g pnode) 

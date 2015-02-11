@@ -541,22 +541,31 @@ struct
       |> map move_upto_parent
       |> Seq.of_list
   end
-(*
- fun eval_apply_id gnode id_node edata 
+
+ fun eval_apply_id gnode_name id_node edata =
    let
-     val graph = EData.get_graph edata
-     val out_edges = Util.out_edges graph id_node
-     val out_goaltypes = map (Util.goaltype_of graph) out_edges
-     val graph' = Util.del_gnode gnode graph
-     val result = 
+    val gt_data = edata |> EData.get_psgraph |> EData.PSGraph.get_goaltype_data
+    val graph = EData.get_graph edata
+    val goal = Util.gnode_of graph gnode_name
+    val pnode = EData.get_goal edata (GoalTyp.goal_name goal)
+    val graph' = Util.del_gnode gnode_name graph
+    val out_edges = Util.out_edges graph id_node
+    val out_goaltypes = map (fn e => (e, Util.goaltype_of graph e)) out_edges
+    fun gen_new_graph (e,gt) = 
+     case GoalTyp.init_lift (gt_data,gt) pnode of
+        [] => [] 
+      | gns => map (fn gn => (gn, #3 (Util.insert_node_on_edge (Util.mk_gnode gn) e graph'))) gns 
+    val new_graphs = 
+      maps gen_new_graph out_goaltypes 
+      |> map snd (* to project graph *)
+      |> (fn x => case x of 
+            [] => raise Fail ("All edges fail to move goal: " ^  GoalTyp.goal_name goal)
+           | _ => x)
    in
-      Seq.maps (fn (b,rs) 
-        => (case rs 
-             of [] => [(EData.set_bgraph  graph' b, rs)] |> Seq.of_list
-               | _ => (map (fn res => (EData.set_bgraph (add_gnodes out_edges res graph') b, rs)) rs) 
-                       |> Seq.of_list)) result
+    EData.set_bgraph graph' (EData.get_current edata)
+    |> (fn b => (map (fn g => EData.set_bgraph g b)) new_graphs)
+    |> Seq.of_list
    end
-*)
 
  (* evaluates a single goal node *)
   fun eval_goal_gen gname graph_name0 index0 edata = 
@@ -579,7 +588,7 @@ struct
       in
         case nv of
            (GData.T_Atomic _) => eval_apply_atomic gname tnode edata
-         | (GData.T_Identity) => raise Fail "ERR: no support for the ID node, use an id_tac instead "
+         | (GData.T_Identity) => eval_apply_id gname tnode edata
          | (GData.T_Graph _) => enter_hgraph gname nv edata
          | _ => raise node_exp ("ERR: unexpected node type to apply eval ", gnode, nv)
       end
