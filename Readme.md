@@ -25,7 +25,15 @@ Then go to the contrib directory:
 
     cd contrib 
 
-and grab the isaplib and quantomatic libraries either over https:
+and grab the isaplib and quantomatic libraries either over https, for isabelle 2014 or onwards:
+
+    git clone -b integration https://github.com/Quantomatic/quantomatic
+    
+OR over ssh:
+
+    git clone -b ps-graph git://github.com/Quantomatic/quantomatic.git
+
+and for isabelle 2013
 
     git clone -b master  https://github.com/Quantomatic/isaplib
     git clone -b ps-graph https://github.com/Quantomatic/quantomatic
@@ -48,13 +56,9 @@ OR
 
     git clone git://github.com/ggrov/psgraph.git
 
-Installing the GUI
+Environment for the GUI
 ---------------------------------------------------
-If you wish to use GUI in the interactive proof session, you'll need the 
- - Scala Build Tool ([0.12.4](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html)) and;
- - Graphviz [here](http://www.graphviz.org/Download.php)
- 
- Note that this assumed that you have java 6 or above installed.
+ Note that to use the Tinker gui, java 6 or above is required.
 
 
 Usage
@@ -77,17 +81,8 @@ This is illustrate under `Example 1` in the `example.thy` file with the asm grap
 Interactive proof session with the GUI
 ---------------------------------------------------------------------------
 
-To use the interactive GUI, go to the `contrib` directory of your Isabelle installation and execute
-the following commands:
-    
-    cd quantomatic/scala
-    sbt run
-    
-You will then be given a set of options. Here, choose the option for `quanto.gui.GraphEditor`.
-Please note that you may need an internet in order to fetch dependent libraries when you run
-`sbt` for the first time.
-    
-Then return to the Isabelle GUI, go to `Example 2` of the `example.thy` theory file and uncomment
+To use the interactive GUI, go to the `tinkerGUI/release` of the directory of the `psgraph` installation,
+run the packed jar exectable file to launch the Tinker GUI. Then return to the Isabelle GUI, go to `Example 2` of the `example.thy` theory file and uncomment
 the following line
 
     apply(psgraph (interactive) conj_impI)
