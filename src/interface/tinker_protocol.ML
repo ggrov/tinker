@@ -90,8 +90,7 @@ struct
                   (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
                   edata0 NONE) )
         | "OPT_EVAL_STOP" =>
-           (reset_data();
-           Json.mk_object[("cmd", Json.mk_object[("name", Json.String  "CMD_END_EVAL_SESSION")])])
+           (Json.mk_object[("cmd", Json.mk_object[("name", Json.String  "CMD_END_EVAL_SESSION")])])
         | x => raise protocol_exn ("ERR: protocol unkown option: " ^ x)
     end
   val ftab = ftab |> register "RSP_EVAL_PSGRAPH" RSP_EVAL_PSGRAPH
@@ -162,7 +161,7 @@ struct
       val _ = (reset_data (); set_data edata0)
     in
       run_in_textstreams (ins, outs) (SOME init_msg);
-      reset_data ()
+      get_data () |> (fn x => (reset_data () ; Option.valOf x))
     end
 end
 

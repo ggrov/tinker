@@ -226,14 +226,14 @@ struct
   ]
   end
 
-	val exec_buffer :Prover.tactic option Unsynchronized.ref = Unsynchronized.ref NONE ;
-	fun exec_tac_exp (s : string) : Prover.tactic option = (
-		let	val cmd = 
-		    "PSGraph.exec_buffer := ((" ^ s ^ ") |> SOME handle _ => NONE)"; (* hacky! PSGraph has to be the same as the strucutre instaintiated from this functor *)
-			val _ =  Prover.exec_str cmd;
-		in	!exec_buffer
-		end
-	);
+ val exec_buffer :Prover.tactic option Unsynchronized.ref = Unsynchronized.ref NONE ;
+ fun exec_tac_exp (s : string) : Prover.tactic option = (
+	let	val cmd = 
+	    "PSGraph.exec_buffer := ((" ^ s ^ ") |> SOME handle _ => NONE)"; (* hacky! PSGraph has to be the same as the strucutre instaintiated from this functor *)
+		val _ =  Prover.exec_str cmd;
+	in	!exec_buffer
+	end
+ );
 (* expect to out put as an eval field *)
  fun input_json (Json.Object object) = 
   let

@@ -2,6 +2,8 @@ theory json_test
 imports       
   "../build/BIsaP"    
 begin
+ML_file "../psgraph_isar_method.ML"
+
 ML{*-
   val path = "/u1/staff/gg112/";
 *}
@@ -21,6 +23,7 @@ fun test_failed_pred _ _ _ = false
 ML{* "top_symbol(HOL.implies)"; "top_symbol(HOL.conj)";*}
 (* read and load a psgraph created by gui *)
 ML{*
+
   val ps = PSGraph.read_json_file (path^"demo_flat.psgraph");
   val ps0 = PSGraph.read_json_file (path^"demo_pred.psgraph");
 
@@ -36,12 +39,12 @@ IEVal.output_string
 
 *} 
 
+
 ML{*-
   TextSocket.safe_close();
 *}
-ML{*-
+ML{* -
 Tinker.start_ieval @{context} ps [] @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"};
-
 *}
 
 
