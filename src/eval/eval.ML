@@ -15,6 +15,7 @@ struct
     { pnodes :  EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list,
       input :  EData.PSGraph.Theory.Data.GoalTyp.gnode, 
       goaltypes : EData.PSGraph.Theory.Data.GoalTyp.T list } 
+  exception Fail = RunCall.Fail
 
   (* helper functions to work with graphs *)
   structure Util =

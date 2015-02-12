@@ -21,7 +21,7 @@ fun test_failed_pred _ _ _ = false
 ML{* "top_symbol(HOL.implies)"; "top_symbol(HOL.conj)";*}
 (* read and load a psgraph created by gui *)
 ML{*
-  val ps = PSGraph.read_json_file (path^"demo_id.psgraph");
+  val ps = PSGraph.read_json_file (path^"demo_flat.psgraph");
   val ps0 = PSGraph.read_json_file (path^"demo_pred.psgraph");
 
   PSGraph.write_json_file (path^"demo1.psgraph") ps; 
@@ -39,7 +39,7 @@ IEVal.output_string
 ML{*-
   TextSocket.safe_close();
 *}
-ML{*
+ML{*-
 Tinker.start_ieval @{context} ps [] @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"};
 
 *}

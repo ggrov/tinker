@@ -25,7 +25,7 @@ end
  
 structure TextSocket_DB (*: TEXT_SOCKET*) =
 struct
-  
+  exception Fail = RunCall.Fail
 (* the func is generutee to compute without interruption,
   a way to prevernt isabelle from interrupt a thread, *)
   fun run_in_atomic func = 
