@@ -7,14 +7,14 @@
   val assm_tac = step_strip_tac;
 
 (* test gty pred *)
-  fun test_pred _ _ _ = true;
+  fun test_true1 _ _ _ = true;
   fun test_failed_pred _ _ _ = false;
 
 
 (* read and load a psgraph created by gui *)
   val ps = PSGraph.read_json_file (path^"demo_flat.psgraph");
   val ps = PSGraph.read_json_file (path^"demo_pred.psgraph");
-
+  val ps = PSGraph.read_json_file (path^"demo_hie.psgraph");
   PSGraph.write_json_file (path^"demo1.psgraph") ps; 
 
 

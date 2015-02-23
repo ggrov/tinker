@@ -34,7 +34,7 @@ struct
   
 (* TODO: how to print those fancy symbols in proofpower ?*)
   fun string_of_trm _ = fn trm => PrettyPrinter.format_term true trm |> String.concat
-  fun pretty_trm _ _ = Pretty.str "pretty term - not supported in pp"
+  fun pretty_trm _ trm = Pretty.block (map Pretty.str (PrettyPrinter.format_term true trm))
 
 (* atomic part *)
   type pnode = 
@@ -140,10 +140,7 @@ struct
   fun get_pnode_ctxt (pnode:pnode) = (#pctxt pnode)
   
   fun get_open_pnodes (pplan:pplan) = StrName.NTab.list_of (#opengs pplan) |> map snd (* should return some goals as top_goals () *)
-  
-  fun pretty_concl _ = Pretty.str "pretty_concl - not supported in pp"
-  
-  fun intf_pprint _ = ();
+    
   
   fun symbols _ = []
   fun top_symbol trm = the (TermFeature.top_level_str trm );

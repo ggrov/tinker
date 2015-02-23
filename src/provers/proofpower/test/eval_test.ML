@@ -96,7 +96,7 @@ top_goals();
  use_file "../test/eval_test";
 
 (* Example: run in the interactive mode *)
- PPIntf.set_psg_goal ([%<% B : BOOL %>%, %<% A : BOOL %>%], %<% (A %and% B) %and% (A %implies% A) %>%) "interactive" psgraph_simple "dummy" "dummy"; 
+PPIntf.set_psg_goal ([%<% B : BOOL %>%, %<% A : BOOL %>%], %<% (A %and% B) %and% (A %implies% A) %>%) "interactive" psgraph_simple "dummy" "dummy"; 
 
 (* Exmaple run in interactive-current mode *) 
 PPIntf.set_psg_goal ([], %<%A %implies% (A %and% A) %>%) "current" PSGraph.empty "dummy" "dummy";
