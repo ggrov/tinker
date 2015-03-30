@@ -182,9 +182,8 @@ struct
       in
         TF.is_subterm thy goal embedd_hyp
       end
-  
+   
     type gt_pred = Prover.context -> Prover.term list -> Prover.term -> bool
-
     val exec_buffer : gt_pred option Unsynchronized.ref = Unsynchronized.ref NONE ;
 
     fun exec_gt_exp (s : string) : gt_pred option = (

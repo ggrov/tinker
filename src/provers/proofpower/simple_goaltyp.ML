@@ -94,11 +94,9 @@ struct
     fun get_GOAL_from_pnode pn = 
     	(Prover.get_pnode_hyps pn,
     	 Prover.get_pnode_concl pn)
-    
+
     type gt_pred = Prover.context -> Prover.term list -> Prover.term -> bool
-
     val exec_buffer : gt_pred option Unsynchronized.ref = Unsynchronized.ref NONE ;
-
     fun exec_gt_exp (s : string) : gt_pred option = (
       let	val cmd = 
           "SimpleGoalTyp.exec_buffer := ((" ^ s ^ ") |> SOME handle _ => NONE)";

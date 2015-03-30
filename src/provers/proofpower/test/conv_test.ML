@@ -16,18 +16,18 @@ set_goal g;
 a (conv_tac (LEFT_C Â_conv));
 pure_rewrite_tac [thm];
 
-
 fun gen_pre_post_conv (conv : CONV) trm = 
  let 
   val thm = PPProver.concl_of_thm (conv trm)
  in
   PPTermLib.strip_comb thm |> snd (* pred, post *)
  end;
+ 
 (* should combined with has symbol *)
-
 fun lift_conv_as_tac conv (trm : TERM) = pure_rewrite_tac [conv trm];
 fun apply_conv_to_goal_tac conv (goal : GOAL) = 
   pure_rewrite_tac [conv (snd goal)] goal; 
+  
 conv_tac;
 
 set_goal g;

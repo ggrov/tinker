@@ -10,7 +10,8 @@ begin
 
   -- "instantiating with prover"
   ML{*
-    structure C = ClauseGTFun(IsaProver);    
+    structure ClauseGoalTyp = ClauseGTFun(IsaProver);  
+    structure C = ClauseGoalTyp;
   *}
 
   ML{*

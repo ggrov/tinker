@@ -2,6 +2,15 @@ functor ClauseGTFun(Prover : PROVER) =
 struct
 
   structure Prover = Prover;
+  type gt_pred = Prover.context -> Prover.term list -> Prover.term -> bool;
+  val exec_buffer : gt_pred option Unsynchronized.ref = Unsynchronized.ref NONE ;
+  fun exec_gt_exp (s : string) : gt_pred option = (
+    let	val cmd = 
+        "ClauseGoalTyp.exec_buffer := ((" ^ s ^ ") |> SOME handle _ => NONE)";
+      val _ =  Prover.exec_str cmd;
+    in	!exec_buffer
+    end
+  );
   (**********  data ***********)
   (* grammar: 
        definitions ::= definition [ definitions ]
@@ -36,7 +45,7 @@ struct
   type env = env_data StrName.NTab.T
   (* I am not sure about env in goalnode - this has to be serialisable! *)
   (* could this be added somewhere else? *)
-  datatype gnode = GN of { name : string, env : env  }
+  datatype gnode = GN of { name : string, env : env }
 
 (*
   type state = env StrName.NTab.T 
@@ -407,6 +416,7 @@ struct
     type T = T
     type gnode = gnode
     type data = data
+    type gt_pred = gt_pred
   end
 
 end (* struct *)
