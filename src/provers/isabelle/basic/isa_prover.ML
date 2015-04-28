@@ -152,7 +152,7 @@ struct
                   |> map TermFeatures.ignore_module;
   fun top_symbol trm = the (TermFeatures.top_level_str trm );
 
-  val exec_str = ML_Context.eval_text true (Position.start);
+  val exec_str = eval_text;
 
   (* END goal type *)
 
