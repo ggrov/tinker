@@ -1,7 +1,7 @@
 (* JSON protocal and comnumnication interfaces with the tinker GUI *)
 theory Tinker                                                                                                                                                                                           
 imports           
-  EVal                                                                       
+  Eval                                                                       
 begin
   (* socket communication for the tinker gui *)
   ML_file "../../interface/text_socket.ML"

@@ -6,11 +6,25 @@ struct
   type thm = Thm.thm
   type context = Proof.context
 
-  datatype arg_data =  Str of string | Trm of term | Thm of thm
+  datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term 
+  datatype env_data =  E_Str of string | E_Trm of term | E_Trms of term list |  E_Thm of thm | E_L of env_data list
+  type env = env_data StrName.NTab.T 
 
-  type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term } 
+  type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term, env : env } 
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
+ 
+  fun update_pnode_env f {pname,pctxt,ptrm,env} = {pname = pname ,pctxt = pctxt ,ptrm = ptrm ,env = f env};
 
+  val set_pnode_env = update_pnode_env o K;
+  fun get_pnode_env {env, ...} = env;
+ 
+  type gtyp = env -> pnode -> arg_data list -> env list
+
+  (* fixme: we need to rethink the allowed argument and when the vars should be instantiated! 
+       E.g. rule(exI,?x) -> should the tactic instantiate ?x to what is has in the env or should we?
+        also if it is not, then ?x may be instantiated and this updated env should be recorded in the 
+        env \<rightarrow> where is this handled? Need to work out some examples first I think...
+ *)
   type tactic = Proof.context -> int -> arg_data list -> Tactical.tactic
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
@@ -35,7 +49,7 @@ struct
       val th = Proof_Context.theory_of ctxt
       val goal = Thm.cterm_of th trm
                |> Goal.init;
-      val pnode = { pname = "g", pctxt = ctxt, ptrm = trm}
+      val pnode = { pname = "g", pctxt = ctxt, ptrm = trm, env = StrName.NTab.empty}
       val pplan = { goal = goal, opengs = [pnode], usedgs = StrName.NSet.single "g"}
    in
      (pnode,pplan)
@@ -48,7 +62,7 @@ struct
           let 
              val (nm,nms') = StrName.NSet.add_new "g" nms
           in
-            (prms @ [{ pname = nm, pctxt = ctxt, ptrm = prem}],nms')
+            (prms @ [{ pname = nm, pctxt = ctxt, ptrm = prem, env = StrName.NTab.empty}],nms')
           end
       val (pnds,usedgs) = fold add prems ([],StrName.NSet.empty)
       val pplan = { goal = thm, opengs = pnds, usedgs = usedgs}
@@ -79,7 +93,7 @@ struct
       fun ins t (gls,gset) =
        let 
         val (n,gset') = StrName.NSet.add_new "a" gset
-        val g' = {pname = n,ptrm = t,pctxt = ctxt}
+        val g' = {pname = n,ptrm = t,pctxt = ctxt,env=StrName.NTab.empty}
        in (gls@[g'],gset') end
     in
       fold ins goals ([],nameset)
@@ -102,6 +116,10 @@ struct
   in
     (newgoals,pplan')
   end;
+
+   (* FIXME: should really update the pplan so that new goal registered! *)
+  fun apply_env_tactic args env_tac (pnode,pplan) = 
+    Seq.single ([update_pnode_env (env_tac args) pnode],pplan);
 
   fun get_all_assms _ = []
 
@@ -135,12 +153,12 @@ struct
     Global_Theory.get_thm (Proof_Context.theory_of ctxt) name;
 
   (* to do: debug etc *)
-  fun rule_tac _ i ((Thm thm)::_) = rtac thm i
-   |  rule_tac ctxt i ((Str name)::_) = rtac (lookup_thm ctxt name) i
+  fun rule_tac _ i ((E_Thm thm)::_) = rtac thm i
+   |  rule_tac ctxt i ((E_Str name)::_) = rtac (lookup_thm ctxt name) i
    |  rule_tac _ _ _ = raise atomic_exp ("no such type")
 
-  fun erule_tac _ i ((Thm thm)::_) = etac thm i
-   |  erule_tac ctxt i ((Str name)::_) = etac (lookup_thm ctxt name) i
+  fun erule_tac _ i ((E_Thm thm)::_) = etac thm i
+   |  erule_tac ctxt i ((E_Str name)::_) = etac (lookup_thm ctxt name) i
    |  erule_tac _ _ _ = raise atomic_exp ("no such type")
 
   val default_tacs = [("rule",rule_tac),("erule",erule_tac)];

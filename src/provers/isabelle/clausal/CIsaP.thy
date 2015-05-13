@@ -7,7 +7,7 @@ begin
  ML_file "../../../goaltype/clause/goaltype.ML"                                                                                                                        
 
  -- "the prover"  
- ML_file "../basic/isa_prover.ML" 
+ ML_file "../basic/isa_prover.ML"   
 
  -- "setting up PSGraph"
  ML{*

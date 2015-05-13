@@ -4,9 +4,9 @@ imports
   "../../provers/isabelle/basic/build/BIsaP"    
 begin
 
-  ML_file "goaltype.ML"                                                                                                                        
+  ML_file "goaltype.ML"                                                                                                                         
   
- section "Test for Isabelle"
+  section "Test for Isabelle"
 
   -- "instantiating with prover"
   ML{*

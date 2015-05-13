@@ -21,11 +21,16 @@ sig
   type context
   type tactic 
 
+  (* arguments for atomic goal types and tactics *)
+  datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term 
+  datatype env_data = E_Str of string | E_Trm of term | E_Trms of term list |  E_Thm of thm | E_L of env_data list
+  type env = env_data StrName.NTab.T 
+
   type pplan
   type pnode
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
-  datatype arg_data =  Str of string | Trm of term | Thm of thm
+  type gtyp = env -> pnode -> arg_data list -> env list
 
   exception gterm_exp
   
@@ -43,6 +48,9 @@ sig
   val init : context -> term list -> term -> pnode * pplan
 
   val apply_tactic : arg_data list -> tactic -> appf
+  (* tactics that only update env (used to be in the goaltype)
+     this will be registered in the pplan object now \<rightarrow> i.e. a new pnode *)
+  val apply_env_tactic : arg_data list -> (arg_data list -> env -> env) -> appf
 
   (* pnode related *)
   val get_open_pnodes : pplan -> pnode list
@@ -50,11 +58,17 @@ sig
   val get_pnode_concl : pnode -> term (* return type concl which would be type term*)
   val get_pnode_hyps : pnode -> term list
   val get_pnode_ctxt : pnode -> context
+  val get_pnode_env : pnode -> env
+ 
+  val set_pnode_env : env -> pnode -> pnode
+  val update_pnode_env : (env -> env) -> pnode -> pnode
   
-  (* goal type related *)
+  (* goal type related
+    TO DO: remove: this should be a set of "atomic" instead *)
+  (*
   val top_symbol : term -> string
   val symbols : term -> string list
-
+  *)
   (* exec the string as ML code *)
   val exec_str : string -> unit
 
