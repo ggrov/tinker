@@ -19,7 +19,3 @@
 
   use "../pp_intf.ML"; 
 
-(* enable the subgoal package printing *)
-  reset_flag "subgoal_package_quiet";
-  new_pc "zed_psgraph";
-  set_pc "zed_psgraph";
