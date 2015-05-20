@@ -171,6 +171,9 @@ struct
   fun top_symbol trm = the (TermFeatures.top_level_str trm );
 
   val exec_str = eval_text;
+  
+  val encode_prover_to_gui = I;
+  val encode_gui_to_prover = I;
 
   (* END goal type *)
 

@@ -1,4 +1,11 @@
-  val path = "/Users/yuhuilin/Desktop/" ;
+  val path = "/Users/yuhuilin/Desktop/psgraph/" ;
+  set_flag ("output_in_utf8", true);
+  set_flag ("input_in_utf8", true);
+  set_flag ("output_in_utf8", false);
+  set_flag ("input_in_utf8", false);
+
+
+string_of_term ¬A ¤ A ± A® |> ;
 
  init_symbol_table [("HOL.conj", "%and%"), ("HOL.implies", "%implies%")];
 

@@ -156,6 +156,11 @@ struct
     Pretty.str " ]"];
   
   fun pretty_pplan pnode = Pretty.str "Pretty PPLAN TOTO";
+  val encode_gui_to_prover = implode o map unicode_to_pp o utf8_string_to_unicode;
+  fun encode_prover_to_gui str =
+   (set_flag ("output_in_utf8", true);
+    ReaderWriter.translate_for_output str)
+   |> (fn x => (set_flag ("output_in_utf8", false); x));
 
   structure Sharing = 
   struct   
