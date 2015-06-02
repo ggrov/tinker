@@ -1,5 +1,6 @@
-  val cur_path = OS.FileSys.getDir();
-  OS.FileSys.chDir (cur_path ^ "/psgraph/src/provers/proofpower/build");
+  val root_path = OS.FileSys.getDir();
+  val build_path = root_path ^ "/psgraph/src/provers/proofpower/build";
+  OS.FileSys.chDir build_path;
   
   use "load_psgraph";
   use "build_simple_GT.ML"; 

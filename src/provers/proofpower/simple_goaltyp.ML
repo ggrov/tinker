@@ -5,6 +5,7 @@ fun init_symbol_table l = symbol_table := StrName.NTab.of_list l;
 
 structure SimpleGoalTyp : BASIC_GOALTYPE = 
 struct
+  local open DebugHandler in  
   structure Prover = PPProver;
   type T = string
   type gnode = string (* or with term? *)
@@ -27,6 +28,58 @@ struct
   val gnode_to_json = Json.String;
   fun gnode_from_json (Json.String str) = str
 
+(**************************************************************
+    JSON I/O
+**************************************************************)
+  fun tac_args_to_json (name, arg_list) = 
+    Json.mk_object [
+      ("tac_args_name", Json.String name),
+      ("tac_args_list", Json.Array (map Json.String arg_list))
+    ]
+  
+  fun tac_args_from_json (Json.Object jobj) =
+   let
+    val name = JsonInputUtils.get_string jobj "tac_args_name"
+    val arg_list = JsonInputUtils.get_array jobj "tac_args_list" |> map (fn (Json.String str) => str)
+   in
+    (name, arg_list)
+   end
+
+  fun gnode_to_json gnode =
+   let
+    val name = Json.String (get_gnode_name gnode)
+    val par_tac = Json.String (get_gnode_par_tac gnode)
+    val env =  Json.Array (StrName.NTab.list_of (get_gnode_env gnode) |> map tac_args_to_json)
+   in
+    Json.mk_object [
+     ("gnode_name", name),
+     ("par_tac", par_tac),
+     ("env", env)
+    ]
+   end
+    
+  fun gnode_from_json (Json.Object jobj) =
+   let 
+    val name = JsonInputUtils.get_string jobj "gnode_name"
+    val par_tac = JsonInputUtils.get_string jobj "par_tac"
+    val env = 
+      JsonInputUtils.get_array jobj "env" 
+      |> map tac_args_from_json
+      |> StrName.NTab.of_list
+   in
+    GN {name = name, par_tac = par_tac, env = env}
+   end
+  | gnode_from_json _ = raise gt_exp "gnode_from_json: ill-formed json structure"
+
+
+  fun data_to_json data = Json.String data;
+  fun data_from_json (Json.String str) = str
+  fun pretty_data str = Pretty.str str;
+
+(*
+  val to_json = Json.String;
+  fun from_json (Json.String str) = str;
+*)
   fun to_json str = Json.String str
 
   fun from_json (Json.String str) = str
@@ -35,6 +88,9 @@ struct
   val pretty_gnode = Pretty.str;
   val pretty = Pretty.str;
 
+(**************************************************************
+    Term manipulation and term related predicate definations
+**************************************************************)
   structure TF = TermFeature;
   local open Prover in
 
@@ -94,42 +150,50 @@ struct
     fun get_GOAL_from_pnode pn = 
     	(Prover.get_pnode_hyps pn,
     	 Prover.get_pnode_concl pn)
+(**************************************************************
+    ML String parsing 
+**************************************************************)
+
 
     type gt_pred = Prover.context -> Prover.term list -> Prover.term -> bool
-    val exec_buffer : gt_pred option Unsynchronized.ref = Unsynchronized.ref NONE ;
-    fun exec_gt_exp (s : string) : gt_pred option = (
+    val exec_gt_buffer : gt_pred option Unsynchronized.ref = Unsynchronized.ref NONE ;
+
+    fun exec_gt_exp data (s : string) : gt_pred option = (
       let	val cmd = 
-          "SimpleGoalTyp.exec_buffer := ((" ^ s ^ ") |> SOME handle _ => NONE)";
+          "SimpleGoalTyp.exec_gt_buffer := ((" ^ s ^ " " ^ data ^ ") |> SOME handle _ => NONE)";
         val _ =  Prover.exec_str cmd;
-      in	!exec_buffer
+      in	!exec_gt_buffer
       end
     );
 
-    fun eval_gt pn str = 
+    fun eval_gt pn data str = 
      let
-        val pred =  case exec_gt_exp str 
+        val pred =  case exec_gt_exp data str 
           of SOME gt_pred => gt_pred
-          | NONE => raise gt_exp ("ERR: fail to eval " ^ str ^ " as a goal type predicate." )
+          | NONE => raise gt_exp ("ERR: fail to eval " ^ str ^ " with " ^ data ^ "as a goal type predicate." )
      in
         pred (get_pnode_ctxt pn) (get_pnode_hyps pn) (get_pnode_concl pn)
      end
 
 	 
-    fun lift_list pn [] = false
-     |  lift_list pn (x::xs) =
+(**************************************************************
+    simple goaltype parsing 
+**************************************************************)
+    fun lift_list pn data [] = false
+     |  lift_list pn data (x::xs) =
           (case x of 
              "top_symbol" => exists I (top_level xs pn) |> (fn r => (debug_print pn x r; r))
            | "has_symbol" => has_symbol xs pn |> (fn r => (debug_print pn x r; r))
-           | "not"       => not (lift_list pn xs) 
-           | "or"        => exists I (map (lift_list pn) (map split_args (xs)))
+           | "not"       => not (lift_list pn data xs) 
+           | "or"        => exists I (map (lift_list pn data) (map split_args (xs)))
            | "any"       => true (* default *)
-           |  exp         => eval_gt pn exp 
+           |  exp         => eval_gt pn data exp 
           (* | others      => case (StrName.NTab.lookup (!default_GT) others) 
            			of (SOME gt) => gt (get_GOAL_from_pnode pn)
            			| _ => false) *)
         (*handle _ => (writeln "exception catched when checking goaltypes "; false)*))
 
-   fun lift' pn str = lift_list pn (splitstr str)
+   fun lift' pn (data, str) = lift_list pn data (splitstr str)
    (*handle _ => raise gt_exp "int lift'";*)
 
    fun init_lift (_,str) pn =
@@ -170,6 +234,5 @@ struct
     type data = data
     type gt_pred = gt_pred
   end
-  
-end;
-
+  end (* local open *)
+end(* struct *);

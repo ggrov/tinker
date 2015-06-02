@@ -41,6 +41,9 @@ struct
   val pretty_gnode = Pretty.str;
   val pretty = Pretty.str;
 
+(**************************************************************
+    Term manipulation and term related predicate definations
+**************************************************************)
   structure TF = TermFeatures;
   local open IsaProver in
 
@@ -183,25 +186,27 @@ struct
         TF.is_subterm thy goal embedd_hyp
       end
    
+(**************************************************************
+    ML String parsing 
+**************************************************************)
     type gt_pred = Prover.context -> Prover.term list -> Prover.term -> bool
-    val exec_buffer : gt_pred option Unsynchronized.ref = Unsynchronized.ref NONE ;
+    val exec_gt_buffer : gt_pred option Unsynchronized.ref = Unsynchronized.ref NONE;
 
-    fun exec_gt_exp (s : string) : gt_pred option = (
+    fun exec_gt_exp data (s : string) : gt_pred option = (
       let	val cmd = 
-          "SimpleGoalTyp.exec_buffer := ((" ^ s ^ ") |> SOME handle _ => NONE)";
+          "SimpleGoalTyp.exec_gt_buffer := ((" ^ s ^ " " ^ data ^ ") |> SOME handle _ => NONE)";
         val _ =  Prover.exec_str cmd;
-      in	!exec_buffer
+      in	!exec_gt_buffer
       end
     );
 
-    fun eval_gt pn str = 
+    fun eval_gt pn data str = 
      let
-        val pred =  case exec_gt_exp str 
+        val pred =  case exec_gt_exp data str 
           of SOME gt_pred => gt_pred
-          | NONE => raise gt_exp ("ERR: fail to eval " ^ str ^ " as a goal type predicate." )
-        val (hyps, goal) = get_hyps_and_goal (#ptrm pn)
+          | NONE => raise gt_exp ("ERR: fail to eval " ^ str ^ " with " ^ data ^ "as a goal type predicate." )
      in
-        pred (#pctxt pn) hyps goal
+        pred (get_pnode_ctxt pn) (get_pnode_hyps pn) (get_pnode_concl pn)
      end
 
     fun debug_trace str b = 
@@ -224,10 +229,14 @@ struct
       if l = [] then [(hd xs) :: args]
       else ((hd xs) :: args) :: (split_args l) end;
 *)
+
+(**************************************************************
+    simple goaltype parsing 
+**************************************************************)
     val split_args = String.tokens (member (op =) [#"|"]);
 
-    fun lift_list _ [] = false
-     |  lift_list pn (x::xs) =
+    fun lift_list _ _ [] = false
+     |  lift_list pn d (x::xs) =
           ((case x of 
              "top_symbol" => exists I (top_level xs pn) |> debug_trace x
            | "has_symbol" => has_symbol xs pn |> debug_trace x
@@ -239,15 +248,15 @@ struct
            | "hyp_bck_res" => hyp_bck_res pn  |> debug_trace x
            | "hyp_subst" => hyp_subst pn  |> debug_trace x
            | "rippled" => (is_rippled pn) |> debug_trace x
-           | "not"       => not (lift_list pn xs) 
-           | "or"        => exists I (map (lift_list pn) (map split_args (xs))) |> debug_trace x
+           | "not"       => not (lift_list pn d xs) 
+           | "or"        => exists I (map (lift_list pn d) (map split_args (xs))) |> debug_trace x
            | "any"       => true (* default *)
            | "anything"   => true (* default *)
            | "label"      => true
-           |  exp         => eval_gt pn exp |> debug_trace x)
+           |  exp         => eval_gt pn d exp |> debug_trace x)
         (*handle _ => false*));
 
-   fun lift' pn str = lift_list pn (splitstr str)
+   fun lift' pn (data, str) = lift_list pn data (splitstr str)
    (*handle _ => raise gt_exp "int lift'";*)
 
    fun init_lift (_,str) pn =

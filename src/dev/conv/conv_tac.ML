@@ -1,7 +1,6 @@
-  val cur_path = OS.FileSys.getDir();
-  OS.FileSys.chDir (cur_path ^ "/psgraph/src/provers/proofpower/build");
-  
-  use "build_psgraph.ML";
+  val cur_path = OS.FileSys.getDir();  
+  use (cur_path ^ "/psgraph/src/build/proofpower/tinker.ML");
+
   use_file1 (cur_path ^ "/psgraph/src/dev/conv/wrk083.sml");
 
   fun lift_conv_tac (conv : CONV) (conv_args : CONV) TACTIC = 
@@ -22,3 +21,17 @@
    
    val gen_pre_conv = snd o gen_pre_post_conv;
    val gen_post_conv = fst o gen_pre_post_conv;
+
+
+(* definition of rec conv which is the trick conv to be lifed to tactic *)
+i_rule_thm;
+val rec rec_conv = 
+(fn t =>
+  ((i_conv ORELSE_C
+	k_conv ORELSE_C
+			(pair_conv THEN_C RAND_C(RANDS_C(TRY_C rec_conv))) ORELSE_C
+			(unary_conv THEN_TRY_C RIGHT_C rec_conv) ORELSE_C
+			(binary_conv THEN_C RIGHT_C (RAND_C(RANDS_C (TRY_C rec_conv)))) ORELSE_C
+			(parametrized_conv THEN_C RIGHT_C (TRY_C rec_conv)))
+				AND_OR_C simp_conv) t
+		);

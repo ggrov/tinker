@@ -23,7 +23,11 @@ sig
 
   (* arguments for atomic goal types and tactics *)
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term 
-  datatype env_data = E_Str of string | E_Trm of term | E_Trms of term list |  E_Thm of thm | E_L of env_data list
+  datatype env_data = 
+    E_Str of string | 
+    E_Trm of term | E_Trms of term list | E_Thm of thm |
+    E_ML of string | 
+    E_L of env_data list
   type env = env_data StrName.NTab.T 
 
   type pplan
@@ -34,7 +38,7 @@ sig
 
   exception gterm_exp
   
-  val default_ctxt : context (* used in those place need context in general *)
+  val default_ctxt : context (* used in those places need default general context *)
   val typ_of : term -> typ
   val match : context -> (term * term) -> bool
 
@@ -75,6 +79,7 @@ sig
   (* pretty printing *)
   val pretty_pplan : pplan -> Pretty.T
   val pretty_pnode : pnode -> Pretty.T
+
   (* for display spec symbol in gui *)
   val encode_prover_to_gui : string -> string
   val encode_gui_to_prover : string -> string

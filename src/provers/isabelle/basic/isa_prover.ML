@@ -7,7 +7,11 @@ struct
   type context = Proof.context
 
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term 
-  datatype env_data =  E_Str of string | E_Trm of term | E_Trms of term list |  E_Thm of thm | E_L of env_data list
+  datatype env_data = 
+    E_Str of string | 
+    E_Trm of term | E_Trms of term list | E_Thm of thm |
+    E_ML of string | 
+    E_L of env_data list
   type env = env_data StrName.NTab.T 
 
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term, env : env } 
@@ -117,13 +121,8 @@ struct
     (newgoals,pplan')
   end;
 
-   (* FIXME: should really update the pplan so that new goal registered! *)
-  fun apply_env_tactic args env_tac (pnode,pplan) = 
-    Seq.single ([update_pnode_env (env_tac args) pnode],pplan);
-
-  fun get_all_assms _ = []
-
-  fun get_all_named_facts_pair _ = []
+ (* fun get_all_assms _ = []
+  fun get_all_named_facts_pair _ = [] *)
   fun get_open_pnodes (pplan : pplan) = (#opengs pplan)
 
   fun get_pnode_name (pnode:pnode) = #pname pnode;
@@ -146,6 +145,10 @@ struct
     tac (#pctxt pnode) (get_index pnode pplan) args (#goal pplan)
     |> Seq.map (update (pnode,pplan))
     |> (fn x => (case Seq.pull x of NONE => (debug_print BASIC_INFO "Err: Fail to apply tactic" ; x) | _ => x ))
+
+  (* Update the env and then apply a dummy id tac in isabelle *)
+  fun apply_env_tactic args env_tac (pnode,pplan) = 
+    apply_tactic args (K (K (K all_tac))) (update_pnode_env (env_tac args) pnode,pplan)
 
   (* SOME default tactics *)
 

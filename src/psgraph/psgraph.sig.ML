@@ -17,6 +17,7 @@ sig
 
   exception tactic_exp of string
   val exec_buffer : Theory.Data.GoalTyp.Prover.tactic option Unsynchronized.ref
+  val eval_tactic : string -> Theory.Data.GoalTyp.Prover.tactic
 
   val empty : T
   val of_graph : Theory.Graph.T -> T
@@ -25,17 +26,24 @@ sig
   val get_top_graph : T -> Theory.Graph.T
   val get_graph_tactics : T -> subgraph StrName.NTab.T
   val get_atomic_tactics : T -> atomic_tacs StrName.NTab.T
-  val get_tactics : T -> Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T
+  (* val get_tactics : T -> Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T *)
   val get_goaltype_data : T -> Theory.Data.GoalTyp.data
   val get_parents: T -> (StrName.NTab.name) StrName.NTab.T
   val get_graph : T -> StrName.NTab.name -> int -> Theory.Graph.T
-  val get_graphs : T -> StrName.NTab.name  -> Theory.Graph.T list
+  val get_graphs : T -> StrName.NTab.name -> Theory.Graph.T list
+  val get_atomic_tac_code : T 
+    -> StrName.NTab.name (* atomic tactic node name *)
+    -> Theory.Data.GoalTyp.data list (* parent tactic arg *)
+    -> string list (* return the actual ml code to be evaluated *)
+  val get_hgraph_args :  T 
+    -> StrName.NTab.name
+    -> Theory.Data.arg_typ
   
  (* set methods *)
   val set_top_graph : Theory.Graph.T -> T -> T
   val set_graph_tactics : subgraph StrName.NTab.T -> T -> T
   val set_atomic_tactics : atomic_tacs StrName.NTab.T  -> T -> T  
-  val set_tactics : Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T -> T -> T
+ (* val set_tactics : Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T -> T -> T *)
   val set_goaltype_data :  Theory.Data.GoalTyp.data -> T -> T
   val set_parents : (StrName.NTab.name) StrName.NTab.T -> T -> T
   val set_graph :  StrName.NTab.name -> int -> Theory.Graph.T -> T -> T
@@ -48,9 +56,9 @@ sig
   val update_atomic_tactics : (atomic_tacs StrName.NTab.T 
                                   -> atomic_tacs StrName.NTab.T) 
                               -> T -> T
-  val update_tactics : (Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T 
+(*  val update_tactics : (Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T 
                                 -> Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T) 
-                              -> T -> T
+                              -> T -> T *)
   val update_goaltype_data :  (Theory.Data.GoalTyp.data -> Theory.Data.GoalTyp.data)
                               -> T -> T
   val update_parents : ((StrName.NTab.name) StrName.NTab.T -> (StrName.NTab.name) StrName.NTab.T)
@@ -62,15 +70,17 @@ sig
   (* merger two psgraph by add merging all the subfields, exception would be raised when duplicated nodes are found*)
   val merge_disjoint : T -> T -> T
 
-  (* load a list of atomics *)
+  (* load a list of atomics 
   val load_atomics : (StrName.NTab.name * Theory.Data.GoalTyp.Prover.tactic) list -> T -> T
-
+  *)
   (* json i/o *)
   val output_json : T -> Json.json
   val output_json_as_eval_field : StrName.NTab.name -> int -> T -> Json.json
   val input_json : Json.json -> T
   val write_json_file : string -> T -> unit
   val read_json_file: string -> T
+
+  val validate_psgraph : T -> bool (* type checking, see issue #44 in the repo *)
 
   structure Sharing: PS_GRAPH_SHARING
     sharing type Sharing.T = T

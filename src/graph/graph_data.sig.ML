@@ -13,15 +13,16 @@ sig
   type arg_typ = string list list
 
   (* note: variables only for evaluation! *)
-  datatype nvdata =  T_Atomic of { name : string, tactic : string, args : arg_typ}
-             | T_Graph of { name : string, args : arg_typ, is_or : bool}
+  datatype nvdata =  T_Atomic of string (* tactic *)
+             | T_Graph of string (* nested / hierarchical graph*)
              | T_Identity 
              | G_Break (* breakpoint *)
              | G of GoalTyp.gnode 
              | T_Var of string (* variable of rtechn *)
              | G_Var of string (* variable of gnode *)
+
   datatype edata = GT of GoalTyp.T
-                 | GT_Var of string (* variable of goalnode *)
+                 | GT_Var of string (* variable of goal node *)
   
   exception gdata_json_exp of string * Json.json
 
@@ -41,20 +42,6 @@ sig
 
   exception node_exp of string * nvdata;
 
-  (* tactic nodes *)
-
-  val get_name : nvdata -> string 
-  val get_args : nvdata -> arg_typ  (* raises rtechn_exp *)
-  val get_is_or : nvdata ->  bool (* raises rtechn_exp *)
-
-  val update_name : (string -> string) -> nvdata -> nvdata 
-  val update_args : (arg_typ -> arg_typ) -> nvdata -> nvdata  (* raises rtechn_exp *)
-  val update_is_or : (bool -> bool) -> nvdata -> nvdata  (* raises rtechn_exp *)
-
-  val set_name : string -> nvdata -> nvdata 
-  val set_args : arg_typ -> nvdata -> nvdata  (* raises rtechn_exp *)
-  val set_is_or : bool -> nvdata -> nvdata  (* raises rtechn_exp *)
-
   val identity : nvdata
   val break_point : nvdata
 
@@ -63,11 +50,8 @@ sig
   val is_nested : nvdata -> bool
   val is_identity : nvdata -> bool
   val is_break_point : nvdata -> bool
-  val is_or : nvdata -> bool option
-  val is_or' : nvdata -> bool (* false if not nested *)
-  
-  (* substitutions *)
 
+  (* substitutions *)
   val empty_subst : subst
   val compose_subst : subst * subst -> subst
   
