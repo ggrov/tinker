@@ -16,6 +16,9 @@ class PSGraph() {
 	var mainGraph: JsonObject = JsonObject()
 	var goalTypes = ""
 
+	var dialog:Dialog = new Dialog()
+	var atManager: ATManager = new ATManager()
+
 	var jsonPSGraph: JsonObject = JsonObject()
 
 	def updateJsonPSGraph {
@@ -30,7 +33,7 @@ class PSGraph() {
 		atomicTactics.foreach{ t =>
 			atomicTacticsJson = atomicTacticsJson :+ t.toJson
 		}
-		jsonPSGraph = JsonObject("current" -> current, "current_index" -> currentIndex, "graph" -> mainGraph, "graph_tactics" -> JsonArray(graphTacticsJson), "atomic_tactics" -> JsonArray(atomicTacticsJson), "goal_types" -> goalTypes)
+		jsonPSGraph = JsonObject("current" -> current, "current_index" -> currentIndex, "graph" -> mainGraph, "graph_tactics" -> JsonArray(graphTacticsJson), "atomic_tactics" -> atManager.toJson, "goal_types" -> goalTypes)
 		// println("---------------------------------------------------")
 		// println(jsonPSGraph)
 	}
@@ -238,10 +241,10 @@ class PSGraph() {
 						val actualNewVal = generateNewName(newVal,0)
 						val agree = new Action("Ok"){
 							def apply(){
-								TinkerDialog.close()
+								dialog.close()
 							}
 						}
-						TinkerDialog.openConfirmationDialog("<html> The new name you specified is already taken,<br>the name "+actualNewVal+" will be used.", Array(agree))
+						dialog = TinkerDialog.openConfirmationDialog("<html> The new name you specified is already taken,<br>the name "+actualNewVal+" will be used.", Array(agree))
 						old.name = actualNewVal
 					case None => old.name = newVal
 				}
@@ -252,10 +255,10 @@ class PSGraph() {
 						val actualNewVal = generateNewName(newVal,0)
 						val agree = new Action("Ok"){
 							def apply(){
-								TinkerDialog.close()
+								dialog.close()
 							}
 						}
-						TinkerDialog.openConfirmationDialog("<html> The new name you specified is already taken,<br>the name "+actualNewVal+" will be used.", Array(agree))
+						dialog = TinkerDialog.openConfirmationDialog("<html> The new name you specified is already taken,<br>the name "+actualNewVal+" will be used.", Array(agree))
 						old.name = actualNewVal
 					case None => old.name = newVal
 				}
@@ -270,32 +273,25 @@ class PSGraph() {
 	def updateTacticArguments(tactic: String, args: Array[Array[String]]){
 		lookForTactic(tactic) match {
 			case Some(t: HasArguments) =>
-				val oldArg = ArgumentParser.argumentsToString(t.argumentsToArrays)
+				val oldArg = ArgumentParser.argumentsToString(t.args)
 				t.eraseArguments()
 				args.foreach{ a =>
 					t.addArgument(a)
 				}
-				val newArg = ArgumentParser.argumentsToString(t.argumentsToArrays)
+				val newArg = ArgumentParser.argumentsToString(t.args)
 				updateValueInJsonGraphs("\""+tactic+"("+oldArg+")\"", "\""+tactic+"("+newArg+")\"")
 			case None => 
 		}
 	}
 
-	def createGraphTactic(tactic: String, isOr: Boolean){
+	def createGraphTactic(tactic: String, isOr: Boolean, args:Array[Array[String]]):Boolean = {
 		graphTactics = graphTactics :+ new GraphTactic(tactic, isOr)
+		return true;
 	}
 
-	def createAtomicTactic(name: String, tactic: Option[String] = None) {
-		lookForAtomicTactic(name) match {
-			case Some(t:AtomicTactic) =>
-				throwError("The program tried to create an already existing tactic.")
-			case None =>
-				tactic match {
-					case Some(s:String) => atomicTactics += new AtomicTactic(name, s)
-					case None => atomicTactics += new AtomicTactic(name, "")
-				}
-		}
-	}
+	def createAtomicTactic(name: String, tactic: String, args:Array[Array[String]]):Boolean = atManager.createTactic(name,tactic,args)
+	def getATFullName(name:String):String = atManager.getFullName(name)
+	def addATOccurence(name:String,node:String) = atManager.addOccurence(name,currentTactic.name,node)
 
 	def getAtomicTacticValue(tactic: String): String = {
 		lookForAtomicTactic(tactic) match {
@@ -337,7 +333,7 @@ class PSGraph() {
 
 	def getTacticArguments(tactic: String): Array[Array[String]] = {
 		lookForTactic(tactic) match {
-			case Some(t: HasArguments) => t.argumentsToArrays
+			case Some(t: HasArguments) => t.args
 			case None => 
 				throwError("<html>Program tried to access tactic "+tactic+"<br> but could not find it</html>")
 				Array[Array[String]]()
@@ -369,8 +365,7 @@ class PSGraph() {
 				a.asArray.foreach{ s => arg = arg :+ s.stringValue}
 				args = args :+ arg
 			}
-			createAtomicTactic(name, Some(tactic))
-			updateTacticArguments(name, args)
+			createAtomicTactic(name, tactic , args)
 		}
 		(j / "graph_tactics").asArray.foreach { tct => 
 			val name = (tct / "name").stringValue
@@ -381,7 +376,7 @@ class PSGraph() {
 				a.asArray.foreach{ s => arg = arg :+ s.stringValue}
 				args = args :+ arg
 			}
-			createGraphTactic(name, isOr)
+			createGraphTactic(name, isOr, args)
 			updateTacticArguments(name, args)
 			(tct / "graphs").asArray.foreach{ gr =>
 				saveGraphSpecificTactic(name, gr)

@@ -36,4 +36,9 @@ class MenuController() extends Publisher{
 		// case DocumentActionStackEventAPI(canUndo, canRedo, undoActionName, redoActionName) =>
 		// 	publish (DocumentActionStackEvent(canUndo, canRedo, undoActionName, redoActionName))
 	}
+
+
+	def debugPrintJson(){
+		Service.debugPrintJson()
+	}
 }

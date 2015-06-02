@@ -9,6 +9,7 @@ import scala.swing.event.Key
 import tinkerGUI.utils.ArgumentParser
 
 class ElementEditController() extends Publisher {
+	var dialog:Dialog = new Dialog()
 	var elementName = ""
 	var elementArguments = ""
 
@@ -136,12 +137,12 @@ class ElementEditController() extends Publisher {
 	val mergeAction = new Action("Yes"){
 		def apply() {
 			QuantoLibAPI.mergeSelectedVertices()
-			TinkerDialog.close()
+			dialog.close()
 		}
 	}
 	val cancelAction = new Action("Cancel"){
 		def apply() {
-			TinkerDialog.close()
+			dialog.close()
 		}
 	}
 
@@ -150,7 +151,7 @@ class ElementEditController() extends Publisher {
 		reactions += {
 			case ButtonClicked(b: Button) =>
 				if(b==btn){
-					TinkerDialog.openConfirmationDialog("<html>You are about to merge these nodes.</br>Do you wish to continue ?</html>", Array(mergeAction, cancelAction))
+					dialog = TinkerDialog.openConfirmationDialog("<html>You are about to merge these nodes.</br>Do you wish to continue ?</html>", Array(mergeAction, cancelAction))
 				}
 		}
 	}

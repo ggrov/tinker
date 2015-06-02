@@ -34,11 +34,9 @@
 			"node_vertices":{ // list of the interesting nodes
 				"v1":{ // node id
 					"data":{ // node data
-						"rt_name":"rtech", // node name
-						"appf":{
-							"type":"Atomic" // type name (Atomic/Identity/Nested)
-						},
-						"type":"T_Atomic" // type id (RT_ATM/RT_ID/RT_NST)
+						"atm":"tac1", // node name
+						"type":"T_Atomic", // type id (RT_ATM/RT_ID/RT_NST)
+						"label":"tac1(x, y: b a)"
 					},
 					"annotation":{
 						"coord":[-1.14,1.51] // node coordinates
@@ -77,8 +75,15 @@
 		/* LIST OF THE ATOMIC TACTICS */
 		"atomic_tactics":[
 			{
-				"name":"simp", // the name
+				"name":"tac2", // the name
 				"args":[ // same as graph tactics arguments
+				],
+				"tactic":"simplify", // the tactic
+				"occurences":[["nested","v1"],"v0"]
+			},
+			{
+				"name":"tac1", // the name
+				"args":[["x"],["y","b","a"] // same as graph tactics arguments
 				],
 				"tactic":"simplify" // the tactic
 			},{

@@ -10,7 +10,6 @@ import tinkerGUI.utils.ArgumentParser
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent._
 import ExecutionContext.Implicits.global
-import scala.util.{Success, Failure}
 
 object Service extends Publisher {
 	// other services
@@ -69,17 +68,88 @@ object Service extends Publisher {
 	def getParentList(tactic: String) = hierarchyModel.buildParentList(tactic, Array[String]())
 
 
+	def createTactic(nodeId:String, isGraphTactic:Boolean) {
+		var dialog:Dialog = new Dialog()
+		var name:String = ""
+		var args:Array[Array[String]] = Array()
+		var tactic:String = ""
+		var checkedByModel:Boolean = false
+		if(isGraphTactic){
+			def failureCallback() = {
+
+			}
+			def successCallback(values:Map[String,String]){
+				values.foreach{case (k,v) =>
+					k match {
+						case "Name" => 
+							name = ArgumentParser.separateNameFromArgument(v)._1
+							args = ArgumentParser.stringToArguments(ArgumentParser.separateNameFromArgument(v)._2)
+						case _ => // do nothing
+					}
+				}
+				if(name!=""){
+					checkedByModel = model.createGraphTactic(name,false,args)
+				}
+			}
+			dialog = TinkerDialog.openEditDialog("Create node", Map("Name"->""), successCallback, failureCallback)
+		} else {
+			def failureCallback() = {
+				QuantoLibAPI.userDeleteElement(nodeId)
+			}
+			def successCallback(values:Map[String,String]){
+				values.foreach{case (k,v) =>
+					k match {
+						case "Name" => 
+							name = ArgumentParser.separateNameFromArgument(v)._1
+							args = ArgumentParser.stringToArguments(ArgumentParser.separateNameFromArgument(v)._2)
+						case "Tactic" =>
+							tactic = v
+						case _ => // do nothing
+					}
+				}
+				if(name=="" || tactic==""){
+					TinkerDialog.openEditDialog("Create node", Map("Name"->"", "Tactic"->""), successCallback, failureCallback)
+				} else {
+					checkedByModel = model.createAtomicTactic(name,tactic,args)
+					if(checkedByModel){
+						model.addATOccurence(name,nodeId)
+						QuantoLibAPI.setVertexValue(nodeId, name+"("+ArgumentParser.argumentsToString(args)+")")
+					} else {
+						var confirmDialog = new Dialog()
+						var message:String = "<html>The name "+name+" is already used for another atomic tactic <br> do you wish to use the same tactic informations or create a new tactic ?"
+						var newAction:Action = new Action("Create new tactic"){
+							def apply(){
+								dialog = TinkerDialog.openEditDialog("Create node", Map("Name"->"", "Tactic"->""), successCallback, failureCallback)
+								confirmDialog.close()
+							}
+						}
+						var duplicateAction:Action = new Action("Use same information"){
+							def apply(){
+								model.addATOccurence(name,nodeId)
+								QuantoLibAPI.setVertexValue(nodeId, model.getATFullName(name))
+								confirmDialog.close()
+							}
+						}
+						confirmDialog = TinkerDialog.openConfirmationDialog(message, Array(newAction,duplicateAction))
+					}
+				}
+			}
+			dialog = TinkerDialog.openEditDialog("Create node", Map("Name"->"", "Tactic"->""), successCallback, failureCallback)
+		}
+	}
+
 	def createNode(n: String, isGraphTactic: Boolean, isOr: Boolean): String = {
+		println("using old method")
 		DocumentService.setUnsavedChanges(true)
 		var name = model.generateNewName(n, 0)
 		if(isGraphTactic) {
-			model.createGraphTactic(name, isOr)
+			model.createGraphTactic(name, isOr, Array())
 			hierarchyModel.addElement(name)
 			hierTreeCtrl.redraw
 			name = name+"("+ArgumentParser.argumentsToString(model.getTacticArguments(name))+")"
 		}
 		else{
-			model.createAtomicTactic(name)
+			model.createAtomicTactic(name, name, Array())
 			name = name+"("+ArgumentParser.argumentsToString(model.getTacticArguments(name))+")"
 		}
 		name
@@ -298,5 +368,13 @@ object Service extends Publisher {
 
   def showTinkerGUI (b : Boolean) {
     getTopFrame.visible_=(b)
+  }
+
+
+
+
+
+  def debugPrintJson(){
+  	println(model.jsonPSGraph)
   }
 }

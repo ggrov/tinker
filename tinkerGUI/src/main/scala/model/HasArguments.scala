@@ -1,35 +1,35 @@
 package tinkerGUI.model
 
 import quanto.util.json._
+import tinkerGUI.utils.ArgumentParser
 
 trait HasArguments {
-	var arg: Array[Argument] = Array()
-
-	def argumentsToArrays : Array[Array[String]] = {
-		var res = Array[Array[String]]()
-		arg.foreach{a =>
-			res = res :+ a.arg
-		}
-		return res
-	}
-
-	def addArgument(a: Argument){
-		arg = arg :+ a
-	}
+	var args: Array[Array[String]] = Array()
 
 	def addArgument(a: Array[String]){
-		addArgument(new Argument(a))
+		args = args :+ a
 	}
 
 	def argumentsToJson(): JsonArray = {
-		var arg2: Array[JsonArray] = Array()
-		arg.foreach { a =>
-			arg2 = arg2 :+ a.toJsonArray
+		var arr1: Array[JsonString] = Array()
+		var arr2: Array[JsonArray] = Array()
+		args.foreach { arg =>
+			arg.foreach { s =>
+				arr1 = arr1 :+ JsonString(s)
+			}
+			arr2 = arr2 :+ JsonArray(arr1)
+			arr1 = Array()
 		}
-		return JsonArray(arg2)
+		return JsonArray(arr2)
+	}
+
+	def argumentsToString(): String = ArgumentParser.argumentsToString(args)
+
+	def updateArguments(newArgs:Array[Array[String]]) {
+		args = newArgs
 	}
 
 	def eraseArguments() {
-		arg = Array()
+		args = Array()
 	}
 }
