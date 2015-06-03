@@ -3,55 +3,45 @@ package tinkerGUI.views
 import scala.swing._
 import scala.swing.event.ButtonClicked
 import tinkerGUI.controllers.Service
+import tinkerGUI.utils.ArgumentParser
+import java.awt.Font
+
 import tinkerGUI.controllers.ElementEditController
 import tinkerGUI.controllers.OneVertexSelectedEvent
 import tinkerGUI.controllers.ManyVertexSelectedEvent
 import tinkerGUI.controllers.OneEdgeSelectedEvent
 import tinkerGUI.controllers.NothingSelectedEvent
 
-class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEditController) extends FlowPanel {
-	val nodeValue = new TextField(value,12)
+class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEditController) extends BoxPanel(Orientation.Vertical) {
+	val titleFont = new Font("Dialog",Font.BOLD,14)
+	contents += new FlowPanel(FlowPanel.Alignment.Center)(new Label("Node Information"){font = titleFont})
+	
 	val delButton = new Button(
 		new Action("Delete node"){
 			def apply(){
-				ctrl.delete(nam)
+				// TODO new delete
+			}
+		})
+	val editButton = new Button(
+		new Action("Edit tactic"){
+			def apply(){
+				Service.updateTactic(nam,value,(typ=="Atomic"))
 			}
 		})
 
-	ctrl.addValueListener(nodeValue, (typ == "Nested"))
-
-	contents += new FlowPanel(){
-		contents += new Label("Node : " + nam)
-	}
-	contents += new FlowPanel(){
-		contents += new Label("Type : " + typ)
-	}
+	contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Node : " + nam))
+	contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Type : " + typ))
 	typ match {
 		case "Identity" =>
-			contents += new FlowPanel(){
-				contents += delButton
-			}
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(delButton)
 		case "Atomic" =>
-			val atomicTacticValue = new TextField(ctrl.getAtomicTacticValue(value), 12)
-			ctrl.addAtmTctValueListener(atomicTacticValue, nodeValue.text)
-			contents += new FlowPanel(){ 
-				contents += new Label("Name : ")
-				contents += nodeValue
-			}
-			contents += new FlowPanel(){ 
-				contents += new Label("Tactic : ")
-				contents += atomicTacticValue
-			}
-			contents += new FlowPanel(){
+			val tacticCoreId = Service.getATCoreId(ArgumentParser.separateNameFromArgument(value)._1)
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+value))
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Tactic : "+tacticCoreId))
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(){
+				contents += editButton
 				contents += delButton
 			}
-			// contents += new Button(
-			// 	new Action("Save changes"){
-			// 		def apply() {
-			// 			// ctrl.saveChanges(nodeValue.text, atomicTacticValue.text)
-			// 		}
-			// 	}){
-			// }
 		case "Nested" =>
 			val orRadio = new RadioButton("OR") {selected = ctrl.getIsNestedOr(value)}
 			val orElseRadio = new RadioButton("OR ELSE") {selected = !ctrl.getIsNestedOr(value)}
@@ -59,33 +49,27 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 			val addSubButton = new Button(
 				new Action("Add a sub-graph"){
 					def apply(){
-						ctrl.addNewSubgraph(nodeValue.text)
+						ctrl.addNewSubgraph(value)
 					}
 				})
-			contents += new FlowPanel(){ 
-				contents += new Label("Name : ")
-				contents += nodeValue
-			}
-			contents += new FlowPanel(){
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+value))
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(){
 				contents += orRadio
 				contents += orElseRadio
-			}
-			contents += new FlowPanel(){
-				contents += addSubButton
 			}
 			hierTypeRadioGroup.buttons.foreach(listenTo(_))
 			reactions += {
 				case ButtonClicked(b: RadioButton) =>
-					if (b == orRadio){ctrl.setIsNestedOr(nodeValue.text, true)}
-					else if (b == orElseRadio){ctrl.setIsNestedOr(nodeValue.text, false)}
+					if (b == orRadio){ctrl.setIsNestedOr(value, true)}
+					else if (b == orElseRadio){ctrl.setIsNestedOr(value, false)}
 			}
-			contents += new FlowPanel(){
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(){
+				contents += addSubButton
+				contents += editButton
 				contents += delButton
 			}
 		case "Breakpoint" =>
-			contents += new FlowPanel() {
-				contents += new Button(ctrl.removeBreakpoint(nam))
-			}
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Button(ctrl.removeBreakpoint(nam)))
 		case "Goal" => // do nothing
 	}
 

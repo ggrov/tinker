@@ -120,10 +120,7 @@ class GraphEditController() extends Publisher {
 				case "Atomic" =>
 					contents += new MenuItem(new Action("Edit node") {
 						def apply = {
-							TinkerDialog.openEditDialog("Edit node "+eltName,
-								Map("Name"->eltValue, "Tactic"->Service.getAtomicTacticValue(ArgumentParser.separateNameFromArgument(eltValue)._1)),
-								updateValueCallback,
-								failureCallback)
+							Service.updateTactic(eltName,eltValue,true)
 						}
 					})
 					contents += new MenuItem(deleteNodeAction)

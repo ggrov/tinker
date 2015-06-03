@@ -17,7 +17,30 @@ class PSGraph() {
 	var goalTypes = ""
 
 	var dialog:Dialog = new Dialog()
+
+	// -----------------------------------------------
+	// Using new model architecture
+	// -----------------------------------------------
 	var atManager: ATManager = new ATManager()
+	def createAtomicTactic(name: String, tactic: String, args:Array[Array[String]]):Boolean = atManager.createTactic(name,tactic,args)
+	def updateAtomicTactic(name: String, newName:String, newTactic: String, newArgs:Array[Array[String]]):Boolean = atManager.updateTactic(name,newName,newTactic,newArgs)
+	def updateAllAtomicTactic(name: String, newName:String, newTactic: String, newArgs:Array[Array[String]]):Array[String] = {
+		var graph = if(isMain) "main" else currentTactic.name 
+		var nodeIds = atManager.updateAllTactics(name,newName,newTactic,newArgs,graph)
+		// TODO: update name in graphs
+		nodeIds
+	}
+	def getATFullName(name:String):String = atManager.getFullName(name)
+	def getATCoreId(name:String):String = atManager.getTacticCoreId(name)
+	def addATOccurrence(name:String,node:String) = {
+		var graph = if(isMain) "main" else currentTactic.name 
+		atManager.addOccurrence(name,graph,node)
+	}
+	def removeATOccurrence(name:String,node:String){
+		var graph = if(isMain) "main" else currentTactic.name 
+		atManager.removeOccurrence(name,graph,node)
+	}
+	// -----------------------------------------------
 
 	var jsonPSGraph: JsonObject = JsonObject()
 
@@ -289,9 +312,6 @@ class PSGraph() {
 		return true;
 	}
 
-	def createAtomicTactic(name: String, tactic: String, args:Array[Array[String]]):Boolean = atManager.createTactic(name,tactic,args)
-	def getATFullName(name:String):String = atManager.getFullName(name)
-	def addATOccurence(name:String,node:String) = atManager.addOccurence(name,currentTactic.name,node)
 
 	def getAtomicTacticValue(tactic: String): String = {
 		lookForAtomicTactic(tactic) match {

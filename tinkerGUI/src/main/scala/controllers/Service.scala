@@ -67,75 +67,148 @@ object Service extends Publisher {
 	// the parent list of a specific element
 	def getParentList(tactic: String) = hierarchyModel.buildParentList(tactic, Array[String]())
 
+	/** 
+	  * Methods for simple interface with model
+	  */
+	def getATCoreId(name:String):String = model.getATCoreId(name)
 
-	def createTactic(nodeId:String, isGraphTactic:Boolean) {
+	/**
+	  * Method to create a tactic in the model,
+	  * if the tactic is already existing, it links the graphical node to it
+	  * Launched after user created a node (atomic or nested) on the graph
+	  * Launches dialogs to interact with user to get more information on tactic
+	  */
+	def createTactic(nodeId:String, isAtomicTactic:Boolean, fieldMap:Map[String,String]) {
+		// REMOVE COMMENTS TO SUPPORT GRAPH TACTICS
 		var dialog:Dialog = new Dialog()
 		var name:String = ""
 		var args:Array[Array[String]] = Array()
 		var tactic:String = ""
 		var checkedByModel:Boolean = false
-		if(isGraphTactic){
-			def failureCallback() = {
-
-			}
-			def successCallback(values:Map[String,String]){
-				values.foreach{case (k,v) =>
-					k match {
-						case "Name" => 
-							name = ArgumentParser.separateNameFromArgument(v)._1
-							args = ArgumentParser.stringToArguments(ArgumentParser.separateNameFromArgument(v)._2)
-						case _ => // do nothing
-					}
-				}
-				if(name!=""){
-					checkedByModel = model.createGraphTactic(name,false,args)
-				}
-			}
-			dialog = TinkerDialog.openEditDialog("Create node", Map("Name"->""), successCallback, failureCallback)
-		} else {
-			def failureCallback() = {
-				QuantoLibAPI.userDeleteElement(nodeId)
-			}
-			def successCallback(values:Map[String,String]){
-				values.foreach{case (k,v) =>
-					k match {
-						case "Name" => 
-							name = ArgumentParser.separateNameFromArgument(v)._1
-							args = ArgumentParser.stringToArguments(ArgumentParser.separateNameFromArgument(v)._2)
-						case "Tactic" =>
-							tactic = v
-						case _ => // do nothing
-					}
-				}
-				if(name=="" || tactic==""){
-					TinkerDialog.openEditDialog("Create node", Map("Name"->"", "Tactic"->""), successCallback, failureCallback)
-				} else {
-					checkedByModel = model.createAtomicTactic(name,tactic,args)
-					if(checkedByModel){
-						model.addATOccurence(name,nodeId)
-						QuantoLibAPI.setVertexValue(nodeId, name+"("+ArgumentParser.argumentsToString(args)+")")
-					} else {
-						var confirmDialog = new Dialog()
-						var message:String = "<html>The name "+name+" is already used for another atomic tactic <br> do you wish to use the same tactic informations or create a new tactic ?"
-						var newAction:Action = new Action("Create new tactic"){
-							def apply(){
-								dialog = TinkerDialog.openEditDialog("Create node", Map("Name"->"", "Tactic"->""), successCallback, failureCallback)
-								confirmDialog.close()
-							}
-						}
-						var duplicateAction:Action = new Action("Use same information"){
-							def apply(){
-								model.addATOccurence(name,nodeId)
-								QuantoLibAPI.setVertexValue(nodeId, model.getATFullName(name))
-								confirmDialog.close()
-							}
-						}
-						confirmDialog = TinkerDialog.openConfirmationDialog(message, Array(newAction,duplicateAction))
-					}
-				}
-			}
-			dialog = TinkerDialog.openEditDialog("Create node", Map("Name"->"", "Tactic"->""), successCallback, failureCallback)
+		def failureCallback() = {
+			QuantoLibAPI.userDeleteElement(nodeId)
 		}
+		def successCallback(values:Map[String,String]){
+			values.foreach{case (k,v) =>
+				k match {
+					case "Name" => 
+						name = ArgumentParser.separateNameFromArgument(v)._1
+						args = ArgumentParser.stringToArguments(ArgumentParser.separateNameFromArgument(v)._2)
+					case "Tactic" =>
+						tactic = v
+					case _ => // do nothing
+				}
+			}
+			if(name=="" || (isAtomicTactic && tactic=="")){
+				TinkerDialog.openEditDialog("Create node", fieldMap, successCallback, failureCallback)
+			} else {
+				checkedByModel = if(isAtomicTactic) model.createAtomicTactic(name,tactic,args) else false /*model.createGraphTactic(name,false,args)*/
+				if(checkedByModel){
+					if(isAtomicTactic) model.addATOccurrence(name,nodeId) /*else model.addGTOccurrence(name,nodeId)*/
+					QuantoLibAPI.setVertexValue(nodeId, name+"("+ArgumentParser.argumentsToString(args)+")")
+				} else {
+					var confirmDialog = new Dialog()
+					var message:String = "<html>The name "+name+" is already used by another atomic tactic <br> do you wish to use the same tactic informations or create a new tactic ?"
+					var newAction:Action = new Action("Create new tactic"){
+						def apply(){
+							dialog = TinkerDialog.openEditDialog("Create node", fieldMap, successCallback, failureCallback)
+							confirmDialog.close()
+						}
+					}
+					var duplicateAction:Action = new Action("Use same information"){
+						def apply(){
+							if(isAtomicTactic) model.addATOccurrence(name,nodeId) /*else model.addGTOccurrence(name,nodeId)*/
+							var fullName = if(isAtomicTactic) model.getATFullName(name) else "toto"/*model.getGTFullName(name)*/
+							QuantoLibAPI.setVertexValue(nodeId, fullName)
+							confirmDialog.close()
+						}
+					}
+					confirmDialog = TinkerDialog.openConfirmationDialog(message, Array(newAction,duplicateAction))
+				}
+			}
+		}
+		dialog = TinkerDialog.openEditDialog("Create node", fieldMap, successCallback, failureCallback)
+	}
+
+	/**
+	  * Method to create a tactic.
+	  * Invokes the other create method after creating an empty fieldmap
+	  */
+	def createTactic(nodeId:String, isAtomicTactic:Boolean) {
+		var fieldMap = Map("Name"->"")
+		if(isAtomicTactic){
+			fieldMap += ("Tactic"->"")
+		}
+		createTactic(nodeId, isAtomicTactic, fieldMap)
+	}
+
+	/**
+	  * Method to update a tactic's details
+	  * Launched after the user selected the edit option
+	  * Launches dialogs to interact with user to get more information on tactic
+	  */
+	def updateTactic(nodeId:String, nodeName:String, isAtomicTactic:Boolean){
+		// REMOVE COMMENTS TO SUPPORT GRAPH TACTICS
+		var dialog:Dialog = new Dialog()
+		var name:String = ""
+		var args:Array[Array[String]] = Array()
+		var tactic:String = ""
+		var checkedByModel:Boolean = false
+		var tacticOldName = ArgumentParser.separateNameFromArgument(nodeName)._1
+		var fieldMap = Map("Name"->nodeName)
+		if(isAtomicTactic){
+			fieldMap += ("Tactic"->model.getATCoreId(tacticOldName)) // TODO : make methd to access tactic value
+		}
+		def failureCallback() = {
+			// Nothing
+		}
+		def successCallback(values:Map[String,String]){
+			values.foreach{case (k,v) =>
+				k match {
+					case "Name" => 
+						name = ArgumentParser.separateNameFromArgument(v)._1
+						args = ArgumentParser.stringToArguments(ArgumentParser.separateNameFromArgument(v)._2)
+					case "Tactic" =>
+						tactic = v
+					case _ => // do nothing
+				}
+			}
+			if(name=="" || (isAtomicTactic && tactic=="")){
+				// TODO : handle empty field
+				// TinkerDialog.openEditDialog("Create node", fieldMap, successCallback, failureCallback)
+			} else {
+				checkedByModel =
+					if(isAtomicTactic) model.updateAtomicTactic(tacticOldName, name,tactic,args)
+					else false /*model.updateGraphTactic(tacticOldName, name,false,args)*/
+				if(checkedByModel){
+					QuantoLibAPI.setVertexValue(nodeId, name+"("+ArgumentParser.argumentsToString(args)+")")
+				} else {
+					var confirmDialog = new Dialog()
+					var message:String = "<html>The tactic "+name+" has many occurences <br> do you wish to edit all of them or make a new tactic ?"
+					var newAction:Action = new Action("Make new tactic"){
+						def apply(){
+							createTactic(nodeId,isAtomicTactic,values)
+							if(isAtomicTactic) model.removeATOccurrence(tacticOldName, nodeId) /* else model.removeGTOccurrence(tacticOldName, nodeId) */
+							confirmDialog.close()
+						}
+					}
+					var editAllAction:Action = new Action("Edit all"){
+						def apply(){
+							var nodeToChange:Array[String] = Array()
+							if(isAtomicTactic) nodeToChange = model.updateAllAtomicTactic(tacticOldName, name,tactic,args)
+							/*else nodeToChange = model.updateAllGraphTactic(tacticOldName, name,isOr,args)*/
+							var fullName = if(isAtomicTactic) model.getATFullName(name) else "toto"/*model.getGTFullName(name)*/
+							nodeToChange.foreach{ n =>
+								QuantoLibAPI.setVertexValue(n, fullName)
+							}
+							confirmDialog.close()
+						}
+					}
+					confirmDialog = TinkerDialog.openConfirmationDialog(message, Array(newAction,editAllAction))
+				}
+			}
+		}
+		dialog = TinkerDialog.openEditDialog("Create node", fieldMap, successCallback, failureCallback)
 	}
 
 	def createNode(n: String, isGraphTactic: Boolean, isOr: Boolean): String = {

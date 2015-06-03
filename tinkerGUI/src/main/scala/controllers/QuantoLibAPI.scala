@@ -736,7 +736,7 @@ object QuantoLibAPI extends Publisher{
 					graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
 				}
 				else if (typ == "T_Atomic") {
-					Service.createTactic(vertexName.s, false)
+					Service.createTactic(vertexName.s, true)
 					// changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.createTactic(vertexName, false)) })
 					// view.invalidateVertex(vertexName)
 					// graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
