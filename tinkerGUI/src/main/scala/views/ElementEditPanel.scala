@@ -2,15 +2,9 @@ package tinkerGUI.views
 
 import scala.swing._
 import scala.swing.event.ButtonClicked
-import tinkerGUI.controllers.Service
+import tinkerGUI.controllers._
 import tinkerGUI.utils.ArgumentParser
 import java.awt.Font
-
-import tinkerGUI.controllers.ElementEditController
-import tinkerGUI.controllers.OneVertexSelectedEvent
-import tinkerGUI.controllers.ManyVertexSelectedEvent
-import tinkerGUI.controllers.OneEdgeSelectedEvent
-import tinkerGUI.controllers.NothingSelectedEvent
 
 class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEditController) extends BoxPanel(Orientation.Vertical) {
 	val titleFont = new Font("Dialog",Font.BOLD,14)
@@ -20,12 +14,13 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 		new Action("Delete node"){
 			def apply(){
 				// TODO new delete
+				QuantoLibAPI.userDeleteElement(nam)
 			}
 		})
 	val editButton = new Button(
 		new Action("Edit tactic"){
 			def apply(){
-				Service.updateTactic(nam,value,(typ=="Atomic"))
+				Service.updateTactic(nam,value,typ=="Atomic")
 			}
 		})
 
@@ -60,8 +55,8 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 			hierTypeRadioGroup.buttons.foreach(listenTo(_))
 			reactions += {
 				case ButtonClicked(b: RadioButton) =>
-					if (b == orRadio){ctrl.setIsNestedOr(value, true)}
-					else if (b == orElseRadio){ctrl.setIsNestedOr(value, false)}
+					if (b == orRadio) ctrl.setIsNestedOr(value, isOr = true)
+					else if (b == orElseRadio) ctrl.setIsNestedOr(value, isOr = false)
 			}
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(){
 				contents += addSubButton
@@ -84,7 +79,7 @@ class VerticesEditContent(names: Set[String], ctrl: ElementEditController) exten
 			s.tail.foreach{ e =>
 				res += ", " + e
 			}
-			return res
+			res
 		}
 		contents += new Label("Nodes : " + prettyString(names))
 	}

@@ -33,4 +33,5 @@ scalacOptions ++= Seq("-unchecked", "-deprecation")
 
 //mainClass := Some("tinkerGUI.views.MainGUI")
 mainClass in (Compile, run) := Some("tinkerGUI.views.MainGUI")
+
 mainClass in assembly := Some("tinkerGUI.views.MainGUI")

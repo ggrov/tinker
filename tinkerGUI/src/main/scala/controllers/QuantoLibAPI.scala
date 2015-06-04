@@ -26,7 +26,7 @@ import tinkerGUI.utils.SelectionBox
 object QuantoLibAPI extends Publisher{
 
 	/** the main object, the graph */
-	private var graphPanel = new BorderPanel{
+	private val graphPanel = new BorderPanel {
 		println("loading theory " + Theory.getClass.getResource("strategy_graph_modified.qtheory"))
 		val theoryFile = new Json.Input(Theory.getClass.getResourceAsStream("strategy_graph_modified.qtheory"))
 		val theory = Theory.fromJson(Json.parse(theoryFile))
@@ -181,8 +181,12 @@ object QuantoLibAPI extends Publisher{
 				document.undoStack.start("Delete Vertex")
 				graph.adjacentEdges(v).foreach {deleteEdge}
 				if(graph.vdata.contains(v)){
-					// Uncomment the next line to delete the node in the model too
-					// d match { case n: NodeV => if (n.typ == "T_Graph") Service.deleteTactic(n.label)}
+					d match {
+						case n: NodeV =>
+							if (n.typ == "T_Graph") Service.deleteTactic(n.label, v.s, false)
+							else if (n.typ == "T_Atomic") Service.deleteTactic(n.label, v.s, true)
+						case _ =>
+					}
 					view.invalidateVertex(v)
 					val selected = if(view.selectedVerts.contains(v)){
 						view.selectedVerts -= v; true
@@ -837,8 +841,8 @@ object QuantoLibAPI extends Publisher{
 		else None 
 	}
 
-	/**
-	  * Method that delete an element on user request
+	/** Method deleting an element on user request
+	  *
 	  * @param eltName, the name of the element
 	  */
 	def userDeleteElement(eltName: String){
@@ -860,8 +864,8 @@ object QuantoLibAPI extends Publisher{
 	  * Method that updates the source or target of an edge on user request
 	  * This method firs check if the new source or target exists
 	  * @param e, the edge
-	  * @param src, the new source name
-	  * @param tgt, the new target name
+	  * @param s, the new source name
+	  * @param t, the new target name
 	  */
 	def userUpdateEdge(e: String, s: String, t: String){
 		val edge = EName(e)

@@ -7,11 +7,13 @@ import tinkerGUI.controllers.TinkerDialog
 import tinkerGUI.controllers.Service
 import tinkerGUI.utils.ArgumentParser
 
-class PSGraph() {
+/** Model of a proof-strategy graph.
+	*
+	*/
+class PSGraph() extends ATManager {
 	var isMain = true
 	var currentTactic: GraphTactic = new GraphTactic("", true)
 	var currentIndex = 0
-	var atomicTactics: ArrayBuffer[AtomicTactic] = ArrayBuffer()
 	var graphTactics: ArrayBuffer[GraphTactic] = ArrayBuffer()
 	var mainGraph: JsonObject = JsonObject()
 	var goalTypes = ""
@@ -21,70 +23,74 @@ class PSGraph() {
 	// -----------------------------------------------
 	// Using new model architecture
 	// -----------------------------------------------
-	var atManager: ATManager = new ATManager()
-	def createAtomicTactic(name: String, tactic: String, args:Array[Array[String]]):Boolean = atManager.createTactic(name,tactic,args)
-	def updateAtomicTactic(name: String, newName:String, newTactic: String, newArgs:Array[Array[String]]):Boolean = atManager.updateTactic(name,newName,newTactic,newArgs)
-	def updateAllAtomicTactic(name: String, newName:String, newTactic: String, newArgs:Array[Array[String]]):Array[String] = {
-		var graph = if(isMain) "main" else currentTactic.name 
-		var nodeIds = atManager.updateAllTactics(name,newName,newTactic,newArgs,graph)
+
+	/** Method to force the update of an atomic tactic.
+		*
+		* @param name Gui id of the atomic tactic.
+		* @param newName New gui id of the atomic tactic.
+		* @param newTactic New core id of the atomic tactic.
+		* @param newArgs New arguments of the atomic tactic.
+		* @return List of the node ids to update on the current graph.
+		*/
+	def updateForceAT(name: String, newName:String, newTactic: String, newArgs:Array[Array[String]]):Array[String] = {
+		val graph = if (isMain) "main" else currentTactic.name
+		val nodeIds = updateForceAT(name,newName,newTactic,newArgs,graph)
 		// TODO: update name in graphs
 		nodeIds
 	}
-	def getATFullName(name:String):String = atManager.getFullName(name)
-	def getATCoreId(name:String):String = atManager.getTacticCoreId(name)
-	def addATOccurrence(name:String,node:String) = {
-		var graph = if(isMain) "main" else currentTactic.name 
-		atManager.addOccurrence(name,graph,node)
+
+	/** Method to add an occurrence in an atomic tactic.
+		*
+		* Displays an error dialog if the atomic tactic is not found.
+		* @param name Gui id of the atomic tactic.
+		* @param node Node id of the occurrence.
+		*/
+	def addATOccurrence(name:String,node:String) {
+		val graph = if(isMain) "main" else currentTactic.name
+		addATOccurrence(name,graph,node)
 	}
-	def removeATOccurrence(name:String,node:String){
-		var graph = if(isMain) "main" else currentTactic.name 
-		atManager.removeOccurrence(name,graph,node)
+
+	/** Method to remove an occurrence from an atomic tactic.
+		*
+		* Displays an error dialog if the atomic tactic is not found.
+		* @param name Gui id of the atomic tactic.
+		* @param node Node id of the occurrence to remove.
+		* @return Boolean notifying if it was the last occurrence of the atomic tactic.
+		*/
+	def removeATOccurrence(name:String,node:String):Boolean = {
+		val graph = if(isMain) "main" else currentTactic.name
+		removeATOccurrence(name,graph,node)
 	}
 	// -----------------------------------------------
 
 	var jsonPSGraph: JsonObject = JsonObject()
 
-	def updateJsonPSGraph {
+	def updateJsonPSGraph() {
 		var current = ""
 		var graphTacticsJson: Array[JsonObject] = Array()
-		var atomicTacticsJson: Array[JsonObject] = Array()
 		if(isMain) {current = "main"}
 		else {current = currentTactic.name}
 		graphTactics.foreach{ t =>
 			graphTacticsJson = graphTacticsJson :+ t.toJson
 		}
-		atomicTactics.foreach{ t =>
-			atomicTacticsJson = atomicTacticsJson :+ t.toJson
-		}
-		jsonPSGraph = JsonObject("current" -> current, "current_index" -> currentIndex, "graph" -> mainGraph, "graph_tactics" -> JsonArray(graphTacticsJson), "atomic_tactics" -> atManager.toJson, "goal_types" -> goalTypes)
+		jsonPSGraph = JsonObject("current" -> current, "current_index" -> currentIndex, "graph" -> mainGraph, "graph_tactics" -> JsonArray(graphTacticsJson), "atomic_tactics" -> toJsonAT, "goal_types" -> goalTypes)
 		// println("---------------------------------------------------")
 		// println(jsonPSGraph)
 	}
 
 	def lookForGraphTactic(tactic: String): Option[GraphTactic] = {
 		graphTactics.foreach{ t =>
-			if(t.name == tactic) return Some(t)
+			if(t.name == tactic) Some(t)
 		}
-		return None
-	}
-
-	def lookForAtomicTactic(tactic: String): Option[AtomicTactic] = {
-		atomicTactics.foreach{ t =>
-			if(t.name == tactic) return Some(t)
-		}
-		return None
+		None
 	}
 
 	def lookForTactic(tactic: String): Option[HasArguments] = {
-		lookForAtomicTactic(tactic) match {
-			case Some(t:AtomicTactic) => return Some(t)
-			case None =>
-		}
 		lookForGraphTactic(tactic) match {
-			case Some(t:GraphTactic) => return Some(t)
+			case Some(t:GraphTactic) => Some(t)
 			case None =>
 		}
-		return None
+		None
 	}
 
 	def newSubGraph(tactic: String){
@@ -117,8 +123,6 @@ class PSGraph() {
 		lookForTactic(tactic) match {
 			case Some(t:GraphTactic) =>
 				graphTactics = graphTactics - t
-			case Some(t:AtomicTactic) =>
-				atomicTactics = atomicTactics - t
 			case Some(t:HasArguments) =>
 			case None => throwError("<html>The program tried to delete the tactic : "+tactic+".<br>But no such tactic could be found.</html>")
 		}
@@ -128,7 +132,7 @@ class PSGraph() {
 		if(tactic == "main"){
 			isMain = true
 			currentIndex = 0
-			return true
+			true
 		}
 		else {
 			lookForGraphTactic(tactic) match {
@@ -136,8 +140,8 @@ class PSGraph() {
 					isMain = false
 					currentTactic = t
 					currentIndex = index
-					return true
-				case None => return false
+					true
+				case None => false
 			}
 		}
 	}
@@ -153,7 +157,7 @@ class PSGraph() {
 				}
 			case _ => throwError("<html>The program tried to save a graph, </br>but the object received is not in JSON format.</html>")
 		}
-		updateJsonPSGraph
+		updateJsonPSGraph()
 	}
 
 	def saveGraphSpecificTactic(tactic: String, graph: Json){
@@ -165,10 +169,10 @@ class PSGraph() {
 				}
 			case _ => throwError("<html>The program tried to save a graph, </br>but the object received is not in JSON format.</html>")
 		}
-		updateJsonPSGraph
+		updateJsonPSGraph()
 	}
 
-	def getCurrentJson(): Option[JsonObject] = {
+	def getCurrentJson: Option[JsonObject] = {
 		if(isMain) Some(mainGraph)
 		else currentTactic.getGraphJson(currentIndex)
 	}
@@ -185,12 +189,12 @@ class PSGraph() {
 
 	def getSpecificJson(tactic: String, index: Int): Option[JsonObject] = {
 		if(tactic == "main"){
-			return Some(mainGraph)
+			Some(mainGraph)
 		}
 		else {
 			lookForGraphTactic(tactic) match {
 				case Some(t: GraphTactic) => t.getGraphJson(index)
-				case None => return None
+				case None => None
 			}
 		}
 	}
@@ -262,7 +266,7 @@ class PSGraph() {
 				lookForTactic(newVal) match {
 					case Some(t:HasArguments) =>
 						val actualNewVal = generateNewName(newVal,0)
-						val agree = new Action("Ok"){
+						val agree:Action = new Action("Ok"){
 							def apply(){
 								dialog.close()
 							}
@@ -276,7 +280,7 @@ class PSGraph() {
 				lookForTactic(newVal) match {
 					case Some(t:HasArguments) =>
 						val actualNewVal = generateNewName(newVal,0)
-						val agree = new Action("Ok"){
+						val agree:Action = new Action("Ok"){
 							def apply(){
 								dialog.close()
 							}
@@ -290,7 +294,7 @@ class PSGraph() {
 			case None =>
 				throwError("<html>The program tried to edit the name of tactic "+oldVal+" to "+newVal+"<br> but tactic was not found.</html>")
 		}
-		return res
+		res
 	}
 
 	def updateTacticArguments(tactic: String, args: Array[Array[String]]){
@@ -309,28 +313,13 @@ class PSGraph() {
 
 	def createGraphTactic(tactic: String, isOr: Boolean, args:Array[Array[String]]):Boolean = {
 		graphTactics = graphTactics :+ new GraphTactic(tactic, isOr)
-		return true;
-	}
-
-
-	def getAtomicTacticValue(tactic: String): String = {
-		lookForAtomicTactic(tactic) match {
-			case Some(t:AtomicTactic) => t.tactic
-			case None => ""
-		}
-	}
-
-	def setAtomicTacticValue(name: String, value: String){
-		lookForAtomicTactic(name) match {
-			case Some(t:AtomicTactic) => t.tactic = value
-			case None => throwError("<html>The program tried to change a tactic : "+name+", <br>but the given tactic name was not found.</html>")
-		}
+		true;
 	}
 
 	def throwError(text: String) = TinkerDialog.openErrorDialog(text)
 
 	def updateValueInJsonGraphs(oldVal: String, newVal: String) {
-		mainGraph = Json.parse(mainGraph.toString.replace(oldVal, newVal)) match {
+		mainGraph = Json.parse(mainGraph.toString().replace(oldVal, newVal)) match {
 			case j: JsonObject => j
 			case _ =>
 				throwError("Error when parsing graph to Json Object.")
@@ -339,7 +328,7 @@ class PSGraph() {
 		graphTactics.foreach { t =>
 			t.graphs.foreach { g =>
 				t.graphs -= g
-				Json.parse(g.toString.replace(oldVal, newVal)) match {
+				Json.parse(g.toString().replace(oldVal, newVal)) match {
 					case j: JsonObject => t.graphs += j
 					case _ =>
 						throwError("Error when parsing graph to Json Object.")
@@ -362,7 +351,7 @@ class PSGraph() {
 
 	def generateNewName(n: String, sufix: Int): String = {
 		var name = n
-		if(sufix != 0) {name = (n+"-"+sufix)}
+		if(sufix != 0) {name = n + "-" + sufix}
 		lookForTactic(name) match {
 			case None => name
 			case Some(t:HasArguments) => generateNewName(n, sufix+1)
@@ -374,7 +363,6 @@ class PSGraph() {
 		currentIndex  = (j / "current_index").intValue
 		goalTypes = (j / "goal_types").stringValue
 		mainGraph = (j / "graph").asObject
-		atomicTactics = ArrayBuffer()
 		graphTactics = ArrayBuffer()
 		(j / "atomic_tactics").asArray.foreach{ tct =>
 			val name = (tct / "name").stringValue
@@ -385,7 +373,8 @@ class PSGraph() {
 				a.asArray.foreach{ s => arg = arg :+ s.stringValue}
 				args = args :+ arg
 			}
-			createAtomicTactic(name, tactic , args)
+			createAT(name, tactic , args)
+			// TODO : import occurrences
 		}
 		(j / "graph_tactics").asArray.foreach { tct => 
 			val name = (tct / "name").stringValue
