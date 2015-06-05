@@ -1,12 +1,14 @@
 package tinkerGUI.views
 
+import tinkerGUI.model.AtomicTacticNotFoundException
+
 import scala.swing._
 import scala.swing.event.ButtonClicked
 import tinkerGUI.controllers._
 import tinkerGUI.utils.ArgumentParser
 import java.awt.Font
 
-class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEditController) extends BoxPanel(Orientation.Vertical) {
+class VertexEditContent(nam: String, typ: String, value: String) extends BoxPanel(Orientation.Vertical) {
 	val titleFont = new Font("Dialog",Font.BOLD,14)
 	contents += new FlowPanel(FlowPanel.Alignment.Center)(new Label("Node Information"){font = titleFont})
 	
@@ -30,21 +32,25 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 		case "Identity" =>
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(delButton)
 		case "Atomic" =>
-			val tacticCoreId = Service.getATCoreId(ArgumentParser.separateNameFromArgument(value)._1)
+			val tacticCoreId = try {
+				Service.getATCoreId(ArgumentParser.separateNameFromArgument(value)._1)
+			} catch {
+				case e:AtomicTacticNotFoundException => "File error : could not find tactic"
+			}
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+value))
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Tactic : "+tacticCoreId))
-			contents += new FlowPanel(FlowPanel.Alignment.Left)(){
+			contents += new FlowPanel(FlowPanel.Alignment.Left)() {
 				contents += editButton
 				contents += delButton
 			}
 		case "Nested" =>
-			val orRadio = new RadioButton("OR") {selected = ctrl.getIsNestedOr(value)}
-			val orElseRadio = new RadioButton("OR ELSE") {selected = !ctrl.getIsNestedOr(value)}
+			val orRadio = new RadioButton("OR") {selected = true}// ctrl.getIsNestedOr(value)}
+			val orElseRadio = new RadioButton("OR ELSE") {selected =false} // !ctrl.getIsNestedOr(value)}
 			val hierTypeRadioGroup = new ButtonGroup(orRadio, orElseRadio)
 			val addSubButton = new Button(
 				new Action("Add a sub-graph"){
 					def apply(){
-						ctrl.addNewSubgraph(value)
+						//ctrl.addNewSubgraph(value)
 					}
 				})
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+value))
@@ -55,8 +61,8 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 			hierTypeRadioGroup.buttons.foreach(listenTo(_))
 			reactions += {
 				case ButtonClicked(b: RadioButton) =>
-					if (b == orRadio) ctrl.setIsNestedOr(value, isOr = true)
-					else if (b == orElseRadio) ctrl.setIsNestedOr(value, isOr = false)
+					//if (b == orRadio) ctrl.setIsNestedOr(value, isOr = true)
+					//else if (b == orElseRadio) ctrl.setIsNestedOr(value, isOr = false)
 			}
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(){
 				contents += addSubButton
@@ -64,7 +70,7 @@ class VertexEditContent(nam: String, typ: String, value: String, ctrl: ElementEd
 				contents += delButton
 			}
 		case "Breakpoint" =>
-			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Button(ctrl.removeBreakpoint(nam)))
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Button())//ctrl.removeBreakpoint(nam)))
 		case "Goal" => // do nothing
 	}
 
@@ -131,7 +137,7 @@ class ElementEditPanel() extends BoxPanel(Orientation.Vertical) {
 		case OneVertexSelectedEvent(nam, typ, value) =>
 			contents.clear()
 			controller.reset
-			contents += new VertexEditContent(nam, typ, value, controller)
+			contents += new VertexEditContent(nam, typ, value)
 			revalidate()
 		case ManyVertexSelectedEvent(names) =>
 			contents.clear()

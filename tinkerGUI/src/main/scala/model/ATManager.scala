@@ -3,6 +3,12 @@ package tinkerGUI.model
 import quanto.util.json.{JsonObject, JsonArray}
 import tinkerGUI.controllers.TinkerDialog
 
+/** Exception class for not finding a tactic in the collection
+	*
+	* @param msg Custom message
+	*/
+case class AtomicTacticNotFoundException(msg:String) extends Exception(msg)
+
 /** A manager for the atomic tactics of a psgraph.
 	*
 	* Will register the atomic tactics in a map and manage their creation and update.
@@ -10,7 +16,8 @@ import tinkerGUI.controllers.TinkerDialog
 	*/
 trait ATManager {
 
-	var atCollection:Map[String,AtomicTactic] = Map()
+	/** The collection of atomic tactics.*/
+	protected var atCollection:Map[String,AtomicTactic] = Map()
 	
 	/** Method creating an atomic tactic if the id is available.
 	 *
@@ -38,7 +45,9 @@ trait ATManager {
 	 * @param newTactic New core id value.
 	 * @param newArgs New list of arguments.
 	 * @return Boolean notifying of successful change or not (should be used to handle duplication).
+	 * @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 	 */
+	@throws (classOf[AtomicTacticNotFoundException])
 	def updateAT(id:String, newId:String, newTactic:String, newArgs:Array[Array[String]]):Boolean = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
@@ -55,8 +64,7 @@ trait ATManager {
 					false
 				}
 			case _ =>
-				displayError("Atomic tactic "+id+" not found")
-				false
+				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
 		}
 	}
 
@@ -69,9 +77,10 @@ trait ATManager {
 	 * @param newArgs New list of arguments.
 	 * @param graph Current graph id.
 	 * @return List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).
+	 * @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 	 */
+	@throws (classOf[AtomicTacticNotFoundException])
 	def updateForceAT(id:String, newId:String, newTactic:String, newArgs:Array[Array[String]], graph:String):Array[String] = {
-		var nodeArray:Array[String] = Array()
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
 				t.name = newId
@@ -81,11 +90,10 @@ trait ATManager {
 					atCollection += (newId -> t)
 					atCollection -= id
 				}
-				nodeArray = t.getOccurrencesInGraph(graph)
+				t.getOccurrencesInGraph(graph)
 			case _ =>
-				displayError("Atomic tactic "+id+" not found")
+				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
 		}
-		nodeArray
 	}
 
 	/** Method deleting an atomic tactic from the tactic collection.
@@ -101,14 +109,15 @@ trait ATManager {
 		* Displays an error dialog if the atomic tactic is not found.
 		* @param id Gui id of the atomic tactic.
 		* @return Full name or "Not Found" in case the atomic tactic could not be found.
+		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
+	@throws (classOf[AtomicTacticNotFoundException])
 	def getATFullName(id:String):String = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
 				t.name+"("+t.argumentsToString()+")"
 			case None =>
-				displayError("Atomic tactic "+id+" not found")
-				"Not Found"
+				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
 		}
 	}
 
@@ -117,14 +126,15 @@ trait ATManager {
 	 * Displays an error dialog if the atomic tactic is not found.
 	 * @param id Gui id of the atomic tactic.
 	 * @return Core id or "Not Found" in case the atomic tactic could not be found.
+	 * @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 	 */
+	@throws (classOf[AtomicTacticNotFoundException])
 	def getATCoreId(id:String):String = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
 				t.tactic
 			case _ =>
-				displayError("Atomic tactic "+id+" not found")
-				"Not Found"
+				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
 		}
 	}
 
@@ -146,13 +156,15 @@ trait ATManager {
 		* @param id Gui id of the atomic tactic.
 		* @param graph Graph in which the occurrence is.
 		* @param node Node id of the occurrence.
+		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
+	@throws (classOf[AtomicTacticNotFoundException])
 	def addATOccurrence(id:String, graph:String, node:String) {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
 				t.addOccurrence(Tuple2(graph,node))
 			case None =>
-				displayError("Atomic tactic "+id+" not found")
+				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
 		}
 	}
 
@@ -163,22 +175,16 @@ trait ATManager {
 		* @param graph Graph in which the occurrence was.
 		* @param node Node id of the occurrence to remove.
 		* @return Boolean notifying if it was the last occurrence of the atomic tactic.
+		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
+	@throws (classOf[AtomicTacticNotFoundException])
 	def removeATOccurrence(id:String, graph:String, node:String):Boolean = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
 				t.removeOccurrence(Tuple2(graph,node))
 				t.occurrences.isEmpty
 			case None =>
-				displayError("Atomic tactic "+id+" not found")
-				false
+				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
 		}
 	}
-
-	/** Method to launch an error dialog.
-		*
-		* @param text Message to display.
-		* @return Dialog window.
-		*/
-	private def displayError(text: String) = TinkerDialog.openErrorDialog(text)
 }

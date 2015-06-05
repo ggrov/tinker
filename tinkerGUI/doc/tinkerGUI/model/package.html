@@ -1,0 +1,236 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>model - tinkerGUI documentation - tinkerGUI.model</title>
+          <meta name="description" content="model - tinkerGUI documentation - tinkerGUI.model" />
+          <meta name="keywords" content="model tinkerGUI documentation tinkerGUI.model" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../index.html';
+            var hash = 'tinkerGUI.model.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../lib/package_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="tinkerGUI">tinkerGUI</a></p>
+        <h1>model</h1>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">model</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="tinkerGUI.model.ATManager" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ATManagerextendsAnyRef"></a>
+      <a id="ATManager:ATManager"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ATManager.html"><span class="name">ATManager</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A manager for the atomic tactics of a psgraph.</p>
+    </li><li name="tinkerGUI.model.Argument" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ArgumentextendsAnyRef"></a>
+      <a id="Argument:Argument"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Argument.html"><span class="name">Argument</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.model.AtomicTactic" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AtomicTacticextendsTactic"></a>
+      <a id="AtomicTactic:AtomicTactic"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="AtomicTactic.html"><span class="name">AtomicTactic</span></a><span class="result"> extends <a href="Tactic.html" class="extype" name="tinkerGUI.model.Tactic">Tactic</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">An atomic tactic in the psgraph.</p>
+    </li><li name="tinkerGUI.model.AtomicTacticNotFoundException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AtomicTacticNotFoundExceptionextendsExceptionwithProductwithSerializable"></a>
+      <a id="AtomicTacticNotFoundException:AtomicTacticNotFoundException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="AtomicTacticNotFoundException.html"><span class="name">AtomicTacticNotFoundException</span></a><span class="params">(<span name="msg">msg: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Exception class for not finding a tactic in the collection
+</p>
+    </li><li name="tinkerGUI.model.GraphTactic" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GraphTacticextendsHasArguments"></a>
+      <a id="GraphTactic:GraphTactic"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="GraphTactic.html"><span class="name">GraphTactic</span></a><span class="result"> extends <a href="HasArguments.html" class="extype" name="tinkerGUI.model.HasArguments">HasArguments</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.model.HasArguments" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HasArgumentsextendsAnyRef"></a>
+      <a id="HasArguments:HasArguments"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HasArguments.html"><span class="name">HasArguments</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Tactic behaviour for having arguments.</p>
+    </li><li name="tinkerGUI.model.HasOccurrences" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HasOccurrencesextendsAnyRef"></a>
+      <a id="HasOccurrences:HasOccurrences"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HasOccurrences.html"><span class="name">HasOccurrences</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Tactic behaviour for having occurrences</p>
+    </li><li name="tinkerGUI.model.HierarchyModel" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HierarchyModelextendsAnyRef"></a>
+      <a id="HierarchyModel:HierarchyModel"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HierarchyModel.html"><span class="name">HierarchyModel</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.model.PSGraph" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PSGraphextendsATManager"></a>
+      <a id="PSGraph:PSGraph"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="PSGraph.html"><span class="name">PSGraph</span></a><span class="result"> extends <a href="ATManager.html" class="extype" name="tinkerGUI.model.ATManager">ATManager</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Model of a proof-strategy graph.</p>
+    </li><li name="tinkerGUI.model.Tactic" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="TacticextendsHasArgumentswithHasOccurrences"></a>
+      <a id="Tactic:Tactic"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Tactic.html"><span class="name">Tactic</span></a><span class="result"> extends <a href="HasArguments.html" class="extype" name="tinkerGUI.model.HasArguments">HasArguments</a> with <a href="HasOccurrences.html" class="extype" name="tinkerGUI.model.HasOccurrences">HasOccurrences</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A tactic in the psgraph.</p>
+    </li><li name="tinkerGUI.model.TreeElement" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TreeElementextendsAnyRef"></a>
+      <a id="TreeElement:TreeElement"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="TreeElement.html"><span class="name">TreeElement</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../lib/template.js"></script>
+    </body>
+      </html>

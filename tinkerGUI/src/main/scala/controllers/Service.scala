@@ -1,9 +1,7 @@
 package tinkerGUI.controllers
 
 import scala.swing._
-import tinkerGUI.model.PSGraph
-import tinkerGUI.model.HierarchyModel
-import tinkerGUI.model.TreeElement
+import tinkerGUI.model.{AtomicTacticNotFoundException, PSGraph, HierarchyModel, TreeElement}
 import quanto.util.json._
 import tinkerGUI.utils.ArgumentParser
 import scala.collection.mutable.ArrayBuffer
@@ -67,10 +65,20 @@ object Service extends Publisher {
 	// the parent list of a specific element
 	def getParentList(tactic: String) = hierarchyModel.buildParentList(tactic, Array[String]())
 
-	/**
-	  * Methods for simple interface with model
-	  */
-	def getATCoreId(name:String):String = model.getATCoreId(name)
+	/** Method to get the core id of an atomic tactic
+		*
+		* @param name Atomic tactic name
+		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
+		* @return Core id of the atomic tactic
+		*/
+	@throws (classOf[AtomicTacticNotFoundException])
+	def getATCoreId(name:String):String = {
+		try{
+			model.getATCoreId(name)
+		} catch {
+			case e:AtomicTacticNotFoundException => throw e
+		}
+	}
 
 	/**
 	  * Method to create a tactic in the model,
@@ -153,7 +161,7 @@ object Service extends Publisher {
 		var name:String = ""
 		var args:Array[Array[String]] = Array()
 		var tactic:String = ""
-		var checkedByModel:Boolean = false
+		var isUnique:Boolean = false
 		val tacticOldName = ArgumentParser.separateNameFromArgument(nodeName)._1
 		var fieldMap = Map("Name"->nodeName)
 		if(isAtomicTactic){
@@ -177,34 +185,40 @@ object Service extends Publisher {
 				// TODO : handle empty field
 				// TinkerDialog.openEditDialog("Create node", fieldMap, successCallback, failureCallback)
 			} else {
-				checkedByModel =
-					if(isAtomicTactic) model.updateAT(tacticOldName, name,tactic,args)
-					else false /*model.updateGraphTactic(tacticOldName, name,false,args)*/
-				if(checkedByModel){
-					QuantoLibAPI.setVertexValue(nodeId, name+"("+ArgumentParser.argumentsToString(args)+")")
-				} else {
-					var confirmDialog = new Dialog()
-					val message:String = "<html>The tactic "+name+" has many occurences <br> do you wish to edit all of them or make a new tactic ?"
-					val newAction:Action = new Action("Make new tactic"){
-						def apply(){
-							createTactic(nodeId,isAtomicTactic,values)
-							if(isAtomicTactic) model.removeATOccurrence(tacticOldName, nodeId) /* else model.removeGTOccurrence(tacticOldName, nodeId) */
-							confirmDialog.close()
-						}
+				try{
+					isUnique =
+					if(isAtomicTactic) {
+						 model.updateAT(tacticOldName, name,tactic,args)
 					}
-					val editAllAction:Action = new Action("Edit all"){
-						def apply(){
-							var nodeToChange:Array[String] = Array()
-							if(isAtomicTactic) nodeToChange = model.updateForceAT(tacticOldName, name,tactic,args)
-							/*else nodeToChange = model.updateAllGraphTactic(tacticOldName, name,isOr,args)*/
-							val fullName = if(isAtomicTactic) model.getATFullName(name) else "toto"/*model.getGTFullName(name)*/
-							nodeToChange.foreach{ n =>
-								QuantoLibAPI.setVertexValue(n, fullName)
+					else false /*model.updateGT(tacticOldName, name,false,args)*/
+					if(isUnique){
+						QuantoLibAPI.setVertexValue(nodeId, name+"("+ArgumentParser.argumentsToString(args)+")")
+					} else {
+						var confirmDialog = new Dialog()
+						val message:String = "<html>The tactic "+name+" has many occurrences <br> do you wish to edit all of them or make a new tactic ?"
+						val newAction:Action = new Action("Make new tactic"){
+							def apply(){
+								createTactic(nodeId,isAtomicTactic,values)
+								if(isAtomicTactic) model.removeATOccurrence(tacticOldName, nodeId) /* else model.removeGTOccurrence(tacticOldName, nodeId) */
+								confirmDialog.close()
 							}
-							confirmDialog.close()
 						}
+						val editAllAction:Action = new Action("Edit all"){
+							def apply(){
+								var nodeToChange:Array[String] = Array()
+								if(isAtomicTactic) nodeToChange = model.updateForceAT(tacticOldName, name,tactic,args)
+								/*else nodeToChange = model.updateAllGraphTactic(tacticOldName, name,isOr,args)*/
+								val fullName = if(isAtomicTactic) model.getATFullName(name) else "toto"/*model.getGTFullName(name)*/
+								nodeToChange.foreach{ n =>
+									QuantoLibAPI.setVertexValue(n, fullName)
+								}
+								confirmDialog.close()
+							}
+						}
+						confirmDialog = TinkerDialog.openConfirmationDialog(message, Array(newAction,editAllAction))
 					}
-					confirmDialog = TinkerDialog.openConfirmationDialog(message, Array(newAction,editAllAction))
+				} catch {
+					case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 				}
 			}
 		}
@@ -218,25 +232,29 @@ object Service extends Publisher {
 		*/
 	def deleteTactic(nodeName:String, nodeId:String, isAtomicTactic:Boolean) {
 		// TODO GT deletion
-		val tacticName = ArgumentParser.separateNameFromArgument(nodeName)._1
-		val lastOcc:Boolean = if(isAtomicTactic) model.removeATOccurrence(tacticName, nodeId) else false /*model.removeGTOccurrence(name,nodeId) */
-		if(lastOcc){
-			var confirmDialog = new Dialog()
-			val message:String = "This is the last occurrence of this tactic. Do you wish to keep its data ?"
-			val keepAction:Action = new Action("Keep data") {
-				def apply() {
-					// do nothing
-					confirmDialog.close()
+		try {
+			val tacticName = ArgumentParser.separateNameFromArgument(nodeName)._1
+			val lastOcc:Boolean = if(isAtomicTactic) model.removeATOccurrence(tacticName, nodeId) else false /*model.removeGTOccurrence(name,nodeId) */
+			if(lastOcc){
+				var confirmDialog = new Dialog()
+				val message:String = "This is the last occurrence of this tactic. Do you wish to keep its data ?"
+				val keepAction:Action = new Action("Keep data") {
+					def apply() {
+						// do nothing
+						confirmDialog.close()
+					}
 				}
-			}
-			val delAction:Action = new Action("Delete data") {
-				def apply() {
-					if(isAtomicTactic) model.deleteAT(tacticName)
-					//else model.deleteGT(name)
-					confirmDialog.close()
+				val delAction:Action = new Action("Delete data") {
+					def apply() {
+						if(isAtomicTactic) model.deleteAT(tacticName)
+						//else model.deleteGT(name)
+						confirmDialog.close()
+					}
 				}
+				confirmDialog = TinkerDialog.openConfirmationDialog(message,Array(keepAction,delAction))
 			}
-			confirmDialog = TinkerDialog.openConfirmationDialog(message,Array(keepAction,delAction))
+		} catch {
+			case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 		}
 	}
 
@@ -285,7 +303,7 @@ object Service extends Publisher {
 		DocumentService.setUnsavedChanges(true)
 		val args = ArgumentParser.stringToArguments(s)
 		model.updateTacticArguments(tactic, args)
-		return ArgumentParser.argumentsToString(args)
+		ArgumentParser.argumentsToString(args)
 		// the reason we return this string is to update the graph and textfield (where the arguments where first input)
 		// with a unique format, so the program won't struggle with later with spaces missing or anthing
 		// (main problem comes from importing file from library, were we assume the name in the library file are correctly formatted)
