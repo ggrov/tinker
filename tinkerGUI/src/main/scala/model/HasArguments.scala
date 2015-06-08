@@ -11,8 +11,8 @@ import tinkerGUI.utils.ArgumentParser
 	* arguments are stored in a list of list of strings, easing the construction of the psgraph model.
 	* See [[tinkerGUI.utils.ArgumentParser]] for details on how arguments are constructed.
 	*/
-// TODO : see if arguments can be strings until stored in model, whereas parse everywhere. ArgumentParser could be moved in model.
 trait HasArguments {
+	// TODO : see if arguments can be strings until stored in model, whereas parse everywhere. ArgumentParser could be moved in model.
 
 	/** Argument list of a tactic */
 	var args: Array[Array[String]] = Array()
@@ -54,6 +54,14 @@ trait HasArguments {
 		*/
 	def replaceArguments(newArgs:Array[Array[String]]) {
 		args = newArgs
+	}
+
+	/** Method to replace the arguments of a tactic with new ones.
+		*
+		* @param newArgs The new arguments of the tactic, in a string format.
+		*/
+	def replaceArguments(newArgs:String) {
+		args = ArgumentParser.stringToArguments(newArgs)
 	}
 
 	/** Method to remove all the arguments of a tactic.

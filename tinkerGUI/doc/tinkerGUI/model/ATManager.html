@@ -167,8 +167,15 @@ Also provides accessors for the atomic tactics values.
         <span class="name">addATOccurrence</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method to add an occurrence in an atomic tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to add an occurrence in an atomic tactic.</p><p>Displays an error dialog if the atomic tactic is not found.</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph in which the occurrence is.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence.
-</p></dd></dl></div>
+      <p class="shortcomment cmt">Method to add an occurrence in an atomic tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to add an occurrence in an atomic tactic.
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph in which the occurrence is.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence.</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[AtomicTacticNotFoundException]">...</span>
+    </span>)</span>
+              
+        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If the atomic tactic is not in the collection.
+</p></span></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -194,7 +201,7 @@ Also provides accessors for the atomic tactics values.
         <span class="name">atCollection</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <a href="AtomicTactic.html" class="extype" name="tinkerGUI.model.AtomicTactic">AtomicTactic</a>]</span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">The collection of atomic tactics.</p>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -214,6 +221,21 @@ Also provides accessors for the atomic tactics values.
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="tinkerGUI.model.ATManager#createAT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="createAT(id:String,tactic:String,args:String):Boolean"></a>
+      <a id="createAT(String,String,String):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">createAT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="tactic">tactic: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="args">args: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Method creating an atomic tactic if the id is available.</p><div class="fullcomment"><div class="comment cmt"><p>Method creating an atomic tactic if the id is available.
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id/name of the atomic tactic.</p></dd><dt class="param">tactic</dt><dd class="cmt"><p>Core id of the atomic tactic.</p></dd><dt class="param">args</dt><dd class="cmt"><p>List of arguments for the atomic tactic, in a string format.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying of successful creation or not (should be used to handle duplication).
+</p></dd></dl></div>
     </li><li name="tinkerGUI.model.ATManager#createAT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="createAT(id:String,tactic:String,args:Array[Array[String]]):Boolean"></a>
       <a id="createAT(String,String,Array[Array[String]]):Boolean"></a>
@@ -301,8 +323,15 @@ Also provides accessors for the atomic tactics values.
         <span class="name">getATCoreId</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method to get the core id of an atomic tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to get the core id of an atomic tactic.</p><p>Displays an error dialog if the atomic tactic is not found.</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt>returns</dt><dd class="cmt"><p>Core id or &quot;Not Found&quot; in case the atomic tactic could not be found.
-</p></dd></dl></div>
+      <p class="shortcomment cmt">Method to get the core id of an atomic tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to get the core id of an atomic tactic.
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt>returns</dt><dd class="cmt"><p>Core id or &quot;Not Found&quot; in case the atomic tactic could not be found.</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[AtomicTacticNotFoundException]">...</span>
+    </span>)</span>
+              
+        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If the atomic tactic is not in the collection.
+</p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.ATManager#getATFullName" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getATFullName(id:String):String"></a>
       <a id="getATFullName(String):String"></a>
@@ -315,8 +344,15 @@ Also provides accessors for the atomic tactics values.
         <span class="name">getATFullName</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method to get the full name (name + arguments) of an atomic tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to get the full name (name + arguments) of an atomic tactic.</p><p>Displays an error dialog if the atomic tactic is not found.</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt>returns</dt><dd class="cmt"><p>Full name or &quot;Not Found&quot; in case the atomic tactic could not be found.
-</p></dd></dl></div>
+      <p class="shortcomment cmt">Method to get the full name (name + arguments) of an atomic tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to get the full name (name + arguments) of an atomic tactic.
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt>returns</dt><dd class="cmt"><p>Full name.</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[AtomicTacticNotFoundException]">...</span>
+    </span>)</span>
+              
+        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If the atomic tactic is not in the collection.
+</p></span></dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
@@ -407,8 +443,15 @@ Also provides accessors for the atomic tactics values.
         <span class="name">removeATOccurrence</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method to remove an occurrence from an atomic tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove an occurrence from an atomic tactic.</p><p>Displays an error dialog if the atomic tactic is not found.</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph in which the occurrence was.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence to remove.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying if it was the last occurrence of the atomic tactic.
-</p></dd></dl></div>
+      <p class="shortcomment cmt">Method to remove an occurrence from an atomic tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove an occurrence from an atomic tactic.
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph in which the occurrence was.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence to remove.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying if it was the last occurrence of the atomic tactic.</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[AtomicTacticNotFoundException]">...</span>
+    </span>)</span>
+              
+        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If the atomic tactic is not in the collection.
+</p></span></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -452,6 +495,27 @@ Also provides accessors for the atomic tactics values.
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="tinkerGUI.model.ATManager#updateAT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="updateAT(id:String,newId:String,newTactic:String,newArgs:String):Boolean"></a>
+      <a id="updateAT(String,String,String,String):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">updateAT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newTactic">newTactic: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Method to update an atomic tactic, only if it has less than two occurrences.</p><div class="fullcomment"><div class="comment cmt"><p>Method to update an atomic tactic, only if it has less than two occurrences.
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newTactic</dt><dd class="cmt"><p>New core id value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments, in a string format.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying of successful change or not (should be used to handle duplication).</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[AtomicTacticNotFoundException]">...</span>
+    </span>)</span>
+              
+        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If the atomic tactic is not in the collection.
+</p></span></dd></dl></div>
+    </li><li name="tinkerGUI.model.ATManager#updateAT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="updateAT(id:String,newId:String,newTactic:String,newArgs:Array[Array[String]]):Boolean"></a>
       <a id="updateAT(String,String,String,Array[Array[String]]):Boolean"></a>
       <h4 class="signature">
@@ -463,13 +527,35 @@ Also provides accessors for the atomic tactics values.
         <span class="name">updateAT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newTactic">newTactic: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method to update an atomic tactic, only if it has less than two occurrences.</p><div class="fullcomment"><div class="comment cmt"><p>Method to update an atomic tactic, only if it has less than two occurrences.</p><p>Displays an error dialog if the atomic tactic is not found.</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newTactic</dt><dd class="cmt"><p>New core id value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying of successful change or not (should be used to handle duplication).</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+      <p class="shortcomment cmt">Method to update an atomic tactic, only if it has less than two occurrences.</p><div class="fullcomment"><div class="comment cmt"><p>Method to update an atomic tactic, only if it has less than two occurrences.
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newTactic</dt><dd class="cmt"><p>New core id value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying of successful change or not (should be used to handle duplication).</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[AtomicTacticNotFoundException]">...</span>
     </span>)</span>
               
-        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>Exception if the atomic tactic is not in the collection.
+        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If the atomic tactic is not in the collection.
+</p></span></dd></dl></div>
+    </li><li name="tinkerGUI.model.ATManager#updateForceAT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="updateForceAT(id:String,newId:String,newTactic:String,newArgs:String,graph:String):Array[String]"></a>
+      <a id="updateForceAT(String,String,String,String,String):Array[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">updateForceAT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newTactic">newTactic: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Method to force the update of an atomic tactic, i.</p><div class="fullcomment"><div class="comment cmt"><p>Method to force the update of an atomic tactic, i.e. update no matter what is the number of occurrences.
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newTactic</dt><dd class="cmt"><p>New core id value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments, in a string format.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Current graph id.</p></dd><dt>returns</dt><dd class="cmt"><p>List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[AtomicTacticNotFoundException]">...</span>
+    </span>)</span>
+              
+        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If the atomic tactic is not in the collection.
 </p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.ATManager#updateForceAT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="updateForceAT(id:String,newId:String,newTactic:String,newArgs:Array[Array[String]],graph:String):Array[String]"></a>
@@ -483,8 +569,15 @@ Also provides accessors for the atomic tactics values.
         <span class="name">updateForceAT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newTactic">newTactic: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method to force the update of an atomic tactic, i.</p><div class="fullcomment"><div class="comment cmt"><p>Method to force the update of an atomic tactic, i.e. update no matter what is the number of occurrences.</p><p>Displays an error dialog if the atomic tactic is not found.</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newTactic</dt><dd class="cmt"><p>New core id value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Current graph id.</p></dd><dt>returns</dt><dd class="cmt"><p>List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).
-</p></dd></dl></div>
+      <p class="shortcomment cmt">Method to force the update of an atomic tactic, i.</p><div class="fullcomment"><div class="comment cmt"><p>Method to force the update of an atomic tactic, i.e. update no matter what is the number of occurrences.
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newTactic</dt><dd class="cmt"><p>New core id value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Current graph id.</p></dd><dt>returns</dt><dd class="cmt"><p>List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[AtomicTacticNotFoundException]">...</span>
+    </span>)</span>
+              
+        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If the atomic tactic is not in the collection.
+</p></span></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>

@@ -3,8 +3,18 @@ package tinkerGUI.utils
 import java.util.regex.Pattern
 import tinkerGUI.controllers.TinkerDialog
 
+/** Object providing methods to parse tactic arguments
+	*
+	* It can parse from a string to an array of array of string and the other way around.
+	* Also provides a function to separate the tactic name from its arguments.
+	*/
 object ArgumentParser {
 
+	/** Method separating a tactic name from its arguments.
+		*
+		* @param s Full name, often entered by the user during graph edition.
+		* @return Pair of strings, one for the tactic name, the other for its arguments.
+		*/
 	def separateNameFromArgument(s: String): (String, String) = {
 		if(s.contains("(")){
 			val parts = s.split(Pattern.quote("("))
@@ -15,11 +25,21 @@ object ArgumentParser {
 				}
 				else { args = parts(1)}
 			}
-			return(removeUselessSpace(parts(0)), removeUselessSpace(args))
+			removeUselessSpace(parts(0)), removeUselessSpace(args))
 		}
-		else return (s, "")
+		else (s, "")
 	}
 
+	/** Method to parse arguments from a string to an array of array of string.
+		*
+		* Array of array of string is the format used by the model to store arguments, hence this format.
+		* Typically :
+		*
+		* "X: Y Z, A: B, C" becomes [ [ "X", "Y", "Z" ], [ "A", "B" ], [ "C" ] ]
+		*
+		* @param s Arguments in a string format.
+		* @return Arguments in a array of array of string format.
+		*/
 	def stringToArguments(s: String): Array[Array[String]] = {
 		var res = Array[Array[String]]()
 		if(s.contains(",")){
@@ -28,11 +48,23 @@ object ArgumentParser {
 				res = res :+ stringToArgument(removeUselessSpace(p))
 			}
 		}
-		else { res = res :+ stringToArgument(s) }
-		return res
+		else if(!s.isEmpty) { res = res :+ stringToArgument(s) }
+		res
 	}
 
-	def stringToArgument(s: String): Array[String] = {
+	/** Method to parse a single argument from a string to a an array of string.
+		*
+		* Array of string is the format used by the model to store a single argument, hence the format.
+		* Typically :
+		*
+		* "X: Y Z" becomes [ "X", "Y", "Z" ] , "A: B" becomes [ "A", "B" ] and "C" becomes [ "C" ]
+		*
+		* This method is private, hence will normally not be displayed in the doc.
+		*
+		* @param s Argument in a string format.
+		* @return Argument in a array of string format.
+		*/
+	private def stringToArgument(s: String): Array[String] = {
 		var res = Array[String]()
 		if(s.contains(":")){
 			val parts = s.split(":")
@@ -41,17 +73,24 @@ object ArgumentParser {
 				case 2 => 
 					res = res :+ removeUselessSpace(parts(0))
 					res = res ++ stringToArgumentParameters(removeUselessSpace(parts(1)))
-				case x if(x > 2 || x < 1) => 
+				case x if x > 2 || x < 1 =>
 					TinkerDialog.openErrorDialog("<html>Error when parsing arguments, found more than one colon in one argument,<br> you probably forgot a comma to separate two arguments.</html>")
 					res = res :+ removeUselessSpace(parts(0))
 					res = res ++ stringToArgumentParameters(removeUselessSpace(parts(1)))
 			}
 		}
 		else { res = res :+ s }
-		return res
+		res
 	}
 
-	def stringToArgumentParameters(s: String): Array[String] = {
+	/** Method to parse argument's parameters from a string to an array of string.
+		*
+		* This method is private, hence will normally not be displayed in the doc.
+		*
+		* @param s Argument's parameters in a string format.
+		* @return Argument's parameters in an array of string format.
+		*/
+	private def stringToArgumentParameters(s: String): Array[String] = {
 		var res = Array[String]()
 		if(s.contains(" ")){
 			val parts = s.split(" ")
@@ -63,13 +102,29 @@ object ArgumentParser {
 		return res
 	}
 
-	def removeUselessSpace(s: String): String = {
+	/** Method to remove space ahead and at the end of a string.
+		*
+		* This method is private, hence will normally not be displayed in the doc.
+		*
+		* @param s String with spaces.
+		* @return String without spaces.
+		*/
+	private def removeUselessSpace(s: String): String = {
 		var res = s
 		if(res.length > 0 && res.head.equals(' ')) res = removeUselessSpace(res.tail)
 		if(res.length > 0 && res.charAt(res.length-1).equals(' ')) res = removeUselessSpace(res.substring(0, res.length-1))
 		return res
 	}
 
+	/** Method to parse arguments from an array of array of string to a string.
+		*
+		* Array of array of string is the format used by the model to store arguments, hence this format.
+		* Typically :
+		*
+		* [ [ "X", "Y", "Z" ], [ "A", "B" ], [ "C" ] ] becomes "X: Y Z, A: B, C"
+		* @param args Arguments in a array of array of string format.
+		* @return Arguments in a string format.
+		*/
 	def argumentsToString(args: Array[Array[String]]): String = {
 		var res = ""
 		if(args.size > 0){
@@ -81,7 +136,18 @@ object ArgumentParser {
 		return res
 	}
 
-	def argumentToString(arg: Array[String]): String = {
+	/** Method to parse a single argument from an array of string to a string.
+		*
+		* Array of string is the format used by the model to store a single argument, hence this format.
+		* Typically :
+		*
+		* [ "X", "Y", "Z" ] becomes "X: Y Z", [ "A", "B" ] becomes "A: B" and [ "C" ] becomes "C"
+		*
+		* This method is private, hence will normally not be displayed in the doc.
+		* @param arg Argument in array of string format.
+		* @return Argument in a string format.
+		*/
+	private def argumentToString(arg: Array[String]): String = {
 		var res = ""
 		if(arg.size > 0) res += arg.head+" "
 		if(arg.size > 1){

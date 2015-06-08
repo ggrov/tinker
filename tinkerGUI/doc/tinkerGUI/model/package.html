@@ -71,19 +71,6 @@
       </span>
       </h4>
       <p class="comment cmt">A manager for the atomic tactics of a psgraph.</p>
-    </li><li name="tinkerGUI.model.Argument" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ArgumentextendsAnyRef"></a>
-      <a id="Argument:Argument"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="Argument.html"><span class="name">Argument</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4>
-      
     </li><li name="tinkerGUI.model.AtomicTactic" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="AtomicTacticextendsTactic"></a>
       <a id="AtomicTactic:AtomicTactic"></a>
@@ -109,10 +96,22 @@
         <a href="AtomicTacticNotFoundException.html"><span class="name">AtomicTacticNotFoundException</span></a><span class="params">(<span name="msg">msg: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
-      <p class="comment cmt">Exception class for not finding a tactic in the collection
-</p>
+      <p class="comment cmt">Exception class for not finding an atomic tactic in the collection.</p>
+    </li><li name="tinkerGUI.model.GTManager" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="GTManagerextendsAnyRef"></a>
+      <a id="GTManager:GTManager"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="GTManager.html"><span class="name">GTManager</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A manager for the graph tactics of a psgraph.</p>
     </li><li name="tinkerGUI.model.GraphTactic" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="GraphTacticextendsHasArguments"></a>
+      <a id="GraphTacticextendsTactic"></a>
       <a id="GraphTactic:GraphTactic"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -120,10 +119,23 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="GraphTactic.html"><span class="name">GraphTactic</span></a><span class="result"> extends <a href="HasArguments.html" class="extype" name="tinkerGUI.model.HasArguments">HasArguments</a></span>
+        <a href="GraphTactic.html"><span class="name">GraphTactic</span></a><span class="result"> extends <a href="Tactic.html" class="extype" name="tinkerGUI.model.Tactic">Tactic</a></span>
       </span>
       </h4>
-      
+      <p class="comment cmt">A graph tactic in the psgraph.</p>
+    </li><li name="tinkerGUI.model.GraphTacticNotFoundException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GraphTacticNotFoundExceptionextendsExceptionwithProductwithSerializable"></a>
+      <a id="GraphTacticNotFoundException:GraphTacticNotFoundException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="GraphTacticNotFoundException.html"><span class="name">GraphTacticNotFoundException</span></a><span class="params">(<span name="msg">msg: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Exception class for not finding an graph tactic in the collection.</p>
     </li><li name="tinkerGUI.model.HasArguments" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="HasArgumentsextendsAnyRef"></a>
       <a id="HasArguments:HasArguments"></a>
@@ -150,6 +162,45 @@
       </span>
       </h4>
       <p class="comment cmt">Tactic behaviour for having occurrences</p>
+    </li><li name="tinkerGUI.model.HierarchyElement" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HierarchyElementextendsAnyRef"></a>
+      <a id="HierarchyElement:HierarchyElement"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HierarchyElement.html"><span class="name">HierarchyElement</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">An element of the hierarchy of a psgraph.</p>
+    </li><li name="tinkerGUI.model.HierarchyElementNotFoundException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HierarchyElementNotFoundExceptionextendsExceptionwithProductwithSerializable"></a>
+      <a id="HierarchyElementNotFoundException:HierarchyElementNotFoundException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="HierarchyElementNotFoundException.html"><span class="name">HierarchyElementNotFoundException</span></a><span class="params">(<span name="msg">msg: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Exception class for not finding a hierarchy element.</p>
+    </li><li name="tinkerGUI.model.HierarchyManager" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HierarchyManagerextendsAnyRef"></a>
+      <a id="HierarchyManager:HierarchyManager"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HierarchyManager.html"><span class="name">HierarchyManager</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A manager for the hierarchy in a psgraph.</p>
     </li><li name="tinkerGUI.model.HierarchyModel" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="HierarchyModelextendsAnyRef"></a>
       <a id="HierarchyModel:HierarchyModel"></a>
@@ -164,7 +215,7 @@
       </h4>
       
     </li><li name="tinkerGUI.model.PSGraph" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="PSGraphextendsATManager"></a>
+      <a id="PSGraphextendsATManagerwithGTManager"></a>
       <a id="PSGraph:PSGraph"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -172,10 +223,24 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="PSGraph.html"><span class="name">PSGraph</span></a><span class="result"> extends <a href="ATManager.html" class="extype" name="tinkerGUI.model.ATManager">ATManager</a></span>
+        <a href="PSGraph.html"><span class="name">PSGraph</span></a><span class="result"> extends <a href="ATManager.html" class="extype" name="tinkerGUI.model.ATManager">ATManager</a> with <a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></span>
       </span>
       </h4>
       <p class="comment cmt">Model of a proof-strategy graph.</p>
+    </li><li name="tinkerGUI.model.SubgraphNotFoundException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SubgraphNotFoundExceptionextendsExceptionwithProductwithSerializable"></a>
+      <a id="SubgraphNotFoundException:SubgraphNotFoundException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="SubgraphNotFoundException.html"><span class="name">SubgraphNotFoundException</span></a><span class="params">(<span name="msg">msg: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Exception class for not finding a subgraph in the graph tactic
+</p>
     </li><li name="tinkerGUI.model.Tactic" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="TacticextendsHasArgumentswithHasOccurrences"></a>
       <a id="Tactic:Tactic"></a>

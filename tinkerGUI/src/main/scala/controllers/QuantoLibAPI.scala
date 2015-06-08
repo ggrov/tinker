@@ -735,9 +735,10 @@ object QuantoLibAPI extends Publisher{
 		graph.vdata(vertexName) match {
 			case data: NodeV =>
 				if(typ == "T_Graph") {
-					changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.createNode(data.label, true, true)) })
-					view.invalidateVertex(vertexName)
-					graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
+					Service.createTactic(vertexName.s,false)
+					//changeGraph(graph.updateVData(vertexName) { _ => data.withValue(Service.createNode(data.label, true, true)) })
+					//view.invalidateVertex(vertexName)
+					//graph.adjacentEdges(vertexName).foreach { view.invalidateEdge }
 				}
 				else if (typ == "T_Atomic") {
 					Service.createTactic(vertexName.s, true)
@@ -1028,7 +1029,7 @@ object QuantoLibAPI extends Publisher{
 		changeGraph(graph.addVertex(newName, newData.withCoord((newX,newY))))
 		graph.vdata(newName) match {
 			case data: NodeV =>
-				changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.createNode(data.label, true, true)) })
+				changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.createNode(data.label, true, true)) }) // TODO integrate merging with new model
 				view.invalidateVertex(newName)
 				graph.adjacentEdges(newName).foreach { view.invalidateEdge }
 		}
@@ -1093,7 +1094,7 @@ object QuantoLibAPI extends Publisher{
 		}
 		// saving json graph
 		val jsonGraph = Graph.toJson(newSubgraph, theory)
-		Service.saveGraphSpecificTactic(ArgumentParser.separateNameFromArgument(newData.label)._1, jsonGraph)
+		Service.saveGraphSpecificTactic(ArgumentParser.separateNameFromArgument(newData.label)._1, jsonGraph, 0)
 		publish(NothingSelectedEventAPI())
 	}
 

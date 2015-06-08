@@ -1,11 +1,10 @@
 package tinkerGUI.model
 
 import quanto.util.json.{JsonObject, JsonArray}
-import tinkerGUI.controllers.TinkerDialog
 
-/** Exception class for not finding a tactic in the collection
+/** Exception class for not finding an atomic tactic in the collection.
 	*
-	* @param msg Custom message
+	* @param msg Custom message.
 	*/
 case class AtomicTacticNotFoundException(msg:String) extends Exception(msg)
 
@@ -17,7 +16,7 @@ case class AtomicTacticNotFoundException(msg:String) extends Exception(msg)
 trait ATManager {
 
 	/** The collection of atomic tactics.*/
-	protected var atCollection:Map[String,AtomicTactic] = Map()
+	var atCollection:Map[String,AtomicTactic] = Map()
 	
 	/** Method creating an atomic tactic if the id is available.
 	 *
@@ -37,9 +36,26 @@ trait ATManager {
 		}
 	}
 
+	/** Method creating an atomic tactic if the id is available.
+		*
+		* @param id Gui id/name of the atomic tactic.
+		* @param tactic Core id of the atomic tactic.
+		* @param args List of arguments for the atomic tactic, in a string format.
+		* @return Boolean notifying of successful creation or not (should be used to handle duplication).
+		*/
+	def createAT(id:String,tactic:String,args:String): Boolean = {
+		if(atCollection contains id){
+			false
+		} else {
+			val t: AtomicTactic = new AtomicTactic(id, tactic)
+			t.replaceArguments(args)
+			atCollection += id -> t
+			true
+		}
+	}
+
 	/** Method to update an atomic tactic, only if it has less than two occurrences.
 	 *
-	 * Displays an error dialog if the atomic tactic is not found.
 	 * @param id Gui id before change.
 	 * @param newId New gui id value.
 	 * @param newTactic New core id value.
@@ -54,7 +70,37 @@ trait ATManager {
 				if(t.occurrences.size < 2){
 					t.name = newId
 					t.tactic = newTactic
-					t.args = newArgs
+					t.replaceArguments(newArgs)
+					if(id != newId){
+						atCollection += (newId -> t)
+						atCollection -= id
+					}
+					true
+				} else {
+					false
+				}
+			case _ =>
+				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
+		}
+	}
+
+	/** Method to update an atomic tactic, only if it has less than two occurrences.
+		*
+		* @param id Gui id before change.
+		* @param newId New gui id value.
+		* @param newTactic New core id value.
+		* @param newArgs New list of arguments, in a string format.
+		* @return Boolean notifying of successful change or not (should be used to handle duplication).
+		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
+		*/
+	@throws (classOf[AtomicTacticNotFoundException])
+	def updateAT(id:String, newId:String, newTactic:String, newArgs:String):Boolean = {
+		atCollection get id match {
+			case Some(t:AtomicTactic) =>
+				if(t.occurrences.size < 2){
+					t.name = newId
+					t.tactic = newTactic
+					t.replaceArguments(newArgs)
 					if(id != newId){
 						atCollection += (newId -> t)
 						atCollection -= id
@@ -70,7 +116,6 @@ trait ATManager {
 
 	/** Method to force the update of an atomic tactic, i.e. update no matter what is the number of occurrences.
 	 *
-	 * Displays an error dialog if the atomic tactic is not found.
 	 * @param id Gui id before change.
 	 * @param newId New gui id value.
 	 * @param newTactic New core id value.
@@ -85,7 +130,34 @@ trait ATManager {
 			case Some(t:AtomicTactic) =>
 				t.name = newId
 				t.tactic = newTactic
-				t.args = newArgs
+				t.replaceArguments(newArgs)
+				if (id != newId) {
+					atCollection += (newId -> t)
+					atCollection -= id
+				}
+				t.getOccurrencesInGraph(graph)
+			case _ =>
+				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
+		}
+	}
+
+	/** Method to force the update of an atomic tactic, i.e. update no matter what is the number of occurrences.
+		*
+		* @param id Gui id before change.
+		* @param newId New gui id value.
+		* @param newTactic New core id value.
+		* @param newArgs New list of arguments, in a string format.
+		* @param graph Current graph id.
+		* @return List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).
+		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
+		*/
+	@throws (classOf[AtomicTacticNotFoundException])
+	def updateForceAT(id:String, newId:String, newTactic:String, newArgs:String, graph:String):Array[String] = {
+		atCollection get id match {
+			case Some(t:AtomicTactic) =>
+				t.name = newId
+				t.tactic = newTactic
+				t.replaceArguments(newArgs)
 				if (id != newId) {
 					atCollection += (newId -> t)
 					atCollection -= id
@@ -106,9 +178,8 @@ trait ATManager {
 
 	/** Method to get the full name (name + arguments) of an atomic tactic.
 		*
-		* Displays an error dialog if the atomic tactic is not found.
 		* @param id Gui id of the atomic tactic.
-		* @return Full name or "Not Found" in case the atomic tactic could not be found.
+		* @return Full name.
 		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
 	@throws (classOf[AtomicTacticNotFoundException])
@@ -123,7 +194,6 @@ trait ATManager {
 
 	/** Method to get the core id of an atomic tactic.
 	 *
-	 * Displays an error dialog if the atomic tactic is not found.
 	 * @param id Gui id of the atomic tactic.
 	 * @return Core id or "Not Found" in case the atomic tactic could not be found.
 	 * @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
@@ -152,7 +222,6 @@ trait ATManager {
 
 	/** Method to add an occurrence in an atomic tactic.
 		*
-		* Displays an error dialog if the atomic tactic is not found.
 		* @param id Gui id of the atomic tactic.
 		* @param graph Graph in which the occurrence is.
 		* @param node Node id of the occurrence.
@@ -170,7 +239,6 @@ trait ATManager {
 
 	/** Method to remove an occurrence from an atomic tactic.
 		*
-		* Displays an error dialog if the atomic tactic is not found.
 		* @param id Gui id of the atomic tactic.
 		* @param graph Graph in which the occurrence was.
 		* @param node Node id of the occurrence to remove.

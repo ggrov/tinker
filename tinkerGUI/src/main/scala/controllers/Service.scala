@@ -90,7 +90,7 @@ object Service extends Publisher {
 		// TODO REMOVE COMMENTS TO SUPPORT GRAPH TACTICS
 		var dialog:Dialog = new Dialog()
 		var name:String = ""
-		var args:Array[Array[String]] = Array()
+		var args:String = ""
 		var tactic:String = ""
 		var checkedByModel:Boolean = false
 		def failureCallback() = {
@@ -101,7 +101,7 @@ object Service extends Publisher {
 				k match {
 					case "Name" => 
 						name = ArgumentParser.separateNameFromArgument(v)._1
-						args = ArgumentParser.stringToArguments(ArgumentParser.separateNameFromArgument(v)._2)
+						args = ArgumentParser.separateNameFromArgument(v)._2
 					case "Tactic" =>
 						tactic = v
 					case _ => // do nothing
@@ -110,13 +110,14 @@ object Service extends Publisher {
 			if(name=="" || (isAtomicTactic && tactic=="")){
 				TinkerDialog.openEditDialog("Create node", fieldMap, successCallback, failureCallback)
 			} else {
-				checkedByModel = if(isAtomicTactic) model.createAT(name,tactic,args) else false /*model.createGraphTactic(name,false,args)*/
+				checkedByModel = if(isAtomicTactic) model.createAT(name,tactic,args) else model.createGT(name,"OR",args)
 				if(checkedByModel){
 					if(isAtomicTactic) model.addATOccurrence(name,nodeId) /*else model.addGTOccurrence(name,nodeId)*/
-					QuantoLibAPI.setVertexValue(nodeId, name+"("+ArgumentParser.argumentsToString(args)+")")
+					QuantoLibAPI.setVertexValue(nodeId, name+"("+args+")")
 				} else {
 					var confirmDialog = new Dialog()
-					val message:String = "<html>The name "+name+" is already used by another atomic tactic <br> do you wish to use the same tactic informations or create a new tactic ?"
+					val message:String = if(isAtomicTactic) "<html>The name "+name+" is already used by another atomic tactic <br> do you wish to use the same tactic informations or create a new tactic ?"
+					else "<html>The name "+name+" is already used by another graph tactic <br> do you wish to use the same tactic informations or create a new tactic ?"
 					val newAction:Action = new Action("Create new tactic"){
 						def apply(){
 							dialog = TinkerDialog.openEditDialog("Create node", fieldMap, successCallback, failureCallback)
@@ -159,7 +160,7 @@ object Service extends Publisher {
 		// TODO REMOVE COMMENTS TO SUPPORT GRAPH TACTICS
 		var dialog:Dialog = new Dialog()
 		var name:String = ""
-		var args:Array[Array[String]] = Array()
+		var args:String = ""
 		var tactic:String = ""
 		var isUnique:Boolean = false
 		val tacticOldName = ArgumentParser.separateNameFromArgument(nodeName)._1
@@ -175,7 +176,7 @@ object Service extends Publisher {
 				k match {
 					case "Name" => 
 						name = ArgumentParser.separateNameFromArgument(v)._1
-						args = ArgumentParser.stringToArguments(ArgumentParser.separateNameFromArgument(v)._2)
+						args = ArgumentParser.separateNameFromArgument(v)._2
 					case "Tactic" =>
 						tactic = v
 					case _ => // do nothing
@@ -190,26 +191,26 @@ object Service extends Publisher {
 					if(isAtomicTactic) {
 						 model.updateAT(tacticOldName, name,tactic,args)
 					}
-					else false /*model.updateGT(tacticOldName, name,false,args)*/
+					else model.updateGT(tacticOldName, name,"OR",args) // TODO : branch type field
 					if(isUnique){
-						QuantoLibAPI.setVertexValue(nodeId, name+"("+ArgumentParser.argumentsToString(args)+")")
+						QuantoLibAPI.setVertexValue(nodeId, name+"("+args+")")
 					} else {
 						var confirmDialog = new Dialog()
 						val message:String = "<html>The tactic "+name+" has many occurrences <br> do you wish to edit all of them or make a new tactic ?"
 						val newAction:Action = new Action("Make new tactic"){
 							def apply(){
 								createTactic(nodeId,isAtomicTactic,values)
-								if(isAtomicTactic) model.removeATOccurrence(tacticOldName, nodeId) /* else model.removeGTOccurrence(tacticOldName, nodeId) */
+								if(isAtomicTactic) model.removeATOccurrence(tacticOldName, nodeId) else model.removeGTOccurrence(tacticOldName, nodeId)
 								confirmDialog.close()
 							}
 						}
 						val editAllAction:Action = new Action("Edit all"){
 							def apply(){
-								var nodeToChange:Array[String] = Array()
-								if(isAtomicTactic) nodeToChange = model.updateForceAT(tacticOldName, name,tactic,args)
-								/*else nodeToChange = model.updateAllGraphTactic(tacticOldName, name,isOr,args)*/
-								val fullName = if(isAtomicTactic) model.getATFullName(name) else "toto"/*model.getGTFullName(name)*/
-								nodeToChange.foreach{ n =>
+								var nodesToChange:Array[String] = Array()
+								if(isAtomicTactic) nodesToChange = model.updateForceAT(tacticOldName, name,tactic,args)
+								else nodesToChange = model.updateForceGT(tacticOldName, name,"OR",args) // TODO : branch type field
+								val fullName = if(isAtomicTactic) model.getATFullName(name) else model.getGTFullName(name)
+								nodesToChange.foreach{ n =>
 									QuantoLibAPI.setVertexValue(n, fullName)
 								}
 								confirmDialog.close()
@@ -362,9 +363,9 @@ object Service extends Publisher {
 		model.graphTacticSetIsOr(tactic, isOr)
 	}
 
-	def saveGraphSpecificTactic(tactic: String, graph: Json) = {
+	def saveGraphSpecificTactic(tactic: String, graph: Json, index: Int) = {
 		DocumentService.setUnsavedChanges(true)
-		model.saveGraphSpecificTactic(tactic, graph)
+		model.saveGraph(tactic, graph, index)
 	}
 
 	def setAtomicTacticValue(tactic: String, value: String) = {
