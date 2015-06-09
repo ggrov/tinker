@@ -5,19 +5,20 @@ import scala.collection.mutable.ArrayBuffer
 
 /** Tactic behaviour for having occurrences
 	*
-	* An occurrence represents the fact that a node on a graph is linked with a tactic. It is a pair of string,
-	* one representing the graph in which the occurrence is, the second one being the node id.
+	* An occurrence represents the fact that a node on a graph is linked with a tactic. It is a tuple with
+	* one string representing the graph in which the occurrence is, one integer for the graph id,
+	* and one string being the node id.
 	*/
 trait HasOccurrences {
 	
 	/** Occurrence array of a tactic. */
-	var occurrences: ArrayBuffer[(String, String)] = ArrayBuffer()
+	var occurrences: ArrayBuffer[(String, Int, String)] = ArrayBuffer()
 
 	/** Method to add an occurrence to a tactic.
 		*
-		* @param o Occurrence, a graph/node pair.
+		* @param o Occurrence, a graph/index/node tuple.
 		*/
-	def addOccurrence(o: (String, String)){
+	def addOccurrence(o: (String, Int, String)){
 		occurrences = occurrences :+ o
 	}
 
@@ -25,7 +26,7 @@ trait HasOccurrences {
 		*
 		* @param o Occurrence to be removed.
 		*/
-	def removeOccurrence(o: (String, String)) {
+	def removeOccurrence(o: (String, Int, String)) {
 		occurrences -= o
 	}
 
@@ -36,7 +37,7 @@ trait HasOccurrences {
 	def occurrencesToJson(): JsonArray = {
 		var arr: ArrayBuffer[JsonArray] = ArrayBuffer()
 		occurrences.foreach { occ =>
-			arr = arr :+ JsonArray(Array(JsonString(occ._1),JsonString(occ._2)))
+			arr = arr :+ JsonArray(Array(JsonString(occ._1),JsonInt(occ._2),JsonString(occ._3)))
 		}
 		JsonArray(arr)
 	}
@@ -45,7 +46,7 @@ trait HasOccurrences {
 		*
 		* @param newOccs New occurrence list.
 		*/
-	def updateOccurrences(newOccs:ArrayBuffer[(String, String)]) {
+	def updateOccurrences(newOccs:ArrayBuffer[(String, Int, String)]) {
 		occurrences = newOccs
 	}
 
@@ -61,10 +62,10 @@ trait HasOccurrences {
 		* @param graph Graph id.
 		* @return List of node ids.
 		*/
-	def getOccurrencesInGraph(graph:String):Array[String] = {
+	def getOccurrencesInGraph(graph:String, index:Int):Array[String] = {
 		var arr:Array[String] = Array()
 		occurrences.foreach{ o =>
-			if(o._1 == graph) arr = arr :+ o._2
+			if(o._1 == graph && o._2 == index) arr = arr :+ o._3
 		}
 		arr
 	}

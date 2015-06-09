@@ -1,12 +1,6 @@
-// TODO check hierarchy when adding, updating, deleting
-// TODO change occurrences to triple (add graph index)
-// TODO write accessors to hierarchy (graph tactic children)
-
 package tinkerGUI.model
 
 import tinkerGUI.utils.ArgumentParser
-
-import scala.swing._
 import quanto.util.json._
 import scala.collection.mutable.ArrayBuffer
 
@@ -14,8 +8,6 @@ import scala.collection.mutable.ArrayBuffer
 	*
 	*/
 class PSGraph() extends ATManager with GTManager {
-
-	var dialog:Dialog = new Dialog()
 
 	/** Boolean to know if the currently viewed is the main one. */
 	var isMain = true
@@ -46,16 +38,24 @@ class PSGraph() extends ATManager with GTManager {
 		* @param newArgs New arguments of the atomic tactic.
 		* @return List of the node ids to update on the current graph.
 		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic was not found.
+		* @throws quanto.util.json.JsonAccessException If updating the values in the json graphs fails.
 		*/
 	@throws (classOf[AtomicTacticNotFoundException])
+	@throws (classOf[JsonAccessException])
 	def updateForceAT(name: String, newName:String, newTactic: String, newArgs:String):Array[String] = {
 		val graph = if (isMain) "main" else currentTactic.name
 		try{
-			val nodeIds = updateForceAT(name,newName,newTactic,newArgs,graph)
-			// TODO: update name in graphs
+			val oldArgs = atCollection get name match {
+				case Some(t:AtomicTactic) => t.argumentsToString()
+				case None => throw new AtomicTacticNotFoundException("Atomic tactic "+name+" not found")
+			}
+			val nodeIds = updateForceAT(name,newName,newTactic,newArgs,graph,currentIndex)
+			if(name != newName) updateValueInJsonGraphs(name, newName)
+			if(oldArgs != newArgs) updateValueInJsonGraphs(newName+"("+oldArgs+")", newName+"("+newArgs+")")
 			nodeIds
 		} catch {
 			case e:AtomicTacticNotFoundException => throw e
+			case e:JsonAccessException => throw e
 		}
 	}
 
@@ -67,16 +67,24 @@ class PSGraph() extends ATManager with GTManager {
 		* @param newArgs New arguments of the graph tactic.
 		* @return List of the node ids to update on the current graph.
 		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic was not found.
+		* @throws quanto.util.json.JsonAccessException If updating the values in the json graphs fails.
 		*/
 	@throws (classOf[GraphTacticNotFoundException])
+	@throws (classOf[JsonAccessException])
 	def updateForceGT(name: String, newName:String, newBranchType: String, newArgs:String):Array[String] = {
 		val graph = if (isMain) "main" else currentTactic.name
 		try {
-			val nodeIds = updateForceGT(name,newName,newBranchType,newArgs,graph)
-			// TODO: update name in graphs
+			val oldArgs = gtCollection get name match {
+				case Some(t:GraphTactic) => t.argumentsToString()
+				case None => throw new GraphTacticNotFoundException("Graph tactic "+name+" not found")
+			}
+			val nodeIds = updateForceGT(name,newName,newBranchType,newArgs,graph,currentIndex)
+			if(name != newName) updateValueInJsonGraphs(name, newName)
+			if(oldArgs != newArgs) updateValueInJsonGraphs(newName+"("+oldArgs+")", newName+"("+newArgs+")")
 			nodeIds
 		} catch {
 			case e:GraphTacticNotFoundException => throw e
+			case e:JsonAccessException => throw e
 		}
 	}
 
@@ -90,7 +98,7 @@ class PSGraph() extends ATManager with GTManager {
 	def addATOccurrence(name:String,node:String) {
 		val graph = if(isMain) "main" else currentTactic.name
 		try {
-			addATOccurrence(name, graph, node)
+			addATOccurrence(name, graph, currentIndex, node)
 		} catch {
 			case e:AtomicTacticNotFoundException => throw e
 		}
@@ -107,7 +115,7 @@ class PSGraph() extends ATManager with GTManager {
 	def removeATOccurrence(name:String,node:String):Boolean = {
 		val graph = if(isMain) "main" else currentTactic.name
 		try{
-			removeATOccurrence(name,graph,node)
+			removeATOccurrence(name,graph,currentIndex, node)
 		} catch {
 			case e:AtomicTacticNotFoundException => throw e
 		}
@@ -124,7 +132,7 @@ class PSGraph() extends ATManager with GTManager {
 	def addGTOccurrence(name:String,node:String){
 		val graph = if(isMain) "main" else currentTactic.name
 		try {
-			addGTOccurrence(name,graph,node)
+			addGTOccurrence(name,graph,currentIndex,node)
 			gtCollection get name match{
 				case Some(t:GraphTactic) =>
 					if(isMain) childrenMain = childrenMain :+ t
@@ -149,7 +157,7 @@ class PSGraph() extends ATManager with GTManager {
 	def removeGTOccurrence(name:String,node:String):Boolean = {
 		val graph = if(isMain) "main" else currentTactic.name
 		try {
-			val res = removeGTOccurrence(name,graph,node)
+			val res = removeGTOccurrence(name,graph,currentIndex,node)
 			gtCollection get name match{
 				case Some(t:GraphTactic) =>
 					if(isMain) childrenMain -= t
@@ -327,46 +335,59 @@ class PSGraph() extends ATManager with GTManager {
 
 	/** Method to load a new model from a Json object.
 		*
+		* This method overwrites the all model, hence it should be saved before calling it.
 		* @param j Json input.
 		* @throws tinkerGUI.model.GraphTacticNotFoundException If a graph tactic is not found after importing the data.
+		* @throws tinkerGUI.model.AtomicTacticNotFoundException If a atomic tactic is not found after importing the data.
 		*/
 	@throws (classOf[GraphTacticNotFoundException])
+	@throws (classOf[AtomicTacticNotFoundException])
 	def loadJsonGraph(j: Json) {
-		// TODO reset values
+		atCollection = Map()
+		gtCollection = Map()
 		val current = (j / "current").stringValue
 		currentIndex  = (j / "current_index").intValue
 		goalTypes = (j / "goal_types").stringValue
 		mainGraph = (j / "graph").asObject
-		(j / "atomic_tactics").asArray.foreach{ tct =>
-			val name = (tct / "name").stringValue
-			val tactic = (tct / "tactic").stringValue
-			var args = Array[Array[String]]()
-			(tct / "args").asArray.foreach{ a =>
-				var arg = Array[String]()
-				a.asArray.foreach{ s => arg = arg :+ s.stringValue}
-				args = args :+ arg
+		try{
+			(j / "atomic_tactics").asArray.foreach{ tct =>
+				val name = (tct / "name").stringValue
+				val tactic = (tct / "tactic").stringValue
+				var args = Array[Array[String]]()
+				(tct / "args").asArray.foreach{ a =>
+					var arg = Array[String]()
+					a.asArray.foreach{ s => arg = arg :+ s.stringValue}
+					args = args :+ arg
+				}
+				createAT(name, tactic , args)
+				(tct / "occurrences").asArray.foreach{ a =>
+					addATOccurrence(name,a.asArray.get(0).stringValue,a.asArray.get(1).intValue,a.asArray.get(2).stringValue)
+				}
 			}
-			createAT(name, tactic , args)
-			// TODO : import occurrences
+			(j / "graph_tactics").asArray.foreach { tct =>
+				val name = (tct / "name").stringValue
+				val branchType = (tct / "branchType").stringValue
+				var args = Array[Array[String]]()
+				(tct / "args").asArray.foreach{ a =>
+					var arg = Array[String]()
+					a.asArray.foreach{ s => arg = arg :+ s.stringValue}
+					args = args :+ arg
+				}
+				createGT(name, branchType, args)
+				var i = 0
+				(tct / "graphs").asArray.foreach{ gr =>
+					saveGraph(name, gr, i)
+					i+=1
+				}
+				(tct / "occurrences").asArray.foreach{ a =>
+					addGTOccurrence(name,a.asArray.get(0).stringValue,a.asArray.get(1).intValue,a.asArray.get(2).stringValue)
+				}
+			}
+			rebuildHierarchy()
+		} catch {
+			case e:GraphTacticNotFoundException => throw e
+			case e:AtomicTacticNotFoundException => throw e
 		}
-		(j / "graph_tactics").asArray.foreach { tct => 
-			val name = (tct / "name").stringValue
-			val branchType = (tct / "branchType").stringValue
-			var args = Array[Array[String]]()
-			(tct / "args").asArray.foreach{ a =>
-				var arg = Array[String]()
-				a.asArray.foreach{ s => arg = arg :+ s.stringValue}
-				args = args :+ arg
-			}
-			createGT(name, branchType, args)
-			var i = 0
-			(tct / "graphs").asArray.foreach{ gr =>
-				saveGraph(name, gr, i)
-				i+=1
-			}
-			// TODO import occurrences
-		}
-		rebuildHierarchy()
 		if(current == "main"){
 			isMain = true
 		}

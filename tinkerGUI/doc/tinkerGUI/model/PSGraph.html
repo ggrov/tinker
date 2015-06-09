@@ -188,19 +188,19 @@
         </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If the atomic tactic was not found.
 </p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.ATManager#addATOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addATOccurrence(id:String,graph:String,node:String):Unit"></a>
-      <a id="addATOccurrence(String,String,String):Unit"></a>
+      <a id="addATOccurrence(id:String,graph:String,index:Int,node:String):Unit"></a>
+      <a id="addATOccurrence(String,String,Int,String):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addATOccurrence</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">addATOccurrence</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="index">index: <span class="extype" name="scala.Int">Int</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
       <p class="shortcomment cmt">Method to add an occurrence in an atomic tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to add an occurrence in an atomic tactic.
-</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph in which the occurrence is.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ATManager.html" class="extype" name="tinkerGUI.model.ATManager">ATManager</a></dd><dt>Annotations</dt><dd>
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph id in which the occurrence is.</p></dd><dt class="param">index</dt><dd class="cmt"><p>Graph index in which the occurrence is.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ATManager.html" class="extype" name="tinkerGUI.model.ATManager">ATManager</a></dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[AtomicTacticNotFoundException]">...</span>
@@ -229,19 +229,19 @@
         </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.GraphTacticNotFoundException<p>If the graph tactic was not found.
 </p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.GTManager#addGTOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addGTOccurrence(id:String,graph:String,node:String):Unit"></a>
-      <a id="addGTOccurrence(String,String,String):Unit"></a>
+      <a id="addGTOccurrence(id:String,graph:String,index:Int,node:String):Unit"></a>
+      <a id="addGTOccurrence(String,String,Int,String):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addGTOccurrence</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">addGTOccurrence</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="index">index: <span class="extype" name="scala.Int">Int</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
       <p class="shortcomment cmt">Method to add an occurrence in a graph tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to add an occurrence in a graph tactic.
-</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the graph tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph in which the occurrence is.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Annotations</dt><dd>
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the graph tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph id in which the occurrence is.</p></dd><dt class="param">index</dt><dd class="cmt"><p>Graph index in which the occurrence is.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[GraphTacticNotFoundException]">...</span>
@@ -507,19 +507,6 @@
       <p class="shortcomment cmt">Method deleting a graph tactic from the tactic collection.</p><div class="fullcomment"><div class="comment cmt"><p>Method deleting a graph tactic from the tactic collection.
 </p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the graph tactic to remove.
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd></dl></div>
-    </li><li name="tinkerGUI.model.PSGraph#dialog" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="dialog:scala.swing.Dialog"></a>
-      <a id="dialog:Dialog"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">var</span>
-      </span>
-      <span class="symbol">
-        <span class="name">dialog</span><span class="result">: <span class="extype" name="scala.swing.Dialog">Dialog</span></span>
-      </span>
-      </h4>
-      
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -607,6 +594,27 @@
               
         </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If the atomic tactic is not in the collection.
 </p></span></dd></dl></div>
+    </li><li name="tinkerGUI.model.GTManager#getChildrenGT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getChildrenGT(id:String):scala.collection.mutable.ArrayBuffer[tinkerGUI.model.GraphTactic]"></a>
+      <a id="getChildrenGT(String):ArrayBuffer[GraphTactic]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getChildrenGT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.collection.mutable.ArrayBuffer">ArrayBuffer</span>[<a href="GraphTactic.html" class="extype" name="tinkerGUI.model.GraphTactic">GraphTactic</a>]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Method to get the children of a graph tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to get the children of a graph tactic.
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the graph tactic.</p></dd><dt>returns</dt><dd class="cmt"><p>Array of children graph tactic.
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[GraphTacticNotFoundException]">...</span>
+    </span>)</span>
+              
+        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.GraphTacticNotFoundException</span></dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
@@ -820,15 +828,19 @@
         <span class="name">loadJsonGraph</span><span class="params">(<span name="j">j: <span class="extype" name="quanto.util.json.Json">Json</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method to load a new model from a Json object.</p><div class="fullcomment"><div class="comment cmt"><p>Method to load a new model from a Json object.
-</p></div><dl class="paramcmts block"><dt class="param">j</dt><dd class="cmt"><p>Json input.</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+      <p class="shortcomment cmt">Method to load a new model from a Json object.</p><div class="fullcomment"><div class="comment cmt"><p>Method to load a new model from a Json object.</p><p>This method overwrites the all model, hence it should be saved before calling it.</p></div><dl class="paramcmts block"><dt class="param">j</dt><dd class="cmt"><p>Json input.</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[GraphTacticNotFoundException]">...</span>
     </span>)</span>
               
-        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.GraphTacticNotFoundException<p>If a graph tactic is not found after importing the data.
-</p></span></dd></dl></div>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[AtomicTacticNotFoundException]">...</span>
+    </span>)</span>
+              
+        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If a atomic tactic is not found after importing the data.
+</p></span><span class="cmt">tinkerGUI.model.GraphTacticNotFoundException<p>If a graph tactic is not found after importing the data.</p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.PSGraph#mainGraph" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="mainGraph:quanto.util.json.JsonObject"></a>
       <a id="mainGraph:JsonObject"></a>
@@ -945,19 +957,19 @@
         </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If the atomic tactic was not found.
 </p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.ATManager#removeATOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="removeATOccurrence(id:String,graph:String,node:String):Boolean"></a>
-      <a id="removeATOccurrence(String,String,String):Boolean"></a>
+      <a id="removeATOccurrence(id:String,graph:String,index:Int,node:String):Boolean"></a>
+      <a id="removeATOccurrence(String,String,Int,String):Boolean"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">removeATOccurrence</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span class="name">removeATOccurrence</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="index">index: <span class="extype" name="scala.Int">Int</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4>
       <p class="shortcomment cmt">Method to remove an occurrence from an atomic tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove an occurrence from an atomic tactic.
-</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph in which the occurrence was.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence to remove.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying if it was the last occurrence of the atomic tactic.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ATManager.html" class="extype" name="tinkerGUI.model.ATManager">ATManager</a></dd><dt>Annotations</dt><dd>
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph id in which the occurrence was.</p></dd><dt class="param">index</dt><dd class="cmt"><p>Graph index in which the occurrence was.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence to remove.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying if it was the last occurrence of the atomic tactic.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ATManager.html" class="extype" name="tinkerGUI.model.ATManager">ATManager</a></dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[AtomicTacticNotFoundException]">...</span>
@@ -986,19 +998,19 @@
         </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.GraphTacticNotFoundException<p>If the graph tactic was not found.
 </p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.GTManager#removeGTOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="removeGTOccurrence(id:String,graph:String,node:String):Boolean"></a>
-      <a id="removeGTOccurrence(String,String,String):Boolean"></a>
+      <a id="removeGTOccurrence(id:String,graph:String,index:Int,node:String):Boolean"></a>
+      <a id="removeGTOccurrence(String,String,Int,String):Boolean"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">removeGTOccurrence</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span class="name">removeGTOccurrence</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="index">index: <span class="extype" name="scala.Int">Int</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4>
       <p class="shortcomment cmt">Method to remove an occurrence from a graph tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove an occurrence from a graph tactic.
-</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the graph tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph in which the occurrence was.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence to remove.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying if it was the last occurrence of the graph tactic.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Annotations</dt><dd>
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the graph tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph id in which the occurrence was.</p></dd><dt class="param">index</dt><dd class="cmt"><p>Graph index in which the occurrence was.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence to remove.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying if it was the last occurrence of the graph tactic.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[GraphTacticNotFoundException]">...</span>
@@ -1172,22 +1184,27 @@
       <span class="defval" name="classOf[AtomicTacticNotFoundException]">...</span>
     </span>)</span>
               
-        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If the atomic tactic was not found.
-</p></span></dd></dl></div>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[JsonAccessException]</span>
+    </span>)</span>
+              
+        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">quanto.util.json.JsonAccessException<p>If updating the values in the json graphs fails.
+</p></span><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If the atomic tactic was not found.</p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.ATManager#updateForceAT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="updateForceAT(id:String,newId:String,newTactic:String,newArgs:String,graph:String):Array[String]"></a>
-      <a id="updateForceAT(String,String,String,String,String):Array[String]"></a>
+      <a id="updateForceAT(id:String,newId:String,newTactic:String,newArgs:String,graph:String,index:Int):Array[String]"></a>
+      <a id="updateForceAT(String,String,String,String,String,Int):Array[String]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">updateForceAT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newTactic">newTactic: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">updateForceAT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newTactic">newTactic: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="index">index: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Method to force the update of an atomic tactic, i.</p><div class="fullcomment"><div class="comment cmt"><p>Method to force the update of an atomic tactic, i.e. update no matter what is the number of occurrences.
-</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newTactic</dt><dd class="cmt"><p>New core id value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments, in a string format.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Current graph id.</p></dd><dt>returns</dt><dd class="cmt"><p>List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ATManager.html" class="extype" name="tinkerGUI.model.ATManager">ATManager</a></dd><dt>Annotations</dt><dd>
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newTactic</dt><dd class="cmt"><p>New core id value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments, in a string format.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Current graph id.</p></dd><dt class="param">index</dt><dd class="cmt"><p>Current graph index.</p></dd><dt>returns</dt><dd class="cmt"><p>List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ATManager.html" class="extype" name="tinkerGUI.model.ATManager">ATManager</a></dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[AtomicTacticNotFoundException]">...</span>
@@ -1196,19 +1213,19 @@
         </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.AtomicTacticNotFoundException<p>If the atomic tactic is not in the collection.
 </p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.ATManager#updateForceAT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="updateForceAT(id:String,newId:String,newTactic:String,newArgs:Array[Array[String]],graph:String):Array[String]"></a>
-      <a id="updateForceAT(String,String,String,Array[Array[String]],String):Array[String]"></a>
+      <a id="updateForceAT(id:String,newId:String,newTactic:String,newArgs:Array[Array[String]],graph:String,index:Int):Array[String]"></a>
+      <a id="updateForceAT(String,String,String,Array[Array[String]],String,Int):Array[String]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">updateForceAT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newTactic">newTactic: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">updateForceAT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newTactic">newTactic: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="index">index: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Method to force the update of an atomic tactic, i.</p><div class="fullcomment"><div class="comment cmt"><p>Method to force the update of an atomic tactic, i.e. update no matter what is the number of occurrences.
-</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newTactic</dt><dd class="cmt"><p>New core id value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Current graph id.</p></dd><dt>returns</dt><dd class="cmt"><p>List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ATManager.html" class="extype" name="tinkerGUI.model.ATManager">ATManager</a></dd><dt>Annotations</dt><dd>
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newTactic</dt><dd class="cmt"><p>New core id value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Current graph id.</p></dd><dt class="param">index</dt><dd class="cmt"><p>Current graph index.</p></dd><dt>returns</dt><dd class="cmt"><p>List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ATManager.html" class="extype" name="tinkerGUI.model.ATManager">ATManager</a></dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[AtomicTacticNotFoundException]">...</span>
@@ -1235,22 +1252,27 @@
       <span class="defval" name="classOf[GraphTacticNotFoundException]">...</span>
     </span>)</span>
               
-        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.GraphTacticNotFoundException<p>If the graph tactic was not found.
-</p></span></dd></dl></div>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[JsonAccessException]</span>
+    </span>)</span>
+              
+        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">quanto.util.json.JsonAccessException<p>If updating the values in the json graphs fails.
+</p></span><span class="cmt">tinkerGUI.model.GraphTacticNotFoundException<p>If the graph tactic was not found.</p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.GTManager#updateForceGT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="updateForceGT(id:String,newId:String,newBranchType:String,newArgs:String,graph:String):Array[String]"></a>
-      <a id="updateForceGT(String,String,String,String,String):Array[String]"></a>
+      <a id="updateForceGT(id:String,newId:String,newBranchType:String,newArgs:String,graph:String,index:Int):Array[String]"></a>
+      <a id="updateForceGT(String,String,String,String,String,Int):Array[String]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">updateForceGT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newBranchType">newBranchType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">updateForceGT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newBranchType">newBranchType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="index">index: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Method to force the update of a graph tactic, i.</p><div class="fullcomment"><div class="comment cmt"><p>Method to force the update of a graph tactic, i.e. update no matter what is the number of occurrences.
-</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newBranchType</dt><dd class="cmt"><p>New branch type value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments, in a string format.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Current graph id.</p></dd><dt>returns</dt><dd class="cmt"><p>List of node id linked with this graph tactic in the current graph (should be used to update the graph view).</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Annotations</dt><dd>
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newBranchType</dt><dd class="cmt"><p>New branch type value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments, in a string format.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Current graph id.</p></dd><dt class="param">index</dt><dd class="cmt"><p>Current graph index.</p></dd><dt>returns</dt><dd class="cmt"><p>List of node id linked with this graph tactic in the current graph (should be used to update the graph view).</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[GraphTacticNotFoundException]">...</span>
@@ -1259,19 +1281,19 @@
         </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.GraphTacticNotFoundException<p>If the atomic tactic is not in the collection.
 </p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.GTManager#updateForceGT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="updateForceGT(id:String,newId:String,newBranchType:String,newArgs:Array[Array[String]],graph:String):Array[String]"></a>
-      <a id="updateForceGT(String,String,String,Array[Array[String]],String):Array[String]"></a>
+      <a id="updateForceGT(id:String,newId:String,newBranchType:String,newArgs:Array[Array[String]],graph:String,index:Int):Array[String]"></a>
+      <a id="updateForceGT(String,String,String,Array[Array[String]],String,Int):Array[String]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">updateForceGT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newBranchType">newBranchType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">updateForceGT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newBranchType">newBranchType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="index">index: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Method to force the update of a graph tactic, i.</p><div class="fullcomment"><div class="comment cmt"><p>Method to force the update of a graph tactic, i.e. update no matter what is the number of occurrences.
-</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newBranchType</dt><dd class="cmt"><p>New branch type value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Current graph id.</p></dd><dt>returns</dt><dd class="cmt"><p>List of node id linked with this graph tactic in the current graph (should be used to update the graph view).</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Annotations</dt><dd>
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newBranchType</dt><dd class="cmt"><p>New branch type value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Current graph id.</p></dd><dt class="param">index</dt><dd class="cmt"><p>Current graph index.</p></dd><dt>returns</dt><dd class="cmt"><p>List of node id linked with this graph tactic in the current graph (should be used to update the graph view).</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[GraphTacticNotFoundException]">...</span>

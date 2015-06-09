@@ -25,7 +25,7 @@ object ArgumentParser {
 				}
 				else { args = parts(1)}
 			}
-			removeUselessSpace(parts(0)), removeUselessSpace(args))
+			(removeUselessSpace(parts(0)), removeUselessSpace(args))
 		}
 		else (s, "")
 	}

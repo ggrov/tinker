@@ -12,7 +12,6 @@ import tinkerGUI.utils.ArgumentParser
 	* See [[tinkerGUI.utils.ArgumentParser]] for details on how arguments are constructed.
 	*/
 trait HasArguments {
-	// TODO : see if arguments can be strings until stored in model, whereas parse everywhere. ArgumentParser could be moved in model.
 
 	/** Argument list of a tactic */
 	var args: Array[Array[String]] = Array()

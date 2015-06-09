@@ -186,19 +186,19 @@ The gui id is used by this gui to identified tactics in the model and is also th
 </p></div><dl class="paramcmts block"><dt class="param">a</dt><dd class="cmt"><p>Argument to add.
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HasArguments.html" class="extype" name="tinkerGUI.model.HasArguments">HasArguments</a></dd></dl></div>
     </li><li name="tinkerGUI.model.HasOccurrences#addOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addOccurrence(o:(String,String)):Unit"></a>
-      <a id="addOccurrence((String,String)):Unit"></a>
+      <a id="addOccurrence(o:(String,Int,String)):Unit"></a>
+      <a id="addOccurrence((String,Int,String)):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addOccurrence</span><span class="params">(<span name="o">o: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">addOccurrence</span><span class="params">(<span name="o">o: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
       <p class="shortcomment cmt">Method to add an occurrence to a tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to add an occurrence to a tactic.
-</p></div><dl class="paramcmts block"><dt class="param">o</dt><dd class="cmt"><p>Occurrence, a graph/node pair.
+</p></div><dl class="paramcmts block"><dt class="param">o</dt><dd class="cmt"><p>Occurrence, a graph/index/node tuple.
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HasOccurrences.html" class="extype" name="tinkerGUI.model.HasOccurrences">HasOccurrences</a></dd></dl></div>
     </li><li name="tinkerGUI.model.HasArguments#args" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="args:Array[Array[String]]"></a>
@@ -360,15 +360,15 @@ The gui id is used by this gui to identified tactics in the model and is also th
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="tinkerGUI.model.HasOccurrences#getOccurrencesInGraph" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="getOccurrencesInGraph(graph:String):Array[String]"></a>
-      <a id="getOccurrencesInGraph(String):Array[String]"></a>
+      <a id="getOccurrencesInGraph(graph:String,index:Int):Array[String]"></a>
+      <a id="getOccurrencesInGraph(String,Int):Array[String]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getOccurrencesInGraph</span><span class="params">(<span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">getOccurrencesInGraph</span><span class="params">(<span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="index">index: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Method to get the list of node ids in a graph where the tactic has an occurrence.</p><div class="fullcomment"><div class="comment cmt"><p>Method to get the list of node ids in a graph where the tactic has an occurrence.
@@ -440,15 +440,15 @@ The gui id is used by this gui to identified tactics in the model and is also th
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="tinkerGUI.model.HasOccurrences#occurrences" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="occurrences:scala.collection.mutable.ArrayBuffer[(String,String)]"></a>
-      <a id="occurrences:ArrayBuffer[(String,String)]"></a>
+      <a id="occurrences:scala.collection.mutable.ArrayBuffer[(String,Int,String)]"></a>
+      <a id="occurrences:ArrayBuffer[(String,Int,String)]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">var</span>
       </span>
       <span class="symbol">
-        <span class="name">occurrences</span><span class="result">: <span class="extype" name="scala.collection.mutable.ArrayBuffer">ArrayBuffer</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)]</span>
+        <span class="name">occurrences</span><span class="result">: <span class="extype" name="scala.collection.mutable.ArrayBuffer">ArrayBuffer</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Predef.String">String</span>)]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Occurrence array of a tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Occurrence array of a tactic.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HasOccurrences.html" class="extype" name="tinkerGUI.model.HasOccurrences">HasOccurrences</a></dd></dl></div>
@@ -468,15 +468,15 @@ The gui id is used by this gui to identified tactics in the model and is also th
 </p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>Json array of the occurrences.
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HasOccurrences.html" class="extype" name="tinkerGUI.model.HasOccurrences">HasOccurrences</a></dd></dl></div>
     </li><li name="tinkerGUI.model.HasOccurrences#removeOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="removeOccurrence(o:(String,String)):Unit"></a>
-      <a id="removeOccurrence((String,String)):Unit"></a>
+      <a id="removeOccurrence(o:(String,Int,String)):Unit"></a>
+      <a id="removeOccurrence((String,Int,String)):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">removeOccurrence</span><span class="params">(<span name="o">o: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">removeOccurrence</span><span class="params">(<span name="o">o: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
       <p class="shortcomment cmt">Method to remove an occurrence from a tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove an occurrence from a tactic.
@@ -567,15 +567,15 @@ The gui id is used by this gui to identified tactics in the model and is also th
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="tinkerGUI.model.HasOccurrences#updateOccurrences" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="updateOccurrences(newOccs:scala.collection.mutable.ArrayBuffer[(String,String)]):Unit"></a>
-      <a id="updateOccurrences(ArrayBuffer[(String,String)]):Unit"></a>
+      <a id="updateOccurrences(newOccs:scala.collection.mutable.ArrayBuffer[(String,Int,String)]):Unit"></a>
+      <a id="updateOccurrences(ArrayBuffer[(String,Int,String)]):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">updateOccurrences</span><span class="params">(<span name="newOccs">newOccs: <span class="extype" name="scala.collection.mutable.ArrayBuffer">ArrayBuffer</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">updateOccurrences</span><span class="params">(<span name="newOccs">newOccs: <span class="extype" name="scala.collection.mutable.ArrayBuffer">ArrayBuffer</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Predef.String">String</span>)]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
       <p class="shortcomment cmt">Method to replace the occurrence list with a new list.</p><div class="fullcomment"><div class="comment cmt"><p>Method to replace the occurrence list with a new list.

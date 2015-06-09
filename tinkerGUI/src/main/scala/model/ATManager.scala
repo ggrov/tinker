@@ -121,11 +121,12 @@ trait ATManager {
 	 * @param newTactic New core id value.
 	 * @param newArgs New list of arguments.
 	 * @param graph Current graph id.
+	 * @param index Current graph index.
 	 * @return List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).
 	 * @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 	 */
 	@throws (classOf[AtomicTacticNotFoundException])
-	def updateForceAT(id:String, newId:String, newTactic:String, newArgs:Array[Array[String]], graph:String):Array[String] = {
+	def updateForceAT(id:String, newId:String, newTactic:String, newArgs:Array[Array[String]], graph:String, index:Int):Array[String] = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
 				t.name = newId
@@ -135,7 +136,7 @@ trait ATManager {
 					atCollection += (newId -> t)
 					atCollection -= id
 				}
-				t.getOccurrencesInGraph(graph)
+				t.getOccurrencesInGraph(graph, index)
 			case _ =>
 				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
 		}
@@ -148,11 +149,12 @@ trait ATManager {
 		* @param newTactic New core id value.
 		* @param newArgs New list of arguments, in a string format.
 		* @param graph Current graph id.
+		* @param index Current graph index.
 		* @return List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).
 		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
 	@throws (classOf[AtomicTacticNotFoundException])
-	def updateForceAT(id:String, newId:String, newTactic:String, newArgs:String, graph:String):Array[String] = {
+	def updateForceAT(id:String, newId:String, newTactic:String, newArgs:String, graph:String, index:Int):Array[String] = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
 				t.name = newId
@@ -162,7 +164,7 @@ trait ATManager {
 					atCollection += (newId -> t)
 					atCollection -= id
 				}
-				t.getOccurrencesInGraph(graph)
+				t.getOccurrencesInGraph(graph, index)
 			case _ =>
 				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
 		}
@@ -223,15 +225,16 @@ trait ATManager {
 	/** Method to add an occurrence in an atomic tactic.
 		*
 		* @param id Gui id of the atomic tactic.
-		* @param graph Graph in which the occurrence is.
+		* @param graph Graph id in which the occurrence is.
+		* @param index Graph index in which the occurrence is.
 		* @param node Node id of the occurrence.
 		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
 	@throws (classOf[AtomicTacticNotFoundException])
-	def addATOccurrence(id:String, graph:String, node:String) {
+	def addATOccurrence(id:String, graph:String, index:Int, node:String) {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
-				t.addOccurrence(Tuple2(graph,node))
+				t.addOccurrence(Tuple3(graph,index,node))
 			case None =>
 				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
 		}
@@ -240,16 +243,17 @@ trait ATManager {
 	/** Method to remove an occurrence from an atomic tactic.
 		*
 		* @param id Gui id of the atomic tactic.
-		* @param graph Graph in which the occurrence was.
+		* @param graph Graph id in which the occurrence was.
+		* @param index Graph index in which the occurrence was.
 		* @param node Node id of the occurrence to remove.
 		* @return Boolean notifying if it was the last occurrence of the atomic tactic.
 		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
 	@throws (classOf[AtomicTacticNotFoundException])
-	def removeATOccurrence(id:String, graph:String, node:String):Boolean = {
+	def removeATOccurrence(id:String, graph:String, index:Int, node:String):Boolean = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
-				t.removeOccurrence(Tuple2(graph,node))
+				t.removeOccurrence(Tuple3(graph,index,node))
 				t.occurrences.isEmpty
 			case None =>
 				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
