@@ -1,13 +1,31 @@
-package tinkerGUI.controllers
+package tinkerGUI.utils
 
 import scala.swing._
 
+/** Dialog system for tinker.
+	*
+	* Enable to display three types of dialogs :
+	*
+	* - one asking for confirmation of action ;
+	*
+	* - one reporting errors ;
+	*
+	* - one enabling field completion ;
+	*/
 object TinkerDialog {
+	/** Maximum dimensions of the dialog window.*/
 	var max = new Dimension(400, 300)
+	/** Minimum dimensions of the dialog window.*/
 	var min = new Dimension(250, 100)
-	
+
+	/** Method opening a confirmation dialog.
+		*
+		* @param message Custom message do display, e.g. "You are about to do something dangerous. Do you wish to continue ?".
+		* @param actions List of possible actions, e.g. "Yes" and "No".
+		* @return Dialog instance. Must be closed by the actions.
+		*/
 	def openConfirmationDialog(message: String, actions: Array[Action]):Dialog = {
-		var confirmationDialog:Dialog = new Dialog()
+		val confirmationDialog: Dialog = new Dialog()
 		confirmationDialog.maximumSize = max
 		confirmationDialog.minimumSize = min
 		confirmationDialog.title = "Tinker - Confirmation"
@@ -21,11 +39,16 @@ object TinkerDialog {
 		}
 		confirmationDialog.open()
 		confirmationDialog.centerOnScreen()
-		return confirmationDialog
+		confirmationDialog
 	}
 
+	/** Method opening an error dialog.
+		*
+		* @param message Custom message, e.g. "Something went wrong there.".
+		* @return Dialog instance.
+		*/
 	def openErrorDialog(message: String):Dialog = {
-		var errorDialog:Dialog = new Dialog()
+		val errorDialog:Dialog = new Dialog()
 		errorDialog.maximumSize = max
 		errorDialog.minimumSize = min
 		errorDialog.title = "Tinker - Error"
@@ -46,16 +69,25 @@ object TinkerDialog {
 		}
 		errorDialog.open()
 		errorDialog.centerOnScreen()
-		return errorDialog
+		errorDialog
 	}
 
+	/** Method opening and edit dialog.
+		*
+		* @param message Custom message, e.g. "You are editing this.".
+		* @param fields Map of the fields, e.g. "Name" -> value. Value can be empty.
+		* @param success Success callback, i.e. what to do with the new values when the user clicks "Done".
+		* @param failure Failure callback, i.e. what to do when the user clicks "Cancel".
+		* @return Dialog instance.
+		*/
 	def openEditDialog(message: String, fields: Map[String,String], success:(Map[String,String])=>Unit, failure:()=>Unit):Dialog = {
-		var editDialog:Dialog = new Dialog()
+		val editDialog:Dialog = new Dialog()
 		editDialog.maximumSize = max
 		editDialog.minimumSize = min
 		editDialog.title = "Tinker - Edition"
 		var newValMap = Map[String, String]()
 		var textfieldMap = Map[String, TextField]()
+		var radios:List[RadioButton] = List()
 		editDialog.contents = new GridPanel(fields.size+2, 1){
 			contents += new FlowPanel() {
 				contents += new Label(message)
@@ -63,16 +95,33 @@ object TinkerDialog {
 			fields.foreach{ case (k,v)=>
 				contents += new FlowPanel() {
 					contents += new Label(k+" : ")
-					val t = new TextField(v, 15)
-					contents += t
-					textfieldMap = textfieldMap + (k -> t)
+					if(k=="Branch type") {
+						val orRadio = new RadioButton("OR"){selected = v=="OR"}
+						val orelseRadio = new RadioButton("OR ELSE"){selected = v=="OR ELSE"}
+						new ButtonGroup(orRadio, orelseRadio)
+						radios = List(orRadio, orelseRadio)
+						contents ++= radios
+						textfieldMap += (k -> new TextField())
+					} else {
+						val t = new TextField(v, 15)
+						contents += t
+						textfieldMap += (k -> t)
+					}
 				}
 			}
 			contents += new FlowPanel(){
 				contents += new Button(
 					new Action("Done"){
 						def apply() {
-							textfieldMap.foreach{ case (k,v) => newValMap = newValMap + (k -> v.text)}
+							textfieldMap.foreach { case (k, v) =>
+								if (k == "Branch type") {
+									var text = ""
+									radios.foreach { case r => if (r.selected) text = r.text }
+									newValMap += (k -> text)
+								} else {
+									newValMap += (k -> v.text)
+								}
+							}
 							editDialog.close()
 							success(newValMap)
 						}
@@ -90,6 +139,6 @@ object TinkerDialog {
 		}
 		editDialog.open()
 		editDialog.centerOnScreen()
-		return editDialog
+		editDialog
 	}
 }

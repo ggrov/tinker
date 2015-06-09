@@ -1,6 +1,6 @@
 package tinkerGUI.views
 
-import tinkerGUI.model.AtomicTacticNotFoundException
+import tinkerGUI.model.{GraphTacticNotFoundException, AtomicTacticNotFoundException}
 
 import scala.swing._
 import scala.swing.event.ButtonClicked
@@ -35,7 +35,7 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 			val tacticCoreId = try {
 				Service.getATCoreId(ArgumentParser.separateNameFromArgument(value)._1)
 			} catch {
-				case e:AtomicTacticNotFoundException => "File error : could not find tactic"
+				case e:AtomicTacticNotFoundException => "Error : could not find tactic"
 			}
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+value))
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Tactic : "+tacticCoreId))
@@ -44,26 +44,20 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 				contents += delButton
 			}
 		case "Nested" =>
-			val orRadio = new RadioButton("OR") {selected = true}// ctrl.getIsNestedOr(value)}
-			val orElseRadio = new RadioButton("OR ELSE") {selected =false} // !ctrl.getIsNestedOr(value)}
-			val hierTypeRadioGroup = new ButtonGroup(orRadio, orElseRadio)
+			val name = ArgumentParser.separateNameFromArgument(value)._1
+			val branchType = try {
+				Service.getBranchTypeGT(name)
+			} catch {
+				case e:GraphTacticNotFoundException => "Error : could not find tactic"
+			}
 			val addSubButton = new Button(
 				new Action("Add a sub-graph"){
 					def apply(){
-						//ctrl.addNewSubgraph(value)
+						Service.addSubgraph(name)
 					}
 				})
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+value))
-			contents += new FlowPanel(FlowPanel.Alignment.Left)(){
-				contents += orRadio
-				contents += orElseRadio
-			}
-			hierTypeRadioGroup.buttons.foreach(listenTo(_))
-			reactions += {
-				case ButtonClicked(b: RadioButton) =>
-					//if (b == orRadio) ctrl.setIsNestedOr(value, isOr = true)
-					//else if (b == orElseRadio) ctrl.setIsNestedOr(value, isOr = false)
-			}
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Branch type : "+branchType))
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(){
 				contents += addSubButton
 				contents += editButton

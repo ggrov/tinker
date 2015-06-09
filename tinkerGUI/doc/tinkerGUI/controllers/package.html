@@ -1,0 +1,719 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>controllers - tinkerGUI documentation - tinkerGUI.controllers</title>
+          <meta name="description" content="controllers - tinkerGUI documentation - tinkerGUI.controllers" />
+          <meta name="keywords" content="controllers tinkerGUI documentation tinkerGUI.controllers" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../index.html';
+            var hash = 'tinkerGUI.controllers.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../lib/package_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="tinkerGUI">tinkerGUI</a></p>
+        <h1>controllers</h1>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">controllers</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="tinkerGUI.controllers.AddCrumEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AddCrumEventextendsEventwithProductwithSerializable"></a>
+      <a id="AddCrumEvent:AddCrumEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="AddCrumEvent.html"><span class="name">AddCrumEvent</span></a><span class="params">(<span name="crum">crum: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.DelCrumFromEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DelCrumFromEventextendsEventwithProductwithSerializable"></a>
+      <a id="DelCrumFromEvent:DelCrumFromEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="DelCrumFromEvent.html"><span class="name">DelCrumFromEvent</span></a><span class="params">(<span name="crum">crum: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.DisableEvalOptionsEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DisableEvalOptionsEventextendsEventwithProductwithSerializable"></a>
+      <a id="DisableEvalOptionsEvent:DisableEvalOptionsEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="DisableEvalOptionsEvent.html"><span class="name">DisableEvalOptionsEvent</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.DocumentActionStackEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DocumentActionStackEventextendsEventwithProductwithSerializable"></a>
+      <a id="DocumentActionStackEvent:DocumentActionStackEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="DocumentActionStackEvent.html"><span class="name">DocumentActionStackEvent</span></a><span class="params">(<span name="canUndo">canUndo: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="canRedo">canRedo: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="undoActionName">undoActionName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="redoActionName">redoActionName: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.DocumentActionStackEventAPI" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DocumentActionStackEventAPIextendsEventwithProductwithSerializable"></a>
+      <a id="DocumentActionStackEventAPI:DocumentActionStackEventAPI"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="DocumentActionStackEventAPI.html"><span class="name">DocumentActionStackEventAPI</span></a><span class="params">(<span name="canUndo">canUndo: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="canRedo">canRedo: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="undoActionName">undoActionName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="redoActionName">redoActionName: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.DocumentChanged" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DocumentChangedextendsEventwithProductwithSerializable"></a>
+      <a id="DocumentChanged:DocumentChanged"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="DocumentChanged.html"><span class="name">DocumentChanged</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.DocumentSaved" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DocumentSavedextendsEventwithProductwithSerializable"></a>
+      <a id="DocumentSaved:DocumentSaved"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="DocumentSaved.html"><span class="name">DocumentSaved</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.DocumentStatusEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DocumentStatusEventextendsEventwithProductwithSerializable"></a>
+      <a id="DocumentStatusEvent:DocumentStatusEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="DocumentStatusEvent.html"><span class="name">DocumentStatusEvent</span></a><span class="params">(<span name="status">status: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.DocumentTitleEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DocumentTitleEventextendsEventwithProductwithSerializable"></a>
+      <a id="DocumentTitleEvent:DocumentTitleEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="DocumentTitleEvent.html"><span class="name">DocumentTitleEvent</span></a><span class="params">(<span name="title">title: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.EditControlsController" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="EditControlsControllerextendsPublisher"></a>
+      <a id="EditControlsController:EditControlsController"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="EditControlsController.html"><span class="name">EditControlsController</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.ElementEditController" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ElementEditControllerextendsPublisher"></a>
+      <a id="ElementEditController:ElementEditController"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ElementEditController.html"><span class="name">ElementEditController</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.EnableEvalOptionsEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="EnableEvalOptionsEventextendsEventwithProductwithSerializable"></a>
+      <a id="EnableEvalOptionsEvent:EnableEvalOptionsEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="EnableEvalOptionsEvent.html"><span class="name">EnableEvalOptionsEvent</span></a><span class="params">(<span name="a">a: <span class="extype" name="scala.collection.mutable.ArrayBuffer">ArrayBuffer</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.EvalControlsController" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="EvalControlsControllerextendsPublisher"></a>
+      <a id="EvalControlsController:EvalControlsController"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="EvalControlsController.html"><span class="name">EvalControlsController</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.EvalOptionSelectedEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="EvalOptionSelectedEventextendsEventwithProductwithSerializable"></a>
+      <a id="EvalOptionSelectedEvent:EvalOptionSelectedEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="EvalOptionSelectedEvent.html"><span class="name">EvalOptionSelectedEvent</span></a><span class="params">(<span name="o">o: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="n">n: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.GraphBreadcrumsController" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GraphBreadcrumsControllerextendsPublisher"></a>
+      <a id="GraphBreadcrumsController:GraphBreadcrumsController"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="GraphBreadcrumsController.html"><span class="name">GraphBreadcrumsController</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.GraphEditController" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GraphEditControllerextendsPublisher"></a>
+      <a id="GraphEditController:GraphEditController"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="GraphEditController.html"><span class="name">GraphEditController</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.GraphEventAPI" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GraphEventAPIextendsEventwithProductwithSerializable"></a>
+      <a id="GraphEventAPI:GraphEventAPI"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="GraphEventAPI.html"><span class="name">GraphEventAPI</span></a><span class="params">(<span name="graph">graph: <span class="extype" name="quanto.util.json.Json">Json</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.GraphMouseDraggedEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GraphMouseDraggedEventextendsEventwithProductwithSerializable"></a>
+      <a id="GraphMouseDraggedEvent:GraphMouseDraggedEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="GraphMouseDraggedEvent.html"><span class="name">GraphMouseDraggedEvent</span></a><span class="params">(<span name="point">point: <span class="extype" name="java.awt.Point">Point</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.GraphMouseReleasedEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GraphMouseReleasedEventextendsEventwithProductwithSerializable"></a>
+      <a id="GraphMouseReleasedEvent:GraphMouseReleasedEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="GraphMouseReleasedEvent.html"><span class="name">GraphMouseReleasedEvent</span></a><span class="params">(<span name="point">point: <span class="extype" name="java.awt.Point">Point</span></span>, <span name="modifiers">modifiers: <span class="extype" name="scala.swing.event.Key.Modifiers">Modifiers</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.GraphNavigationController" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GraphNavigationControllerextendsPublisher"></a>
+      <a id="GraphNavigationController:GraphNavigationController"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="GraphNavigationController.html"><span class="name">GraphNavigationController</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.HideNavigationEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HideNavigationEventextendsEventwithProductwithSerializable"></a>
+      <a id="HideNavigationEvent:HideNavigationEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="HideNavigationEvent.html"><span class="name">HideNavigationEvent</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.HidePreviewEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HidePreviewEventextendsEventwithProductwithSerializable"></a>
+      <a id="HidePreviewEvent:HidePreviewEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="HidePreviewEvent.html"><span class="name">HidePreviewEvent</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.HierarchyTreeController" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HierarchyTreeControllerextendsPublisher"></a>
+      <a id="HierarchyTreeController:HierarchyTreeController"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HierarchyTreeController.html"><span class="name">HierarchyTreeController</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.HierarchyTreeEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HierarchyTreeEventextendsEventwithProductwithSerializable"></a>
+      <a id="HierarchyTreeEvent:HierarchyTreeEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="HierarchyTreeEvent.html"><span class="name">HierarchyTreeEvent</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.MainGUIController" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MainGUIControllerextendsPublisher"></a>
+      <a id="MainGUIController:MainGUIController"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MainGUIController.html"><span class="name">MainGUIController</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.ManyVertexSelectedEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ManyVertexSelectedEventextendsEventwithProductwithSerializable"></a>
+      <a id="ManyVertexSelectedEvent:ManyVertexSelectedEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ManyVertexSelectedEvent.html"><span class="name">ManyVertexSelectedEvent</span></a><span class="params">(<span name="vnames">vnames: <span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.ManyVertexSelectedEventAPI" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ManyVertexSelectedEventAPIextendsEventwithProductwithSerializable"></a>
+      <a id="ManyVertexSelectedEventAPI:ManyVertexSelectedEventAPI"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ManyVertexSelectedEventAPI.html"><span class="name">ManyVertexSelectedEventAPI</span></a><span class="params">(<span name="vnames">vnames: <span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.MenuController" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MenuControllerextendsPublisher"></a>
+      <a id="MenuController:MenuController"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MenuController.html"><span class="name">MenuController</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.MouseLeftPressedEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MouseLeftPressedEventextendsEventwithProductwithSerializable"></a>
+      <a id="MouseLeftPressedEvent:MouseLeftPressedEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="MouseLeftPressedEvent.html"><span class="name">MouseLeftPressedEvent</span></a><span class="params">(<span name="point">point: <span class="extype" name="java.awt.Point">Point</span></span>, <span name="modifiers">modifiers: <span class="extype" name="scala.swing.event.Key.Modifiers">Modifiers</span></span>, <span name="clicks">clicks: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.MouseRightPressedEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MouseRightPressedEventextendsEventwithProductwithSerializable"></a>
+      <a id="MouseRightPressedEvent:MouseRightPressedEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="MouseRightPressedEvent.html"><span class="name">MouseRightPressedEvent</span></a><span class="params">(<span name="point">point: <span class="extype" name="java.awt.Point">Point</span></span>, <span name="modifiers">modifiers: <span class="extype" name="scala.swing.event.Key.Modifiers">Modifiers</span></span>, <span name="clicks">clicks: <span class="extype" name="scala.Int">Int</span></span>, <span name="source">source: <span class="extype" name="scala.swing.Component">Component</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.NewGraphEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NewGraphEventextendsEventwithProductwithSerializable"></a>
+      <a id="NewGraphEvent:NewGraphEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="NewGraphEvent.html"><span class="name">NewGraphEvent</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.NothingSelectedEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NothingSelectedEventextendsEventwithProductwithSerializable"></a>
+      <a id="NothingSelectedEvent:NothingSelectedEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="NothingSelectedEvent.html"><span class="name">NothingSelectedEvent</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.NothingSelectedEventAPI" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NothingSelectedEventAPIextendsEventwithProductwithSerializable"></a>
+      <a id="NothingSelectedEventAPI:NothingSelectedEventAPI"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="NothingSelectedEventAPI.html"><span class="name">NothingSelectedEventAPI</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.OneEdgeSelectedEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="OneEdgeSelectedEventextendsEventwithProductwithSerializable"></a>
+      <a id="OneEdgeSelectedEvent:OneEdgeSelectedEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="OneEdgeSelectedEvent.html"><span class="name">OneEdgeSelectedEvent</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="source">source: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="target">target: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.OneEdgeSelectedEventAPI" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="OneEdgeSelectedEventAPIextendsEventwithProductwithSerializable"></a>
+      <a id="OneEdgeSelectedEventAPI:OneEdgeSelectedEventAPI"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="OneEdgeSelectedEventAPI.html"><span class="name">OneEdgeSelectedEventAPI</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="source">source: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="target">target: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.OneVertexSelectedEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="OneVertexSelectedEventextendsEventwithProductwithSerializable"></a>
+      <a id="OneVertexSelectedEvent:OneVertexSelectedEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="OneVertexSelectedEvent.html"><span class="name">OneVertexSelectedEvent</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="typ">typ: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.OneVertexSelectedEventAPI" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="OneVertexSelectedEventAPIextendsEventwithProductwithSerializable"></a>
+      <a id="OneVertexSelectedEventAPI:OneVertexSelectedEventAPI"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="OneVertexSelectedEventAPI.html"><span class="name">OneVertexSelectedEventAPI</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="typ">typ: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.RebuildBreadcrumParentEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RebuildBreadcrumParentEventextendsEventwithProductwithSerializable"></a>
+      <a id="RebuildBreadcrumParentEvent:RebuildBreadcrumParentEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="RebuildBreadcrumParentEvent.html"><span class="name">RebuildBreadcrumParentEvent</span></a><span class="params">(<span name="p">p: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.ShowNavigationEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ShowNavigationEventextendsEventwithProductwithSerializable"></a>
+      <a id="ShowNavigationEvent:ShowNavigationEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ShowNavigationEvent.html"><span class="name">ShowNavigationEvent</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.ShowPreviewEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ShowPreviewEventextendsEventwithProductwithSerializable"></a>
+      <a id="ShowPreviewEvent:ShowPreviewEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ShowPreviewEvent.html"><span class="name">ShowPreviewEvent</span></a><span class="params">()</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.SubGraphEditController" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SubGraphEditControllerextendsPublisher"></a>
+      <a id="SubGraphEditController:SubGraphEditController"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="SubGraphEditController.html"><span class="name">SubGraphEditController</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.TinkerLibraryController" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TinkerLibraryControllerextendsPublisher"></a>
+      <a id="TinkerLibraryController:TinkerLibraryController"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="TinkerLibraryController.html"><span class="name">TinkerLibraryController</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.UserSelectedEvalOptionEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="UserSelectedEvalOptionEventextendsEventwithProductwithSerializable"></a>
+      <a id="UserSelectedEvalOptionEvent:UserSelectedEvalOptionEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="UserSelectedEvalOptionEvent.html"><span class="name">UserSelectedEvalOptionEvent</span></a><span class="params">(<span name="o">o: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="n">n: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="tinkerGUI.controllers.CommunicationService" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CommunicationService"></a>
+      <a id="CommunicationService:CommunicationService"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="CommunicationService$.html"><span class="name">CommunicationService</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.CommunicationState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CommunicationState"></a>
+      <a id="CommunicationState:CommunicationState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="CommunicationState$.html"><span class="name">CommunicationState</span></a><span class="result"> extends <span class="extype" name="scala.Enumeration">Enumeration</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.DocumentService" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DocumentService"></a>
+      <a id="DocumentService:DocumentService"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="DocumentService$.html"><span class="name">DocumentService</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.controllers.QuantoLibAPI" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="QuantoLibAPI"></a>
+      <a id="QuantoLibAPI:QuantoLibAPI"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="QuantoLibAPI$.html"><span class="name">QuantoLibAPI</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">API file for the library based on quantomatic</p>
+    </li><li name="tinkerGUI.controllers.Service" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Service"></a>
+      <a id="Service:Service"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Service$.html"><span class="name">Service</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../lib/template.js"></script>
+    </body>
+      </html>

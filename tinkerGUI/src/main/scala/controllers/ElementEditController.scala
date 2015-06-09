@@ -6,7 +6,7 @@ import scala.swing.event.KeyPressed
 import scala.swing.event.ButtonClicked
 import scala.swing.event.Key._
 import scala.swing.event.Key
-import tinkerGUI.utils.ArgumentParser
+import tinkerGUI.utils.{ArgumentParser, TinkerDialog}
 
 class ElementEditController() extends Publisher {
 	var dialog:Dialog = new Dialog()
@@ -18,74 +18,10 @@ class ElementEditController() extends Publisher {
 		elementArguments = ""
 	}
 
-	def addValueListener(elt: TextField, isGraphTactic: Boolean){
-		val eltNameArg = ArgumentParser.separateNameFromArgument(elt.text)
-		elementName = eltNameArg._1
-		elementArguments = eltNameArg._2
-		listenTo(elt.keys)
-		reactions += {
-			case KeyReleased(c, key, _, _) =>
-				if(c == elt){
-					var (name, arguments) = ArgumentParser.separateNameFromArgument(elt.text)
-					if(name == elementName && arguments != elementArguments && (key != Key.Colon && key != Key.Comma && key != Key.Space)){
-						val actualArgs = Service.parseAndUpdateArguments(name, arguments)
-						elementArguments = actualArgs
-						val oldPosition = elt.text.length-elt.caret.position
-						elt.text = name+"("+actualArgs+")"
-						elt.caret.position = elt.text.length-oldPosition
-						QuantoLibAPI.editSelectedElementValue(elt.text)
-					}
-					else if(name != elementName && name != "" && arguments != elementArguments){
-						val actualName = Service.updateTacticName(elementName, name, isGraphTactic)
-						val actualArgs = Service.parseAndUpdateArguments(actualName, arguments)
-						elementName = actualName
-						val oldPosition = elt.caret.position
-						elt.text = actualName+"("+actualArgs+")"
-						elt.caret.position = oldPosition
-						QuantoLibAPI.editSelectedElementValue(elt.text)
-					}
-					else if(name != elementName && name != "" && arguments == elementArguments){
-						val actualName = Service.updateTacticName(elementName, name, isGraphTactic)
-						elementName = actualName
-						val oldPosition = elt.caret.position
-						elt.text = actualName+"("+arguments+")"
-						elt.caret.position = oldPosition
-						QuantoLibAPI.editSelectedElementValue(elt.text)
-					}
-				}
-		}
-	}
-
-	def getAtomicTacticValue(value: String): String = {
-		val name = ArgumentParser.separateNameFromArgument(value)._1
-		Service.getAtomicTacticValue(name)
-	}
-
-	def addAtmTctValueListener(elt: TextField, node:String){
-		listenTo(elt.keys)
-		reactions += {
-			case KeyReleased(c, key, _, _) =>
-				val name = ArgumentParser.separateNameFromArgument(node)._1
-				if(elementName == "") elementName = name
-				if(c == elt){
-					Service.setAtomicTacticValue(elementName, elt.text)
-				}
-		}
-	}
-
 	def delete(eltName: String){
 		QuantoLibAPI.userDeleteElement(eltName)
 		publish(NothingSelectedEvent())
 	}
-
-	def addNewSubgraph(tactic: String){
-		val name = ArgumentParser.separateNameFromArgument(tactic)._1
-		if(elementName == "") elementName = name
-		Service.addSubgraph(elementName)
-	}
-
-	def setIsNestedOr(eltName: String, isOr: Boolean) = Service.setIsOr(ArgumentParser.separateNameFromArgument(eltName)._1, isOr)
-	def getIsNestedOr(eltName: String) = Service.isNestedOr(ArgumentParser.separateNameFromArgument(eltName)._1)
 
 	def addEdgeValueListener(e: String, elt: TextField) {
 		var prevValue = ""

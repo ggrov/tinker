@@ -1,15 +1,7 @@
 package tinkerGUI.controllers
 
 import scala.swing._
-import tinkerGUI.utils.PopupMenu
-import tinkerGUI.utils.ArgumentParser
-import tinkerGUI.utils.SelectTool
-import tinkerGUI.utils.SelectionBox
-import tinkerGUI.utils.DragVertex
-import tinkerGUI.utils.AddVertexTool
-import tinkerGUI.utils.AddEdgeTool
-import tinkerGUI.utils.DragEdge
-import tinkerGUI.utils.MouseState
+import tinkerGUI.utils._
 
 class GraphEditController() extends Publisher {
 	private var mouseState: MouseState = SelectTool()
@@ -84,19 +76,7 @@ class GraphEditController() extends Publisher {
 			def updateValueCallback(newValues :Map[String,String]) = {
 				newValues.foreach{ case (k,v) =>
 					k match {
-						case "Name" =>
-							val (oldName, oldArg) = ArgumentParser.separateNameFromArgument(eltValue)
-							var (newName, newArg) = ArgumentParser.separateNameFromArgument(v)
-							if(oldName != newName && newName != "") {
-								newName = Service.updateTacticName(oldName, newName, elt=="Nested")
-							}
-							if(oldArg != newArg){
-								newArg = Service.parseAndUpdateArguments(newName, newArg)
-							}
-							eltValue = newName+"("+newArg+")"
-							QuantoLibAPI.setVertexValue(eltName, eltValue)
-						case "Tactic" => 
-							Service.setAtomicTacticValue(ArgumentParser.separateNameFromArgument(eltValue)._1, v)
+						// should only support edges
 						case "Goal types" =>
 							QuantoLibAPI.setEdgeValue(eltName, v)
 							eltValue = v
@@ -127,13 +107,9 @@ class GraphEditController() extends Publisher {
 				case "Nested" =>
 					contents += new MenuItem(new Action("Edit node") {
 						def apply = {
-							TinkerDialog.openEditDialog("Edit node "+eltName,
-							Map("Name"->eltValue),
-							updateValueCallback,
-							failureCallback)
+							Service.updateTactic(eltName,eltValue,false)
 						}
 					})
-					contents += new CheckMenuItem("is or"){selected = Service.isNestedOr(ArgumentParser.separateNameFromArgument(eltValue)._1); action = (new Action("is or"){def apply = Service.setIsOr(ArgumentParser.separateNameFromArgument(eltValue)._1, selected)})}
 					contents += new MenuItem(new Action("Add a subgraph") {def apply = Service.addSubgraph(ArgumentParser.separateNameFromArgument(eltValue)._1)})
 					contents += new MenuItem(deleteNodeAction)
 				case "Breakpoint" =>

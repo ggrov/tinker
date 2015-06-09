@@ -262,6 +262,22 @@ trait GTManager {
 		}
 	}
 
+	/** Method to get the number of occurrences of a graph tactic.
+		*
+		* @param id Gui id of the graph tactic.
+		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic was not found.
+		* @return Number of occurrences of the graph tactic.
+		*/
+	@throws (classOf[GraphTacticNotFoundException])
+	def getGTNumberOfOccurrences(id:String):Int = {
+		gtCollection get id match {
+			case Some(t:GraphTactic) =>
+				t.occurrences.size
+			case None =>
+				throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+		}
+	}
+
 	/** Method to add a subgraph to a graph tactic.
 		*
 		* @param id Gui id of the graph tactic.

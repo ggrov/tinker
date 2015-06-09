@@ -2,8 +2,7 @@ package tinkerGUI.model
 
 import scala.collection.mutable.ArrayBuffer
 import quanto.util.json._
-import tinkerGUI.utils.ArgumentParser
-import tinkerGUI.controllers.TinkerDialog
+import tinkerGUI.utils.{ArgumentParser, TinkerDialog}
 
 class TreeElement(var name: String, var children: ArrayBuffer[TreeElement], var parent: String)
 
@@ -102,7 +101,7 @@ class HierarchyModel() {
 	}
 
 	def buildPartialHierarchy(parent: TreeElement, model: PSGraph) {
-		model.lookForGraphTactic(parent.name) match {
+		model.gtCollection get parent.name match {
 			case Some(t: GraphTactic) => 
 				t.graphs.foreach {g => 
 					(g ? "node_vertices").asObject.map {

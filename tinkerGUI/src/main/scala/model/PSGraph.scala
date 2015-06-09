@@ -1,3 +1,5 @@
+// TODO : when updating a graph tactic name, change occurrences of child tactics
+
 package tinkerGUI.model
 
 import tinkerGUI.utils.ArgumentParser
@@ -304,7 +306,7 @@ class PSGraph() extends ATManager with GTManager {
 						v.graphs -= g
 						Json.parse(g.toString().replace(oldVal,newVal)) match {
 							case j: JsonObject => v.graphs += j
-							case j:_ =>
+							case j: Json =>
 								v.graphs += g
 								throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
 						}
@@ -313,7 +315,7 @@ class PSGraph() extends ATManager with GTManager {
 		} else {
 			mainGraph = Json.parse(mainGraph.toString().replace(oldVal, newVal)) match {
 				case j: JsonObject => j
-				case j:_ =>
+				case j: Json =>
 					throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
 			}
 			gtCollection.foreach { case(k,v) =>
@@ -322,7 +324,7 @@ class PSGraph() extends ATManager with GTManager {
 						v.graphs -= g
 						Json.parse(g.toString().replace(oldVal,newVal)) match {
 							case j: JsonObject => v.graphs += j
-							case j:_ =>
+							case j: Json =>
 								v.graphs += g
 								throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
 						}

@@ -259,4 +259,20 @@ trait ATManager {
 				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
 		}
 	}
+
+	/** Method to get the number of occurrences of a atomic tactic.
+		*
+		* @param id Gui id of the atomic tactic.
+		* @throws tinkerGUI.model.GraphTacticNotFoundException If the atomic tactic was not found.
+		* @return Number of occurrences of the atomic tactic.
+		*/
+	@throws (classOf[AtomicTacticNotFoundException])
+	def getATNumberOfOccurrences(id:String):Int = {
+		atCollection get id match {
+			case Some(t:AtomicTactic) =>
+				t.occurrences.size
+			case None =>
+				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
+		}
+	}
 }

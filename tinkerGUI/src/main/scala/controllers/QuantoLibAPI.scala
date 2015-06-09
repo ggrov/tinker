@@ -983,7 +983,7 @@ object QuantoLibAPI extends Publisher{
 		var res = false
 		graph.inEdges(n).foreach{e =>
 			graph.vdata(graph.source(e)) match {
-				case d:NodeV if(d.typ == "G") => res = true
+				case d:NodeV if d.typ == "G" => res = true
 				case _ =>
 			}
 		}
@@ -997,7 +997,7 @@ object QuantoLibAPI extends Publisher{
 		var res = false
 		graph.outEdges(n).foreach{e =>
 			graph.vdata(graph.target(e)) match {
-				case d:NodeV if(d.typ == "T_Graph") => res = true
+				case d:NodeV if d.typ == "T_Graph" => res = true
 				case _ =>
 			}
 		}
@@ -1029,9 +1029,10 @@ object QuantoLibAPI extends Publisher{
 		changeGraph(graph.addVertex(newName, newData.withCoord((newX,newY))))
 		graph.vdata(newName) match {
 			case data: NodeV =>
-				changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.createNode(data.label, true, true)) }) // TODO integrate merging with new model
-				view.invalidateVertex(newName)
-				graph.adjacentEdges(newName).foreach { view.invalidateEdge }
+				Service.createTactic(newName.s,false)
+				//changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.createNode(data.label, true, true)) }) // TODO check integration of merging with new model
+				//view.invalidateVertex(newName)
+				//graph.adjacentEdges(newName).foreach { view.invalidateEdge }
 		}
 		graph.vdata(newName) match { case data: NodeV => newData = data}
 		var subgraphVerts = view.selectedVerts

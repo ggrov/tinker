@@ -1,7 +1,6 @@
 package tinkerGUI.utils
 
 import java.util.regex.Pattern
-import tinkerGUI.controllers.TinkerDialog
 
 /** Object providing methods to parse tactic arguments
 	*

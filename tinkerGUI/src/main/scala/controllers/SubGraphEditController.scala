@@ -1,5 +1,7 @@
 package tinkerGUI.controllers
 
+import tinkerGUI.model.{SubgraphNotFoundException, GraphTacticNotFoundException}
+
 import scala.swing._
 import scala.swing.event.ButtonClicked
 import quanto.util.json._
@@ -16,13 +18,12 @@ class SubGraphEditController() extends Publisher {
 	def getSubgraphView = QuantoLibAPI.getSubgraphPreview
 
 	private def showPreview(){
-		val jsonSubGraph = Service.getSpecificJsonFromModel(tacticToShow, indexToShow)
-		jsonSubGraph match {
-			case Some(j: JsonObject) =>
-				QuantoLibAPI.updateSubgraphPreviewFromJson(j)
-				publish(ShowPreviewEvent())
-			case None => 
-				publish(HidePreviewEvent())
+		try{
+			QuantoLibAPI.updateSubgraphPreviewFromJson(Service.getSubgraphGT(tacticToShow, indexToShow))
+			publish(ShowPreviewEvent())
+		} catch {
+			case e:GraphTacticNotFoundException => publish(HidePreviewEvent())
+			case e:SubgraphNotFoundException => publish(HidePreviewEvent())
 		}
 	}
 
@@ -73,7 +74,7 @@ class SubGraphEditController() extends Publisher {
 					val name = ArgumentParser.separateNameFromArgument(value)._1
 					tacticToShow = name
 					indexToShow = 0
-					tacticTotal = Service.getSizeOfTactic(name)
+					tacticTotal = Service.getSizeGT(name)
 					indexOnTotal.text = (indexToShow + 1) + " / " + tacticTotal
 					showPreview()
 				case "G" | "G_Break" | "T_Atomic" | "T_Identity" => publish(HidePreviewEvent())
