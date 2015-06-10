@@ -30,6 +30,35 @@ trait HasOccurrences {
 		occurrences -= o
 	}
 
+	/** Method to remove a set of occurrences from a tactic, depending on the graph id.
+		*
+		* @param id Graph id.
+		*/
+	def removeOccurrence(id:String){
+		var occToRemove:ArrayBuffer[(String,Int,String)] = ArrayBuffer()
+		for(o<-occurrences if o._1 == id) {
+			occToRemove += o
+		}
+		for(o<-occToRemove) occurrences -= o
+	}
+
+	/** Method to change a set of occurrences from a tactic, depending on the graph id.
+		*
+		* @param id Initial gui id of the graph.
+		* @param newId Finale gui id of the graph.
+		*/
+	def changeOccurrences(id:String, newId:String){
+		var occToRemove:ArrayBuffer[(String,Int,String)] = ArrayBuffer()
+		var occToAdd:ArrayBuffer[(String,Int,String)] = ArrayBuffer()
+		for(o<-occurrences if o._1 == id) {
+			occToAdd += Tuple3(newId, o._2, o._3)
+			occToRemove += o
+		}
+		for(o<-occToRemove) occurrences -= o
+		for(o<-occToAdd) occurrences += o
+
+	}
+
 	/** Method to generate a Json array of the occurrences of a tactic.
 		* 
 		* @return Json array of the occurrences.

@@ -11,7 +11,7 @@ import quanto.util.json._
 	* @param name Gui id of the atomic tactic.
 	* @param tactic Core id of the atomic tactic.
 	*/
-class AtomicTactic(name: String, var tactic: String) extends Tactic(name) {
+class AtomicTactic(var name: String, var tactic: String) extends HasArguments with HasOccurrences {
 
 	/** Method to generate a Json object of the atomic tactic.
 		*

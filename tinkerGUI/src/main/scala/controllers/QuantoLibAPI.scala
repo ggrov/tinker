@@ -1041,7 +1041,7 @@ object QuantoLibAPI extends Publisher{
 			graph.vdata(v) match {
 				case d:NodeV =>
 					if(d.typ == "T_Graph"){
-						Service.changeTacticParent(ArgumentParser.separateNameFromArgument(d.label)._1, ArgumentParser.separateNameFromArgument(newData.label)._1)
+						//Service.changeTacticParent(ArgumentParser.separateNameFromArgument(d.label)._1, ArgumentParser.separateNameFromArgument(newData.label)._1) // TODO see above
 					}
 			}
 			// foreach "in" edges of selected nodes, setting target to be new node except for recursion

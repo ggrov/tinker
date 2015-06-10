@@ -3,7 +3,7 @@ package tinkerGUI.model
 import quanto.util.json._
 import scala.collection.mutable.ArrayBuffer
 
-/** Exception class for not finding a subgraph in the graph tactic
+/** Exception class for not finding a subgraph in the graph tactic.
 	*
 	* @param msg Custom message.
 	*/
@@ -17,7 +17,7 @@ case class SubgraphNotFoundException(msg:String) extends Exception(msg)
 	* @param name Id of the graph tactic.
 	* @param branchType Branch type of the graph tactic.
 	*/
-class GraphTactic(name: String, var branchType: String) extends Tactic(name) {
+class GraphTactic(var name: String, var branchType: String) extends HasArguments with HasOccurrences {
 
 	/** Collection of subgraphs. */
 	var graphs : ArrayBuffer[JsonObject] = ArrayBuffer()

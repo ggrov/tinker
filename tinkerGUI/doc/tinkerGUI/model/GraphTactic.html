@@ -35,7 +35,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">GraphTactic</span><span class="result"> extends <a href="Tactic.html" class="extype" name="tinkerGUI.model.Tactic">Tactic</a></span>
+        <span class="name">GraphTactic</span><span class="result"> extends <a href="HasArguments.html" class="extype" name="tinkerGUI.model.HasArguments">HasArguments</a> with <a href="HasOccurrences.html" class="extype" name="tinkerGUI.model.HasOccurrences">HasOccurrences</a></span>
       </span>
       </h4>
       
@@ -43,7 +43,7 @@
 It also has a string defining its branching type, e.g. OR and ORELSE.
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="Tactic.html" class="extype" name="tinkerGUI.model.Tactic">Tactic</a>, <a href="HasOccurrences.html" class="extype" name="tinkerGUI.model.HasOccurrences">HasOccurrences</a>, <a href="HasArguments.html" class="extype" name="tinkerGUI.model.HasArguments">HasArguments</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="HasOccurrences.html" class="extype" name="tinkerGUI.model.HasOccurrences">HasOccurrences</a>, <a href="HasArguments.html" class="extype" name="tinkerGUI.model.HasArguments">HasArguments</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -61,7 +61,7 @@ It also has a string defining its branching type, e.g. OR and ORELSE.
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="tinkerGUI.model.GraphTactic"><span>GraphTactic</span></li><li class="in" name="tinkerGUI.model.Tactic"><span>Tactic</span></li><li class="in" name="tinkerGUI.model.HasOccurrences"><span>HasOccurrences</span></li><li class="in" name="tinkerGUI.model.HasArguments"><span>HasArguments</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="tinkerGUI.model.GraphTactic"><span>GraphTactic</span></li><li class="in" name="tinkerGUI.model.HasOccurrences"><span>HasOccurrences</span></li><li class="in" name="tinkerGUI.model.HasArguments"><span>HasArguments</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -298,6 +298,21 @@ It also has a string defining its branching type, e.g. OR and ORELSE.
       </span>
       </h4>
       <p class="shortcomment cmt">Branch type of the graph tactic.</p>
+    </li><li name="tinkerGUI.model.HasOccurrences#changeOccurrences" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="changeOccurrences(id:String,newId:String):Unit"></a>
+      <a id="changeOccurrences(String,String):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">changeOccurrences</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Method to change a set of occurrences from a tactic, depending on the graph id.</p><div class="fullcomment"><div class="comment cmt"><p>Method to change a set of occurrences from a tactic, depending on the graph id.
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Initial gui id of the graph.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>Finale gui id of the graph.
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HasOccurrences.html" class="extype" name="tinkerGUI.model.HasOccurrences">HasOccurrences</a></dd></dl></div>
     </li><li name="tinkerGUI.model.GraphTactic#children" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="children:scala.collection.mutable.ArrayBuffer[tinkerGUI.model.GraphTactic]"></a>
       <a id="children:ArrayBuffer[GraphTactic]"></a>
@@ -519,6 +534,19 @@ It also has a string defining its branching type, e.g. OR and ORELSE.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="tinkerGUI.model.GraphTactic#name" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="name:String"></a>
+      <a id="name:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">var</span>
+      </span>
+      <span class="symbol">
+        <span class="name">name</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Id of the graph tactic.</p>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -602,6 +630,21 @@ It also has a string defining its branching type, e.g. OR and ORELSE.
 </p></div><dl class="paramcmts block"><dt class="param">t</dt><dd class="cmt"><p>Child graph tactic.
 </p></dd></dl></div>
     </li><li name="tinkerGUI.model.HasOccurrences#removeOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="removeOccurrence(id:String):Unit"></a>
+      <a id="removeOccurrence(String):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">removeOccurrence</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Method to remove a set of occurrences from a tactic, depending on the graph id.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove a set of occurrences from a tactic, depending on the graph id.
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Graph id.
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HasOccurrences.html" class="extype" name="tinkerGUI.model.HasOccurrences">HasOccurrences</a></dd></dl></div>
+    </li><li name="tinkerGUI.model.HasOccurrences#removeOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="removeOccurrence(o:(String,Int,String)):Unit"></a>
       <a id="removeOccurrence((String,Int,String)):Unit"></a>
       <h4 class="signature">
@@ -673,7 +716,7 @@ It also has a string defining its branching type, e.g. OR and ORELSE.
       </h4>
       <p class="shortcomment cmt">Method to generate a Json object of the graph tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to generate a Json object of the graph tactic.
 </p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>Json object of the graph tactic.
-</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="tinkerGUI.model.GraphTactic">GraphTactic</a> → <a href="Tactic.html" class="extype" name="tinkerGUI.model.Tactic">Tactic</a></dd></dl></div>
+</p></dd></dl></div>
     </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <a id="toString():String"></a>
@@ -768,9 +811,7 @@ It also has a string defining its branching type, e.g. OR and ORELSE.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="tinkerGUI.model.Tactic">
-              <h3>Inherited from <a href="Tactic.html" class="extype" name="tinkerGUI.model.Tactic">Tactic</a></h3>
-            </div><div class="parent" name="tinkerGUI.model.HasOccurrences">
+        <div class="parent" name="tinkerGUI.model.HasOccurrences">
               <h3>Inherited from <a href="HasOccurrences.html" class="extype" name="tinkerGUI.model.HasOccurrences">HasOccurrences</a></h3>
             </div><div class="parent" name="tinkerGUI.model.HasArguments">
               <h3>Inherited from <a href="HasArguments.html" class="extype" name="tinkerGUI.model.HasArguments">HasArguments</a></h3>

@@ -81,12 +81,29 @@ class PSGraph() extends ATManager with GTManager {
 				case None => throw new GraphTacticNotFoundException("Graph tactic "+name+" not found")
 			}
 			val nodeIds = updateForceGT(name,newName,newBranchType,newArgs,graph,currentIndex)
-			if(name != newName) updateValueInJsonGraphs(name, newName)
+			if(name != newName) {
+				updateValueInJsonGraphs(name, newName)
+				for((k,v)<-gtCollection) v.changeOccurrences(name, newName)
+				for((k,v)<-atCollection) v.changeOccurrences(name, newName)
+			}
 			if(oldArgs != newArgs) updateValueInJsonGraphs(newName+"("+oldArgs+")", newName+"("+newArgs+")")
 			nodeIds
 		} catch {
 			case e:GraphTacticNotFoundException => throw e
 			case e:JsonAccessException => throw e
+		}
+	}
+
+	@throws (classOf[GraphTacticNotFoundException])
+	override def updateGT(name:String, newName:String, newBranchType:String, newArgs:String):Boolean = {
+		try{
+			if(name != newName){
+				for((k,v)<-gtCollection) v.changeOccurrences(name, newName)
+				for((k,v)<-atCollection) v.changeOccurrences(name, newName)
+			}
+			super.updateGT(name, newName, newBranchType, newArgs)
+		} catch {
+			case e:GraphTacticNotFoundException => throw e
 		}
 	}
 
@@ -117,7 +134,12 @@ class PSGraph() extends ATManager with GTManager {
 	def removeATOccurrence(name:String,node:String):Boolean = {
 		val graph = if(isMain) "main" else currentTactic.name
 		try{
-			removeATOccurrence(name,graph,currentIndex, node)
+			if(removeATOccurrence(name,graph,currentIndex, node)){
+				deleteAT(name)
+				true
+			} else {
+				false
+			}
 		} catch {
 			case e:AtomicTacticNotFoundException => throw e
 		}
@@ -167,9 +189,32 @@ class PSGraph() extends ATManager with GTManager {
 				case None =>
 					throw new GraphTacticNotFoundException("Graph tactic "+name+" not found")
 			}
-			res
+			if(res){
+				deleteGT(name)
+				true
+			} else {
+				false
+			}
 		} catch {
 			case e:GraphTacticNotFoundException => throw e
+		}
+	}
+
+	/** Method to delete a graph tactic from the tactic collection.
+		*
+		* This method overrides [[tinkerGUI.model.GTManager.deleteGT]] but still invokes it.
+		* It also remove all occurrences (in the atomic and graph tactic collections) which refers to this graph tactic id.
+		* @param name Gui id of the graph tactic to delete.
+		*/
+	override def deleteGT(name:String) {
+		super.deleteGT(name)
+		for((k,v) <- gtCollection) {
+			v.removeOccurrence(name)
+			if(v.occurrences.isEmpty) deleteGT(k)
+		}
+		for((k,v) <- atCollection) {
+			v.removeOccurrence(name)
+			if(v.occurrences.isEmpty) deleteAT(k)
 		}
 	}
 
@@ -186,6 +231,7 @@ class PSGraph() extends ATManager with GTManager {
 			"goal_types" -> goalTypes)
 		// println("---------------------------------------------------")
 		// println(jsonPSGraph)
+		// TODO move occurrence as global
 	}
 
 	/** Method to register a new subgraph and set it as current.

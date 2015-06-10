@@ -10,7 +10,8 @@ object Service extends Publisher {
 	// other services
 	val c = CommunicationService // the communication needs to be "instantiates" to actually listen for connections
 	// Models
-	val hierarchyModel = new HierarchyModel()
+	//val hierarchyModel = new HierarchyModel()
+
 	// controllers
 	// TODO get rid of unecessary controllers
 	val mainCtrl = new MainGUIController()
@@ -19,7 +20,7 @@ object Service extends Publisher {
 	val menuCtrl = new MenuController()
 	val editControlsCtrl = new EditControlsController()
 	val evalControlsCtrl = new EvalControlsController()
-	val graphBreadcrumsCtrl = new GraphBreadcrumsController()
+	val graphBreadcrumsCtrl = new GraphBreadcrumbsController()
 	val subGraphEditCtrl = new SubGraphEditController()
 	val graphNavCtrl = new GraphNavigationController()
 	val hierTreeCtrl = new HierarchyTreeController()
@@ -58,14 +59,16 @@ object Service extends Publisher {
 	def getSizeGT(tactic: String) = model.getSizeGT(tactic)
 	/** Method to get the branch type of a specific graph tactic. See [[tinkerGUI.model.PSGraph.getGTBranchType]].*/
 	def getBranchTypeGT(tactic: String) = model.getGTBranchType(tactic)
+	/** Method to get the children of a graph tactic or the main graph children. See [[tinkerGUI.model.GraphTactic.children]] and [[tinkerGUI.model.PSGraph.childrenMain]].*/
+	def getGTChildren(tactic:String) = if(tactic=="main") model.childrenMain else model.getChildrenGT(tactic)
 
 	// getters on the hierarchy controller
 	// the root node element of the hierarchy tree
-	def getHierarchyRoot = hierarchyModel.root
+	//def getHierarchyRoot = hierarchyModel.root
 	// the active element
-	def getHierarchyActive = hierarchyModel.activeElement
+	//def getHierarchyActive = hierarchyModel.activeElement
 	// the parent list of a specific element
-	def getParentList(tactic: String) = hierarchyModel.buildParentList(tactic, Array[String]())
+	//def getParentList(tactic: String) = hierarchyModel.buildParentList(tactic, Array[String]())
 
 
 	/** Method to create a tactic in the model.
@@ -108,7 +111,7 @@ object Service extends Publisher {
 					DocumentService.setUnsavedChanges(true)
 					checkedByModel = if(isAtomicTactic) model.createAT(name,tactic,args) else model.createGT(name,branchType,args)
 					if(checkedByModel){
-						if(isAtomicTactic) model.addATOccurrence(name,nodeId) else model.addGTOccurrence(name,nodeId)
+						if(isAtomicTactic) model.addATOccurrence(name,nodeId) else {model.addGTOccurrence(name,nodeId); hierTreeCtrl.redraw()}
 						QuantoLibAPI.setVertexValue(nodeId, name+"("+args+")")
 					} else {
 						var confirmDialog = new Dialog()
@@ -122,7 +125,7 @@ object Service extends Publisher {
 						}
 						val duplicateAction:Action = new Action("Use same informations"){
 							def apply(){
-								if(isAtomicTactic) model.addATOccurrence(name,nodeId) else model.addGTOccurrence(name,nodeId)
+								if(isAtomicTactic) model.addATOccurrence(name,nodeId) else {model.addGTOccurrence(name,nodeId); hierTreeCtrl.redraw()}
 								val fullName = if(isAtomicTactic) model.getATFullName(name) else model.getGTFullName(name)
 								QuantoLibAPI.setVertexValue(nodeId, fullName)
 								confirmDialog.close()
@@ -207,7 +210,7 @@ object Service extends Publisher {
 									// TODO : consider linking all occurrences
 									deleteTactic(tacticOldName,nodeId,true)
 									model.addATOccurrence(name,nodeId)
-									QuantoLibAPI.setVertexValue(nodeId, name+"("+args+")")
+									QuantoLibAPI.setVertexValue(nodeId, model.getATFullName(name))
 									confirmDialog.close()
 								}
 							}
@@ -255,7 +258,8 @@ object Service extends Publisher {
 									// TODO : consider linking all occurrences
 									deleteTactic(tacticOldName,nodeId,false)
 									model.addGTOccurrence(name,nodeId)
-									QuantoLibAPI.setVertexValue(nodeId, name+"("+args+")")
+									hierTreeCtrl.redraw()
+									QuantoLibAPI.setVertexValue(nodeId, model.getGTFullName(name))
 									confirmDialog.close()
 								}
 							}
@@ -277,12 +281,14 @@ object Service extends Publisher {
 									def apply(){
 										createTactic(nodeId,isAtomicTactic,values)
 										model.removeGTOccurrence(tacticOldName, nodeId)
+										hierTreeCtrl.redraw()
 										confirmDialog.close()
 									}
 								}
 								val editAllAction:Action = new Action("Edit all"){
 									def apply(){
 										val nodesToChange: Array[String] = model.updateForceGT(tacticOldName, name, branchType, args)
+										hierTreeCtrl.redraw()
 										val fullName = model.getGTFullName(name)
 										nodesToChange.foreach{ n =>
 											QuantoLibAPI.setVertexValue(n, fullName)
@@ -314,8 +320,13 @@ object Service extends Publisher {
 			DocumentService.setUnsavedChanges(true)
 			val tacticName = ArgumentParser.separateNameFromArgument(nodeName)._1
 			val lastOcc:Boolean = if(isAtomicTactic) model.removeATOccurrence(tacticName, nodeId) else model.removeGTOccurrence(tacticName,nodeId)
+			hierTreeCtrl.redraw()
 			if(lastOcc){
-				var confirmDialog = new Dialog()
+				val message =
+					if(isAtomicTactic) "This was the only occurrence of this atomic tactic, its data have been deleted."
+					else "This was the only occurrence of this graph tactic, its data and child tactic's data have been deleted."
+				TinkerDialog.openErrorDialog(message)
+				/*var confirmDialog = new Dialog()
 				val message:String = "This is the last occurrence of this tactic. Do you wish to keep its data ?"
 				val keepAction:Action = new Action("Keep data") {
 					def apply() {
@@ -329,7 +340,7 @@ object Service extends Publisher {
 						confirmDialog.close()
 					}
 				}
-				confirmDialog = TinkerDialog.openConfirmationDialog(message,Array(keepAction,delAction))
+				confirmDialog = TinkerDialog.openConfirmationDialog(message,Array(keepAction,delAction))*/
 			}
 		} catch {
 			case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
@@ -337,17 +348,13 @@ object Service extends Publisher {
 		}
 	}
 
-	// TODO change use of hierarchymodel
-	def changeTacticParent(tactic: String, parent: String) = hierarchyModel.changeParent(tactic, parent)
-
 	def addSubgraph(tactic: String){
 		DocumentService.setUnsavedChanges(true)
 		model.newSubgraph(tactic)
-		hierarchyModel.changeActive(tactic)
 		hierTreeCtrl.redraw
 		QuantoLibAPI.newGraph()
 		graphNavCtrl.viewedGraphChanged(model.isMain, true)
-		graphBreadcrumsCtrl.addCrum(tactic)
+		graphBreadcrumsCtrl.addCrumb(tactic)
 		publish(NothingSelectedEvent())
 	}
 
@@ -364,8 +371,7 @@ object Service extends Publisher {
 			try{
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
 				graphNavCtrl.viewedGraphChanged(model.isMain, false)
-				graphBreadcrumsCtrl.addCrum(tactic)
-				hierarchyModel.changeActive(tactic)
+				graphBreadcrumsCtrl.addCrumb(tactic)
 				hierTreeCtrl.redraw
 				true
 			} catch {
@@ -393,7 +399,6 @@ object Service extends Publisher {
 		try{
 			QuantoLibAPI.loadFromJson(model.getCurrentJson)
 			// graphBreadcrumsCtrl.addCrum(getCurrent)
-			hierarchyModel.changeActive(getCurrent)
 			hierTreeCtrl.redraw
 
 		} catch {
@@ -419,18 +424,18 @@ object Service extends Publisher {
 		publish(NothingSelectedEvent())
 		QuantoLibAPI.loadFromJson(j)
 		graphNavCtrl.viewedGraphChanged(model.isMain, false)
-		graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
-		graphBreadcrumsCtrl.addCrum(getCurrent)
-		hierarchyModel.changeActive(getCurrent)
+		//graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
+		graphBreadcrumsCtrl.addCrumb(getCurrent)
+		//hierarchyModel.changeActive(getCurrent)
 		hierTreeCtrl.redraw
 	}
 
 	def loadJson(j:Json) {
 		if(!j.isEmpty){
 			model.loadJsonGraph(j)
-			hierarchyModel.rebuildHierarchy(model)
-			graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
-			graphBreadcrumsCtrl.addCrum(getCurrent)
+			//hierarchyModel.rebuildHierarchy(model)
+			//graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
+			graphBreadcrumsCtrl.addCrumb(getCurrent)
 			graphNavCtrl.viewedGraphChanged(model.isMain, false)
 			refreshGraph
 		}
@@ -456,9 +461,9 @@ object Service extends Publisher {
 			case Some(j: Json) =>
 				if(!j.isEmpty){
 					model.loadJsonGraph(j)
-					hierarchyModel.rebuildHierarchy(model)
-					graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
-					graphBreadcrumsCtrl.addCrum(getCurrent)
+					//hierarchyModel.rebuildHierarchy(model)
+					//graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
+					graphBreadcrumsCtrl.addCrumb(getCurrent)
 					graphNavCtrl.viewedGraphChanged(model.isMain, false)
 					refreshGraph
 				}
@@ -491,9 +496,9 @@ object Service extends Publisher {
 		model.updateJsonPSGraph()
 		if(DocumentService.promptUnsaved(model.jsonPSGraph)){
 			model.loadJsonGraph(JsonObject("current" -> "main", "current_index" -> 0, "graph" -> JsonObject(), "graph_tactics" -> JsonArray(Array[JsonObject]()), "atomic_tactics" -> JsonArray(Array[JsonObject]()), "goal_types" -> ""))
-			hierarchyModel.rebuildHierarchy(model)
-			graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
-			graphBreadcrumsCtrl.addCrum(getCurrent)
+			//hierarchyModel.rebuildHierarchy(model)
+			//graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
+			graphBreadcrumsCtrl.addCrumb(getCurrent)
 			graphNavCtrl.viewedGraphChanged(model.isMain, false)
 			refreshGraph
 		}

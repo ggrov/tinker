@@ -202,19 +202,6 @@
       </span>
       </h4>
       
-    </li><li name="tinkerGUI.controllers.Service#changeTacticParent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="changeTacticParent(tactic:String,parent:String):Unit"></a>
-      <a id="changeTacticParent(String,String):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">changeTacticParent</span><span class="params">(<span name="tactic">tactic: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="parent">parent: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4>
-      
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -535,6 +522,19 @@ Launches dialogs to interact with user to get more information on tactic.
       </span>
       </h4>
       <p class="shortcomment cmt">Method to get the current graph tactic size.</p><div class="fullcomment"><div class="comment cmt"><p>Method to get the current graph tactic size. See <a href="../model/PSGraph.html#currentTactic:tinkerGUI.model.GraphTactic" class="extmbr" name="tinkerGUI.model.PSGraph#currentTactic">tinkerGUI.model.PSGraph.currentTactic</a>.</p></div></div>
+    </li><li name="tinkerGUI.controllers.Service#getGTChildren" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getGTChildren(tactic:String):scala.collection.mutable.ArrayBuffer[tinkerGUI.model.GraphTactic]"></a>
+      <a id="getGTChildren(String):ArrayBuffer[GraphTactic]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getGTChildren</span><span class="params">(<span name="tactic">tactic: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.collection.mutable.ArrayBuffer">ArrayBuffer</span>[<a href="../model/GraphTactic.html" class="extype" name="tinkerGUI.model.GraphTactic">GraphTactic</a>]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Method to get the children of a graph tactic or the main graph children.</p><div class="fullcomment"><div class="comment cmt"><p>Method to get the children of a graph tactic or the main graph children. See <a href="../model/GraphTactic.html#children:scala.collection.mutable.ArrayBuffer[tinkerGUI.model.GraphTactic]" class="extmbr" name="tinkerGUI.model.GraphTactic#children">tinkerGUI.model.GraphTactic.children</a> and <a href="../model/PSGraph.html#childrenMain:scala.collection.mutable.ArrayBuffer[tinkerGUI.model.GraphTactic]" class="extmbr" name="tinkerGUI.model.PSGraph#childrenMain">tinkerGUI.model.PSGraph.childrenMain</a>.</p></div></div>
     </li><li name="tinkerGUI.controllers.Service#getGoalTypes" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getGoalTypes:String"></a>
       <a id="getGoalTypes:String"></a>
@@ -548,32 +548,6 @@ Launches dialogs to interact with user to get more information on tactic.
       </span>
       </h4>
       <p class="shortcomment cmt">Method to get the goal types of the psgraph.</p><div class="fullcomment"><div class="comment cmt"><p>Method to get the goal types of the psgraph. See <a href="../model/PSGraph.html#goalTypes:String" class="extmbr" name="tinkerGUI.model.PSGraph#goalTypes">tinkerGUI.model.PSGraph.goalTypes</a>.</p></div></div>
-    </li><li name="tinkerGUI.controllers.Service#getHierarchyActive" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="getHierarchyActive:tinkerGUI.model.TreeElement"></a>
-      <a id="getHierarchyActive:TreeElement"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getHierarchyActive</span><span class="result">: <a href="../model/TreeElement.html" class="extype" name="tinkerGUI.model.TreeElement">TreeElement</a></span>
-      </span>
-      </h4>
-      
-    </li><li name="tinkerGUI.controllers.Service#getHierarchyRoot" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="getHierarchyRoot:tinkerGUI.model.TreeElement"></a>
-      <a id="getHierarchyRoot:TreeElement"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getHierarchyRoot</span><span class="result">: <a href="../model/TreeElement.html" class="extype" name="tinkerGUI.model.TreeElement">TreeElement</a></span>
-      </span>
-      </h4>
-      
     </li><li name="tinkerGUI.controllers.Service#getJsonPSGraph" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getJsonPSGraph:quanto.util.json.JsonObject"></a>
       <a id="getJsonPSGraph:JsonObject"></a>
@@ -597,19 +571,6 @@ Launches dialogs to interact with user to get more information on tactic.
       </span>
       <span class="symbol">
         <span class="name">getMainFrame</span><span class="result">: <span class="extype" name="scala.swing.Component">Component</span></span>
-      </span>
-      </h4>
-      
-    </li><li name="tinkerGUI.controllers.Service#getParentList" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="getParentList(tactic:String):Array[String]"></a>
-      <a id="getParentList(String):Array[String]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getParentList</span><span class="params">(<span name="tactic">tactic: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4>
       
@@ -653,15 +614,15 @@ Launches dialogs to interact with user to get more information on tactic.
       </h4>
       
     </li><li name="tinkerGUI.controllers.Service#graphBreadcrumsCtrl" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="graphBreadcrumsCtrl:tinkerGUI.controllers.GraphBreadcrumsController"></a>
-      <a id="graphBreadcrumsCtrl:GraphBreadcrumsController"></a>
+      <a id="graphBreadcrumsCtrl:tinkerGUI.controllers.GraphBreadcrumbsController"></a>
+      <a id="graphBreadcrumsCtrl:GraphBreadcrumbsController"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">graphBreadcrumsCtrl</span><span class="result">: <a href="GraphBreadcrumsController.html" class="extype" name="tinkerGUI.controllers.GraphBreadcrumsController">GraphBreadcrumsController</a></span>
+        <span class="name">graphBreadcrumsCtrl</span><span class="result">: <a href="GraphBreadcrumbsController.html" class="extype" name="tinkerGUI.controllers.GraphBreadcrumbsController">GraphBreadcrumbsController</a></span>
       </span>
       </h4>
       
@@ -714,19 +675,6 @@ Launches dialogs to interact with user to get more information on tactic.
       </span>
       <span class="symbol">
         <span class="name">hierTreeCtrl</span><span class="result">: <a href="HierarchyTreeController.html" class="extype" name="tinkerGUI.controllers.HierarchyTreeController">HierarchyTreeController</a></span>
-      </span>
-      </h4>
-      
-    </li><li name="tinkerGUI.controllers.Service#hierarchyModel" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="hierarchyModel:tinkerGUI.model.HierarchyModel"></a>
-      <a id="hierarchyModel:HierarchyModel"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">hierarchyModel</span><span class="result">: <a href="../model/HierarchyModel.html" class="extype" name="tinkerGUI.model.HierarchyModel">HierarchyModel</a></span>
       </span>
       </h4>
       

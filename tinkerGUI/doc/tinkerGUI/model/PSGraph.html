@@ -492,8 +492,8 @@
       <p class="shortcomment cmt">Method deleting an atomic tactic from the tactic collection.</p><div class="fullcomment"><div class="comment cmt"><p>Method deleting an atomic tactic from the tactic collection.
 </p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic to remove.
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ATManager.html" class="extype" name="tinkerGUI.model.ATManager">ATManager</a></dd></dl></div>
-    </li><li name="tinkerGUI.model.GTManager#deleteGT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="deleteGT(id:String):Unit"></a>
+    </li><li name="tinkerGUI.model.PSGraph#deleteGT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="deleteGT(name:String):Unit"></a>
       <a id="deleteGT(String):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -501,12 +501,12 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">deleteGT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">deleteGT</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method deleting a graph tactic from the tactic collection.</p><div class="fullcomment"><div class="comment cmt"><p>Method deleting a graph tactic from the tactic collection.
-</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the graph tactic to remove.
-</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd></dl></div>
+      <p class="shortcomment cmt">Method to delete a graph tactic from the tactic collection.</p><div class="fullcomment"><div class="comment cmt"><p>Method to delete a graph tactic from the tactic collection.</p><p>This method overrides <a href="GTManager.html#deleteGT(id:String):Unit" class="extmbr" name="tinkerGUI.model.GTManager#deleteGT">tinkerGUI.model.GTManager.deleteGT</a> but still invokes it.
+It also remove all occurrences (in the atomic and graph tactic collections) which refers to this graph tactic id.</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Gui id of the graph tactic to delete.
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="tinkerGUI.model.PSGraph">PSGraph</a> → <a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -1343,8 +1343,8 @@
               
         </dd><dt>Exceptions thrown</dt><dd><span class="cmt">tinkerGUI.model.GraphTacticNotFoundException<p>If the graph tactic is not in the collection.
 </p></span></dd></dl></div>
-    </li><li name="tinkerGUI.model.GTManager#updateGT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="updateGT(id:String,newId:String,newBranchType:String,newArgs:String):Boolean"></a>
+    </li><li name="tinkerGUI.model.PSGraph#updateGT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="updateGT(name:String,newName:String,newBranchType:String,newArgs:String):Boolean"></a>
       <a id="updateGT(String,String,String,String):Boolean"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1352,11 +1352,11 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">updateGT</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newBranchType">newBranchType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span class="name">updateGT</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newName">newName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newBranchType">newBranchType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4>
       <p class="shortcomment cmt">Method to update a graph tactic, only if it has less than two occurrences.</p><div class="fullcomment"><div class="comment cmt"><p>Method to update a graph tactic, only if it has less than two occurrences.
-</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id before change.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>New gui id value.</p></dd><dt class="param">newBranchType</dt><dd class="cmt"><p>New branch type value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments, in a string format.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying of successful change or not (should be used to handle duplication).</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Annotations</dt><dd>
+</p></div><dl class="paramcmts block"><dt class="param">newBranchType</dt><dd class="cmt"><p>New branch type value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments, in a string format.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying of successful change or not (should be used to handle duplication).</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="tinkerGUI.model.PSGraph">PSGraph</a> → <a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[GraphTacticNotFoundException]">...</span>

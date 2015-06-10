@@ -2,9 +2,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>HasOccurrences - tinkerGUI documentation - tinkerGUI.model.HasOccurrences</title>
-          <meta name="description" content="HasOccurrences - tinkerGUI documentation - tinkerGUI.model.HasOccurrences" />
-          <meta name="keywords" content="HasOccurrences tinkerGUI documentation tinkerGUI.model.HasOccurrences" />
+          <title>GraphBreadcrumbsController - tinkerGUI documentation - tinkerGUI.controllers.GraphBreadcrumbsController</title>
+          <meta name="description" content="GraphBreadcrumbsController - tinkerGUI documentation - tinkerGUI.controllers.GraphBreadcrumbsController" />
+          <meta name="keywords" content="GraphBreadcrumbsController tinkerGUI documentation tinkerGUI.controllers.GraphBreadcrumbsController" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -12,7 +12,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../index.html';
-            var hash = 'tinkerGUI.model.HasOccurrences';
+            var hash = 'tinkerGUI.controllers.GraphBreadcrumbsController';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -24,30 +24,24 @@
         </head>
         <body class="type">
       <div id="definition">
-        <img src="../../lib/trait_big.png" />
-        <p id="owner"><a href="../package.html" class="extype" name="tinkerGUI">tinkerGUI</a>.<a href="package.html" class="extype" name="tinkerGUI.model">model</a></p>
-        <h1>HasOccurrences</h1>
+        <img src="../../lib/class_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="tinkerGUI">tinkerGUI</a>.<a href="package.html" class="extype" name="tinkerGUI.controllers">controllers</a></p>
+        <h1>GraphBreadcrumbsController</h1>
       </div>
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">trait</span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">HasOccurrences</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">GraphBreadcrumbsController</span><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Tactic behaviour for having occurrences</p><p>An occurrence represents the fact that a node on a graph is linked with a tactic. It is a tuple with
-one string representing the graph in which the occurrence is, one integer for the graph id,
-and one string being the node id.
-</p></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div><div class="toggleContainer block">
-          <span class="toggle">Known Subclasses</span>
-          <div class="subClasses hiddenContent"><a href="AtomicTactic.html" class="extype" name="tinkerGUI.model.AtomicTactic">AtomicTactic</a>, <a href="GraphTactic.html" class="extype" name="tinkerGUI.model.GraphTactic">GraphTactic</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.swing.Publisher">Publisher</span>, <span class="extype" name="scala.swing.Reactor">Reactor</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -65,7 +59,7 @@ and one string being the node id.
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="tinkerGUI.model.HasOccurrences"><span>HasOccurrences</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="tinkerGUI.controllers.GraphBreadcrumbsController"><span>GraphBreadcrumbsController</span></li><li class="in" name="scala.swing.Publisher"><span>Publisher</span></li><li class="in" name="scala.swing.Reactor"><span>Reactor</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -83,7 +77,23 @@ and one string being the node id.
 
       <div id="template">
         <div id="allMembers">
-        
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="tinkerGUI.controllers.GraphBreadcrumbsController#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;():tinkerGUI.controllers.GraphBreadcrumbsController"></a>
+      <a id="&lt;init&gt;:GraphBreadcrumbsController"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">new</span>
+      </span>
+      <span class="symbol">
+        <span class="name">GraphBreadcrumbsController</span><span class="params">()</span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
 
         
 
@@ -156,21 +166,19 @@ and one string being the node id.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="tinkerGUI.model.HasOccurrences#addOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addOccurrence(o:(String,Int,String)):Unit"></a>
-      <a id="addOccurrence((String,Int,String)):Unit"></a>
+    </li><li name="tinkerGUI.controllers.GraphBreadcrumbsController#addCrumb" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="addCrumb(crumb:String):Unit"></a>
+      <a id="addCrumb(String):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addOccurrence</span><span class="params">(<span name="o">o: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">addCrumb</span><span class="params">(<span name="crumb">crumb: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method to add an occurrence to a tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to add an occurrence to a tactic.
-</p></div><dl class="paramcmts block"><dt class="param">o</dt><dd class="cmt"><p>Occurrence, a graph/index/node tuple.
-</p></dd></dl></div>
+      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -184,21 +192,19 @@ and one string being the node id.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="tinkerGUI.model.HasOccurrences#changeOccurrences" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="changeOccurrences(id:String,newId:String):Unit"></a>
-      <a id="changeOccurrences(String,String):Unit"></a>
+    </li><li name="tinkerGUI.controllers.GraphBreadcrumbsController#changeGraph" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="changeGraph(gr:String):Boolean"></a>
+      <a id="changeGraph(String):Boolean"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">changeOccurrences</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newId">newId: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">changeGraph</span><span class="params">(<span name="gr">gr: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method to change a set of occurrences from a tactic, depending on the graph id.</p><div class="fullcomment"><div class="comment cmt"><p>Method to change a set of occurrences from a tactic, depending on the graph id.
-</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Initial gui id of the graph.</p></dd><dt class="param">newId</dt><dd class="cmt"><p>Finale gui id of the graph.
-</p></dd></dl></div>
+      
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -218,6 +224,19 @@ and one string being the node id.
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="scala.swing.Reactor#deafTo" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="deafTo(ps:&lt;?&gt;):Unit"></a>
+      <a id="deafTo(Publisher*):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">deafTo</span><span class="params">(<span name="ps">ps: <span class="extype" name="scala.swing.Publisher">Publisher</span>*</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Reactor</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -244,19 +263,6 @@ and one string being the node id.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="tinkerGUI.model.HasOccurrences#eraseOccurrences" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="eraseOccurrences():Unit"></a>
-      <a id="eraseOccurrences():Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">eraseOccurrences</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Method to completly erase the occurrence list.</p>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -289,21 +295,6 @@ and one string being the node id.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="tinkerGUI.model.HasOccurrences#getOccurrencesInGraph" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="getOccurrencesInGraph(graph:String,index:Int):Array[String]"></a>
-      <a id="getOccurrencesInGraph(String,Int):Array[String]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getOccurrencesInGraph</span><span class="params">(<span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="index">index: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Method to get the list of node ids in a graph where the tactic has an occurrence.</p><div class="fullcomment"><div class="comment cmt"><p>Method to get the list of node ids in a graph where the tactic has an occurrence.
-</p></div><dl class="paramcmts block"><dt class="param">graph</dt><dd class="cmt"><p>Graph id.</p></dd><dt>returns</dt><dd class="cmt"><p>List of node ids.
-</p></dd></dl></div>
     </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <a id="hashCode():Int"></a>
@@ -330,6 +321,32 @@ and one string being the node id.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="scala.swing.Reactor#listenTo" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="listenTo(ps:scala.swing.Publisher*):Unit"></a>
+      <a id="listenTo(Publisher*):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">listenTo</span><span class="params">(<span name="ps">ps: <span class="extype" name="scala.swing.Publisher">Publisher</span>*</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Reactor</dd></dl></div>
+    </li><li name="scala.swing.Publisher#listeners" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="listeners:scala.swing.RefSet[scala.swing.Reactions.Reaction]{valunderlying:scala.collection.mutable.HashSet[scala.ref.Reference[scala.swing.Reactions.Reaction]]}"></a>
+      <a id="listeners:RefSet[Reaction]{valunderlying:scala.collection.mutable.HashSet[scala.ref.Reference[scala.swing.Reactions.Reaction]]}"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">listeners</span><span class="result">: <span class="extype" name="scala.swing.RefSet">RefSet</span>[<span class="extype" name="scala.swing.Reactions.Reaction">Reaction</span>] { val underlying: scala.collection.mutable.HashSet[scala.ref.Reference[scala.swing.Reactions.Reaction]] }</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Publisher</dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -369,64 +386,45 @@ and one string being the node id.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="tinkerGUI.model.HasOccurrences#occurrences" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="occurrences:scala.collection.mutable.ArrayBuffer[(String,Int,String)]"></a>
-      <a id="occurrences:ArrayBuffer[(String,Int,String)]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">var</span>
-      </span>
-      <span class="symbol">
-        <span class="name">occurrences</span><span class="result">: <span class="extype" name="scala.collection.mutable.ArrayBuffer">ArrayBuffer</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Predef.String">String</span>)]</span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Occurrence array of a tactic.</p>
-    </li><li name="tinkerGUI.model.HasOccurrences#occurrencesToJson" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="occurrencesToJson():quanto.util.json.JsonArray"></a>
-      <a id="occurrencesToJson():JsonArray"></a>
+    </li><li name="scala.swing.Publisher#publish" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="publish(e:scala.swing.event.Event):Unit"></a>
+      <a id="publish(Event):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">occurrencesToJson</span><span class="params">()</span><span class="result">: <span class="extype" name="quanto.util.json.JsonArray">JsonArray</span></span>
+        <span class="name">publish</span><span class="params">(<span name="e">e: <span class="extype" name="scala.swing.event.Event">Event</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method to generate a Json array of the occurrences of a tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to generate a Json array of the occurrences of a tactic.
-</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>Json array of the occurrences.
-</p></dd></dl></div>
-    </li><li name="tinkerGUI.model.HasOccurrences#removeOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="removeOccurrence(id:String):Unit"></a>
-      <a id="removeOccurrence(String):Unit"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Publisher</dd></dl></div>
+    </li><li name="scala.swing.Reactor#reactions" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="reactions:scala.swing.Reactions"></a>
+      <a id="reactions:Reactions"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">reactions</span><span class="result">: <span class="extype" name="scala.swing.Reactions">Reactions</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Reactor</dd></dl></div>
+    </li><li name="tinkerGUI.controllers.GraphBreadcrumbsController#rebuildParent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="rebuildParent(p:Array[String]):Unit"></a>
+      <a id="rebuildParent(Array[String]):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">removeOccurrence</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">rebuildParent</span><span class="params">(<span name="p">p: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method to remove a set of occurrences from a tactic, depending on the graph id.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove a set of occurrences from a tactic, depending on the graph id.
-</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Graph id.
-</p></dd></dl></div>
-    </li><li name="tinkerGUI.model.HasOccurrences#removeOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="removeOccurrence(o:(String,Int,String)):Unit"></a>
-      <a id="removeOccurrence((String,Int,String)):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">removeOccurrence</span><span class="params">(<span name="o">o: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Method to remove an occurrence from a tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove an occurrence from a tactic.
-</p></div><dl class="paramcmts block"><dt class="param">o</dt><dd class="cmt"><p>Occurrence to be removed.
-</p></dd></dl></div>
+      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -453,21 +451,6 @@ and one string being the node id.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="tinkerGUI.model.HasOccurrences#updateOccurrences" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="updateOccurrences(newOccs:scala.collection.mutable.ArrayBuffer[(String,Int,String)]):Unit"></a>
-      <a id="updateOccurrences(ArrayBuffer[(String,Int,String)]):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">updateOccurrences</span><span class="params">(<span name="newOccs">newOccs: <span class="extype" name="scala.collection.mutable.ArrayBuffer">ArrayBuffer</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Predef.String">String</span>)]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Method to replace the occurrence list with a new list.</p><div class="fullcomment"><div class="comment cmt"><p>Method to replace the occurrence list with a new list.
-</p></div><dl class="paramcmts block"><dt class="param">newOccs</dt><dd class="cmt"><p>New occurrence list.
-</p></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -534,7 +517,11 @@ and one string being the node id.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.swing.Publisher">
+              <h3>Inherited from <span class="extype" name="scala.swing.Publisher">Publisher</span></h3>
+            </div><div class="parent" name="scala.swing.Reactor">
+              <h3>Inherited from <span class="extype" name="scala.swing.Reactor">Reactor</span></h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>

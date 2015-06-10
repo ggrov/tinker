@@ -7,37 +7,37 @@ import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.AddCrumEvent
 import tinkerGUI.controllers.RebuildBreadcrumParentEvent
 import tinkerGUI.controllers.DelCrumFromEvent
-import tinkerGUI.controllers.GraphBreadcrumsController
+import tinkerGUI.controllers.GraphBreadcrumbsController
 
-class GraphBreadcrums() extends Publisher{
+class GraphBreadcrumbs() extends Publisher{
 	val controller = Service.graphBreadcrumsCtrl
 	val current = new Label("main")
 	var parents: Array[Label] = Array()
-	val breadcrums = new FlowPanel() {
+	val breadcrumbs = new FlowPanel() {
 		contents += current
 	}
-	var addCurent = true
+	var addCurrent = true
 
 	def updateContent(){
-		breadcrums.contents.clear()
+		breadcrumbs.contents.clear()
 		parents.foreach { p => 
-			breadcrums.contents += p
-			breadcrums.contents += new Label ("\u25B8")
+			breadcrumbs.contents += p
+			breadcrumbs.contents += new Label ("\u25B8")
 		}
-		breadcrums.contents += current
-		breadcrums.repaint()	
+		breadcrumbs.contents += current
+		breadcrumbs.repaint()	
 	}
 	
 	listenTo(controller)
 	reactions += {
 		case AddCrumEvent(s) =>
 			if(current.text != s){
-				if(addCurent){
+				if(addCurrent){
 					val parent = new Label(current.text)
 					parent.foreground = new Color(0, 128, 255)
 					parents = parents :+ parent
 				}
-				addCurent = true
+				addCurrent = true
 				current.text = s
 				updateContent()
 				parents.foreach { p =>
@@ -60,7 +60,7 @@ class GraphBreadcrums() extends Publisher{
 			}
 		case RebuildBreadcrumParentEvent(p: Array[String]) =>
 			parents = Array()
-			addCurent = false
+			addCurrent = false
 			p.foreach {s=>
 				val parent = new Label(s)
 				parent.foreground = new Color(0, 128, 255)

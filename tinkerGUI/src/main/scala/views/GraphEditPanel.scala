@@ -13,7 +13,7 @@ class GraphEditPanel() extends BorderPanel {
 	var graphPanel = controller.getGraph
 	val editControls = new EditControlsPanel()
 	val evalControls = new EvalControlsPanel()
-	val graphBreadcrums = new GraphBreadcrums()
+	val graphBreadcrums = new GraphBreadcrumbs()
 	val graphNav = new GraphNavigation
 	add(new BorderPanel(){
 		add(new BorderPanel(){
@@ -32,7 +32,7 @@ class GraphEditPanel() extends BorderPanel {
 					opaque = false
 					cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 				}
-				contents += graphBreadcrums.breadcrums
+				contents += graphBreadcrums.breadcrumbs
 			}, BorderPanel.Position.West)
 			add(new BoxPanel(Orientation.Vertical){
 				contents += graphNav.navigation

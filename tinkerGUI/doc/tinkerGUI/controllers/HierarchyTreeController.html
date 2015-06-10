@@ -225,15 +225,15 @@
       </h4>
       
     </li><li name="tinkerGUI.controllers.HierarchyTreeController#drawElement" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="drawElement(g:java.awt.Graphics2D,node:tinkerGUI.model.TreeElement,x:Int,y:Int,depth:Int):Int"></a>
-      <a id="drawElement(Graphics2D,TreeElement,Int,Int,Int):Int"></a>
+      <a id="drawElement(g:java.awt.Graphics2D,node:String,x:Int,y:Int,depth:Int,parents:Array[String]):Int"></a>
+      <a id="drawElement(Graphics2D,String,Int,Int,Int,Array[String]):Int"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">drawElement</span><span class="params">(<span name="g">g: <span class="extype" name="java.awt.Graphics2D">Graphics2D</span></span>, <span name="node">node: <a href="../model/TreeElement.html" class="extype" name="tinkerGUI.model.TreeElement">TreeElement</a></span>, <span name="x">x: <span class="extype" name="scala.Int">Int</span></span>, <span name="y">y: <span class="extype" name="scala.Int">Int</span></span>, <span name="depth">depth: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+        <span class="name">drawElement</span><span class="params">(<span name="g">g: <span class="extype" name="java.awt.Graphics2D">Graphics2D</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="x">x: <span class="extype" name="scala.Int">Int</span></span>, <span name="y">y: <span class="extype" name="scala.Int">Int</span></span>, <span name="depth">depth: <span class="extype" name="scala.Int">Int</span></span>, <span name="parents">parents: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4>
       
@@ -264,15 +264,15 @@
       </h4>
       
     </li><li name="tinkerGUI.controllers.HierarchyTreeController#elementCoordinates" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="elementCoordinates:Map[String,Array[Int]]"></a>
-      <a id="elementCoordinates:Map[String,Array[Int]]"></a>
+      <a id="elementCoordinates:Array[(String,Int,Int,Int,Int)]"></a>
+      <a id="elementCoordinates:Array[(String,Int,Int,Int,Int)]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">var</span>
       </span>
       <span class="symbol">
-        <span class="name">elementCoordinates</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Int">Int</span>]]</span>
+        <span class="name">elementCoordinates</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>)]</span>
       </span>
       </h4>
       
@@ -478,28 +478,15 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Reactor</dd></dl></div>
     </li><li name="tinkerGUI.controllers.HierarchyTreeController#redraw" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="redraw:Unit"></a>
-      <a id="redraw:Unit"></a>
+      <a id="redraw():Unit"></a>
+      <a id="redraw():Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">redraw</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4>
-      
-    </li><li name="tinkerGUI.controllers.HierarchyTreeController#root" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="root:tinkerGUI.model.TreeElement"></a>
-      <a id="root:TreeElement"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">root</span><span class="result">: <a href="../model/TreeElement.html" class="extype" name="tinkerGUI.model.TreeElement">TreeElement</a></span>
+        <span class="name">redraw</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
       
