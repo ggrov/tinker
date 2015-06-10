@@ -15,14 +15,14 @@ struct
     isOr : bool,
     graphs: Theory.Graph.T list,
     args : Theory.Data.arg_typ,
-    occur : V.name list (* the actual graph name plus node id as a key to uniquely identify a node *)
+    node_id : V.name list (* the actual graph name plus node id as a key to uniquely identify a node *)
   }
 
   datatype atomic_tacs = Atomic_Tacs of {
      name : string, (* map to the node name *)
      tactic: string, (* actual ml code of the tactic *)
      args : Theory.Data.arg_typ,
-     occur : V.name list (* the actual graph name plus node id as a key to uniquely identify a node *)
+     node_id : V.name list (* the actual graph name plus node id as a key to uniquely identify a node *)
   }
 
  (* prover tactic : what about evaluation? should this be in the tactic or as args here? *)
@@ -32,8 +32,7 @@ struct
       atomic_tactics : atomic_tacs StrName.NTab.T,
 (* as we allow using tactic with various arguements, the types of tactics various, we need to use string *)
      (*  tactics : Prover.tactic StrName.NTab.T, *) (* atomic_tactics name -> tactic *) (* do we still need it ? *)
-      goaltype_data : Theory.Data.GoalTyp.data,
-      parents: (StrName.NTab.name) StrName.NTab.T (* worth to keep it ? *)
+      goaltype_data : Theory.Data.GoalTyp.data
   }
   
  exception tactic_exp of string
@@ -41,15 +40,15 @@ struct
  fun update_top_graph f (PSGraph rep) = 
    PSGraph { graph = f (#graph rep), graph_tactics = #graph_tactics rep, 
              atomic_tactics = #atomic_tactics rep,(* tactics = #tactics rep,*)
-             goaltype_data = #goaltype_data rep, parents = #parents rep}
+             goaltype_data = #goaltype_data rep}
  fun update_graph_tactics f (PSGraph rep) = 
    PSGraph { graph = #graph rep, graph_tactics = f (#graph_tactics rep), 
              atomic_tactics = #atomic_tactics rep, (* tactics = #tactics rep,*)
-             goaltype_data = #goaltype_data rep, parents = #parents rep}
+             goaltype_data = #goaltype_data rep}
  fun update_atomic_tactics f (PSGraph rep) = 
    PSGraph { graph = #graph rep, graph_tactics = #graph_tactics rep, 
              atomic_tactics = f (#atomic_tactics rep), (* tactics = #tactics rep,*)
-             goaltype_data = #goaltype_data rep, parents = #parents rep}
+             goaltype_data = #goaltype_data rep}
  (* 
  fun update_tactics f (PSGraph rep) = 
    PSGraph { graph = #graph rep, graph_tactics = #graph_tactics rep, 
@@ -59,12 +58,7 @@ struct
  fun update_goaltype_data f (PSGraph rep) = 
    PSGraph { graph = #graph rep, graph_tactics = #graph_tactics rep, 
              atomic_tactics = #atomic_tactics rep, (* tactics = #tactics rep,*)
-             goaltype_data = f (#goaltype_data rep), parents = #parents rep}
- fun update_parents f (PSGraph rep) = 
-   PSGraph { graph = #graph rep, graph_tactics = #graph_tactics rep, 
-             atomic_tactics = #atomic_tactics rep, (* tactics = #tactics rep,*)
-             goaltype_data = #goaltype_data rep, parents = f(#parents rep)}
-
+             goaltype_data = f (#goaltype_data rep)}
 
  fun get_top_graph (PSGraph rep) = #graph rep;
  fun get_graph_tactics (PSGraph rep) = #graph_tactics rep;
@@ -86,18 +80,6 @@ struct
   String.translate (fn x => if x = #"@" then ("(" ^ parent_arg_str ^ ")") else str x ) arg_str
   |> (fn x =>(writeln ("ML tac code: " ^ x ^ " using parent arg: " ^ parent_arg_str ^ " and arg str: " ^ arg_str) ; x))
   
-(*
-   let 
-     fun concat b a = a ^ parent_arg_str ^ b;
-     val args = 
-      String.tokens (member (op =) [default_parent_arg_token]) arg_str
-   in
-     if List.length args = 1 then (hd args) ^ parent_arg_str
-     else
-     fold concat (tl args) (hd args)
-     |> (fn x =>( writeln ("ML tac code: " ^ x ^ " using parent arg: " ^ parent_arg_str ^ " and arg str: " ^ arg_str) ; x))
-   end;
-*)
     
 (* FIXME: how about muliti-args, how to eval ? *)
  fun get_atomic_tactic_code0 ps name = 

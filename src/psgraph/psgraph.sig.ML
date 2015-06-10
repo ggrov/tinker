@@ -28,7 +28,6 @@ sig
   val get_atomic_tactics : T -> atomic_tacs StrName.NTab.T
   (* val get_tactics : T -> Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T *)
   val get_goaltype_data : T -> Theory.Data.GoalTyp.data
-  val get_parents: T -> (StrName.NTab.name) StrName.NTab.T
   val get_graph : T -> StrName.NTab.name -> int -> Theory.Graph.T
   val get_graphs : T -> StrName.NTab.name -> Theory.Graph.T list
   val get_atomic_tac_code : T 
@@ -45,7 +44,6 @@ sig
   val set_atomic_tactics : atomic_tacs StrName.NTab.T  -> T -> T  
  (* val set_tactics : Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T -> T -> T *)
   val set_goaltype_data :  Theory.Data.GoalTyp.data -> T -> T
-  val set_parents : (StrName.NTab.name) StrName.NTab.T -> T -> T
   val set_graph :  StrName.NTab.name -> int -> Theory.Graph.T -> T -> T
 
   (* update methods *)
@@ -61,8 +59,6 @@ sig
                               -> T -> T *)
   val update_goaltype_data :  (Theory.Data.GoalTyp.data -> Theory.Data.GoalTyp.data)
                               -> T -> T
-  val update_parents : ((StrName.NTab.name) StrName.NTab.T -> (StrName.NTab.name) StrName.NTab.T)
-                       -> T -> T
 
   (* fresh name generation *)
   val fresh_name : T -> StrName.name -> StrName.name
