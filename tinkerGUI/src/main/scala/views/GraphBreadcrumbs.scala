@@ -4,8 +4,8 @@ import scala.swing._
 import scala.swing.event._
 import java.awt.Cursor
 import tinkerGUI.controllers.Service
-import tinkerGUI.controllers.AddCrumEvent
-import tinkerGUI.controllers.RebuildBreadcrumParentEvent
+import tinkerGUI.controllers.AddCrumbEvent
+import tinkerGUI.controllers.RebuildBreadcrumbParentEvent
 import tinkerGUI.controllers.DelCrumFromEvent
 import tinkerGUI.controllers.GraphBreadcrumbsController
 
@@ -30,7 +30,7 @@ class GraphBreadcrumbs() extends Publisher{
 	
 	listenTo(controller)
 	reactions += {
-		case AddCrumEvent(s) =>
+		case AddCrumbEvent(s) =>
 			if(current.text != s){
 				if(addCurrent){
 					val parent = new Label(current.text)
@@ -49,7 +49,7 @@ class GraphBreadcrumbs() extends Publisher{
 							current.text = src.text
 							parents.foreach { p =>
 								if(p.text == src.text){
-									if(controller.changeGraph(src.text)) {
+									if(Service.editSubGraph(src.text, 0)) {
 										parents = parents.splitAt(parents.indexOf(p))._1
 									}
 								}
@@ -58,7 +58,7 @@ class GraphBreadcrumbs() extends Publisher{
 					}
 				}
 			}
-		case RebuildBreadcrumParentEvent(p: Array[String]) =>
+		case RebuildBreadcrumbParentEvent(p: Array[String]) =>
 			parents = Array()
 			addCurrent = false
 			p.foreach {s=>

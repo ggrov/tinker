@@ -1,12 +1,7 @@
 package tinkerGUI.model
 
 import quanto.util.json.{JsonObject, JsonArray}
-
-/** Exception class for not finding an atomic tactic in the collection.
-	*
-	* @param msg Custom message.
-	*/
-case class AtomicTacticNotFoundException(msg:String) extends Exception(msg)
+import tinkerGUI.model.exceptions.AtomicTacticNotFoundException
 
 /** A manager for the atomic tactics of a psgraph.
 	*
@@ -61,9 +56,8 @@ trait ATManager {
 	 * @param newTactic New core id value.
 	 * @param newArgs New list of arguments.
 	 * @return Boolean notifying of successful change or not (should be used to handle duplication).
-	 * @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
+	 * @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 	 */
-	@throws (classOf[AtomicTacticNotFoundException])
 	def updateAT(id:String, newId:String, newTactic:String, newArgs:Array[Array[String]]):Boolean = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
@@ -91,9 +85,8 @@ trait ATManager {
 		* @param newTactic New core id value.
 		* @param newArgs New list of arguments, in a string format.
 		* @return Boolean notifying of successful change or not (should be used to handle duplication).
-		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
+		* @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
-	@throws (classOf[AtomicTacticNotFoundException])
 	def updateAT(id:String, newId:String, newTactic:String, newArgs:String):Boolean = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
@@ -123,9 +116,8 @@ trait ATManager {
 	 * @param graph Current graph id.
 	 * @param index Current graph index.
 	 * @return List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).
-	 * @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
+	 * @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 	 */
-	@throws (classOf[AtomicTacticNotFoundException])
 	def updateForceAT(id:String, newId:String, newTactic:String, newArgs:Array[Array[String]], graph:String, index:Int):Array[String] = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
@@ -151,9 +143,8 @@ trait ATManager {
 		* @param graph Current graph id.
 		* @param index Current graph index.
 		* @return List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).
-		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
+		* @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
-	@throws (classOf[AtomicTacticNotFoundException])
 	def updateForceAT(id:String, newId:String, newTactic:String, newArgs:String, graph:String, index:Int):Array[String] = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
@@ -182,9 +173,8 @@ trait ATManager {
 		*
 		* @param id Gui id of the atomic tactic.
 		* @return Full name.
-		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
+		* @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
-	@throws (classOf[AtomicTacticNotFoundException])
 	def getATFullName(id:String):String = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
@@ -198,9 +188,8 @@ trait ATManager {
 	 *
 	 * @param id Gui id of the atomic tactic.
 	 * @return Core id or "Not Found" in case the atomic tactic could not be found.
-	 * @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
+	 * @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 	 */
-	@throws (classOf[AtomicTacticNotFoundException])
 	def getATCoreId(id:String):String = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
@@ -227,7 +216,7 @@ trait ATManager {
 		* @return Json object of the graph tactics occurrences.
 		*/
 	def toJsonATOccurrences:JsonObject = {
-		JsonObject(atCollection map {case(k,v) => (k -> v.occurrencesToJson())})
+		JsonObject(atCollection map {case(k,v) => k -> v.occurrencesToJson() })
 	}
 
 	/** Method to add an occurrence in an atomic tactic.
@@ -236,9 +225,8 @@ trait ATManager {
 		* @param graph Graph id in which the occurrence is.
 		* @param index Graph index in which the occurrence is.
 		* @param node Node id of the occurrence.
-		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
+		* @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
-	@throws (classOf[AtomicTacticNotFoundException])
 	def addATOccurrence(id:String, graph:String, index:Int, node:String) {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
@@ -255,9 +243,8 @@ trait ATManager {
 		* @param index Graph index in which the occurrence was.
 		* @param node Node id of the occurrence to remove.
 		* @return Boolean notifying if it was the last occurrence of the atomic tactic.
-		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic is not in the collection.
+		* @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
-	@throws (classOf[AtomicTacticNotFoundException])
 	def removeATOccurrence(id:String, graph:String, index:Int, node:String):Boolean = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
@@ -271,10 +258,9 @@ trait ATManager {
 	/** Method to get the number of occurrences of a atomic tactic.
 		*
 		* @param id Gui id of the atomic tactic.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the atomic tactic was not found.
+		* @throws AtomicTacticNotFoundException If the atomic tactic was not found.
 		* @return Number of occurrences of the atomic tactic.
 		*/
-	@throws (classOf[AtomicTacticNotFoundException])
 	def getATNumberOfOccurrences(id:String):Int = {
 		atCollection get id match {
 			case Some(t: AtomicTactic) =>

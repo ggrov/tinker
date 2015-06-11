@@ -1,6 +1,6 @@
 package tinkerGUI.controllers
 
-import tinkerGUI.model.{SubgraphNotFoundException, GraphTacticNotFoundException}
+import tinkerGUI.model.exceptions.{GraphTacticNotFoundException, SubgraphNotFoundException}
 
 import scala.swing._
 import scala.swing.event.ButtonClicked

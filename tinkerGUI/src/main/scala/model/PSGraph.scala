@@ -1,5 +1,6 @@
 package tinkerGUI.model
 
+import tinkerGUI.model.exceptions.{GraphTacticNotFoundException, SubgraphNotFoundException, AtomicTacticNotFoundException}
 import tinkerGUI.utils.ArgumentParser
 import quanto.util.json._
 import scala.collection.mutable.ArrayBuffer
@@ -37,11 +38,9 @@ class PSGraph() extends ATManager with GTManager {
 		* @param newTactic New core id of the atomic tactic.
 		* @param newArgs New arguments of the atomic tactic.
 		* @return List of the node ids to update on the current graph.
-		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic was not found.
-		* @throws quanto.util.json.JsonAccessException If updating the values in the json graphs fails.
+		* @throws AtomicTacticNotFoundException If the atomic tactic was not found.
+		* @throws JsonAccessException If updating the values in the json graphs fails.
 		*/
-	@throws (classOf[AtomicTacticNotFoundException])
-	@throws (classOf[JsonAccessException])
 	def updateForceAT(name: String, newName:String, newTactic: String, newArgs:String):Array[String] = {
 		val graph = if (isMain) "main" else currentTactic.name
 		try{
@@ -66,11 +65,9 @@ class PSGraph() extends ATManager with GTManager {
 		* @param newBranchType New branch type of the graph tactic.
 		* @param newArgs New arguments of the graph tactic.
 		* @return List of the node ids to update on the current graph.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic was not found.
-		* @throws quanto.util.json.JsonAccessException If updating the values in the json graphs fails.
+		* @throws GraphTacticNotFoundException If the graph tactic was not found.
+		* @throws JsonAccessException If updating the values in the json graphs fails.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
-	@throws (classOf[JsonAccessException])
 	def updateForceGT(name: String, newName:String, newBranchType: String, newArgs:String):Array[String] = {
 		val graph = if (isMain) "main" else currentTactic.name
 		try {
@@ -109,9 +106,8 @@ class PSGraph() extends ATManager with GTManager {
 		*
 		* @param name Gui id of the atomic tactic.
 		* @param node Node id of the occurrence.
-		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic was not found.
+		* @throws AtomicTacticNotFoundException If the atomic tactic was not found.
 		*/
-	@throws (classOf[AtomicTacticNotFoundException])
 	def addATOccurrence(name:String,node:String) {
 		val graph = if(isMain) "main" else currentTactic.name
 		try {
@@ -126,9 +122,8 @@ class PSGraph() extends ATManager with GTManager {
 		* @param name Gui id of the atomic tactic.
 		* @param node Node id of the occurrence to remove.
 		* @return Boolean notifying if it was the last occurrence of the atomic tactic.
-		* @throws tinkerGUI.model.AtomicTacticNotFoundException If the atomic tactic was not found.
+		* @throws AtomicTacticNotFoundException If the atomic tactic was not found.
 		*/
-	@throws (classOf[AtomicTacticNotFoundException])
 	def removeATOccurrence(name:String,node:String):Boolean = {
 		val graph = if(isMain) "main" else currentTactic.name
 		try{
@@ -148,9 +143,8 @@ class PSGraph() extends ATManager with GTManager {
 		* Also register the graph as a child of the current graph tactic.
 		* @param name Gui id of the graph tactic.
 		* @param node Node id of the occurrence.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic was not found.
+		* @throws GraphTacticNotFoundException If the graph tactic was not found.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def addGTOccurrence(name:String,node:String){
 		val graph = if(isMain) "main" else currentTactic.name
 		try {
@@ -173,9 +167,8 @@ class PSGraph() extends ATManager with GTManager {
 		* @param name Gui id of the graph tactic.
 		* @param node Node id of the occurrence to remove.
 		* @return Boolean notifying if it was the last occurrence of the graph tactic.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic was not found.
+		* @throws GraphTacticNotFoundException If the graph tactic was not found.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def removeGTOccurrence(name:String,node:String):Boolean = {
 		val graph = if(isMain) "main" else currentTactic.name
 		try {
@@ -237,9 +230,8 @@ class PSGraph() extends ATManager with GTManager {
 	/** Method to register a new subgraph and set it as current.
 		*
 		* @param tactic Gui id of the graph tactic from which to add the new subgraph.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic was not found.
+		* @throws GraphTacticNotFoundException If the graph tactic was not found.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def newSubgraph(tactic: String){
 		isMain = false
 		if(tactic == currentTactic.name){
@@ -260,9 +252,8 @@ class PSGraph() extends ATManager with GTManager {
 		*
 		* @param tactic New current graph tactic.
 		* @param index New current index.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic was not found.
+		* @throws GraphTacticNotFoundException If the graph tactic was not found.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def changeCurrent(tactic: String, index: Int) {
 		if(tactic == "main"){
 			isMain = true
@@ -284,7 +275,6 @@ class PSGraph() extends ATManager with GTManager {
 		* @param graph Json representation of the graph.
 		* @throws quanto.util.json.JsonAccessException If the graph is not a Json object.
 		*/
-	@throws (classOf[JsonAccessException])
 	def saveGraph(graph: Json) {
 		graph match {
 			case g: JsonObject =>
@@ -305,10 +295,8 @@ class PSGraph() extends ATManager with GTManager {
 		* @param graph Json representation of the graph.
 		* @param index Index of the graph in the graph tactic.
 		* @throws quanto.util.json.JsonAccessException If the graph is not a Json object.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic was not found.
+		* @throws GraphTacticNotFoundException If the graph tactic was not found.
 		*/
-	@throws (classOf[JsonAccessException])
-	@throws (classOf[GraphTacticNotFoundException])
 	def saveGraph(tactic: String, graph: Json, index:Int){
 		graph match {
 			case g: JsonObject =>
@@ -325,10 +313,9 @@ class PSGraph() extends ATManager with GTManager {
 
 	/** Method to get the current graph Json object.
 		*
-		* @throws tinkerGUI.model.SubgraphNotFoundException If the graph was not found.
+		* @throws SubgraphNotFoundException If the graph was not found.
 		* @return Json object of the graph.
 		*/
-	@throws (classOf[SubgraphNotFoundException])
 	def getCurrentJson: JsonObject = {
 		if(isMain) mainGraph
 		else try {
@@ -342,9 +329,8 @@ class PSGraph() extends ATManager with GTManager {
 		*
 		* @param oldVal String to replace.
 		* @param newVal String to insert.
-		* @throws quanto.util.json.JsonAccessException If the resulting graph is not a Json object.
+		* @throws JsonAccessException If the resulting graph is not a Json object.
 		*/
-	@throws (classOf[JsonAccessException])
 	def updateValueInJsonGraphs(oldVal: String, newVal: String) {
 		if(isMain){
 			gtCollection.foreach { case (k, v) =>
@@ -385,11 +371,9 @@ class PSGraph() extends ATManager with GTManager {
 		*
 		* This method overwrites the all model, hence it should be saved before calling it.
 		* @param j Json input.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If a graph tactic is not found after importing the data.
-		* @throws tinkerGUI.model.AtomicTacticNotFoundException If a atomic tactic is not found after importing the data.
+		* @throws GraphTacticNotFoundException If a graph tactic is not found after importing the data.
+		* @throws AtomicTacticNotFoundException If a atomic tactic is not found after importing the data.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
-	@throws (classOf[AtomicTacticNotFoundException])
 	def loadJsonGraph(j: Json) {
 		atCollection = Map()
 		gtCollection = Map()
@@ -458,9 +442,8 @@ class PSGraph() extends ATManager with GTManager {
 
 	/** Method to find the children of every graph tactic, including the main graph.
 		*
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If one of the children was not found.
+		* @throws GraphTacticNotFoundException If one of the children was not found.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def rebuildHierarchy(){
 		childrenMain = ArrayBuffer()
 		(mainGraph ? "node_vertices").asObject.foreach {
@@ -482,9 +465,8 @@ class PSGraph() extends ATManager with GTManager {
 	/** Method to find the children of a graph tactic, and their children as well.
 		*
 		* @param parent Gui id of the graph tactic.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If one of the children was not found.
+		* @throws GraphTacticNotFoundException If one of the children was not found.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def buildPartialHierarchy(parent:GraphTactic) {
 		if(parent.children.isEmpty){
 			parent.graphs.foreach {g =>
@@ -492,7 +474,7 @@ class PSGraph() extends ATManager with GTManager {
 					case (k, v) if ((v / "data").asObject / "type").stringValue == "T_Graph" =>
 						val name = ArgumentParser.separateNameFromArgument((v / "data" / "subgraph").stringValue)._1
 						gtCollection get name match {
-							case Some(t:GraphTactic) => childrenMain = childrenMain :+ t
+							case Some(t:GraphTactic) => parent.children = parent.children :+ t
 							case None => throw new GraphTacticNotFoundException("Graph tactic "+name+" not found")
 						}
 					case _ => // do nothing

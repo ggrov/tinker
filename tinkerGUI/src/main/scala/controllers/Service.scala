@@ -1,7 +1,9 @@
 package tinkerGUI.controllers
 
+import tinkerGUI.model.exceptions.{SubgraphNotFoundException, GraphTacticNotFoundException, AtomicTacticNotFoundException}
+
 import scala.swing._
-import tinkerGUI.model._
+import tinkerGUI.model.PSGraph
 import quanto.util.json._
 import tinkerGUI.utils.{TinkerDialog, ArgumentParser}
 import scala.collection.mutable.ArrayBuffer
@@ -351,7 +353,7 @@ object Service extends Publisher {
 	def addSubgraph(tactic: String){
 		DocumentService.setUnsavedChanges(true)
 		model.newSubgraph(tactic)
-		hierTreeCtrl.redraw
+		hierTreeCtrl.redraw()
 		QuantoLibAPI.newGraph()
 		graphNavCtrl.viewedGraphChanged(model.isMain, true)
 		graphBreadcrumsCtrl.addCrumb(tactic)
@@ -363,16 +365,16 @@ object Service extends Publisher {
 		model.delSubgraphGT(tactic, index)
 	}
 
-	def editSubGraph(tactic: String, index: Int): Boolean = {
+	def editSubGraph(tactic: String, index: Int, parents:Option[Array[String]] = None): Boolean = {
 		try{
 			model.changeCurrent(tactic, index)
 			DocumentService.setUnsavedChanges(true)
 			publish(NothingSelectedEvent())
+			graphNavCtrl.viewedGraphChanged(model.isMain, false)
+			graphBreadcrumsCtrl.addCrumb(tactic, parents)
+			hierTreeCtrl.redraw()
 			try{
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
-				graphNavCtrl.viewedGraphChanged(model.isMain, false)
-				graphBreadcrumsCtrl.addCrumb(tactic)
-				hierTreeCtrl.redraw
 				true
 			} catch {
 				case e:SubgraphNotFoundException =>
@@ -399,7 +401,7 @@ object Service extends Publisher {
 		try{
 			QuantoLibAPI.loadFromJson(model.getCurrentJson)
 			// graphBreadcrumsCtrl.addCrum(getCurrent)
-			hierTreeCtrl.redraw
+			hierTreeCtrl.redraw()
 
 		} catch {
 			case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
@@ -427,7 +429,7 @@ object Service extends Publisher {
 		//graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
 		graphBreadcrumsCtrl.addCrumb(getCurrent)
 		//hierarchyModel.changeActive(getCurrent)
-		hierTreeCtrl.redraw
+		hierTreeCtrl.redraw()
 	}
 
 	def loadJson(j:Json) {
@@ -437,7 +439,7 @@ object Service extends Publisher {
 			//graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
 			graphBreadcrumsCtrl.addCrumb(getCurrent)
 			graphNavCtrl.viewedGraphChanged(model.isMain, false)
-			refreshGraph
+			refreshGraph()
 		}
 		else{
 			TinkerDialog.openErrorDialog("<html>Error while loading json from file : object is empty.</html>")
@@ -465,7 +467,7 @@ object Service extends Publisher {
 					//graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
 					graphBreadcrumsCtrl.addCrumb(getCurrent)
 					graphNavCtrl.viewedGraphChanged(model.isMain, false)
-					refreshGraph
+					refreshGraph()
 				}
 				else{
 					TinkerDialog.openErrorDialog("<html>Error while loading json from file : object is empty.</html>")
@@ -500,7 +502,7 @@ object Service extends Publisher {
 			//graphBreadcrumsCtrl.rebuildParent(getParentList(getCurrent))
 			graphBreadcrumsCtrl.addCrumb(getCurrent)
 			graphNavCtrl.viewedGraphChanged(model.isMain, false)
-			refreshGraph
+			refreshGraph()
 		}
 	}
 

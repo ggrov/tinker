@@ -1,13 +1,8 @@
 package tinkerGUI.model
 
 import quanto.util.json._
+import tinkerGUI.model.exceptions.SubgraphNotFoundException
 import scala.collection.mutable.ArrayBuffer
-
-/** Exception class for not finding a subgraph in the graph tactic.
-	*
-	* @param msg Custom message.
-	*/
-case class SubgraphNotFoundException(msg:String) extends Exception(msg)
 
 /** A graph tactic in the psgraph.
 	*
@@ -52,10 +47,9 @@ class GraphTactic(var name: String, var branchType: String) extends HasArguments
 	/** Method to get the Json object of a subgraph.
 		*
 		* @param index Position of the desired subgraph.
-		* @throws tinkerGUI.model.SubgraphNotFoundException If the graph tactic does not have a subgraph at this index.
+		* @throws SubgraphNotFoundException If the graph tactic does not have a subgraph at this index.
 		* @return Json object of the subgraph.
 		*/
-	@throws (classOf[SubgraphNotFoundException])
 	def getSubgraph(index: Int):JsonObject = {
 		if (graphs.isDefinedAt(index)) graphs(index)
 		else throw new SubgraphNotFoundException("No subgraph for graph tactic "+name+" at index "+index)

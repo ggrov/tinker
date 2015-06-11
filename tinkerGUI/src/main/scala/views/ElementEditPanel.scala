@@ -1,6 +1,6 @@
 package tinkerGUI.views
 
-import tinkerGUI.model.{GraphTacticNotFoundException, AtomicTacticNotFoundException}
+import tinkerGUI.model.exceptions.{AtomicTacticNotFoundException, GraphTacticNotFoundException}
 
 import scala.swing._
 import scala.swing.event.ButtonClicked

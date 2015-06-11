@@ -1,14 +1,9 @@
 package tinkerGUI.model
 
 import quanto.util.json.{JsonObject, JsonArray}
+import tinkerGUI.model.exceptions.{SubgraphNotFoundException, GraphTacticNotFoundException}
 
 import scala.collection.mutable.ArrayBuffer
-
-/** Exception class for not finding an graph tactic in the collection.
-	*
-	* @param msg Custom message.
-	*/
-case class GraphTacticNotFoundException(msg:String) extends Exception(msg)
 
 /** A manager for the graph tactics of a psgraph.
 	*
@@ -63,9 +58,8 @@ trait GTManager {
 		* @param newBranchType New branch type value.
 		* @param newArgs New list of arguments.
 		* @return Boolean notifying of successful change or not (should be used to handle duplication).
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic is not in the collection.
+		* @throws GraphTacticNotFoundException If the graph tactic is not in the collection.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def updateGT(id:String, newId:String, newBranchType:String, newArgs:Array[Array[String]]):Boolean = {
 		gtCollection get id match {
 			case Some(t:GraphTactic) =>
@@ -93,9 +87,8 @@ trait GTManager {
 		* @param newBranchType New branch type value.
 		* @param newArgs New list of arguments, in a string format.
 		* @return Boolean notifying of successful change or not (should be used to handle duplication).
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic is not in the collection.
+		* @throws GraphTacticNotFoundException If the graph tactic is not in the collection.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def updateGT(id:String, newId:String, newBranchType:String, newArgs:String):Boolean = {
 		gtCollection get id match {
 			case Some(t:GraphTactic) =>
@@ -125,9 +118,8 @@ trait GTManager {
 		* @param graph Current graph id.
 		* @param index Current graph index.
 		* @return List of node id linked with this graph tactic in the current graph (should be used to update the graph view).
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic is not in the collection.
+		* @throws GraphTacticNotFoundException If the graph tactic is not in the collection.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def updateForceGT(id:String, newId:String, newBranchType:String, newArgs:Array[Array[String]], graph:String, index:Int):Array[String] = {
 		gtCollection get id match {
 			case Some(t:GraphTactic) =>
@@ -153,9 +145,8 @@ trait GTManager {
 		* @param graph Current graph id.
 		* @param index Current graph index.
 		* @return List of node id linked with this graph tactic in the current graph (should be used to update the graph view).
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the atomic tactic is not in the collection.
+		* @throws GraphTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def updateForceGT(id:String, newId:String, newBranchType:String, newArgs:String, graph:String, index:Int):Array[String] = {
 		gtCollection get id match {
 			case Some(t:GraphTactic) =>
@@ -184,9 +175,8 @@ trait GTManager {
 		*
 		* @param id Gui id of the graph tactic.
 		* @return Full name.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic is not in the collection.
+		* @throws GraphTacticNotFoundException If the graph tactic is not in the collection.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def getGTFullName(id:String):String = {
 		gtCollection get id match {
 			case Some(t:GraphTactic) =>
@@ -199,10 +189,9 @@ trait GTManager {
 	/** Method to get the branch type of a graph tactic.
 		*
 		* @param id Gui id of the graph tactic.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic is not in the collection.
+		* @throws GraphTacticNotFoundException If the graph tactic is not in the collection.
 		* @return Branch type.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def getGTBranchType(id:String):String = {
 		gtCollection get id match{
 			case Some(t:GraphTactic) =>
@@ -229,7 +218,7 @@ trait GTManager {
 		* @return Json object of the graph tactics occurrences.
 		*/
 	def toJsonGTOccurrences:JsonObject = {
-		JsonObject(gtCollection map {case(k,v) => (k -> v.occurrencesToJson())})
+		JsonObject(gtCollection map {case(k,v) => k -> v.occurrencesToJson() })
 	}
 
 	/** Method to add an occurrence in a graph tactic.
@@ -238,9 +227,8 @@ trait GTManager {
 		* @param graph Graph id in which the occurrence is.
 		* @param index Graph index in which the occurrence is.
 		* @param node Node id of the occurrence.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic is not in the collection.
+		* @throws GraphTacticNotFoundException If the graph tactic is not in the collection.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def addGTOccurrence(id:String, graph:String, index:Int, node:String) {
 		gtCollection get id match {
 			case Some(t:GraphTactic) =>
@@ -257,9 +245,8 @@ trait GTManager {
 		* @param index Graph index in which the occurrence was.
 		* @param node Node id of the occurrence to remove.
 		* @return Boolean notifying if it was the last occurrence of the graph tactic.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic is not in the collection.
+		* @throws GraphTacticNotFoundException If the graph tactic is not in the collection.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def removeGTOccurrence(id:String, graph:String, index:Int, node:String):Boolean = {
 		gtCollection get id match {
 			case Some(t:GraphTactic) =>
@@ -273,10 +260,9 @@ trait GTManager {
 	/** Method to get the number of occurrences of a graph tactic.
 		*
 		* @param id Gui id of the graph tactic.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic was not found.
+		* @throws GraphTacticNotFoundException If the graph tactic was not found.
 		* @return Number of occurrences of the graph tactic.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def getGTNumberOfOccurrences(id:String):Int = {
 		gtCollection get id match {
 			case Some(t:GraphTactic) =>
@@ -291,9 +277,8 @@ trait GTManager {
 		* @param id Gui id of the graph tactic.
 		* @param j Json representation of the subgraph.
 		* @param index Position of the subgraph in the subgraphs list.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic was not found in the collection.
+		* @throws GraphTacticNotFoundException If the graph tactic was not found in the collection.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def addSubgraphGT(id:String,j:JsonObject,index:Int) {
 		gtCollection get id match {
 			case Some(t:GraphTactic) =>
@@ -307,9 +292,8 @@ trait GTManager {
 		*
 		* @param id Gui id of the graph tactic.
 		* @param index Position of the subgraph to remove.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic was not found in the collection.
+		* @throws GraphTacticNotFoundException If the graph tactic was not found in the collection.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def delSubgraphGT(id:String, index:Int){
 		gtCollection get id match {
 			case Some(t:GraphTactic) =>
@@ -323,12 +307,10 @@ trait GTManager {
 		*
 		* @param id Gui id of the graph tactic.
 		* @param index Position of the subgraph to get.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic was not found in the collection.
-		* @throws tinkerGUI.model.SubgraphNotFoundException If no subgraph was at this index.
+		* @throws GraphTacticNotFoundException If the graph tactic was not found in the collection.
+		* @throws SubgraphNotFoundException If no subgraph was at this index.
 		* @return Json representation of the subgraph.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
-	@throws (classOf[SubgraphNotFoundException])
 	def getSubgraphGT(id:String, index:Int):JsonObject = {
 		gtCollection get id match {
 			case Some(t:GraphTactic) =>
@@ -345,10 +327,9 @@ trait GTManager {
 	/** Method to get the size, i.e. number of subgraphs, of a graph tactic.
 		*
 		* @param id Gui id of the graph tactic.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException If the graph tactic was not found in the collection.
+		* @throws GraphTacticNotFoundException If the graph tactic was not found in the collection.
 		* @return Size, i.e. number of subgraph, of the graph tactic.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def getSizeGT(id:String):Int = {
 		gtCollection get id match {
 			case Some(t:GraphTactic) =>
@@ -361,10 +342,9 @@ trait GTManager {
 	/** Method to get the children of a graph tactic.
 		*
 		* @param id Gui id of the graph tactic.
-		* @throws tinkerGUI.model.GraphTacticNotFoundException
+		* @throws GraphTacticNotFoundException
 		* @return Array of children graph tactic.
 		*/
-	@throws (classOf[GraphTacticNotFoundException])
 	def getChildrenGT(id:String):ArrayBuffer[GraphTactic]  ={
 		gtCollection get id match {
 			case Some(t:GraphTactic) => t.children
