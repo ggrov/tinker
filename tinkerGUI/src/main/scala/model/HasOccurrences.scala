@@ -6,7 +6,7 @@ import scala.collection.mutable.ArrayBuffer
 /** Tactic behaviour for having occurrences
 	*
 	* An occurrence represents the fact that a node on a graph is linked with a tactic. It is a tuple with
-	* one string representing the graph in which the occurrence is, one integer for the graph id,
+	* one string representing the graph in which the occurrence is, one integer for the subgraph index,
 	* and one string being the node id.
 	*/
 trait HasOccurrences {
@@ -64,11 +64,7 @@ trait HasOccurrences {
 		* @return Json array of the occurrences.
 		*/
 	def occurrencesToJson(): JsonArray = {
-		var arr: ArrayBuffer[JsonArray] = ArrayBuffer()
-		occurrences.foreach { occ =>
-			arr = arr :+ JsonArray(Array(JsonString(occ._1),JsonInt(occ._2),JsonString(occ._3)))
-		}
-		JsonArray(arr)
+		occurrences.foldLeft(JsonArray()){case (a,o) => a :+ JsonArray(JsonString(o._1),JsonInt(o._2),JsonString(o._3))}
 	}
 
 	/** Method to replace the occurrence list with a new list.

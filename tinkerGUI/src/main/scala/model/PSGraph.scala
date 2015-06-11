@@ -1,5 +1,3 @@
-// TODO : when updating a graph tactic name, change occurrences of child tactics
-
 package tinkerGUI.model
 
 import tinkerGUI.utils.ArgumentParser
@@ -223,15 +221,17 @@ class PSGraph() extends ATManager with GTManager {
 		*/
 	def updateJsonPSGraph() {
 		val current = if(isMain) "main" else currentTactic.name
+		val gtOccArray = toJsonGTOccurrences
+		val atOccArray = toJsonATOccurrences
 		jsonPSGraph = JsonObject("current" -> current,
 			"current_index" -> currentIndex,
 			"graph" -> mainGraph,
 			"graph_tactics" -> toJsonGT,
 			"atomic_tactics" -> toJsonAT,
-			"goal_types" -> goalTypes)
+			"goal_types" -> goalTypes,
+			"occurrences" -> JsonObject("atomic_tactics" -> atOccArray, "graph_tactics" -> gtOccArray))
 		// println("---------------------------------------------------")
 		// println(jsonPSGraph)
-		// TODO move occurrence as global
 	}
 
 	/** Method to register a new subgraph and set it as current.
@@ -408,9 +408,6 @@ class PSGraph() extends ATManager with GTManager {
 					args = args :+ arg
 				}
 				createAT(name, tactic , args)
-				(tct / "occurrences").asArray.foreach{ a =>
-					addATOccurrence(name,a.asArray.get(0).stringValue,a.asArray.get(1).intValue,a.asArray.get(2).stringValue)
-				}
 			}
 			(j / "graph_tactics").asArray.foreach { tct =>
 				val name = (tct / "name").stringValue
@@ -427,8 +424,19 @@ class PSGraph() extends ATManager with GTManager {
 					saveGraph(name, gr, i)
 					i+=1
 				}
-				(tct / "occurrences").asArray.foreach{ a =>
-					addGTOccurrence(name,a.asArray.get(0).stringValue,a.asArray.get(1).intValue,a.asArray.get(2).stringValue)
+			}
+			(j / "occurrences").asObject match { case occ:JsonObject =>
+				(occ / "atomic_tactics").asObject.foreach { case(k,v) =>
+					v.asArray.foreach { occ =>
+						val o = occ.asArray
+						addATOccurrence(k,o.get(0).stringValue,o.get(1).intValue,o.get(2).stringValue)
+					}
+				}
+				(occ / "graph_tactics").asObject.foreach { case(k,v) =>
+					v.asArray.foreach { occ =>
+						val o = occ.asArray
+						addGTOccurrence(k,o.get(0).stringValue,o.get(1).intValue,o.get(2).stringValue)
+					}
 				}
 			}
 			rebuildHierarchy()

@@ -17,5 +17,5 @@ class AtomicTactic(var name: String, var tactic: String) extends HasArguments wi
 		*
 		* @return Json object of the atomic tactic.
 		*/
-	def toJson: JsonObject = JsonObject("name" -> name, "tactic" -> tactic, "args" -> argumentsToJson, "occurrences"->occurrencesToJson)
+	def toJson: JsonObject = JsonObject("name" -> name, "tactic" -> tactic, "args" -> argumentsToJson)
 }

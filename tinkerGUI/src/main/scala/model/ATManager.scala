@@ -222,6 +222,14 @@ trait ATManager {
 		JsonArray(arr)
 	}
 
+	/** Method to generate a Json object of the graph tactics' occurrences.
+		*
+		* @return Json object of the graph tactics occurrences.
+		*/
+	def toJsonATOccurrences:JsonObject = {
+		JsonObject(atCollection map {case(k,v) => (k -> v.occurrencesToJson())})
+	}
+
 	/** Method to add an occurrence in an atomic tactic.
 		*
 		* @param id Gui id of the atomic tactic.
@@ -269,10 +277,10 @@ trait ATManager {
 	@throws (classOf[AtomicTacticNotFoundException])
 	def getATNumberOfOccurrences(id:String):Int = {
 		atCollection get id match {
-			case Some(t:AtomicTactic) =>
+			case Some(t: AtomicTactic) =>
 				t.occurrences.size
 			case None =>
-				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
+				throw new AtomicTacticNotFoundException("Atomic tactic " + id + " not found")
 		}
 	}
 }

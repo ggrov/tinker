@@ -74,7 +74,7 @@ class GraphTactic(var name: String, var branchType: String) extends HasArguments
 		* @return Json object of the graph tactic.
 		*/
 	def toJson : JsonObject = {
-		JsonObject("name" -> name, "branchType" -> branchType, "graphs" -> JsonArray(graphs), "args" -> argumentsToJson, "occurrences"->occurrencesToJson)
+		JsonObject("name" -> name, "branchType" -> branchType, "graphs" -> JsonArray(graphs), "args" -> argumentsToJson)
 	}
 
 	/** Method to add a child to the graph tactic.

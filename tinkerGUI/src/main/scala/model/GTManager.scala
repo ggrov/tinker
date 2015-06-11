@@ -224,6 +224,14 @@ trait GTManager {
 		JsonArray(arr)
 	}
 
+	/** Method to generate a Json object of the graph tactics' occurrences.
+		*
+		* @return Json object of the graph tactics occurrences.
+		*/
+	def toJsonGTOccurrences:JsonObject = {
+		JsonObject(gtCollection map {case(k,v) => (k -> v.occurrencesToJson())})
+	}
+
 	/** Method to add an occurrence in a graph tactic.
 		*
 		* @param id Gui id of the graph tactic.
