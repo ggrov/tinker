@@ -440,7 +440,7 @@ object QuantoLibAPI extends Publisher{
 				if(graph.vdata(v).isBoundary) return
 				else vnames = vnames + v.s
 			}
-			publish(ManyVertexSelectedEventAPI(vnames))
+			publish(ManyVerticesSelectedEventAPI(vnames))
 		}
 	}
 
@@ -851,7 +851,7 @@ object QuantoLibAPI extends Publisher{
 			deleteVertex(VName(eltName))
 		}
 		else if (graph.edata.contains(EName(eltName))){
-			var ename = ""
+			var ename = eltName
 			if(hasBreak(eltName)){
 				ename = removeBreakpointFromEdge(eltName)
 			}
@@ -859,6 +859,7 @@ object QuantoLibAPI extends Publisher{
 				deleteEdge(EName(ename))
 			}
 		}
+		publish(NothingSelectedEventAPI())
 	}
 
 	/**
@@ -1004,8 +1005,8 @@ object QuantoLibAPI extends Publisher{
 		res
 	}
 
-	/**
-	  * Method to merge selected vertices into a nested one
+	/** Method to merge selected vertices into a nested one.
+		*
 	  */
 	def mergeSelectedVertices() {
 		// duplicate graph in a subgraph
@@ -1029,10 +1030,9 @@ object QuantoLibAPI extends Publisher{
 		changeGraph(graph.addVertex(newName, newData.withCoord((newX,newY))))
 		graph.vdata(newName) match {
 			case data: NodeV =>
-				Service.createTactic(newName.s,false)
-				//changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.createNode(data.label, true, true)) }) // TODO check integration of merging with new model
-				//view.invalidateVertex(newName)
-				//graph.adjacentEdges(newName).foreach { view.invalidateEdge }
+				changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.createNewTactic(newName.s,"nested",false)) })
+				view.invalidateVertex(newName)
+				graph.adjacentEdges(newName).foreach { view.invalidateEdge }
 		}
 		graph.vdata(newName) match { case data: NodeV => newData = data}
 		var subgraphVerts = view.selectedVerts
@@ -1041,7 +1041,17 @@ object QuantoLibAPI extends Publisher{
 			graph.vdata(v) match {
 				case d:NodeV =>
 					if(d.typ == "T_Graph"){
-						//Service.changeTacticParent(ArgumentParser.separateNameFromArgument(d.label)._1, ArgumentParser.separateNameFromArgument(newData.label)._1) // TODO see above
+						Service.changeTacticOccurrence(v.s,
+							ArgumentParser.separateNameFromArgument(d.label)._1,
+							ArgumentParser.separateNameFromArgument(newData.label)._1,
+							0,
+							false)
+					} else if (d.typ == "T_Atomic") {
+						Service.changeTacticOccurrence(v.s,
+							ArgumentParser.separateNameFromArgument(d.label)._1,
+							ArgumentParser.separateNameFromArgument(newData.label)._1,
+							0,
+							true)
 					}
 			}
 			// foreach "in" edges of selected nodes, setting target to be new node except for recursion
@@ -1049,7 +1059,7 @@ object QuantoLibAPI extends Publisher{
 				val data = graph.edata(e)
 				val src = graph.source(e)
 				val tgt = graph.target(e)
-				// in the subgraph we put boundaries instead on unselected nodes
+				// in the subgraph we put boundaries instead of unselected nodes
 				if(!view.selectedVerts.contains(src) && src != newName){
 					val bData = WireV(theory = theory, annotation = JsonObject("boundary" -> JsonBool(true)))
 					val bName = newSubgraph.verts.freshWithSuggestion(VName("b0"))
@@ -1097,6 +1107,7 @@ object QuantoLibAPI extends Publisher{
 		val jsonGraph = Graph.toJson(newSubgraph, theory)
 		Service.saveGraphSpecificTactic(ArgumentParser.separateNameFromArgument(newData.label)._1, jsonGraph, 0)
 		publish(NothingSelectedEventAPI())
+		Service.updateTactic(newName.s, ArgumentParser.separateNameFromArgument(newData.label)._1, false)
 	}
 
 	/**

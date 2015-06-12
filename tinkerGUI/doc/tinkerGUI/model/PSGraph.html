@@ -197,6 +197,21 @@
 </p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph id in which the occurrence is.</p></dd><dt class="param">index</dt><dd class="cmt"><p>Graph index in which the occurrence is.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ATManager.html" class="extype" name="tinkerGUI.model.ATManager">ATManager</a></dd><dt>Exceptions thrown</dt><dd><span class="cmt">AtomicTacticNotFoundException<p>If the atomic tactic is not in the collection.
 </p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.PSGraph#addGTOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="addGTOccurrence(name:String,graph:String,index:Int,node:String):Unit"></a>
+      <a id="addGTOccurrence(String,String,Int,String):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">addGTOccurrence</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="index">index: <span class="extype" name="scala.Int">Int</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Method to add an occurrence of a graph tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to add an occurrence of a graph tactic.
+</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Gui id of the graph tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph id in which the occurrence is.</p></dd><dt class="param">index</dt><dd class="cmt"><p>Graph index in which the occurrence is.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="tinkerGUI.model.PSGraph">PSGraph</a> → <a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Exceptions thrown</dt><dd><span class="cmt">GraphTacticNotFoundException<p>If the graph tactic was not found.
+</p></span></dd></dl></div>
+    </li><li name="tinkerGUI.model.PSGraph#addGTOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="addGTOccurrence(name:String,node:String):Unit"></a>
       <a id="addGTOccurrence(String,String):Unit"></a>
       <h4 class="signature">
@@ -209,21 +224,6 @@
       </span>
       </h4>
       <p class="shortcomment cmt">Method to add an occurrence in a graph tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to add an occurrence in a graph tactic.</p><p>Also register the graph as a child of the current graph tactic.</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Gui id of the graph tactic.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence.</p></dd></dl><dl class="attributes block"> <dt>Exceptions thrown</dt><dd><span class="cmt">GraphTacticNotFoundException<p>If the graph tactic was not found.
-</p></span></dd></dl></div>
-    </li><li name="tinkerGUI.model.GTManager#addGTOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addGTOccurrence(id:String,graph:String,index:Int,node:String):Unit"></a>
-      <a id="addGTOccurrence(String,String,Int,String):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">addGTOccurrence</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="graph">graph: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="index">index: <span class="extype" name="scala.Int">Int</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Method to add an occurrence in a graph tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to add an occurrence in a graph tactic.
-</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the graph tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph id in which the occurrence is.</p></dd><dt class="param">index</dt><dd class="cmt"><p>Graph index in which the occurrence is.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Exceptions thrown</dt><dd><span class="cmt">GraphTacticNotFoundException<p>If the graph tactic is not in the collection.
 </p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.GTManager#addSubgraphGT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="addSubgraphGT(id:String,j:quanto.util.json.JsonObject,index:Int):Unit"></a>
@@ -853,8 +853,7 @@ It also remove all occurrences (in the atomic and graph tactic collections) whic
         <span class="name">removeATOccurrence</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method to remove an occurrence from an atomic tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove an occurrence from an atomic tactic.
-</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence to remove.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying if it was the last occurrence of the atomic tactic.</p></dd></dl><dl class="attributes block"> <dt>Exceptions thrown</dt><dd><span class="cmt">AtomicTacticNotFoundException<p>If the atomic tactic was not found.
+      <p class="shortcomment cmt">Method to remove an occurrence from an atomic tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove an occurrence from an atomic tactic.</p><p>Deletes the tactic's data from the modele if it is the last occurrence.</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence to remove.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying if it was the last occurrence of the atomic tactic.</p></dd></dl><dl class="attributes block"> <dt>Exceptions thrown</dt><dd><span class="cmt">AtomicTacticNotFoundException<p>If the atomic tactic was not found.
 </p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.ATManager#removeATOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="removeATOccurrence(id:String,graph:String,index:Int,node:String):Boolean"></a>
@@ -871,6 +870,20 @@ It also remove all occurrences (in the atomic and graph tactic collections) whic
       <p class="shortcomment cmt">Method to remove an occurrence from an atomic tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove an occurrence from an atomic tactic.
 </p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph id in which the occurrence was.</p></dd><dt class="param">index</dt><dd class="cmt"><p>Graph index in which the occurrence was.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence to remove.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying if it was the last occurrence of the atomic tactic.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ATManager.html" class="extype" name="tinkerGUI.model.ATManager">ATManager</a></dd><dt>Exceptions thrown</dt><dd><span class="cmt">AtomicTacticNotFoundException<p>If the atomic tactic is not in the collection.
 </p></span></dd></dl></div>
+    </li><li name="tinkerGUI.model.PSGraph#removeATOccurrenceNoDelete" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="removeATOccurrenceNoDelete(name:String,node:String):Unit"></a>
+      <a id="removeATOccurrenceNoDelete(String,String):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">removeATOccurrenceNoDelete</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Method to remove an occurrence from an atomic tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove an occurrence from an atomic tactic.</p><p>Does not delete the tactic's data from the modele if it is the last occurrence.</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Gui id of the atomic tactic.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence to remove.</p></dd></dl><dl class="attributes block"> <dt>Exceptions thrown</dt><dd><span class="cmt">AtomicTacticNotFoundException<p>If the atomic tactic was not found.
+</p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.PSGraph#removeGTOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="removeGTOccurrence(name:String,node:String):Boolean"></a>
       <a id="removeGTOccurrence(String,String):Boolean"></a>
@@ -883,7 +896,8 @@ It also remove all occurrences (in the atomic and graph tactic collections) whic
         <span class="name">removeGTOccurrence</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method to remove an occurrence of a graph tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove an occurrence of a graph tactic.</p><p>Also removes the graph from the children list of the current graph tactic.</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Gui id of the graph tactic.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence to remove.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying if it was the last occurrence of the graph tactic.</p></dd></dl><dl class="attributes block"> <dt>Exceptions thrown</dt><dd><span class="cmt">GraphTacticNotFoundException<p>If the graph tactic was not found.
+      <p class="shortcomment cmt">Method to remove an occurrence of a graph tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove an occurrence of a graph tactic.</p><p>Also removes the graph from the children list of the current graph tactic.
+And deletes the tactic's data from the model if it is the last occurrence.</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Gui id of the graph tactic.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence to remove.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying if it was the last occurrence of the graph tactic.</p></dd></dl><dl class="attributes block"> <dt>Exceptions thrown</dt><dd><span class="cmt">GraphTacticNotFoundException<p>If the graph tactic was not found.
 </p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.GTManager#removeGTOccurrence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="removeGTOccurrence(id:String,graph:String,index:Int,node:String):Boolean"></a>
@@ -899,6 +913,21 @@ It also remove all occurrences (in the atomic and graph tactic collections) whic
       </h4>
       <p class="shortcomment cmt">Method to remove an occurrence from a graph tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove an occurrence from a graph tactic.
 </p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>Gui id of the graph tactic.</p></dd><dt class="param">graph</dt><dd class="cmt"><p>Graph id in which the occurrence was.</p></dd><dt class="param">index</dt><dd class="cmt"><p>Graph index in which the occurrence was.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence to remove.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying if it was the last occurrence of the graph tactic.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Exceptions thrown</dt><dd><span class="cmt">GraphTacticNotFoundException<p>If the graph tactic is not in the collection.
+</p></span></dd></dl></div>
+    </li><li name="tinkerGUI.model.PSGraph#removeGTOccurrenceNoDelete" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="removeGTOccurrenceNoDelete(name:String,node:String):Unit"></a>
+      <a id="removeGTOccurrenceNoDelete(String,String):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">removeGTOccurrenceNoDelete</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="node">node: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Method to remove an occurrence of a graph tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to remove an occurrence of a graph tactic.</p><p>Also removes the graph from the children list of the current graph tactic.
+And does not delete the tactic's data from the model if it is the last occurrence.</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Gui id of the graph tactic.</p></dd><dt class="param">node</dt><dd class="cmt"><p>Node id of the occurrence to remove.</p></dd></dl><dl class="attributes block"> <dt>Exceptions thrown</dt><dd><span class="cmt">GraphTacticNotFoundException<p>If the graph tactic was not found.
 </p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.PSGraph#saveGraph" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="saveGraph(tactic:String,graph:quanto.util.json.Json,index:Int):Unit"></a>
@@ -1150,14 +1179,7 @@ It also remove all occurrences (in the atomic and graph tactic collections) whic
         <span class="name">updateGT</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newName">newName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newBranchType">newBranchType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newArgs">newArgs: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Method to update a graph tactic, only if it has less than two occurrences.</p><div class="fullcomment"><div class="comment cmt"><p>Method to update a graph tactic, only if it has less than two occurrences.
-</p></div><dl class="paramcmts block"><dt class="param">newBranchType</dt><dd class="cmt"><p>New branch type value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments, in a string format.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying of successful change or not (should be used to handle duplication).</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="tinkerGUI.model.PSGraph">PSGraph</a> → <a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">(<span>
-      
-      <span class="defval" name="classOf[GraphTacticNotFoundException]">...</span>
-    </span>)</span>
-              
-        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">GraphTacticNotFoundException<p>If the graph tactic is not in the collection.
+      <p class="shortcomment cmt">Method to update a graph tactic.</p><div class="fullcomment"><div class="comment cmt"><p>Method to update a graph tactic.</p><p>Also changes the occurrences of all other tactics if necessary.</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Gui id of the graph tactic.</p></dd><dt class="param">newName</dt><dd class="cmt"><p>New gui id of the graph tactic.</p></dd><dt class="param">newBranchType</dt><dd class="cmt"><p>New branch type value.</p></dd><dt class="param">newArgs</dt><dd class="cmt"><p>New list of arguments, in a string format.</p></dd><dt>returns</dt><dd class="cmt"><p>Boolean notifying of successful change or not (should be used to handle duplication).</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="tinkerGUI.model.PSGraph">PSGraph</a> → <a href="GTManager.html" class="extype" name="tinkerGUI.model.GTManager">GTManager</a></dd><dt>Exceptions thrown</dt><dd><span class="cmt">GraphTacticNotFoundException<p>If the graph tactic was not in the collection.
 </p></span></dd></dl></div>
     </li><li name="tinkerGUI.model.GTManager#updateGT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="updateGT(id:String,newId:String,newBranchType:String,newArgs:Array[Array[String]]):Boolean"></a>

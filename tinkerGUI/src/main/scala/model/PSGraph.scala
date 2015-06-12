@@ -89,7 +89,16 @@ class PSGraph() extends ATManager with GTManager {
 		}
 	}
 
-	@throws (classOf[GraphTacticNotFoundException])
+	/** Method to update a graph tactic.
+		*
+		* Also changes the occurrences of all other tactics if necessary.
+		* @param name Gui id of the graph tactic.
+		* @param newName New gui id of the graph tactic.
+		* @param newBranchType New branch type value.
+		* @param newArgs New list of arguments, in a string format.
+		* @return Boolean notifying of successful change or not (should be used to handle duplication).
+		* @throws GraphTacticNotFoundException If the graph tactic was not in the collection.
+		*/
 	override def updateGT(name:String, newName:String, newBranchType:String, newArgs:String):Boolean = {
 		try{
 			if(name != newName){
@@ -119,6 +128,7 @@ class PSGraph() extends ATManager with GTManager {
 
 	/** Method to remove an occurrence from an atomic tactic.
 		*
+		* Deletes the tactic's data from the modele if it is the last occurrence.
 		* @param name Gui id of the atomic tactic.
 		* @param node Node id of the occurrence to remove.
 		* @return Boolean notifying if it was the last occurrence of the atomic tactic.
@@ -138,6 +148,22 @@ class PSGraph() extends ATManager with GTManager {
 		}
 	}
 
+	/** Method to remove an occurrence from an atomic tactic.
+		*
+		* Does not delete the tactic's data from the modele if it is the last occurrence.
+		* @param name Gui id of the atomic tactic.
+		* @param node Node id of the occurrence to remove.
+		* @throws AtomicTacticNotFoundException If the atomic tactic was not found.
+		*/
+	def removeATOccurrenceNoDelete(name:String,node:String) {
+		val graph = if(isMain) "main" else currentTactic.name
+		try{
+			removeATOccurrence(name,graph,currentIndex, node)
+		} catch {
+			case e:AtomicTacticNotFoundException => throw e
+		}
+	}
+
 	/** Method to add an occurrence in a graph tactic.
 		*
 		* Also register the graph as a child of the current graph tactic.
@@ -148,7 +174,7 @@ class PSGraph() extends ATManager with GTManager {
 	def addGTOccurrence(name:String,node:String){
 		val graph = if(isMain) "main" else currentTactic.name
 		try {
-			addGTOccurrence(name,graph,currentIndex,node)
+			super.addGTOccurrence(name,graph,currentIndex,node)
 			gtCollection get name match{
 				case Some(t:GraphTactic) =>
 					if(isMain) childrenMain = childrenMain :+ t
@@ -161,9 +187,38 @@ class PSGraph() extends ATManager with GTManager {
 		}
 	}
 
+	/** Method to add an occurrence of a graph tactic.
+		*
+		* @param name Gui id of the graph tactic.
+		* @param graph Graph id in which the occurrence is.
+		* @param index Graph index in which the occurrence is.
+		* @param node Node id of the occurrence.
+		* @throws GraphTacticNotFoundException If the graph tactic was not found.
+		*/
+	override def addGTOccurrence(name:String, graph:String, index:Int, node:String) {
+		try {
+			super.addGTOccurrence(name,graph,currentIndex,node)
+			gtCollection get name match{
+				case Some(t:GraphTactic) =>
+					if(graph=="main") childrenMain = childrenMain :+ t
+					else gtCollection get graph match{
+						case Some(p:GraphTactic) =>
+							p.addChild(t)
+						case None =>
+							throw new GraphTacticNotFoundException("Graph tactic "+name+" not found")
+					}
+				case None =>
+					throw new GraphTacticNotFoundException("Graph tactic "+name+" not found")
+			}
+		} catch {
+			case e:GraphTacticNotFoundException => throw e
+		}
+	}
+
 	/** Method to remove an occurrence of a graph tactic.
 		*
 		* Also removes the graph from the children list of the current graph tactic.
+		* And deletes the tactic's data from the model if it is the last occurrence.
 		* @param name Gui id of the graph tactic.
 		* @param node Node id of the occurrence to remove.
 		* @return Boolean notifying if it was the last occurrence of the graph tactic.
@@ -185,6 +240,30 @@ class PSGraph() extends ATManager with GTManager {
 				true
 			} else {
 				false
+			}
+		} catch {
+			case e:GraphTacticNotFoundException => throw e
+		}
+	}
+
+	/** Method to remove an occurrence of a graph tactic.
+		*
+		* Also removes the graph from the children list of the current graph tactic.
+		* And does not delete the tactic's data from the model if it is the last occurrence.
+		* @param name Gui id of the graph tactic.
+		* @param node Node id of the occurrence to remove.
+		* @throws GraphTacticNotFoundException If the graph tactic was not found.
+		*/
+	def removeGTOccurrenceNoDelete(name:String,node:String) {
+		val graph = if(isMain) "main" else currentTactic.name
+		try {
+			removeGTOccurrence(name,graph,currentIndex,node)
+			gtCollection get name match{
+				case Some(t:GraphTactic) =>
+					if(isMain) childrenMain -= t
+					else currentTactic.removeChild(t)
+				case None =>
+					throw new GraphTacticNotFoundException("Graph tactic "+name+" not found")
 			}
 		} catch {
 			case e:GraphTacticNotFoundException => throw e
@@ -413,13 +492,13 @@ class PSGraph() extends ATManager with GTManager {
 				(occ / "atomic_tactics").asObject.foreach { case(k,v) =>
 					v.asArray.foreach { occ =>
 						val o = occ.asArray
-						addATOccurrence(k,o.get(0).stringValue,o.get(1).intValue,o.get(2).stringValue)
+						super.addATOccurrence(k,o.get(0).stringValue,o.get(1).intValue,o.get(2).stringValue)
 					}
 				}
 				(occ / "graph_tactics").asObject.foreach { case(k,v) =>
 					v.asArray.foreach { occ =>
 						val o = occ.asArray
-						addGTOccurrence(k,o.get(0).stringValue,o.get(1).intValue,o.get(2).stringValue)
+						super.addGTOccurrence(k,o.get(0).stringValue,o.get(1).intValue,o.get(2).stringValue)
 					}
 				}
 			}

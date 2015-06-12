@@ -66,7 +66,6 @@ class SubGraphEditController() extends Publisher {
 
 	listenTo(QuantoLibAPI)
 	listenTo(Service)
-	listenTo(Service.eltEditCtrl)
 	reactions += {
 		case OneVertexSelectedEventAPI(_, typ, value) =>
 			typ match {

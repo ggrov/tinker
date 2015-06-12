@@ -18,7 +18,6 @@ object Service extends Publisher {
 	// TODO get rid of unecessary controllers
 	val mainCtrl = new MainGUIController()
 	val graphEditCtrl = new GraphEditController()
-	val eltEditCtrl = new ElementEditController()
 	val menuCtrl = new MenuController()
 	val editControlsCtrl = new EditControlsController()
 	val evalControlsCtrl = new EvalControlsController()
@@ -161,6 +160,36 @@ object Service extends Publisher {
 		createTactic(nodeId, isAtomicTactic, fieldMap)
 	}
 
+	/** Method to force the creation of a new default tactic, i.e. does not allow duplication.
+		*
+		* The user should be asked to update the tactic information after the use of this method.
+		*
+		* @param nodeId Id of the node the user is creating.
+		* @param name Default name given to the tactic (reused for atomic tactic core id).
+		* @param isAtomicTactic Boolean stating the nature of the node, atomic of nested.
+		*/
+	def createNewTactic(nodeId:String, name:String, isAtomicTactic:Boolean):String = {
+		var checkedByModel:Boolean =
+			if(isAtomicTactic) model.createAT(name, name, "")
+			else model.createGT(name,"OR","")
+		var i = 0
+		var n = name
+		while(!checkedByModel){
+			i+=1
+			n = name+"-"+i
+			checkedByModel =
+				if(isAtomicTactic) model.createAT(n, n, "")
+				else model.createGT(n,"OR","")
+		}
+		try{
+			if(isAtomicTactic) model.addATOccurrence(name,nodeId) else {model.addGTOccurrence(name,nodeId); hierTreeCtrl.redraw()}
+		} catch {
+			case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+			case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+		}
+		n
+	}
+
 	/** Method to update a tactic's details.
 	  *
 	  * Launched after the user selected the edit option.
@@ -208,7 +237,7 @@ object Service extends Publisher {
 							var confirmDialog = new Dialog()
 							val message:String = "The atomic tactic "+name+" already exists, do you wish to link this node with it ?"
 							val reuseInfo = new Action("Link node"){
-								def apply() {
+								def apply {
 									// TODO : consider linking all occurrences
 									deleteTactic(tacticOldName,nodeId,true)
 									model.addATOccurrence(name,nodeId)
@@ -217,7 +246,7 @@ object Service extends Publisher {
 								}
 							}
 							val redoUpdate = new Action("Choose another name"){
-								def apply() {
+								def apply {
 									dialog = TinkerDialog.openEditDialog("Update node", fieldMap, successCallback, failureCallback)
 									confirmDialog.close()
 								}
@@ -256,7 +285,7 @@ object Service extends Publisher {
 							var confirmDialog = new Dialog()
 							val message:String = "The graph tactic "+name+" already exists, do you wish to link this node with it ?"
 							val reuseInfo = new Action("Link node"){
-								def apply() {
+								def apply {
 									// TODO : consider linking all occurrences
 									deleteTactic(tacticOldName,nodeId,false)
 									model.addGTOccurrence(name,nodeId)
@@ -266,7 +295,7 @@ object Service extends Publisher {
 								}
 							}
 							val redoUpdate = new Action("Choose another name"){
-								def apply() {
+								def apply {
 									dialog = TinkerDialog.openEditDialog("Update node", fieldMap, successCallback, failureCallback)
 									confirmDialog.close()
 								}
@@ -327,7 +356,7 @@ object Service extends Publisher {
 				val message =
 					if(isAtomicTactic) "This was the only occurrence of this atomic tactic, its data have been deleted."
 					else "This was the only occurrence of this graph tactic, its data and child tactic's data have been deleted."
-				TinkerDialog.openErrorDialog(message)
+				TinkerDialog.openInformationDialog(message)
 				/*var confirmDialog = new Dialog()
 				val message:String = "This is the last occurrence of this tactic. Do you wish to keep its data ?"
 				val keepAction:Action = new Action("Keep data") {
@@ -348,6 +377,55 @@ object Service extends Publisher {
 			case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 			case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 		}
+	}
+
+	def changeTacticOccurrence(nodeId:String, name:String, newParent:String, newIndex:Int, isAtomicTactic:Boolean) {
+		try{
+			if(isAtomicTactic){
+				model.removeATOccurrenceNoDelete(name, nodeId)
+				model.addATOccurrence(name, newParent, newIndex, nodeId)
+			} else {
+				model.removeGTOccurrenceNoDelete(name, nodeId)
+				model.addGTOccurrence(name, newParent, newIndex, nodeId)
+			}
+		} catch {
+			case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+			case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+		}
+	}
+
+	def editEdge(edge:String, src:String, tgt:String, gt:String) {
+		var source = src
+		var target = tgt
+		var goalTypes = gt
+		def failureCallback() {
+			// do nothing
+		}
+		def successCallback(values:Map[String,String]) {
+			values.foreach{
+				case ("Goal types",v) =>
+					goalTypes = v
+				case ("From",v) =>
+					source = v
+				case ("To",v) =>
+					target = v
+			}
+			if(goalTypes=="" || source=="" || target=="") {
+				TinkerDialog.openEditDialog("Edit edge " + edge,
+					Map("Goal types" -> goalTypes, "From" -> source, "To" -> target),
+					successCallback,
+					failureCallback
+				)
+			} else {
+				QuantoLibAPI.setEdgeValue(edge,goalTypes)
+				QuantoLibAPI.userUpdateEdge(edge, source, target)
+			}
+		}
+		TinkerDialog.openEditDialog("Edit edge "+edge,
+			Map("Goal types"->goalTypes, "From"->source, "To"->target),
+			successCallback,
+			failureCallback
+		)
 	}
 
 	def addSubgraph(tactic: String){

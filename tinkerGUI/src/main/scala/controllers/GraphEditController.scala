@@ -65,30 +65,11 @@ class GraphEditController() extends Publisher {
 				}
 			case OneEdgeSelectedEventAPI(name, value, source, target) =>
 				elt = "Edge"; eltName = name; eltValue = value; edgeSource = source; edgeTarget = target
-			case ManyVertexSelectedEventAPI(names) =>
+			case ManyVerticesSelectedEventAPI(names) =>
 				elt = "Many"; eltNames = names
 		}
 		override def show(invoker: Component, x: Int, y: Int){
 			val deleteNodeAction = new Action("Delete node") {def apply = {QuantoLibAPI.userDeleteElement(eltName)}}
-			def failureCallback() = {
-
-			}
-			def updateValueCallback(newValues :Map[String,String]) = {
-				newValues.foreach{ case (k,v) =>
-					k match {
-						// should only support edges
-						case "Goal types" =>
-							QuantoLibAPI.setEdgeValue(eltName, v)
-							eltValue = v
-						case "From" =>
-							QuantoLibAPI.userUpdateEdge(eltName, v, edgeTarget)
-							edgeSource = v
-						case "To" =>
-							QuantoLibAPI.userUpdateEdge(eltName, edgeSource, v)
-							edgeTarget = v
-					}
-				}
-			}
 			contents.clear()
 			elt match {
 				case "None" =>
@@ -120,10 +101,7 @@ class GraphEditController() extends Publisher {
 				case "Edge" =>
 					contents += new MenuItem(new Action("Edit edge") {
 						def apply = {
-							TinkerDialog.openEditDialog("Edit egde "+eltName,
-							Map("Goal types"->eltValue, "From"->edgeSource, "To"->edgeTarget),
-							updateValueCallback,
-							failureCallback)
+							Service.editEdge(eltName,edgeSource,edgeTarget,eltValue)
 						}
 					})
 					if(QuantoLibAPI.hasBreak(eltName)){

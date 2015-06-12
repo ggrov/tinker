@@ -19,13 +19,14 @@ case class GraphEventAPI(graph: Json) extends Event
 case class MouseRightPressedEvent(point: java.awt.Point, modifiers: Modifiers, clicks: Int, source: Component) extends Event
 case class GraphMouseDraggedEvent(point: java.awt.Point) extends Event
 case class GraphMouseReleasedEvent(point: java.awt.Point, modifiers: Modifiers) extends Event
+// TODO since controllers will be less used, check if two separate type of events are necessary
 case class NothingSelectedEventAPI() extends Event
 case class NothingSelectedEvent() extends Event
 case class OneVertexSelectedEventAPI(name : String, typ: String, value: String) extends Event
 case class OneVertexSelectedEvent(name : String, typ: String, value: String) extends Event
 case class OneEdgeSelectedEventAPI(name: String, value: String, source: String, target: String) extends Event
 case class OneEdgeSelectedEvent(name: String, value: String, source: String, target: String) extends Event
-case class ManyVertexSelectedEventAPI(vnames : Set[String]) extends Event
+case class ManyVerticesSelectedEventAPI(vnames : Set[String]) extends Event
 case class ManyVertexSelectedEvent(vnames : Set[String]) extends Event
 
 case class NewGraphEvent() extends Event

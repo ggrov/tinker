@@ -72,6 +72,31 @@ object TinkerDialog {
 		errorDialog
 	}
 
+	/** Method opening a dialog displaying a message.
+		*
+		* @param message Custom message, e.g. "Something happened.".
+		* @return Dialog instance.
+		*/
+	def openInformationDialog(message: String):Dialog = {
+		val infoDialog:Dialog = new Dialog()
+		infoDialog.maximumSize = max
+		infoDialog.minimumSize = min
+		infoDialog.title = "Tinker - Message"
+		infoDialog.contents = new GridPanel(3,1){
+			contents += new FlowPanel(){
+				contents += new Label(message)
+			}
+			contents += new FlowPanel(){
+				contents += new Button(){
+					action = new Action("OK"){def apply(){infoDialog.close()}}
+				}
+			}
+		}
+		infoDialog.open()
+		infoDialog.centerOnScreen()
+		infoDialog
+	}
+
 	/** Method opening and edit dialog.
 		*
 		* @param message Custom message, e.g. "You are editing this.".

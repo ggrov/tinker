@@ -202,6 +202,19 @@
       </span>
       </h4>
       
+    </li><li name="tinkerGUI.controllers.Service#changeTacticOccurrence" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="changeTacticOccurrence(nodeId:String,name:String,newParent:String,newIndex:Int,isAtomicTactic:Boolean):Unit"></a>
+      <a id="changeTacticOccurrence(String,String,String,Int,Boolean):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">changeTacticOccurrence</span><span class="params">(<span name="nodeId">nodeId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newParent">newParent: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="newIndex">newIndex: <span class="extype" name="scala.Int">Int</span></span>, <span name="isAtomicTactic">isAtomicTactic: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -234,6 +247,21 @@
       </span>
       </h4>
       
+    </li><li name="tinkerGUI.controllers.Service#createNewTactic" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="createNewTactic(nodeId:String,name:String,isAtomicTactic:Boolean):String"></a>
+      <a id="createNewTactic(String,String,Boolean):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">createNewTactic</span><span class="params">(<span name="nodeId">nodeId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="isAtomicTactic">isAtomicTactic: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Method to force the creation of a new default tactic, i.</p><div class="fullcomment"><div class="comment cmt"><p>Method to force the creation of a new default tactic, i.e. does not allow duplication.</p><p>The user should be asked to update the tactic information after the use of this method.
+</p></div><dl class="paramcmts block"><dt class="param">nodeId</dt><dd class="cmt"><p>Id of the node the user is creating.</p></dd><dt class="param">name</dt><dd class="cmt"><p>Default name given to the tactic (reused for atomic tactic core id).</p></dd><dt class="param">isAtomicTactic</dt><dd class="cmt"><p>Boolean stating the nature of the node, atomic of nested.
+</p></dd></dl></div>
     </li><li name="tinkerGUI.controllers.Service#createTactic" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="createTactic(nodeId:String,isAtomicTactic:Boolean):Unit"></a>
       <a id="createTactic(String,Boolean):Unit"></a>
@@ -347,6 +375,19 @@ Launches dialogs to interact with user to get more information on tactic.
       </span>
       </h4>
       
+    </li><li name="tinkerGUI.controllers.Service#editEdge" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="editEdge(edge:String,src:String,tgt:String,gt:String):Unit"></a>
+      <a id="editEdge(String,String,String,String):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">editEdge</span><span class="params">(<span name="edge">edge: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="src">src: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="tgt">tgt: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="gt">gt: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      
     </li><li name="tinkerGUI.controllers.Service#editSubGraph" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="editSubGraph(tactic:String,index:Int,parents:Option[Array[String]]):Boolean"></a>
       <a id="editSubGraph(String,Int,Option[Array[String]]):Boolean"></a>
@@ -357,19 +398,6 @@ Launches dialogs to interact with user to get more information on tactic.
       </span>
       <span class="symbol">
         <span class="name">editSubGraph</span><span class="params">(<span name="tactic">tactic: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="index">index: <span class="extype" name="scala.Int">Int</span></span>, <span name="parents">parents: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">None</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
-      </span>
-      </h4>
-      
-    </li><li name="tinkerGUI.controllers.Service#eltEditCtrl" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="eltEditCtrl:tinkerGUI.controllers.ElementEditController"></a>
-      <a id="eltEditCtrl:ElementEditController"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">eltEditCtrl</span><span class="result">: <a href="ElementEditController.html" class="extype" name="tinkerGUI.controllers.ElementEditController">ElementEditController</a></span>
       </span>
       </h4>
       
