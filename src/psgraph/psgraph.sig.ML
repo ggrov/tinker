@@ -32,8 +32,7 @@ sig
   val get_graphs : T -> StrName.NTab.name -> Theory.Graph.T list
   val get_atomic_tac_code : T 
     -> StrName.NTab.name (* atomic tactic node name *)
-    -> Theory.Data.GoalTyp.data list (* parent tactic arg *)
-    -> string list (* return the actual ml code to be evaluated *)
+    -> string (* return the actual ml code to be evaluated *)
   val get_hgraph_args :  T 
     -> StrName.NTab.name
     -> Theory.Data.arg_typ
