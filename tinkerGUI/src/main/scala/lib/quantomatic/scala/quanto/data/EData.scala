@@ -17,9 +17,16 @@ abstract class EData extends GraphElementData {
 
   def typeInfo = theory.edgeTypes(typ)
 
-
   def value = data.getPath(theory.edgeTypes(typ).value.path).stringValue //data ? "value"
-  def label = data.getOrElse("label",value).stringValue
+  // changed by Pierre Le Bras. Will return "..." at the end if too long.
+  //def label = data.getOrElse("label",value).stringValue
+  def label = {
+    var str = data.getOrElse("label",value).stringValue
+    if(str.size > 15){
+      str = str.splitAt(12)._1+"..."
+    }
+    str
+  }
 
   /** Create a copy of the current edge data, but with the new value */
   def withValue(v: String): EData

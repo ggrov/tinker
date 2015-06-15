@@ -127,7 +127,9 @@ object TinkerDialog {
 						radios = List(orRadio, orelseRadio)
 						contents ++= radios
 						textfieldMap += (k -> new TextField())
-					} else {
+					} /*else if(k=="Tactic"){
+
+					}*/ else {
 						val t = new TextField(v, 15)
 						contents += t
 						textfieldMap += (k -> t)

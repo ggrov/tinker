@@ -471,7 +471,7 @@ object QuantoLibAPI extends Publisher{
 						view.selectedEdges += e
 						if(view.selectedEdges.size == 1 && view.selectedVerts.size == 0){
 							graph.edata(e) match {
-								case data: DirEdge => publish(OneEdgeSelectedEventAPI(e.s, data.label, graph.source(e).s, graph.target(e).s))
+								case data: DirEdge => publish(OneEdgeSelectedEventAPI(e.s, data.value, graph.source(e).s, graph.target(e).s))
 							}
 						}
 						val rec = (graph.source(e) == graph.target(e))
