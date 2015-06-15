@@ -19,7 +19,7 @@ class TinkerLibraryController() extends Publisher {
 					fileName = f.getName().substring(0, f.getName().lastIndexOf("."))
 					json = j
 					QuantoLibAPI.updateLibraryPreviewFromJson((json ? "graph"))
-					publish(ShowPreviewEvent())
+					publish(ShowPreviewEvent(true))
 				case _ => TinkerDialog.openErrorDialog("Error when parsing file "+f.getName()+" to json")
 			}
 		}

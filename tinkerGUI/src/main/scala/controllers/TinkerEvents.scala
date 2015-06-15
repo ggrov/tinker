@@ -7,6 +7,16 @@ import scala.swing.event.Key.Modifiers
 import quanto.util.json.Json
 import scala.collection.mutable.ArrayBuffer
 
+// events launched by Service.scala
+/** Event when the graph tactic list is changed. */
+case class GraphTacticListEvent() extends Event
+
+// events launched by GraphInspectorController.scala
+case class ShowPreviewEvent(hasSubgraph:Boolean) extends Event
+case class UpdateSelectedTacticToInspectEvent(tactic:String) extends Event
+case class HidePreviewEvent() extends Event
+case class UpdateGTListEvent() extends Event
+
 case class DocumentSaved() extends Event
 case class DocumentChanged() extends Event
 case class DocumentStatusEvent(status: Boolean) extends Event
@@ -32,8 +42,6 @@ case class ManyVertexSelectedEvent(vnames : Set[String]) extends Event
 case class NewGraphEvent() extends Event
 case class AddCrumbEvent(crum: String) extends Event
 case class DelCrumFromEvent(crum: String) extends Event
-case class ShowPreviewEvent() extends Event
-case class HidePreviewEvent() extends Event
 case class HideNavigationEvent() extends Event
 case class ShowNavigationEvent() extends Event
 case class HierarchyTreeEvent() extends Event

@@ -1,5 +1,6 @@
 package tinkerGUI.controllers
 
+import tinkerGUI.model.PSGraph
 import tinkerGUI.model.exceptions.{GraphTacticNotFoundException, SubgraphNotFoundException}
 
 import scala.swing._
@@ -7,7 +8,7 @@ import scala.swing.event.ButtonClicked
 import quanto.util.json._
 import tinkerGUI.utils.ArgumentParser
 
-class SubGraphEditController() extends Publisher {
+class GraphInspectorController(model: PSGraph) extends Publisher {
 
 	private var tacticToShow = ""
 	private var indexToShow = 0
@@ -15,15 +16,37 @@ class SubGraphEditController() extends Publisher {
 
 	val indexOnTotal = new Label((indexToShow +1) + " / " + tacticTotal)
 
+	var gtList = model.gtCollection.keys.toList
+
 	def getSubgraphView = QuantoLibAPI.getSubgraphPreview
+
+	def inspect(name:String){
+		if(name == "Select a tactic"){
+			publish(HidePreviewEvent())
+		} else {
+			try{
+				tacticToShow = name
+				indexToShow = 0
+				tacticTotal = model.getSizeGT(name)
+				indexOnTotal.text = (indexToShow + 1) + " / " + tacticTotal
+				showPreview()
+			} catch {
+				case e:GraphTacticNotFoundException => publish(HidePreviewEvent())
+			}
+		}
+	}
 
 	private def showPreview(){
 		try{
-			QuantoLibAPI.updateSubgraphPreviewFromJson(Service.getSubgraphGT(tacticToShow, indexToShow))
-			publish(ShowPreviewEvent())
+			QuantoLibAPI.updateSubgraphPreviewFromJson(model.getSubgraphGT(tacticToShow, indexToShow))
+			publish(UpdateSelectedTacticToInspectEvent(tacticToShow))
+			publish(ShowPreviewEvent(true))
 		} catch {
 			case e:GraphTacticNotFoundException => publish(HidePreviewEvent())
-			case e:SubgraphNotFoundException => publish(HidePreviewEvent())
+			case e:SubgraphNotFoundException =>
+				indexOnTotal.text = indexToShow + " / " + tacticTotal
+				publish(UpdateSelectedTacticToInspectEvent(tacticToShow))
+				publish(ShowPreviewEvent(false))
 		}
 	}
 
@@ -64,20 +87,22 @@ class SubGraphEditController() extends Publisher {
 		Service.addSubgraph(tacticToShow)
 	}
 
-	listenTo(QuantoLibAPI)
 	listenTo(Service)
 	reactions += {
-		case OneVertexSelectedEventAPI(_, typ, value) =>
+		/*case OneVertexSelectedEventAPI(_, typ, value) =>
 			typ match {
 				case "T_Graph" =>
 					val name = ArgumentParser.separateNameFromArgument(value)._1
 					tacticToShow = name
 					indexToShow = 0
-					tacticTotal = Service.getSizeGT(name)
+					tacticTotal = model.getSizeGT(name)
 					indexOnTotal.text = (indexToShow + 1) + " / " + tacticTotal
 					showPreview()
 				case "G" | "G_Break" | "T_Atomic" | "T_Identity" => publish(HidePreviewEvent())
 			}
-		case NothingSelectedEvent() | NothingSelectedEventAPI() | OneEdgeSelectedEventAPI(_,_,_,_) => publish(HidePreviewEvent())
+		case NothingSelectedEvent() | NothingSelectedEventAPI() | OneEdgeSelectedEventAPI(_,_,_,_) => publish(HidePreviewEvent())*/
+		case GraphTacticListEvent() =>
+			gtList = model.gtCollection.keys.toList
+			publish(UpdateGTListEvent())
 	}
 }

@@ -87,4 +87,8 @@ class HierarchyTreeController() extends Publisher {
 	}
 
 	def redraw() = publish(HierarchyTreeEvent())
+	listenTo(Service)
+	reactions += {
+		case GraphTacticListEvent() => publish(HierarchyTreeEvent())
+	}
 }

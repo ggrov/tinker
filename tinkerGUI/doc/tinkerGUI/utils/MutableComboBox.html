@@ -2,9 +2,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>ToolBar - tinkerGUI documentation - tinkerGUI.utils.ToolBar</title>
-          <meta name="description" content="ToolBar - tinkerGUI documentation - tinkerGUI.utils.ToolBar" />
-          <meta name="keywords" content="ToolBar tinkerGUI documentation tinkerGUI.utils.ToolBar" />
+          <title>MutableComboBox - tinkerGUI documentation - tinkerGUI.utils.MutableComboBox</title>
+          <meta name="description" content="MutableComboBox - tinkerGUI documentation - tinkerGUI.utils.MutableComboBox" />
+          <meta name="keywords" content="MutableComboBox tinkerGUI documentation tinkerGUI.utils.MutableComboBox" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -12,7 +12,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../index.html';
-            var hash = 'tinkerGUI.utils.ToolBar';
+            var hash = 'tinkerGUI.utils.MutableComboBox';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -26,7 +26,7 @@
       <div id="definition">
         <img src="../../lib/class_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="tinkerGUI">tinkerGUI</a>.<a href="package.html" class="extype" name="tinkerGUI.utils">utils</a></p>
-        <h1>ToolBar</h1>
+        <h1>MutableComboBox</h1>
       </div>
 
       <h4 id="signature" class="signature">
@@ -35,13 +35,21 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">ToolBar</span><span class="result"> extends <span class="extype" name="scala.swing.Component">Component</span> with <span class="extype" name="scala.swing.SequentialContainer.Wrapper">Wrapper</span></span>
+        <span class="name">MutableComboBox</span><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.swing.Component">Component</span></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Mutable combo box for scala.</p><p>Code was found here : https://gist.github.com/voronaam/7206119</p><p>Very basic Mutable ComboBox for Scala.</p><p>Sample usage:</p><p><pre>
+val box = new MutableComboBox[String]
+box.items = List("1", "11", "222")
+listenTo(box)
+reactions += {
+  case SelectionChanged(`box`) => println(box.item)
+}
+</pre></p><p>Note that there is no separate &quot;selection&quot; member. This combobox publishes event on its own
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.swing.SequentialContainer.Wrapper">Wrapper</span>, <span class="extype" name="scala.swing.Container.Wrapper">Wrapper</span>, <span class="extype" name="scala.swing.SequentialContainer">SequentialContainer</span>, <span class="extype" name="scala.swing.Container">Container</span>, <span class="extype" name="scala.swing.Component">Component</span>, <span class="extype" name="scala.swing.UIElement">UIElement</span>, <span class="extype" name="scala.swing.LazyPublisher">LazyPublisher</span>, <span class="extype" name="scala.swing.Publisher">Publisher</span>, <span class="extype" name="scala.swing.Reactor">Reactor</span>, <span class="extype" name="scala.Proxy">Proxy</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.swing.Component">Component</span>, <span class="extype" name="scala.swing.UIElement">UIElement</span>, <span class="extype" name="scala.swing.LazyPublisher">LazyPublisher</span>, <span class="extype" name="scala.swing.Publisher">Publisher</span>, <span class="extype" name="scala.swing.Reactor">Reactor</span>, <span class="extype" name="scala.Proxy">Proxy</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -59,7 +67,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="tinkerGUI.utils.ToolBar"><span>ToolBar</span></li><li class="in" name="scala.swing.SequentialContainer.Wrapper"><span>Wrapper</span></li><li class="in" name="scala.swing.Container.Wrapper"><span>Wrapper</span></li><li class="in" name="scala.swing.SequentialContainer"><span>SequentialContainer</span></li><li class="in" name="scala.swing.Container"><span>Container</span></li><li class="in" name="scala.swing.Component"><span>Component</span></li><li class="in" name="scala.swing.UIElement"><span>UIElement</span></li><li class="in" name="scala.swing.LazyPublisher"><span>LazyPublisher</span></li><li class="in" name="scala.swing.Publisher"><span>Publisher</span></li><li class="in" name="scala.swing.Reactor"><span>Reactor</span></li><li class="in" name="scala.Proxy"><span>Proxy</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="tinkerGUI.utils.MutableComboBox"><span>MutableComboBox</span></li><li class="in" name="scala.swing.Component"><span>Component</span></li><li class="in" name="scala.swing.UIElement"><span>UIElement</span></li><li class="in" name="scala.swing.LazyPublisher"><span>LazyPublisher</span></li><li class="in" name="scala.swing.Publisher"><span>Publisher</span></li><li class="in" name="scala.swing.Reactor"><span>Reactor</span></li><li class="in" name="scala.Proxy"><span>Proxy</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -79,16 +87,16 @@
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="tinkerGUI.utils.ToolBar#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;():tinkerGUI.utils.ToolBar"></a>
-      <a id="&lt;init&gt;:ToolBar"></a>
+              <ol><li name="tinkerGUI.utils.MutableComboBox#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;():tinkerGUI.utils.MutableComboBox[T]"></a>
+      <a id="&lt;init&gt;:MutableComboBox[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ToolBar</span><span class="params">()</span>
+        <span class="name">MutableComboBox</span><span class="params">()</span>
       </span>
       </h4>
       
@@ -97,20 +105,7 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="scala.swing.Container.Wrapper.Content" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ContentextendsBufferWrapper[scala.swing.Component]"></a>
-      <a id="Content:Content"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <span class="name">Content</span><span class="result"> extends <span class="extype" name="scala.swing.BufferWrapper">BufferWrapper</span>[<span class="extype" name="scala.swing.Component">Component</span>]</span>
-      </span>
-      </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Wrapper</dd></dl></div>
-    </li><li name="scala.swing.Component.SuperMixin" visbl="prt" data-isabs="true" fullComment="yes" group="Ungrouped">
+              <ol><li name="scala.swing.Component.SuperMixin" visbl="prt" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="SuperMixinextendsJComponent"></a>
       <a id="SuperMixin:SuperMixin"></a>
       <h4 class="signature">
@@ -195,58 +190,6 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="scala.swing.Container.Wrapper#_contents" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="_contents:Wrapper.this.Content"></a>
-      <a id="_contents:Content"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">_contents</span><span class="result">: <a href="#ContentextendsBufferWrapper[scala.swing.Component]" class="extmbr" name="tinkerGUI.utils.ToolBar.Content">Content</a></span>
-      </span>
-      </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Wrapper</dd></dl></div>
-    </li><li name="tinkerGUI.utils.ToolBar#add" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="add(component:scala.swing.Component):Unit"></a>
-      <a id="add(Component):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">add</span><span class="params">(<span name="component">component: <span class="extype" name="scala.swing.Component">Component</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4>
-      
-    </li><li name="tinkerGUI.utils.ToolBar#add" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="add(action:scala.swing.Action):Unit"></a>
-      <a id="add(Action):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">add</span><span class="params">(<span name="action">action: <span class="extype" name="scala.swing.Action">Action</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4>
-      
-    </li><li name="tinkerGUI.utils.ToolBar#addSeparator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addSeparator():Unit"></a>
-      <a id="addSeparator():Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">addSeparator</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4>
-      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -274,7 +217,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>UIElement</dd></dl></div>
     </li><li name="scala.swing.UIElement#background_=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="background_=(c:scala.swing.Color):Unit"></a>
+      <a id="background_=(c:&lt;?&gt;):Unit"></a>
       <a id="background_=(Color):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -300,7 +243,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Component</dd></dl></div>
     </li><li name="scala.swing.Component#border_=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="border_=(b:javax.swing.border.Border):Unit"></a>
+      <a id="border_=(b:&lt;?&gt;):Unit"></a>
       <a id="border_=(Border):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -344,19 +287,6 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="scala.swing.SequentialContainer.Wrapper#contents" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="contents:scala.collection.mutable.Buffer[scala.swing.Component]"></a>
-      <a id="contents:Buffer[Component]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">contents</span><span class="result">: <span class="extype" name="scala.collection.mutable.Buffer">Buffer</span>[<span class="extype" name="scala.swing.Component">Component</span>]</span>
-      </span>
-      </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Wrapper → Wrapper → SequentialContainer → Container</dd></dl></div>
     </li><li name="scala.swing.UIElement#cursor" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="cursor:java.awt.Cursor"></a>
       <a id="cursor:Cursor"></a>
@@ -371,7 +301,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>UIElement</dd></dl></div>
     </li><li name="scala.swing.UIElement#cursor_=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="cursor_=(c:java.awt.Cursor):Unit"></a>
+      <a id="cursor_=(c:&lt;?&gt;):Unit"></a>
       <a id="cursor_=(Cursor):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -423,7 +353,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Component</dd></dl></div>
     </li><li name="scala.swing.Component#enabled_=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="enabled_=(b:Boolean):Unit"></a>
+      <a id="enabled_=(b:&lt;?&gt;):Unit"></a>
       <a id="enabled_=(Boolean):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -494,7 +424,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Component</dd></dl></div>
     </li><li name="scala.swing.Component#focusable_=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="focusable_=(b:Boolean):Unit"></a>
+      <a id="focusable_=(b:&lt;?&gt;):Unit"></a>
       <a id="focusable_=(Boolean):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -520,7 +450,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>UIElement</dd></dl></div>
     </li><li name="scala.swing.UIElement#font_=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="font_=(f:scala.swing.Font):Unit"></a>
+      <a id="font_=(f:&lt;?&gt;):Unit"></a>
       <a id="font_=(Font):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -546,7 +476,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>UIElement</dd></dl></div>
     </li><li name="scala.swing.UIElement#foreground_=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="foreground_=(c:scala.swing.Color):Unit"></a>
+      <a id="foreground_=(c:&lt;?&gt;):Unit"></a>
       <a id="foreground_=(Color):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -611,7 +541,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>UIElement</dd></dl></div>
     </li><li name="scala.swing.UIElement#ignoreRepaint_=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ignoreRepaint_=(b:Boolean):Unit"></a>
+      <a id="ignoreRepaint_=(b:&lt;?&gt;):Unit"></a>
       <a id="ignoreRepaint_=(Boolean):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -623,6 +553,32 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>UIElement</dd></dl></div>
+    </li><li name="tinkerGUI.utils.MutableComboBox#index" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="index:Int"></a>
+      <a id="index:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">index</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.utils.MutableComboBox#index_=" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="index_=(n:Int):Unit"></a>
+      <a id="index_=(Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: index_$eq" class="name">index_=</span><span class="params">(<span name="n">n: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      
     </li><li name="scala.swing.Component#initP" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="initP:javax.swing.JComponent"></a>
       <a id="initP:JComponent"></a>
@@ -650,7 +606,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Component</dd></dl></div>
     </li><li name="scala.swing.Component#inputVerifier_=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="inputVerifier_=(v:scala.swing.Component=&gt;Boolean):Unit"></a>
+      <a id="inputVerifier_=(v:&lt;?&gt;):Unit"></a>
       <a id="inputVerifier_=((Component)⇒Boolean):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -675,6 +631,58 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="tinkerGUI.utils.MutableComboBox#item" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="item:T"></a>
+      <a id="item:T"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">item</span><span class="result">: <span class="extype" name="tinkerGUI.utils.MutableComboBox.T">T</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.utils.MutableComboBox#item_=" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="item_=(a:T):Unit"></a>
+      <a id="item_=(T):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: item_$eq" class="name">item_=</span><span class="params">(<span name="a">a: <span class="extype" name="tinkerGUI.utils.MutableComboBox.T">T</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.utils.MutableComboBox#items" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="items:scala.collection.immutable.IndexedSeq[T]"></a>
+      <a id="items:IndexedSeq[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">items</span><span class="result">: <span class="extype" name="scala.collection.immutable.IndexedSeq">IndexedSeq</span>[<span class="extype" name="tinkerGUI.utils.MutableComboBox.T">T</span>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="tinkerGUI.utils.MutableComboBox#items_=" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="items_=(s:Seq[T]):Unit"></a>
+      <a id="items_=(Seq[T]):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: items_$eq" class="name">items_=</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="tinkerGUI.utils.MutableComboBox.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      
     </li><li name="scala.swing.Component.keys" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="keys"></a>
       <a id="keys:keys"></a>
@@ -832,7 +840,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Component</dd></dl></div>
     </li><li name="scala.swing.Component#name_=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="name_=(s:String):Unit"></a>
+      <a id="name_=(s:&lt;?&gt;):Unit"></a>
       <a id="name_=(String):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -923,7 +931,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Component</dd></dl></div>
     </li><li name="scala.swing.Component#opaque_=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="opaque_=(b:Boolean):Unit"></a>
+      <a id="opaque_=(b:&lt;?&gt;):Unit"></a>
       <a id="opaque_=(Boolean):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -936,7 +944,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Component</dd></dl></div>
     </li><li name="scala.swing.Component#paint" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="paint(g:scala.swing.Graphics2D):Unit"></a>
+      <a id="paint(g:&lt;?&gt;):Unit"></a>
       <a id="paint(Graphics2D):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -949,7 +957,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Component</dd></dl></div>
     </li><li name="scala.swing.Component#paintBorder" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="paintBorder(g:scala.swing.Graphics2D):Unit"></a>
+      <a id="paintBorder(g:&lt;?&gt;):Unit"></a>
       <a id="paintBorder(Graphics2D):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -962,7 +970,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Component</dd></dl></div>
     </li><li name="scala.swing.Component#paintChildren" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="paintChildren(g:scala.swing.Graphics2D):Unit"></a>
+      <a id="paintChildren(g:&lt;?&gt;):Unit"></a>
       <a id="paintChildren(Graphics2D):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -975,7 +983,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Component</dd></dl></div>
     </li><li name="scala.swing.Component#paintComponent" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="paintComponent(g:scala.swing.Graphics2D):Unit"></a>
+      <a id="paintComponent(g:&lt;?&gt;):Unit"></a>
       <a id="paintComponent(Graphics2D):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -987,19 +995,19 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Component</dd></dl></div>
-    </li><li name="tinkerGUI.utils.ToolBar#peer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="peer:javax.swing.JToolBar"></a>
-      <a id="peer:JToolBar"></a>
+    </li><li name="tinkerGUI.utils.MutableComboBox#peer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="peer:javax.swing.JComboBox[T]withMutableComboBox.this.SuperMixin"></a>
+      <a id="peer:JComboBox[T]withSuperMixin"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">peer</span><span class="result">: <span class="extype" name="javax.swing.JToolBar">JToolBar</span></span>
+        <span class="name">peer</span><span class="result">: <span class="extype" name="javax.swing.JComboBox">JComboBox</span>[<span class="extype" name="tinkerGUI.utils.MutableComboBox.T">T</span>] with <a href="#SuperMixinextendsJComponent" class="extmbr" name="tinkerGUI.utils.MutableComboBox.SuperMixin">SuperMixin</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="tinkerGUI.utils.ToolBar">ToolBar</a> → Wrapper → Component → UIElement</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="tinkerGUI.utils.MutableComboBox">MutableComboBox</a> → Component → UIElement</dd></dl></div>
     </li><li name="scala.swing.UIElement#preferredSize" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="preferredSize:java.awt.Dimension"></a>
       <a id="preferredSize:Dimension"></a>
@@ -1222,7 +1230,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Component</dd></dl></div>
     </li><li name="scala.swing.Component#tooltip_=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="tooltip_=(t:String):Unit"></a>
+      <a id="tooltip_=(t:&lt;?&gt;):Unit"></a>
       <a id="tooltip_=(String):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1344,7 +1352,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Component</dd></dl></div>
     </li><li name="scala.swing.Component#xLayoutAlignment_=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="xLayoutAlignment_=(x:Double):Unit"></a>
+      <a id="xLayoutAlignment_=(x:&lt;?&gt;):Unit"></a>
       <a id="xLayoutAlignment_=(Double):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1370,7 +1378,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Component</dd></dl></div>
     </li><li name="scala.swing.Component#yLayoutAlignment_=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="yLayoutAlignment_=(y:Double):Unit"></a>
+      <a id="yLayoutAlignment_=(y:&lt;?&gt;):Unit"></a>
       <a id="yLayoutAlignment_=(Double):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1391,15 +1399,7 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.swing.SequentialContainer.Wrapper">
-              <h3>Inherited from <span class="extype" name="scala.swing.SequentialContainer.Wrapper">Wrapper</span></h3>
-            </div><div class="parent" name="scala.swing.Container.Wrapper">
-              <h3>Inherited from <span class="extype" name="scala.swing.Container.Wrapper">Wrapper</span></h3>
-            </div><div class="parent" name="scala.swing.SequentialContainer">
-              <h3>Inherited from <span class="extype" name="scala.swing.SequentialContainer">SequentialContainer</span></h3>
-            </div><div class="parent" name="scala.swing.Container">
-              <h3>Inherited from <span class="extype" name="scala.swing.Container">Container</span></h3>
-            </div><div class="parent" name="scala.swing.Component">
+        <div class="parent" name="scala.swing.Component">
               <h3>Inherited from <span class="extype" name="scala.swing.Component">Component</span></h3>
             </div><div class="parent" name="scala.swing.UIElement">
               <h3>Inherited from <span class="extype" name="scala.swing.UIElement">UIElement</span></h3>

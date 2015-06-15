@@ -87,8 +87,13 @@ class GraphEditController() extends Publisher {
 					contents += new MenuItem(deleteNodeAction)
 				case "Nested" =>
 					contents += new MenuItem(new Action("Edit node") {
-						def apply = {
+						def apply() {
 							Service.updateTactic(eltName,eltValue,false)
+						}
+					})
+					contents += new MenuItem(new Action("Inspect tactic") {
+						def apply() {
+							Service.graphInspectorCtrl.inspect(ArgumentParser.separateNameFromArgument(eltValue)._1)
 						}
 					})
 					contents += new MenuItem(new Action("Add a subgraph") {def apply = Service.addSubgraph(ArgumentParser.separateNameFromArgument(eltValue)._1)})

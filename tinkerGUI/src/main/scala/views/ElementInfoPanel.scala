@@ -60,11 +60,19 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 						Service.addSubgraph(name)
 					}
 				})
+			val inspectButton = new Button(
+				new Action("Inspect tactic"){
+					def apply(){
+						Service.graphInspectorCtrl.inspect(name)
+					}
+				}
+			)
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+value))
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Branch type : "+branchType))
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(){
 				contents += addSubButton
 				contents += editButton
+				contents += inspectButton
 				contents += delButton
 			}
 		case "G_Break" =>
@@ -115,6 +123,8 @@ class VerticesEditContent(names: Set[String]) extends BoxPanel(Orientation.Verti
 }
 
 class EdgeEditContent(nam: String, value: String, src: String, tgt: String) extends BoxPanel(Orientation.Vertical) {
+	val titleFont = new Font("Dialog",Font.BOLD,14)
+	contents += new FlowPanel(FlowPanel.Alignment.Center)(new Label("Edge Information"){font = titleFont})
 	val editButton = new Button(
 		new Action("Edit edge") {
 			def apply() {

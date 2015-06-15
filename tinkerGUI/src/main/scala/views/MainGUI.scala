@@ -12,7 +12,7 @@ object MainGUI extends SimpleSwingApplication {
 		orientation = Orientation.Horizontal
 		minimumSize = new Dimension (300,800)
 		preferredSize = new Dimension (300,800)
-		contents_=(new SubGraphEditPanel(), new ElementInfoPanel())
+		contents_=(new GraphInspectorPanel(), new ElementInfoPanel())
 	}
 
 	object ThirdSplit extends SplitPane {

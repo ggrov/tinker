@@ -13,6 +13,8 @@ object Service extends Publisher {
 	val c = CommunicationService // the communication needs to be "instantiates" to actually listen for connections
 	// Models
 	//val hierarchyModel = new HierarchyModel()
+	/** Psgrah model. */
+	val model = new PSGraph()
 
 	// controllers
 	// TODO get rid of unecessary controllers
@@ -22,7 +24,7 @@ object Service extends Publisher {
 	val editControlsCtrl = new EditControlsController()
 	val evalControlsCtrl = new EvalControlsController()
 	val graphBreadcrumsCtrl = new GraphBreadcrumbsController()
-	val subGraphEditCtrl = new SubGraphEditController()
+	val graphInspectorCtrl = new GraphInspectorController(model)
 	val graphNavCtrl = new GraphNavigationController()
 	val hierTreeCtrl = new HierarchyTreeController()
 	val libraryTreeCtrl = new TinkerLibraryController()
@@ -36,8 +38,6 @@ object Service extends Publisher {
 	def setTopFrame(c: MainFrame) { topFrame = c }
 	def getTopFrame : MainFrame = topFrame
 
-	/** Psgrah model. */
-	val model = new PSGraph()
 	// getters on the psgraph model
 	/** Method updating a getting the psgraph json object. See[[tinkerGUI.model.PSGraph.jsonPSGraph]].*/
 	def getJsonPSGraph:JsonObject = {
@@ -54,10 +54,6 @@ object Service extends Publisher {
 	def getGoalTypes = model.goalTypes
 	/** Method to get the core id of an atomic tactic. See [[tinkerGUI.model.PSGraph.getATCoreId]].*/
 	def getATCoreId(name:String) = model.getATCoreId(name)
-	/** Method to get the a specific subgraph json object. See [[tinkerGUI.model.PSGraph.getSubgraphGT]].*/
-	def getSubgraphGT(tactic: String, index: Int) = model.getSubgraphGT(tactic, index)
-	/** Method to get the size of a specific graph tactic. See [[tinkerGUI.model.PSGraph.getSizeGT]].*/
-	def getSizeGT(tactic: String) = model.getSizeGT(tactic)
 	/** Method to get the branch type of a specific graph tactic. See [[tinkerGUI.model.PSGraph.getGTBranchType]].*/
 	def getBranchTypeGT(tactic: String) = model.getGTBranchType(tactic)
 	/** Method to get the children of a graph tactic or the main graph children. See [[tinkerGUI.model.GraphTactic.children]] and [[tinkerGUI.model.PSGraph.childrenMain]].*/
@@ -112,7 +108,7 @@ object Service extends Publisher {
 					DocumentService.setUnsavedChanges(true)
 					checkedByModel = if(isAtomicTactic) model.createAT(name,tactic,args) else model.createGT(name,branchType,args)
 					if(checkedByModel){
-						if(isAtomicTactic) model.addATOccurrence(name,nodeId) else {model.addGTOccurrence(name,nodeId); hierTreeCtrl.redraw()}
+						if(isAtomicTactic) model.addATOccurrence(name,nodeId) else {model.addGTOccurrence(name,nodeId); publish(GraphTacticListEvent())}
 						QuantoLibAPI.setVertexValue(nodeId, name+"("+args+")")
 					} else {
 						var confirmDialog = new Dialog()
@@ -126,7 +122,7 @@ object Service extends Publisher {
 						}
 						val duplicateAction:Action = new Action("Use same informations"){
 							def apply(){
-								if(isAtomicTactic) model.addATOccurrence(name,nodeId) else {model.addGTOccurrence(name,nodeId); hierTreeCtrl.redraw()}
+								if(isAtomicTactic) model.addATOccurrence(name,nodeId) else {model.addGTOccurrence(name,nodeId); publish(GraphTacticListEvent())}
 								val fullName = if(isAtomicTactic) model.getATFullName(name) else model.getGTFullName(name)
 								QuantoLibAPI.setVertexValue(nodeId, fullName)
 								confirmDialog.close()
@@ -182,7 +178,7 @@ object Service extends Publisher {
 				else model.createGT(n,"OR","")
 		}
 		try{
-			if(isAtomicTactic) model.addATOccurrence(name,nodeId) else {model.addGTOccurrence(name,nodeId); hierTreeCtrl.redraw()}
+			if(isAtomicTactic) model.addATOccurrence(name,nodeId) else {model.addGTOccurrence(name,nodeId); publish(GraphTacticListEvent())}
 		} catch {
 			case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 			case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
@@ -289,7 +285,7 @@ object Service extends Publisher {
 									// TODO : consider linking all occurrences
 									deleteTactic(tacticOldName,nodeId,false)
 									model.addGTOccurrence(name,nodeId)
-									hierTreeCtrl.redraw()
+									publish(GraphTacticListEvent())
 									QuantoLibAPI.setVertexValue(nodeId, model.getGTFullName(name))
 									confirmDialog.close()
 								}
@@ -312,14 +308,14 @@ object Service extends Publisher {
 									def apply(){
 										createTactic(nodeId,isAtomicTactic,values)
 										model.removeGTOccurrence(tacticOldName, nodeId)
-										hierTreeCtrl.redraw()
+										publish(GraphTacticListEvent())
 										confirmDialog.close()
 									}
 								}
 								val editAllAction:Action = new Action("Edit all"){
 									def apply(){
 										val nodesToChange: Array[String] = model.updateForceGT(tacticOldName, name, branchType, args)
-										hierTreeCtrl.redraw()
+										publish(GraphTacticListEvent())
 										val fullName = model.getGTFullName(name)
 										nodesToChange.foreach{ n =>
 											QuantoLibAPI.setVertexValue(n, fullName)
@@ -351,7 +347,7 @@ object Service extends Publisher {
 			DocumentService.setUnsavedChanges(true)
 			val tacticName = ArgumentParser.separateNameFromArgument(nodeName)._1
 			val lastOcc:Boolean = if(isAtomicTactic) model.removeATOccurrence(tacticName, nodeId) else model.removeGTOccurrence(tacticName,nodeId)
-			hierTreeCtrl.redraw()
+			publish(GraphTacticListEvent())
 			if(lastOcc){
 				val message =
 					if(isAtomicTactic) "This was the only occurrence of this atomic tactic, its data have been deleted."
@@ -479,7 +475,7 @@ object Service extends Publisher {
 		try{
 			QuantoLibAPI.loadFromJson(model.getCurrentJson)
 			// graphBreadcrumsCtrl.addCrum(getCurrent)
-			hierTreeCtrl.redraw()
+			publish(GraphTacticListEvent())
 
 		} catch {
 			case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
