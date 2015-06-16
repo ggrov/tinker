@@ -1,28 +1,52 @@
 package tinkerGUI.views
 
+import javax.swing.ImageIcon
+
 import tinkerGUI.model.exceptions.{AtomicTacticNotFoundException, GraphTacticNotFoundException}
 
 import scala.swing._
 import tinkerGUI.controllers._
 import tinkerGUI.utils.{TinkerDialog, ArgumentParser}
-import java.awt.Font
+import java.awt.{Cursor, Font}
 
 class VertexEditContent(nam: String, typ: String, value: String) extends BoxPanel(Orientation.Vertical) {
 	val titleFont = new Font("Dialog",Font.BOLD,14)
 	contents += new FlowPanel(FlowPanel.Alignment.Center)(new Label("Node Information"){font = titleFont})
 	
 	val delButton = new Button(
-		new Action("Delete node"){
+		new Action(""){
 			def apply(){
 				QuantoLibAPI.userDeleteElement(nam)
 			}
-		})
+		}){
+		icon = if(typ=="T_Atomic") {
+			new ImageIcon(MainGUI.getClass.getResource("delete-atomic.png"), "Edit")
+		} else if (typ=="T_Graph") {
+			new ImageIcon(MainGUI.getClass.getResource("delete-nested.png"), "Edit")
+		} else {
+			new ImageIcon(MainGUI.getClass.getResource("delete-identity.png"), "Edit")
+		}
+		tooltip = "Delete node"
+		borderPainted = false
+		margin = new Insets(0,0,0,0)
+		contentAreaFilled = false
+		opaque = false
+		cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+	}
 	val editButton = new Button(
-		new Action("Edit tactic"){
+		new Action(""){
 			def apply(){
 				Service.updateTactic(nam,value,typ=="T_Atomic")
 			}
-		})
+		}){
+		icon = new ImageIcon(MainGUI.getClass.getResource("edit-pen.png"), "Edit")
+		tooltip = "Edit tactic"
+		borderPainted = false
+		margin = new Insets(0,0,0,0)
+		contentAreaFilled = false
+		opaque = false
+		cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+	}
 
 	contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Node : " + nam))
 	contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label(typ match{
@@ -55,18 +79,33 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 				case e:GraphTacticNotFoundException => "Error : could not find tactic"
 			}
 			val addSubButton = new Button(
-				new Action("Add a sub-graph"){
+				new Action(""){
 					def apply(){
 						Service.addSubgraph(name)
 					}
-				})
+				}){
+				icon = new ImageIcon(MainGUI.getClass.getResource("add.png"), "Add subgraph")
+				tooltip = "Add subgraph"
+				borderPainted = false
+				margin = new Insets(0,0,0,0)
+				contentAreaFilled = false
+				opaque = false
+				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+			}
 			val inspectButton = new Button(
-				new Action("Inspect tactic"){
+				new Action(""){
 					def apply(){
 						Service.graphInspectorCtrl.inspect(name)
 					}
-				}
-			)
+				}){
+				icon = new ImageIcon(MainGUI.getClass.getResource("inspect.png"), "Inspect tactic")
+				tooltip = "Inspect tactic"
+				borderPainted = false
+				margin = new Insets(0,0,0,0)
+				contentAreaFilled = false
+				opaque = false
+				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+			}
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+value))
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Branch type : "+branchType))
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(){
@@ -76,12 +115,21 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 				contents += delButton
 			}
 		case "G_Break" =>
-			val removeBreakAction = new Action("Remove breakpoint"){
-				def apply() {
-					QuantoLibAPI.removeBreakpoint(nam)
-				}
+			val removeBreak = new Button(
+				new Action("") {
+					def apply() {
+						QuantoLibAPI.removeBreakpoint(nam)
+					}
+				}){
+				icon = new ImageIcon(MainGUI.getClass.getResource("remove-break.png"), "Remove breakpoint")
+				tooltip = "Remove breakpoint"
+				borderPainted = false
+				margin = new Insets(0,0,0,0)
+				contentAreaFilled = false
+				opaque = false
+				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 			}
-			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Button(removeBreakAction))
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(removeBreak)
 		case "G" => // do nothing
 	}
 
@@ -126,34 +174,67 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String) exte
 	val titleFont = new Font("Dialog",Font.BOLD,14)
 	contents += new FlowPanel(FlowPanel.Alignment.Center)(new Label("Edge Information"){font = titleFont})
 	val editButton = new Button(
-		new Action("Edit edge") {
+		new Action("") {
 			def apply() {
 				Service.editEdge(nam,src,tgt,value)
 			}
 		}
-	)
-	val breakpointButton = new Button(
+	){
+		icon = new ImageIcon(MainGUI.getClass.getResource("edit-pen.png"), "Edit")
+		tooltip = "Edit edge"
+		borderPainted = false
+		margin = new Insets(0,0,0,0)
+		contentAreaFilled = false
+		opaque = false
+		cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+	}
+	val breakpointButton =
 		if(QuantoLibAPI.hasBreak(nam)){
-			new Action("Remove breakpoint") {
+			new Button(
+				new Action("") {
 				def apply() {
 					QuantoLibAPI.removeBreakpointFromEdge(nam)
 				}
+			}){
+				icon = new ImageIcon(MainGUI.getClass.getResource("remove-break.png"), "Remove breakpoint")
+				tooltip = "Remove breakpoint"
+				borderPainted = false
+				margin = new Insets(0,0,0,0)
+				contentAreaFilled = false
+				opaque = false
+				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 			}
 		}
 		else {
-			new Action("Add breakpoint") {
-				def apply() {
-					QuantoLibAPI.addBreakpointOnEdge(nam)
-				}
+			new Button(
+				new Action("") {
+					def apply() {
+						QuantoLibAPI.addBreakpointOnEdge(nam)
+					}
+				}){
+				icon = new ImageIcon(MainGUI.getClass.getResource("add-break.png"), "Add breakpoint")
+				tooltip = "Add breakpoint"
+				borderPainted = false
+				margin = new Insets(0,0,0,0)
+				contentAreaFilled = false
+				opaque = false
+				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 			}
 		}
-	)
 	val delButton = new Button(
-		new Action("Delete edge"){
+		new Action(""){
 			def apply(){
 				QuantoLibAPI.userDeleteElement(nam)
 			}
-		})
+		}){
+		icon = new ImageIcon(MainGUI.getClass.getResource("delete-edge.png"), "Delete")
+		tooltip = "Delete edge"
+		borderPainted = false
+		margin = new Insets(0,0,0,0)
+		contentAreaFilled = false
+		opaque = false
+		cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+	}
 	contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Edge : " + nam))
 	contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Goal types : "+value))
 	contents += new FlowPanel(FlowPanel.Alignment.Left)(){

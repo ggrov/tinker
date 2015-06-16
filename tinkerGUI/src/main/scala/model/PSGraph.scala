@@ -128,7 +128,7 @@ class PSGraph() extends ATManager with GTManager {
 
 	/** Method to remove an occurrence from an atomic tactic.
 		*
-		* Deletes the tactic's data from the modele if it is the last occurrence.
+		* Deletes the tactic's data from the model if it is the last occurrence.
 		* @param name Gui id of the atomic tactic.
 		* @param node Node id of the occurrence to remove.
 		* @return Boolean notifying if it was the last occurrence of the atomic tactic.

@@ -88,7 +88,7 @@ trait VertexDisplayData { self: GraphView =>
 
           var fm = peer.getGraphics.getFontMetrics(GraphView.VertexLabelFont)
           // added for tinker, change font metric for smaller size in case of breakpoint type, changed fm to var for that
-          if(vertexData.typ == "break") fm = peer.getGraphics.getFontMetrics(GraphView.VertexLabelFontSmall)
+          if(vertexData.typ == "G_Break") fm = peer.getGraphics.getFontMetrics(GraphView.VertexLabelFontSmall)
           val labelDisplay = LabelDisplayData(
             text, (x,y), fm,
             vertexData.typeInfo.style.labelForegroundColor,

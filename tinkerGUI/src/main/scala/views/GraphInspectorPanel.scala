@@ -9,35 +9,15 @@ import tinkerGUI.controllers._
 
 import scala.swing.event.SelectionChanged
 
-class navigationPanel(controller:GraphInspectorController) extends BoxPanel(Orientation.Vertical){
-	val nextAction = new Action("") {
-		def apply() {
-			controller.showNext()
-		}
-	}
-	val prevAction = new Action("") {
-		def apply() {
-			controller.showPrev()
-		}
-	}
-	val editAction = new Action("") {
-		def apply() {
-			controller.edit()
-		}
-	}
-	val delAction = new Action("") {
-		def apply() {
-			controller.delete()
-		}
-	}
-	val addAction = new Action(""){
-		def apply() {
-			controller.add()
-		}
-	}
-
+class GraphInspectorPanel() extends BorderPanel {
+	val controller = Service.graphInspectorCtrl
+	val tacticNavigation = new BoxPanel(Orientation.Vertical){
 		contents += new FlowPanel(FlowPanel.Alignment.Right)(){
-			contents += new Button(prevAction){
+			contents += new Button(new Action("") {
+				def apply() {
+					controller.showPrev()
+				}
+			}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("previous.png"), "Prev")
 				tooltip = "Previous"
 				borderPainted = false
@@ -47,7 +27,11 @@ class navigationPanel(controller:GraphInspectorController) extends BoxPanel(Orie
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 			}
 			contents += controller.indexOnTotal
-			contents += new Button(nextAction){
+			contents += new Button(new Action("") {
+				def apply() {
+					controller.showNext()
+				}
+			}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("next.png"), "Next")
 				tooltip = "Next"
 				borderPainted = false
@@ -56,7 +40,11 @@ class navigationPanel(controller:GraphInspectorController) extends BoxPanel(Orie
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 			}
-			contents += new Button(editAction){
+			contents += new Button(new Action("") {
+				def apply() {
+					controller.edit()
+				}
+			}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("edit-pen.png"), "Edit")
 				tooltip = "Edit"
 				borderPainted = false
@@ -65,7 +53,11 @@ class navigationPanel(controller:GraphInspectorController) extends BoxPanel(Orie
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 			}
-			contents += new Button(addAction){
+			contents += new Button(new Action(""){
+				def apply() {
+					controller.add()
+				}
+			}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("add.png"), "Add")
 				tooltip = "Add"
 				borderPainted = false
@@ -74,7 +66,11 @@ class navigationPanel(controller:GraphInspectorController) extends BoxPanel(Orie
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 			}
-			contents += new Button(delAction){
+			contents += new Button(new Action("") {
+				def apply() {
+					controller.delete()
+				}
+			}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("delete.png"), "Delete")
 				tooltip = "Delete"
 				borderPainted = false
@@ -84,14 +80,7 @@ class navigationPanel(controller:GraphInspectorController) extends BoxPanel(Orie
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 			}
 		}
-}
-
-class GraphInspectorPanel() extends BorderPanel {
-	minimumSize = new Dimension(250, 500)
-	preferredSize = new Dimension(250, 550)
-	val controller = Service.graphInspectorCtrl
-
-	val tacticNavigation = new navigationPanel(controller)
+	}
 
 	val noSubgraphLabel = new Label("This tactic does not have any subgraphs.")
 
@@ -128,13 +117,18 @@ class GraphInspectorPanel() extends BorderPanel {
 		add(new FlowPanel(FlowPanel.Alignment.Center)(noSubgraphLabel),BorderPanel.Position.South)
 	}
 
-	val subgraphPanel = controller.getSubgraphView
+	val subgraphPanel = QuantoLibAPI.getSubgraphPreview
 
 	add(header, BorderPanel.Position.North)
 	add(subgraphPanel, BorderPanel.Position.Center)
+
+	minimumSize = new Dimension(400, 500)
+	preferredSize = new Dimension(400, 550)
+
 	subgraphPanel.visible = false
 	noSubgraphLabel.visible = false
 	tacticNavigation.visible = false
+
 	listenTo(controller)
 	reactions += {
 		case ShowPreviewEvent(hasSubgraph:Boolean) =>

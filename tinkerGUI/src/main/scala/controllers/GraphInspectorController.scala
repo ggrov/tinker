@@ -4,9 +4,6 @@ import tinkerGUI.model.PSGraph
 import tinkerGUI.model.exceptions.{GraphTacticNotFoundException, SubgraphNotFoundException}
 
 import scala.swing._
-import scala.swing.event.ButtonClicked
-import quanto.util.json._
-import tinkerGUI.utils.ArgumentParser
 
 class GraphInspectorController(model: PSGraph) extends Publisher {
 
@@ -18,8 +15,6 @@ class GraphInspectorController(model: PSGraph) extends Publisher {
 
 	var gtList = model.gtCollection.keys.toList
 
-	def getSubgraphView = QuantoLibAPI.getSubgraphPreview
-
 	def inspect(name:String){
 		if(name == "Select a tactic"){
 			publish(HidePreviewEvent())
@@ -29,6 +24,7 @@ class GraphInspectorController(model: PSGraph) extends Publisher {
 				indexToShow = 0
 				tacticTotal = model.getSizeGT(name)
 				indexOnTotal.text = (indexToShow + 1) + " / " + tacticTotal
+				publish(UpdateSelectedTacticToInspectEvent(tacticToShow))
 				showPreview()
 			} catch {
 				case e:GraphTacticNotFoundException => publish(HidePreviewEvent())
@@ -39,13 +35,11 @@ class GraphInspectorController(model: PSGraph) extends Publisher {
 	private def showPreview(){
 		try{
 			QuantoLibAPI.updateSubgraphPreviewFromJson(model.getSubgraphGT(tacticToShow, indexToShow))
-			publish(UpdateSelectedTacticToInspectEvent(tacticToShow))
 			publish(ShowPreviewEvent(true))
 		} catch {
 			case e:GraphTacticNotFoundException => publish(HidePreviewEvent())
 			case e:SubgraphNotFoundException =>
 				indexOnTotal.text = indexToShow + " / " + tacticTotal
-				publish(UpdateSelectedTacticToInspectEvent(tacticToShow))
 				publish(ShowPreviewEvent(false))
 		}
 	}
@@ -78,7 +72,7 @@ class GraphInspectorController(model: PSGraph) extends Publisher {
 		else {
 			Service.deleteSubGraph(tacticToShow, indexToShow)
 			tacticTotal = tacticTotal - 1
-			if(indexToShow != 0) indexToShow = indexToShow - 1
+			if(indexToShow != 0) indexToShow -= 1
 			indexOnTotal.text = (indexToShow + 1) + " / " + tacticTotal
 			showPreview()
 		}
@@ -89,18 +83,6 @@ class GraphInspectorController(model: PSGraph) extends Publisher {
 
 	listenTo(Service)
 	reactions += {
-		/*case OneVertexSelectedEventAPI(_, typ, value) =>
-			typ match {
-				case "T_Graph" =>
-					val name = ArgumentParser.separateNameFromArgument(value)._1
-					tacticToShow = name
-					indexToShow = 0
-					tacticTotal = model.getSizeGT(name)
-					indexOnTotal.text = (indexToShow + 1) + " / " + tacticTotal
-					showPreview()
-				case "G" | "G_Break" | "T_Atomic" | "T_Identity" => publish(HidePreviewEvent())
-			}
-		case NothingSelectedEvent() | NothingSelectedEventAPI() | OneEdgeSelectedEventAPI(_,_,_,_) => publish(HidePreviewEvent())*/
 		case GraphTacticListEvent() =>
 			gtList = model.gtCollection.keys.toList
 			publish(UpdateGTListEvent())
