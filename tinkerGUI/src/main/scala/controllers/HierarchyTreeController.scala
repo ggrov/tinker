@@ -13,6 +13,22 @@ import math._
 case class InfiniteTreeException(msg:String) extends Exception(msg)
 
 class HierarchyTreeController() extends Publisher {
+	var elementParents : Map[String,Array[Array[String]]] = Map()
+	def editElementParent = {
+		//def adjust[A,B](m: Map[A,B], k: A)(f: B => B) = m.updated(k, f(m(k)))
+		def rec(t:String,p:Array[String], map:Map[String,Array[Array[String]]]):Map[String,Array[Array[String]]] = {
+			var m = map
+			if(m contains t) m = m.updated(t, m(t):+p)
+			else m += (t->Array(p))
+			Service.getGTChildren(t).foreach{ c =>
+				m = rec(c.name,p:+t, m)
+			}
+			m
+		}
+		elementParents = rec("main",Array(),Map())
+		//println(elementParents.foldLeft("---"){case (s,(k,v)) => s+"\ntactic : "+k+" - parents : "+v.foldLeft(""){case (s,p) => s+"\n    "+p.mkString(" > ")}})
+	}
+	editElementParent
 	var elementCoordinates : Array[(String, Int, Int, Int, Int, Array[String])] = Array()
 	var preferredSize = new Dimension(200,200)
 
@@ -89,6 +105,8 @@ class HierarchyTreeController() extends Publisher {
 	def redraw() = publish(HierarchyTreeEvent())
 	listenTo(Service)
 	reactions += {
-		case GraphTacticListEvent() => publish(HierarchyTreeEvent())
+		case GraphTacticListEvent() =>
+			editElementParent
+			publish(HierarchyTreeEvent())
 	}
 }

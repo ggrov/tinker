@@ -424,13 +424,13 @@ object Service extends Publisher {
 		)
 	}
 
-	def addSubgraph(tactic: String){
+	def addSubgraph(tactic: String, parents:Option[Array[String]] = None){
 		DocumentService.setUnsavedChanges(true)
 		model.newSubgraph(tactic)
 		hierTreeCtrl.redraw()
 		QuantoLibAPI.newGraph()
 		graphNavCtrl.viewedGraphChanged(model.isMain, true)
-		graphBreadcrumsCtrl.addCrumb(tactic)
+		graphBreadcrumsCtrl.addCrumb(tactic, parents)
 		publish(NothingSelectedEvent())
 	}
 
@@ -452,7 +452,7 @@ object Service extends Publisher {
 				true
 			} catch {
 				case e:SubgraphNotFoundException =>
-					addSubgraph(tactic)
+					addSubgraph(tactic,parents)
 					true
 			}
 		} catch {

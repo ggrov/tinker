@@ -25,6 +25,11 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+				listenTo(controller)
+				reactions += {
+					case DisableNavigationEvent(a:Array[String]) =>
+						enabled = !(a contains "prev")
+				}
 			}
 			contents += controller.indexOnTotal
 			contents += new Button(new Action("") {
@@ -39,6 +44,11 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+				listenTo(controller)
+				reactions += {
+					case DisableNavigationEvent(a:Array[String]) =>
+						enabled = !(a contains "next")
+				}
 			}
 			contents += new Button(new Action("") {
 				def apply() {
@@ -52,6 +62,11 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+				listenTo(controller)
+				reactions += {
+					case DisableNavigationEvent(a:Array[String]) =>
+						enabled = !(a contains "edit")
+				}
 			}
 			contents += new Button(new Action(""){
 				def apply() {
@@ -65,6 +80,11 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+				listenTo(controller)
+				reactions += {
+					case DisableNavigationEvent(a:Array[String]) =>
+						enabled = !(a contains "add")
+				}
 			}
 			contents += new Button(new Action("") {
 				def apply() {
@@ -78,6 +98,11 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+				listenTo(controller)
+				reactions += {
+					case DisableNavigationEvent(a:Array[String]) =>
+						enabled = !(a contains "del")
+				}
 			}
 		}
 	}

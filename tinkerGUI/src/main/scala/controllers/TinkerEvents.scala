@@ -16,6 +16,7 @@ case class ShowPreviewEvent(hasSubgraph:Boolean) extends Event
 case class UpdateSelectedTacticToInspectEvent(tactic:String) extends Event
 case class HidePreviewEvent() extends Event
 case class UpdateGTListEvent() extends Event
+case class DisableNavigationEvent(a:Array[String]) extends Event
 
 case class DocumentSaved() extends Event
 case class DocumentChanged() extends Event
