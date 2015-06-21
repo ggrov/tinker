@@ -26,9 +26,3 @@
      val default_name = mk "Ga"; 
    end;
 
-   (* name of rechen*)
-  structure RT = 
-    struct
-      open  SStrName;
-      val default_name = mk "RTa";
-    end;

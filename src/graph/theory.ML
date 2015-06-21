@@ -10,7 +10,8 @@ sig
   structure Theory : GRAPHICAL_THEORY
   structure PSDataIO : GRAPH_COMPONENT_DATA_IO
   include GRAPHICAL_THEORY
-  structure Graph_Utils : sig 
+  structure Graph_Utils : 
+  sig 
     val add_outs : E.name list -> Graph.nvdata list -> Graph.T -> Graph.T 
     val all_gnodes : Graph.T -> V.name list
     val all_tactics : Graph.T -> V.name list 
@@ -42,7 +43,11 @@ sig
     val rewrite : Rule.T -> Graph.T -> Graph.T list 
     val rewrite_lazy : Rule.T -> Graph.T -> Graph.T Seq.seq
     val symmetric_rule : Rule.T -> Rule.T
-    val vertex_data : Graph.T -> V.name -> Graph.nvdata end
+    val vertex_data : Graph.T -> V.name -> Graph.nvdata 
+    val is_env_tactic_name : string -> bool
+    val is_env_tactic : Graph.T -> V.name -> bool
+    val parse_env_var_name : string -> string option
+  end
 
   sharing type Graph.T = Theory.Graph.T
   sharing type Graph.nvdata = Data.nvdata
@@ -171,11 +176,11 @@ struct
      case edge_data graph e of (Data.GT _) => true | _ => false;
 
    fun is_tactic graph v = 
-     case lookup_ivertex_data graph v of 
-         SOME (Data.T_Atomic _) => true
-       | SOME (Data.T_Graph _) => true
-       | SOME Data.T_Identity => true
-       | _ => false; 
+   case lookup_ivertex_data graph v of 
+       SOME (Data.T_Atomic _) => true
+     | SOME (Data.T_Graph _) => true
+     | SOME Data.T_Identity => true
+     | _ => false; 
 
    fun is_hgragh_with_graph_name graph n v = 
      case lookup_ivertex_data graph v of 
@@ -263,6 +268,41 @@ struct
 
    fun symmetric_rule rule = Theory.Rule.mk (Theory.Rule.get_rhs rule,Theory.Rule.get_lhs rule);
 
+(* environment tactics and variables *)
+  fun is_env_tactic_name name = 
+  let
+    fun is_env_tactic_name0 name = 
+    let val _ =  Symbol.explode name |> Scan.this_string "ENV_" in
+    true end;
+  in
+    Scan.catch (is_env_tactic_name0) name
+    handle Fail _ => false
+  end
+
+ (* is a tactic node and also follows the name convension that has a prefix of ENV *)
+  fun is_env_tactic g v = 
+    let
+      fun gey_tactic_node_name graph vgraph = 
+        case lookup_ivertex_data graph vgraph of 
+           SOME (Data.T_Atomic n ) => n
+           | _ => raise Fail "this is not a tatic node" (* no need to logging this, as it won't happen *)
+    in
+      is_tactic g v andalso is_env_tactic_name (gey_tactic_node_name g v)
+    end
+
+(* check the format is "?_" *)
+  fun parse_env_var_name str = 
+  let
+    fun get_env_arg_name0 str = 
+      str |> Symbol.explode 
+      |> $$ "?"
+      |> snd
+      |> implode
+      |> SOME;
+  in
+    Scan.catch (get_env_arg_name0) str
+    handle Fail _ => NONE
+  end
   end (* structure Util *)
 
   structure Sharing = 

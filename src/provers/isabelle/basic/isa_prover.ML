@@ -1,18 +1,20 @@
 structure IsaProver : PROVER =
 struct 
-  open DebugHandler
+  local open LoggingHandler in 
   type typ = typ
   type term = Term.term  
   type thm = Thm.thm
   type context = Proof.context
 
-  datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term 
+  type arg_data = string (*A_Const of string | A_Var of string | A_Trm of term *)
   datatype env_data = 
     E_Str of string | 
-    E_Trm of term | E_Trms of term list | E_Thm of thm |
+    E_Trm of term | E_Thm of thm |
     E_ML of string | 
     E_L of env_data list
   type env = env_data StrName.NTab.T 
+  type env_tac =  env -> env 
+  exception env_data_exp
 
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term, env : env } 
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
@@ -20,16 +22,20 @@ struct
   fun update_pnode_env f {pname,pctxt,ptrm,env} = {pname = pname ,pctxt = pctxt ,ptrm = ptrm ,env = f env};
 
   val set_pnode_env = update_pnode_env o K;
-  fun get_pnode_env {env, ...} = env;
+  fun get_pnode_env ({env, ...} : pnode) = env;
+  fun get_pnode_env_data pnode name = get_pnode_env pnode |> ( fn x => StrName.NTab.get x name)
+  fun  get_pnode_env_data_as_ML pnode name = 
+    case get_pnode_env_data pnode name of (E_ML ml_code) => ml_code
+    | _ => raise env_data_exp 
  
-  type gtyp = env -> pnode -> arg_data list -> env list
+  (* type gtyp = env -> pnode -> arg_data list -> env list *)
 
   (* fixme: we need to rethink the allowed argument and when the vars should be instantiated! 
        E.g. rule(exI,?x) -> should the tactic instantiate ?x to what is has in the env or should we?
         also if it is not, then ?x may be instantiated and this updated env should be recorded in the 
         env \<rightarrow> where is this handled? Need to work out some examples first I think...
  *)
-  type tactic = Proof.context -> int -> arg_data list -> Tactical.tactic
+  type tactic = Proof.context -> int -> Tactical.tactic (*Proof.context -> int -> arg_data list -> Tactical.tactic*)
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
   exception gterm_exp
@@ -141,14 +147,19 @@ struct
 
   fun pretty_pplan pnode = Pretty.str "Pretty PPLAN TOTO";
    
-  fun apply_tactic args tac (pnode,pplan) = 
-    tac (#pctxt pnode) (get_index pnode pplan) args (#goal pplan)
+  fun apply_tactic (*args*) (tac : tactic) (pnode,pplan) = 
+    tac (#pctxt pnode) (get_index pnode pplan) (*args*) (#goal pplan)
     |> Seq.map (update (pnode,pplan))
-    |> (fn x => (case Seq.pull x of NONE => (debug_print BASIC_INFO "Err: Fail to apply tactic" ; x) | _ => x ))
+    |> Seq.map (fn (x,y) => (map (set_pnode_env (get_pnode_env pnode)) x,y)) (* inherit env *)
+    |> (fn x => 
+        (case Seq.pull x of NONE 
+           => (logging "TACTIC" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode); 
+               raise tinker_fail) 
+           | _ => x ))
 
   (* Update the env and then apply a dummy id tac in isabelle *)
-  fun apply_env_tactic args env_tac (pnode,pplan) = 
-    apply_tactic args (K (K (K all_tac))) (update_pnode_env (env_tac args) pnode,pplan)
+  fun apply_env_tactic (*args*) env_tac (pnode,pplan) = 
+    apply_tactic (*args*) (K (K all_tac)) (update_pnode_env env_tac pnode, pplan)
 
   (* SOME default tactics *)
 
@@ -179,13 +190,15 @@ struct
   val encode_gui_to_prover = I;
 
   (* END goal type *)
-
+  end (* end of local open *)
   structure Sharing = 
   struct
     type typ = typ
     type term = term
     type thm = thm
     type context = context
+    type env_data = env_data
+    type env_tac = env_tac
     type tactic = tactic
     type pplan = pplan
     type pnode = pnode

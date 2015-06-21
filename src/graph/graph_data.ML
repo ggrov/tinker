@@ -3,7 +3,7 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
 
   structure GoalTyp = GoalTyp;
 
-  type arg_typ = string list list
+  type arg_typ = GoalTyp.Prover.arg_data list list
 
   datatype nvdata = T_Atomic of string 
                   | T_Graph of string 

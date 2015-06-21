@@ -1,10 +1,17 @@
-functor PSGraphFun(Theory_IO : PSGRAPH_THEORY_IO) : PS_GRAPH  =
+functor PSGraphFun(structure Theory_IO : PSGRAPH_THEORY_IO 
+                   structure Tac_ML_Exec : ML_EXEC
+                   structure EnvTac_ML_Exec : ML_EXEC
+                   sharing type Theory_IO.PS_Theory.GoalTyp.Prover.tactic = Tac_ML_Exec.ret_typ
+                   sharing type Theory_IO.PS_Theory.GoalTyp.Prover.env_tac = EnvTac_ML_Exec.ret_typ) : PS_GRAPH  =
 struct
 
  structure Theory = Theory_IO.PS_Theory;
  structure Prover = Theory.Data.GoalTyp.Prover;
  structure Theory_IO = Theory_IO
+ structure Tac_ML_Exec = Tac_ML_Exec
+ structure EnvTac_ML_Exec = EnvTac_ML_Exec
 
+ local open LoggingHandler in
 (*
   fun weak_validate ?
   fun strong_validate ?
@@ -63,34 +70,51 @@ struct
  fun get_top_graph (PSGraph rep) = #graph rep;
  fun get_graph_tactics (PSGraph rep) = #graph_tactics rep;
  fun get_atomic_tactics (PSGraph rep) = #atomic_tactics rep;
-(* tactic string  + args string *)
 
-(* for the use of the string args *)
- fun build_tac_code_with_arg tac_code tac_args = 
+(* tactic string  + args string then susbt env_arg with the actual mo code from env data of the pnode *)
+ fun build_tac_code_with_arg tac_code (tac_args : string list list) env_data = 
   let
-    fun concat a b = b ^ a;
+    fun concat a b = b ^ " " ^ a;
+    fun subst_env_var var = 
+      case Theory.Graph_Utils.parse_env_var_name var of NONE => var
+      | SOME var0  => 
+        (case StrName.NTab.get env_data var0 of (Prover.E_ML var') => var'
+          | _ =>  (logging "ENV_DATA" ("Only E_ML is supported, please check the type of " ^ var0  ^ " in " ^ tac_code); 
+                   raise tinker_fail)
+        handle StrName.Tab.UNDEF _ => 
+          (logging "ENV_DATA" ("Undefined env_var " ^ var0  ^ " for " ^ tac_code); 
+           raise tinker_fail))
+    val tac_args_env_var : string list list = 
+      map 
+      (fn arg => (subst_env_var (hd arg)) :: (tl arg)
+        handle Empty => 
+           (logging "ARG_DATA" ("Illformed arg_data, [] encountered for " ^ tac_code); 
+           raise tinker_fail))
+      tac_args
+    val tac_args' = 
+      (* there should not be empty list *)
+      map (fn l => case l of [x] => [x] | (x :: xs) => (x :: ":" :: xs)) tac_args_env_var;
     val args = 
-      case tac_args of [] => ""
-      | _ => map (fn x => "(" ^ (fold concat x "") ^ ")" ) tac_args
+      case tac_args' of [] => ""
+      | _ => map (fn x => "(" ^ (fold concat x "") ^ " )" ) tac_args'
             |> (fn y => fold concat y "")
   in
      tac_code ^ args
-  end
-
+  end;
 (*
  fun build_env_arg_str parent_arg_str arg_str = 
   String.translate (fn x => if x = #"@" then ("(" ^ parent_arg_str ^ ")") else str x ) arg_str
   |> (fn x =>(writeln ("ML tac code: " ^ x ^ " using parent arg: " ^ parent_arg_str ^ " and arg str: " ^ arg_str) ; x))
 *)  
   
-(* FIXME: need to handle the env variable, need to subst them *)
- fun get_atomic_tac_code ps name = 
+ fun get_atomic_tac_code ps name pnode = 
   let 
     val (Atomic_Tacs atom_tacs) = StrName.NTab.get (get_atomic_tactics ps) name
     val tac_code = (#tactic atom_tacs)
-    val tac_args =  (#args atom_tacs)
+    val (tac_args : string list list) =  (#args atom_tacs)
+    val env_data = Theory.GoalTyp.Prover.get_pnode_env pnode
   in
-     build_tac_code_with_arg tac_code tac_args
+     build_tac_code_with_arg tac_code tac_args env_data (* need the pnode to get env vars *)
     (*|> (fn x => (writeln "after enter get_atomic_tactic_code0" ; x))*)
   end
 
@@ -269,20 +293,6 @@ struct
   ]
   end
 
- val exec_buffer :Prover.tactic option Unsynchronized.ref = Unsynchronized.ref NONE ;
- fun exec_tac_exp (s : string) : Prover.tactic option = (
-	let	val cmd = 
-	    "PSGraph.exec_buffer := ((" ^ s ^ ") |> SOME handle _ => NONE)"; (* hacky! PSGraph has to be the same as the strucutre instaintiated from this functor *)
-		val _ =  Prover.exec_str cmd;
-	in	!exec_buffer
-	end
- );
- 
- fun eval_tactic str = 
-  case exec_tac_exp str 
-    of SOME t => t
-    | NONE => raise tactic_exp ("ERR: fail to eval " ^ str ^ " as a tactic." )
-
 (* expect to out put as an eval field *)
  fun input_json (Json.Object object) = 
   let
@@ -318,6 +328,8 @@ struct
 
 (* TO DO: implement the type checking / graph validating *)
  val validate_psgraph = (fn _ => false )
+
+ end (* end of open logging handler *)
 
  structure Sharing = 
  struct

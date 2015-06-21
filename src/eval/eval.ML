@@ -8,6 +8,7 @@ struct
  structure GoalTyp = EData.PSGraph.Theory.Data.GoalTyp;
  structure Prover = GoalTyp.Prover;
  structure GData = EData.PSGraph.Theory.Data;
+ structure Util =  Theory.Graph_Utils;
 
   exception apply_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode
   exception node_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode * EData.PSGraph.Theory.Data.nvdata
@@ -17,44 +18,42 @@ struct
       goaltypes : EData.PSGraph.Theory.Data.GoalTyp.T list } 
   exception Fail = RunCall.Fail
 
-  local open Theory.Graph_Utils in
+  local open Theory.Graph_Utils LoggingHandler in
   (*******
     Application of tactic - link with TP systems
-  *******) 
-
-  (* FIXME: handle arguments + raise exception if it fails *)
+  *******)   
+  (* FIXME: raise exception if it fails *)
   fun apply_tactic edata gnode (GData.T_Atomic name) = 
        let 
          val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
          val pplan = EData.get_pplan edata
          (* string vs facts : what about variables? and list of things bound? *)
          val facts = []
-        !!! (* get tactic string from the tactic node, and then substitue the key word parent from gnode*)
-         val parent_arg = (GoalTyp.get_par_tac_args gnode)
+         (* get tactic string from the tactic node, and then eval the tac*)
+         val if_env_tac = is_env_tactic_name name
          val tac_code = 
-            EData.PSGraph.get_atomic_tac_code (EData.get_psgraph edata) name parent_arg 
-            |> hd (* now we only consider th first one, FIXME: we need to support the case when multi-or-args *)
-            (* the actual ml code of the tactic ti be evaluated *)
-         val tac =  EData.PSGraph.eval_tactic tac_code (* now eval them *) !!!
+            EData.PSGraph.get_atomic_tac_code (EData.get_psgraph edata) name pnode
+            (* the actual ml code of the tactic to be evaluated *)
+         (* val tac = EData.PSGraph.Tac_ML_Exec.eval_ml tac_code *)
        in 
-         Prover.apply_tactic facts tac (pnode,pplan)
+        if if_env_tac 
+        then Prover.apply_env_tactic (EData.PSGraph.EnvTac_ML_Exec.eval_ml tac_code) (pnode,pplan)
+        else Prover.apply_tactic (EData.PSGraph.Tac_ML_Exec.eval_ml tac_code) (pnode,pplan)
       end
-   | apply_tactic _ gnode node = raise node_exp ("not an atomic tactic node",gnode,node);
-
-  val lift  = GoalTyp.lift;
+   | apply_tactic _ gnode node = raise node_exp ("not an atomic tactic node",gnode ,node);
 
   (* FIXME: can we get a list of failed pnodes *)
 
   (* need some filtering of empty here *)
   fun partition_one' _ [] _ _ _ [] = [] (* fails to lift for this branch *)
    |  partition_one' gtype_data (gt::gts) gnode pnode bres (r::ares) = 
-    (case lift gnode (gtype_data,gt) pnode of
+    (case GoalTyp.check (gtype_data,gt) (SOME gnode,pnode) of
       (* fails to lift *)
-      [] => partition_one' gtype_data gts gnode pnode (bres@[r]) ares
+      false  => partition_one' gtype_data gts gnode pnode (bres@[r]) ares
       (* succeeds, and check for further successes *)
-    | gs =>
+    | true =>
         (* adds the succeded to the current result *)
-        (bres @ [gs @ r] @ ares) ::
+        (bres @ [(GoalTyp.lift pnode) :: r] @ ares) ::
         (* goes through and see if more succeeds (thus branching) *)
          partition_one' gtype_data gts gnode pnode (bres@[r]) ares)
   | partition_one' _ _ _ _ _ _ = [];
@@ -163,7 +162,6 @@ struct
  (* fixme: may loose goals! *)
  fun init_goal pnode edata  = 
    let
-     val _ = DebugHandler.clear_debug_msg ();
      val gt_data = edata 
                  |> EData.get_psgraph  
                  |> EData.PSGraph.get_goaltype_data
@@ -172,9 +170,9 @@ struct
      val in_edges = Util.input_boundary graph
                   |> maps (fn (_,(e,_),_) => to_gt e)
      fun new_graph (e,gt) = 
-       case GoalTyp.init_lift (gt_data,gt) pnode of
-         [] => [] (* not needed *)
-         | gns => map (fn gn => (gn, #3 (Util.insert_node_on_edge (Util.mk_gnode gn) e graph))) gns 
+       case GoalTyp.check (gt_data,gt) (NONE,pnode) of
+         false => [] (* not needed *)
+         | ture => map (fn gn => (gn, #3 (Util.insert_node_on_edge (Util.mk_gnode gn) e graph))) [GoalTyp.lift pnode] 
      val new_graphs = maps new_graph in_edges
    in  (* fixme: this should be updated according to strategy *)
        map (fn (gn,g) => edata |> EData.update_gnodes (fn gs => gn::gs) 
@@ -189,7 +187,6 @@ struct
 
  fun init_of psgraph (pnds,pplan) =
    let
-     val _ = DebugHandler.clear_debug_msg ();
      val pnode_tab = 
       fold 
        (fn pnode => StrName.NTab.ins (Prover.get_pnode_name pnode,pnode))
@@ -204,7 +201,6 @@ struct
 
  fun init psgraph ctxt assms goals =
    let
-     val _ = DebugHandler.clear_debug_msg ();
      val (pnode,pplan) = Prover.init ctxt assms goals
      val pnode_tab = 
        StrName.NTab.ins
@@ -235,16 +231,6 @@ struct
    in
      apply_tactic edata gnode tac
      |> Seq.maps apply_one
-     (* not needed, has been done during lift
-   !!!  |> Seq.map 
-        (fn x => 
-          (fst x, 
-           (map 
-           (fn y => 
-            map 
-            (fn z => map (GoalTyp.import_gn_info gnode) z)
-            y) 
-          (snd x)))) !!! *)
    end
 
   fun add_gnode n e g =
@@ -269,7 +255,7 @@ struct
      val graph' = Util.del_gnode gnode_name graph
      val goal = Util.gnode_of graph gnode_name
      val (SOME tactic) = Util.lookup_ivertex_data graph tnode
-     val result =  apply_atomic edata goal tactic out_goaltypes
+     val result = apply_atomic edata goal tactic out_goaltypes
    in
       Seq.maps (fn (b,rs) 
         => (case rs 
@@ -283,10 +269,10 @@ struct
     val graph = EData.get_graph edata
     val goal = Util.gnode_of graph gnode_name
     val pnode = EData.get_goal edata (GoalTyp.goal_name goal)
-    val hgraph_name = GData.get_name hgraph_nv
+    val hgraph_name = 
+      case hgraph_nv of (GData.T_Graph name) => name 
+      | _ => raise GData.node_exp ("expect hgraph, but some other type of nvnode",hgraph_nv);
     val hgraph_args = EData.PSGraph.get_hgraph_args (EData.get_psgraph edata) hgraph_name
-    val _ = writeln ("graph args: " ^ (hd (hd hgraph_args) |> GoalTyp.data_string_of))
-            handle Empty => writeln "arg list is empty"
     val cur_name = EData.get_name_current edata
     val cur_idx =  EData.get_index_current edata
     val gt_data =  EData.get_psgraph edata |> EData.PSGraph.get_goaltype_data
@@ -300,13 +286,10 @@ struct
           |> maps (fn (_,(e,_),_) => [(e,Util.goaltype_of g0 e)])
         val g = EData.get_bgraph b
         fun gen_new_graph (e,gt) = 
-         case GoalTyp.init_lift (gt_data,gt) pnode of
-            [] => [] 
-          | gns =>
-              map (GoalTyp.import_gn_info goal) gns (* import the previous goal env info *)
-              |> map (GoalTyp.set_gnode_cur_hie_tac hgraph_name) (* update the current hie info *)
-              |> map (GoalTyp.add_par_tac_arg (hd hgraph_args)) (* fixme: currently we only use the first arg, need to branch out if more exist*)
-              |> map (fn gn => (gn, #3 (Util.insert_node_on_edge (Util.mk_gnode gn) e g))) 
+         if GoalTyp.check (gt_data,gt) (NONE, pnode) 
+         then
+           [(GoalTyp.lift pnode, #3 (Util.insert_node_on_edge (Util.mk_gnode (GoalTyp.lift pnode)) e g))] 
+         else [] 
         fun new_hgraphs g0 = 
           maps gen_new_graph (gen_in_edges g0) 
           |> map snd (* to project graph *)
@@ -355,13 +338,9 @@ struct
     val out_edges = Util.out_edges parent_graph parent_hgraph_node
     val out_goaltypes = map (fn e => (e, Util.goaltype_of parent_graph e)) out_edges
     fun gen_new_graph (e,gt) = 
-     case GoalTyp.init_lift (gt_data,gt) pnode of
-        [] => [] 
-      | gns => 
-        map (GoalTyp.import_gn_info goal) gns (* import the previous goal env info *)
-        |> map (GoalTyp.clear_par_tac_arg) 
-        |> map (GoalTyp.set_gnode_cur_hie_tac par_name) (* update the current hie info *)
-        |> map (fn gn => (gn, #3 (Util.insert_node_on_edge (Util.mk_gnode gn) e parent_graph))) 
+     if GoalTyp.check (gt_data,gt) (NONE, pnode) 
+     then [(GoalTyp.lift pnode, #3 (Util.insert_node_on_edge (Util.mk_gnode (GoalTyp.lift pnode)) e parent_graph))] 
+     else []
     val new_parent_graphs = 
       maps gen_new_graph out_goaltypes 
       |> map snd (* to project graph *)
@@ -391,9 +370,9 @@ struct
     val out_edges = Util.out_edges graph id_node
     val out_goaltypes = map (fn e => (e, Util.goaltype_of graph e)) out_edges
     fun gen_new_graph (e,gt) = 
-     case GoalTyp.init_lift (gt_data,gt) pnode of
-        [] => [] 
-      | gns => map (fn gn => (gn, #3 (Util.insert_node_on_edge (Util.mk_gnode gn) e graph'))) gns 
+     if GoalTyp.check (gt_data,gt) (NONE, pnode) 
+     then [(GoalTyp.lift pnode, #3 (Util.insert_node_on_edge (Util.mk_gnode (GoalTyp.lift pnode)) e graph'))]
+     else []
     val new_graphs = 
       maps gen_new_graph out_goaltypes 
       |> map snd (* to project graph *)

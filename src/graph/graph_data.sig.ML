@@ -10,7 +10,7 @@ signature PSGRAPH_DATA =
 sig
   structure GoalTyp : BASIC_GOALTYPE
 
-  type arg_typ = string list list
+  type arg_typ = GoalTyp.Prover.arg_data list list (*e.g. [[x, int], [y int list]] = (x : int) (y : int list) *)
 
   (* note: variables only for evaluation! *)
   datatype nvdata =  T_Atomic of string (* tactic *)

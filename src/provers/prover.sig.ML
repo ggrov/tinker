@@ -8,7 +8,8 @@ sig
   type thm
   type context
   type tactic
-
+  type env_data
+  type env_tac
   type pplan
   type pnode
 end
@@ -22,19 +23,24 @@ sig
   type tactic 
 
   (* arguments for atomic goal types and tactics *)
-  datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term 
+  (*datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_ML of string*)
+  type arg_data = string (* to keep the flexibility of arg, define the arg_data as ML code, i.e. string *)
+
   datatype env_data = 
     E_Str of string | 
-    E_Trm of term | E_Trms of term list | E_Thm of thm |
+    E_Trm of term  | E_Thm of thm |
     E_ML of string | 
     E_L of env_data list
+
   type env = env_data StrName.NTab.T 
+  type env_tac
+  exception env_data_exp 
 
   type pplan
   type pnode
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
-  type gtyp = env -> pnode -> arg_data list -> env list
+  (* type gtyp = env -> pnode -> arg_data list -> env list *)
 
   exception gterm_exp
   
@@ -51,10 +57,10 @@ sig
 
   val init : context -> term list -> term -> pnode * pplan
 
-  val apply_tactic : arg_data list -> tactic -> appf
+  val apply_tactic : (*arg_data list ->*) tactic -> appf
   (* tactics that only update env (used to be in the goaltype)
      this will be registered in the pplan object now \<rightarrow> i.e. a new pnode *)
-  val apply_env_tactic : arg_data list -> (arg_data list -> env -> env) -> appf
+  val apply_env_tactic : (* arg_data list -> *) env_tac -> appf
 
   (* pnode related *)
   val get_open_pnodes : pplan -> pnode list
@@ -63,6 +69,8 @@ sig
   val get_pnode_hyps : pnode -> term list
   val get_pnode_ctxt : pnode -> context
   val get_pnode_env : pnode -> env
+  val get_pnode_env_data : pnode -> StrName.name -> env_data
+  val get_pnode_env_data_as_ML : pnode -> StrName.name -> string
  
   val set_pnode_env : env -> pnode -> pnode
   val update_pnode_env : (env -> env) -> pnode -> pnode
@@ -90,7 +98,8 @@ sig
     sharing type Sharing.thm = thm
     sharing type Sharing.context = context
     sharing type Sharing.tactic = tactic 
-
+    sharing type Sharing.env_data = env_data
+    sharing type Sharing.env_tac = env_tac
     sharing type Sharing.pplan = pplan
     sharing type Sharing.pnode = pnode
 

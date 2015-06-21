@@ -1,6 +1,6 @@
 structure SimpleGoalTyp : BASIC_GOALTYPE = 
 struct
-  local open DebugHandler in
+  local open LoggingHandler in
 
   structure Prover = IsaProver;
   type T = string
@@ -50,7 +50,7 @@ struct
     fun top_level' str pn = 
       case TF.top_level_str (Logic.strip_imp_concl (#ptrm pn)) of
          NONE => false
-       | SOME v => (let val _ = debug_print GOALTYP (v ^ " " ^  (TF.ignore_module str)) in v = (TF.ignore_module str) end);
+       | SOME v => (let val _ = logging "GOALTYPE" (v ^ " " ^  (TF.ignore_module str)) in v = (TF.ignore_module str) end);
     
     fun top_level strs pn = map (fn str => top_level' str pn) strs;
 
@@ -76,13 +76,13 @@ struct
          val ctxt = #pctxt pn
          val (hyps, goal) = get_hyps_and_goal (#ptrm pn)
          val _ = Pretty.chunks ([Pretty.str "hyps in hyp_embed: "] @ (map (Syntax.pretty_term @{context}) hyps)) 
-                 |> Pretty.string_of |> debug_print GOALTYP
+                 |> Pretty.string_of |> logging "GOALTYPE"
          val _ = Pretty.chunks ([Pretty.str "goal in hyp_embed: "] @ [((Syntax.pretty_term @{context} goal))]) 
-                 |> Pretty.string_of |> debug_print GOALTYP
+                 |> Pretty.string_of |> logging "GOALTYPE"
       in 
         exists (fn hyp => TF.ctxt_embeds ctxt hyp goal) hyps 
-        |> (fn x => if x then (debug_print GOALTYP "find embeddings !"; x) 
-            else  (debug_print GOALTYP "no embeddings !"; x))
+        |> (fn x => if x then (logging "GOALTYPE" "find embeddings !"; x) 
+            else  (logging "GOALTYPE" "no embeddings !"; x))
       end;
 (*
     fun goal_embeds pn =
@@ -122,8 +122,8 @@ struct
          val wrules = BasicRipple.get_matched_wrules ctxt goal
       in
         TF.has_measure_decreasing_rules ctxt embedd_hyp wrules goal
-        |> (fn x => if x then (debug_print GOALTYP "find decreased measure !"; x) 
-            else  (debug_print GOALTYP "no decreased measure !"; x))
+        |> (fn x => if x then (logging "GOALTYPE" "find decreased measure !"; x) 
+            else  (logging "GOALTYPE" "no decreased measure !"; x))
       end
 
     (* embedding is a subterm of goal, or if the embedding is eq type then 
@@ -181,7 +181,7 @@ struct
                                [Pretty.str "with embeds: "] @
                                [((Syntax.pretty_term @{context} embedd_hyp))]
                                ) 
-        |> Pretty.string_of |> debug_print GOALTYP
+        |> Pretty.string_of |> logging "GOALTYPE"
       in
         TF.is_subterm thy goal embedd_hyp
       end
@@ -189,29 +189,12 @@ struct
 (**************************************************************
     ML String parsing 
 **************************************************************)
-    type gt_pred = Prover.context -> Prover.term list -> Prover.term -> bool
-    val exec_gt_buffer : gt_pred option Unsynchronized.ref = Unsynchronized.ref NONE;
-
-    fun exec_gt_exp data (s : string) : gt_pred option = (
-      let	val cmd = 
-          "SimpleGoalTyp.exec_gt_buffer := ((" ^ s ^ " " ^ data ^ ") |> SOME handle _ => NONE)";
-        val _ =  Prover.exec_str cmd;
-      in	!exec_gt_buffer
-      end
-    );
-
-    fun eval_gt pn data str = 
-     let
-        val pred =  case exec_gt_exp data str 
-          of SOME gt_pred => gt_pred
-          | NONE => raise gt_exp ("ERR: fail to eval " ^ str ^ " with " ^ data ^ "as a goal type predicate." )
-     in
-        pred (get_pnode_ctxt pn) (get_pnode_hyps pn) (get_pnode_concl pn)
-     end
+  type gt_pred = Prover.context -> Prover.term list -> Prover.term -> bool
+  structure GoalTyp_ML_Exec = ML_Exec_Func (structure prover = Prover type ret = gt_pred val struct_name = "SimpleGoalTyp");
 
     fun debug_trace str b = 
-      if b then (debug_print GOALTYP (str ^ " is good !"); b) 
-      else (debug_print GOALTYP (str ^ " fails !"); b);
+      if b then (logging "GOALTYPE" (str ^ " is good !"); b) 
+      else (logging "GOALTYPE" (str ^ " fails !"); b);
 
     val keywords = ["top_symbol", "has_symbol", "goal_embeds", "hyp_embeds", "inductable",
                       "measure_reduces", "hyp_bck_res", "hyp_subst", "not", "or", "any", "anything"];
@@ -236,11 +219,11 @@ struct
     val split_args = String.tokens (member (op =) [#"|"]);
 
     fun lift_list _ _ [] = false
-     |  lift_list pn d (x::xs) =
+     |  lift_list pn data (x::xs) =
           ((case x of 
              "top_symbol" => exists I (top_level xs pn) |> debug_trace x
            | "has_symbol" => has_symbol xs pn |> debug_trace x
-           (*| "goal_embeds" => goal_embeds pn  to be tested *)
+           (*| "goal_embeds" => goal_embeds pn to be tested *)
            | "hyp_embeds" => (hyp_embeds pn)  |> debug_trace x
            | "inductable" => is_inductable pn  |> debug_trace x
            | "rippling" => ((hyp_embeds pn) andalso (measure_reduces pn)) |> debug_trace x
@@ -248,25 +231,25 @@ struct
            | "hyp_bck_res" => hyp_bck_res pn  |> debug_trace x
            | "hyp_subst" => hyp_subst pn  |> debug_trace x
            | "rippled" => (is_rippled pn) |> debug_trace x
-           | "not"       => not (lift_list pn d xs) 
-           | "or"        => exists I (map (lift_list pn d) (map split_args (xs))) |> debug_trace x
+           | "not"       => not (lift_list pn data xs) 
+           | "or"        => exists I (map (lift_list pn data) (map split_args (xs))) |> debug_trace x
            | "any"       => true (* default *)
            | "anything"   => true (* default *)
            | "label"      => true
-           |  exp         => eval_gt pn d exp |> debug_trace x)
+           |  exp         =>  GoalTyp_ML_Exec.eval_ml exp (get_pnode_ctxt pn) (get_pnode_hyps pn) (get_pnode_concl pn)  |> debug_trace x)
         (*handle _ => false*));
 
    fun lift' pn (data, str) = lift_list pn data (splitstr str)
    (*handle _ => raise gt_exp "int lift'";*)
 
-   fun init_lift (_,str) pn =
+   fun init_lift (data,str) pn =
      let 
         val ls = String.tokens (fn c => c = #";") str
-        val _ = debug_print GOALTYP (("init goal " ^  (#pname pn) ^  " with goal type: " ^ str ))
+        val _ = logging "GOALTYPE" (("init goal " ^  (#pname pn) ^  " with goal type: " ^ str ))
     in 
      case ls of 
-       [] => (debug_print BASIC_INFO "warning; No goal types !"; [])
-      | _ => ls |> map (lift' pn)
+       [] => (logging "GOALTYPE" "warning; No goal types !"; [])
+      | _ => ls |> map (fn x => lift' pn (data, x))
                 |> forall I 
                 |> liftp pn
    end
@@ -275,12 +258,12 @@ struct
   end; (* local open *)
 
   (* assume gn is the name of pn *)
-  fun match _ gt pn = 
-    case init_lift gt pn of
+  fun check (data,str) (_,pn) = 
+    case init_lift (data,str) pn of
      [] => false
     | _ => true;
 
-  val lift = K init_lift;
+  fun lift pn = (#pname pn)
 
 
   (* delete *)
@@ -294,6 +277,7 @@ struct
     type gnode = gnode
     type data = data
     type gt_pred = gt_pred
+    structure Prover = Prover.Sharing
   end
   end (* local open *)
 end(* struct *);

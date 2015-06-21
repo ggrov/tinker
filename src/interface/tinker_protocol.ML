@@ -1,6 +1,6 @@
 functor TinkerProtocol (IEVal : IEVAL)=
 struct
-  open JsonControllerUtil DebugHandler
+  open JsonControllerUtil LoggingHandler
 
   exception protocol_exn of string
   exception user_exn of string
@@ -35,7 +35,7 @@ struct
   val ftab = Symtab.empty
 
   structure JobTable = NameTable(structure Dom = IntName)
-  (* alway try save_connect then test connection, if no response then safe_clse then safe_connect *)
+  (* always try save_connect then test connection, if no response then safe_clse then safe_connect *)
   
 (****************************************************
   internal data 
@@ -85,7 +85,7 @@ struct
                   (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
                   edata1 NONE) |> pp_goal edata1
             |(IEVal.Bad) => 
-                (debug_print BASIC_INFO "ERR: Fail to Eval.";
+                (logging "EVAL" "No subsequent eval status: Bad";
                 IEVal.output_json "CMD_UPDATE_PSGRAPH" 
                   (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
                   edata0 NONE) )
@@ -122,9 +122,9 @@ struct
       val (json_list, src') = RawSource.get src
       val json = case json_list of [x] => x | _ =>
         raise protocol_exn "Expected: exactly one JSON object"
-      val _ = (debug_print TINKER "JSON IN: "; debug_print TINKER (Json.encode json))
+      val _ = (logging "JSON_GUI" ("JSON IN: " ^ (Json.encode json)))
       val json_output = dispatch json (* this output is always a json object *)
-      val _ = (debug_print TINKER "JSON OUT: "; debug_print TINKER ( Json.encode json_output))
+      val _ = (logging "JSON_GUI" ("JSON OUT: " ^ ( Json.encode json_output)))
     in 
       (case get_cmd_name json_output
           of "CMD_CLOSE_CONNECT" => () (* do nothing and exit: need to be consider what to do *)
@@ -132,7 +132,7 @@ struct
           | "Dummy_RSP" => ((); protocol_loop src')
           | "PRINT_ONLY_RSP" => 
             ((get_print_only_msg  json_output
-            |> ( fn x => debug_print TINKER ("PRINT_RSP: " ^ x)));
+            |> ( fn x => logging "JSON_GUI" ("PRINT_RSP: " ^ x)));
              protocol_loop src')
           | _ =>
              (send_msg (Json.encode json_output);

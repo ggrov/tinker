@@ -1,7 +1,7 @@
 
 functor InteractiveEvalFun (EVal : EVAL) =
 struct
-  open DebugHandler
+  local open LoggingHandler in
   structure EVal= EVal
   structure EData = EVal.EData;
 
@@ -19,7 +19,7 @@ struct
 
   fun update_branches edata branches = 
    let 
-    val _ = case branches of [] => debug_print BASIC_INFO "Err: No new branch is successful, backtrack" | _ => ();
+    val _ = case branches of [] => logging "EVAL" "Err: No new branch is successful, backtrack" | _ => ();
     val new_branches = branches @ (EData.get_branches edata) 
    in
     case new_branches of 
@@ -33,7 +33,7 @@ struct
   fun eval_goal node_name edata = 
    let 
     val graph = (EData.get_graph edata) 
-    val g = EVal.Util.gnode_of graph (V.mk node_name) 
+    val g = EVal.EData.PSGraph.Theory.Graph_Utils.gnode_of graph (V.mk node_name) 
             |> EData.PSGraph.Theory.Data.GoalTyp.goal_name
    in
      if EVal.has_psgraph_terminated edata then Good edata
@@ -55,7 +55,7 @@ struct
   fun eval_any edata = 
    let 
     val graph = (EData.get_graph edata) 
-    val cur_gnodenames = EVal.Util.all_gnodes graph
+    val cur_gnodenames = EVal.EData.PSGraph.Theory.Graph_Utils.all_gnodes graph
    in
     if EVal.has_psgraph_terminated edata then Good edata
     else
@@ -64,12 +64,12 @@ struct
     else
    (* todo: hierichecal one *)
      cur_gnodenames
-       |> map (EVal.Util.gnode_of graph)
-       |> map (EVal.Theory.GoalTyp.goal_name)
+       |> map (EVal.EData.PSGraph.Theory.Graph_Utils.gnode_of graph)
+       |> map (EVal.EData.PSGraph.Theory.GoalTyp.goal_name)
        |> (fn x => 
             (((Pretty.str "[[- all goals in the current graph: " ::
               (map (fn y => Pretty.block [Pretty.str y, Pretty.str " "] ) x)) |> Pretty.block 
-              |> Pretty.str_of |> debug_print EVAL);
+              |> Pretty.str_of |> logging "EVAL");
             x))
        |> map (fn g => EVal.eval_goal_goalname true g edata
                        |> Seq.list_of
@@ -140,6 +140,7 @@ struct
  fun eval_step_into _ _ = Bad
  fun eval_step_over _ _ = Bad
 
+  end (* end of local open *)
    structure Sharing =
    struct
      type result = result

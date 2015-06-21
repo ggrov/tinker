@@ -4,18 +4,20 @@ sig
   type gnode
   type data
   type gt_pred
+  structure Prover : PROVER_SHARING
 end
 
 (* BASIC GOAL TYPE which is used for graph *)
 signature BASIC_GOALTYPE = 
 sig
   structure Prover : PROVER
+
   type T
   type gnode
   type data
   type gt_pred
-
-  val exec_buffer : gt_pred option Unsynchronized.ref
+  structure GoalTyp_ML_Exec : ML_EXEC
+  sharing type GoalTyp_ML_Exec.ret_typ = gt_pred
    
   val default : T
   val default_gnode : gnode
@@ -48,6 +50,7 @@ sig
     sharing type BasicSharing.gnode = gnode
     sharing type BasicSharing.data = data    
     sharing type BasicSharing.gt_pred = gt_pred    
+    sharing BasicSharing.Prover = Prover.Sharing
 end;
 
 

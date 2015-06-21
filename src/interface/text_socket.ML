@@ -208,7 +208,7 @@ struct
   handle _ =>  
     (Synchronized.change current_sock 
       (fn _ => NONE) ;
-    DebugHandler.debug_warning ("faile to clear up last socket "))
+    LoggingHandler.logging "SOCKET" "Faile to clear up last socket ")
 
   fun clear_current_sock _ = run_in_atomic  clear_current_sock0
 

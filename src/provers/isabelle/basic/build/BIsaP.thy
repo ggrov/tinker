@@ -67,12 +67,12 @@ ML{*
 structure Theory_IO = PSGraph_Theory_IOFun(structure PSTheory = Theory)
 *}
 ML{*
-structure PSGraph = PSGraphFun(Theory_IO);
-*}     
-          
-ML{*
- PSGraph.empty;
-*}
+structure EnvTac_ML_Exec = ML_Exec_Func (structure prover = IsaProver type ret = IsaProver.env_tac val struct_name = "SimpleGoalTyp");
+structure Tac_ML_Exec = ML_Exec_Func (structure prover = IsaProver type ret = IsaProver.tactic val struct_name = "SimpleGoalTyp");
+structure PSGraph = PSGraphFun(structure Theory_IO = Theory_IO 
+                               structure EnvTac_ML_Exec = EnvTac_ML_Exec 
+                               structure Tac_ML_Exec = Tac_ML_Exec);
+*}             
 
 ML{*
 structure PSComb = PSCombFun (structure PSGraph = PSGraph)
