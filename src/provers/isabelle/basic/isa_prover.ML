@@ -24,8 +24,8 @@ struct
 
   val exec_str = eval_text;
 
-  structure EnvTac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = env_tac val struct_name = "IsaProver");
-  structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = "IsaProver");
+  structure EnvTac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = env_tac val struct_name = "IsaProver.EnvTac_ML_Exec");
+  structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = "IsaProver.Tac_ML_Exec");
 
  
   fun update_pnode_env f {pname,pctxt,ptrm,env} = {pname = pname ,pctxt = pctxt ,ptrm = ptrm ,env = f env};

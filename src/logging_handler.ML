@@ -36,7 +36,8 @@ struct
   fun print_tags tags tag_name = 
     StrName.NSet.list_of tags
     |> map (fn x => Pretty.str (x ^ " "))
-    |> (fn xs => Pretty.str (tag_name ^ ": [") :: xs @ [Pretty.str "]"]);
+    |> (fn xs => Pretty.str (tag_name ^ ": [") :: xs @ [Pretty.str "]"])
+    |> Pretty.block |> Pretty.writeln;
   fun print_all_tags _ = print_tags logging_tags "All Logging Tags";
   fun print_active _ = print_tags (get_active_tags ()) "Active Logging Tags";
 
@@ -53,7 +54,7 @@ struct
       then set_active_tags (StrName.NSet.delete tag (get_active_tags())) 
       else logging_warning ("Logging tag is not currenyly active: " ^ tag)
     else logging_warning ("Not a valid logging tag: " ^ tag);
-
+  fun active_all_tags _ = map ins_active_tag  (StrName.NSet.list_of logging_tags)
   fun logging tag x = 
     if StrName.NSet.contains (get_active_tags ()) tag then (get_logging_handler ()) tag x
     else ()

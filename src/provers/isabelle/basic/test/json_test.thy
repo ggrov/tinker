@@ -8,22 +8,28 @@ ML{*-
   val path = "/u1/staff/gg112/";
 *}
 ML{*
-  val path = "/Users/yuhuilin/Desktop/" ;
+LoggingHandler.active_all_tags ();
+LoggingHandler.print_active();
+  val path = "/Users/yuhuilin/Desktop/psgraph/" ;
 *}
 ML{*
-fun impI_tac  _ i _ = rtac @{thm impI} i;
-fun conjI_tac _ i _ = rtac @{thm conjI} i
-fun id_tac  _ _ _ = all_tac;
-fun assm_tac  _ i _ = atac i;
+val impI_thm = @{thm conjI};
+fun rule_tac thm _ i =  rtac thm i;
+fun impI_tac  _ i  = rtac @{thm impI} i;
+fun conjI_tac _ i  = rtac @{thm conjI} i
+fun id_tac  _ _  = all_tac;
+fun assm_tac  _ i = atac i;
 
 (* test gty pred *)
 fun test_pred _ _ _ = true
 fun test_failed_pred _ _ _ = false
+fun test_true1 _ _ _ = true
+
 *}
 ML{* "top_symbol(HOL.implies)"; "top_symbol(HOL.conj)";*}
 (* read and load a psgraph created by gui *)
 ML{*
-
+ 
   val ps = PSGraph.read_json_file (path^"demo_flat.psgraph");
   val ps0 = PSGraph.read_json_file (path^"demo_pred.psgraph");
 
@@ -43,7 +49,7 @@ IEVal.output_string
 ML{*-
   TextSocket.safe_close();
 *}
-ML{* -
+ML{*-
 Tinker.start_ieval @{context} ps [] @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"};
 *}
 

@@ -10,7 +10,7 @@ begin
 
   -- "instantiating with prover"
   ML{*
-    structure ClauseGoalTyp = ClauseGTFun(structure Prover = IsaProver val struct_name = "ClauseGoalTyp");  
+    structure ClauseGoalTyp = ClauseGTFun(structure Prover = IsaProver val struct_name = "ClauseGoalTyp.GoalTyp_ML_Exec");  
     structure C = ClauseGoalTyp;
   *}
 
