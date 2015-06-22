@@ -25,7 +25,7 @@
     },
     "G_Break" : {
       "value" : {
-        "path" : "$.break_name",
+        "path" : "$.label",
         "validate_with_core" : false,
         "latex_constants" : false,
         "type" : "string"
@@ -40,7 +40,7 @@
         "shape" : "octagon"
       },
       "default_data" : {
-        "break_name" : "STOP",
+        "label" : "STOP",
         "type" : "G_Break"
       }
     },

@@ -101,7 +101,7 @@ class TinkerMenu() extends MenuBar{
 	}
 
 	// for test purpose
-	val communication = new Menu("communication"){ menu =>
+	val debug = new Menu("debug"){ menu =>
 		val createClient = new Action("Create client") {
 			menu.contents += new MenuItem(this)
 			def apply(){
@@ -109,9 +109,15 @@ class TinkerMenu() extends MenuBar{
 				c.open()
 			}
 		}
+		val printJson = new Action("Print JSON in Console") {
+			menu.contents += new MenuItem(this)
+			def apply(){
+				controller.debugPrintJson()
+			}
+		}
 	}
 
-	contents += (FileMenu, EditMenu, communication)
+	contents += (FileMenu, EditMenu, debug)
 }
 
 class ClientSocket extends Frame {

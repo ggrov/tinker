@@ -10,23 +10,23 @@ object MainGUI extends SimpleSwingApplication {
 
 	object FourthSplit extends SplitPane {
 		orientation = Orientation.Horizontal
-		minimumSize = new Dimension (300,800)
-		preferredSize = new Dimension (300,800)
-		contents_=(new SubGraphEditPanel(), new ElementEditPanel())
+		//minimumSize = new Dimension (300,800)
+		//preferredSize = new Dimension (300,800)
+		contents_=(new GraphInspectorPanel(), new ElementInfoPanel())
 	}
 
 	object ThirdSplit extends SplitPane {
 		orientation = Orientation.Horizontal
-		minimumSize = new Dimension (300,800)
-		preferredSize = new Dimension (300,800)
+		//minimumSize = new Dimension (300,800)
+		//preferredSize = new Dimension (300,800)
 		val tinkerLibTree = new TinkerLibraryTree()
 		contents_=(tinkerLibTree.libraryFileTree, tinkerLibTree.previewPanel)
 	}
 
 	object SecondSplit extends SplitPane {
 		orientation = Orientation.Vertical
-		minimumSize = new Dimension (1100,800)
-		preferredSize = new Dimension (1100,800)
+		//minimumSize = new Dimension (1100,800)
+		//preferredSize = new Dimension (1100,800)
 		contents_=(new GraphEditPanel(){Service.setMainFrame(this)}, FourthSplit)
 	}
 

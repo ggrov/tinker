@@ -1,15 +1,7 @@
 package tinkerGUI.controllers
 
 import scala.swing._
-import tinkerGUI.utils.PopupMenu
-import tinkerGUI.utils.ArgumentParser
-import tinkerGUI.utils.SelectTool
-import tinkerGUI.utils.SelectionBox
-import tinkerGUI.utils.DragVertex
-import tinkerGUI.utils.AddVertexTool
-import tinkerGUI.utils.AddEdgeTool
-import tinkerGUI.utils.DragEdge
-import tinkerGUI.utils.MouseState
+import tinkerGUI.utils._
 
 class GraphEditController() extends Publisher {
 	private var mouseState: MouseState = SelectTool()
@@ -73,39 +65,11 @@ class GraphEditController() extends Publisher {
 				}
 			case OneEdgeSelectedEventAPI(name, value, source, target) =>
 				elt = "Edge"; eltName = name; eltValue = value; edgeSource = source; edgeTarget = target
-			case ManyVertexSelectedEventAPI(names) =>
+			case ManyVerticesSelectedEventAPI(names) =>
 				elt = "Many"; eltNames = names
 		}
 		override def show(invoker: Component, x: Int, y: Int){
 			val deleteNodeAction = new Action("Delete node") {def apply = {QuantoLibAPI.userDeleteElement(eltName)}}
-			def updateValueCallback(newValues :Map[String,String]) = {
-				newValues.foreach{ case (k,v) =>
-					k match {
-						case "Name" =>
-							val (oldName, oldArg) = ArgumentParser.separateNameFromArgument(eltValue)
-							var (newName, newArg) = ArgumentParser.separateNameFromArgument(v)
-							if(oldName != newName && newName != "") {
-								newName = Service.updateTacticName(oldName, newName, elt=="Nested")
-							}
-							if(oldArg != newArg){
-								newArg = Service.parseAndUpdateArguments(newName, newArg)
-							}
-							eltValue = newName+"("+newArg+")"
-							QuantoLibAPI.setVertexValue(eltName, eltValue)
-						case "Tactic" => 
-							Service.setAtomicTacticValue(ArgumentParser.separateNameFromArgument(eltValue)._1, v)
-						case "Goal types" =>
-							QuantoLibAPI.setEdgeValue(eltName, v)
-							eltValue = v
-						case "From" =>
-							QuantoLibAPI.userUpdateEdge(eltName, v, edgeTarget)
-							edgeSource = v
-						case "To" =>
-							QuantoLibAPI.userUpdateEdge(eltName, edgeSource, v)
-							edgeTarget = v
-					}
-				}
-			}
 			contents.clear()
 			elt match {
 				case "None" =>
@@ -117,13 +81,21 @@ class GraphEditController() extends Publisher {
 				case "Atomic" =>
 					contents += new MenuItem(new Action("Edit node") {
 						def apply = {
-							TinkerDialog.openEditDialog("Edit node "+eltName, Map("Name"->eltValue, "Tactic"->Service.getAtomicTacticValue(ArgumentParser.separateNameFromArgument(eltValue)._1)), updateValueCallback)
+							Service.updateTactic(eltName,eltValue,true)
 						}
 					})
 					contents += new MenuItem(deleteNodeAction)
 				case "Nested" =>
-					contents += new MenuItem(new Action("Edit node") {def apply = TinkerDialog.openEditDialog("Edit node "+eltName, Map("Name"->eltValue), updateValueCallback)})
-					contents += new CheckMenuItem("is or"){selected = Service.isNestedOr(ArgumentParser.separateNameFromArgument(eltValue)._1); action = (new Action("is or"){def apply = Service.setIsOr(ArgumentParser.separateNameFromArgument(eltValue)._1, selected)})}
+					contents += new MenuItem(new Action("Edit node") {
+						def apply() {
+							Service.updateTactic(eltName,eltValue,false)
+						}
+					})
+					contents += new MenuItem(new Action("Inspect tactic") {
+						def apply() {
+							Service.graphInspectorCtrl.inspect(ArgumentParser.separateNameFromArgument(eltValue)._1)
+						}
+					})
 					contents += new MenuItem(new Action("Add a subgraph") {def apply = Service.addSubgraph(ArgumentParser.separateNameFromArgument(eltValue)._1)})
 					contents += new MenuItem(deleteNodeAction)
 				case "Breakpoint" =>
@@ -132,7 +104,11 @@ class GraphEditController() extends Publisher {
 					contents += new MenuItem(new Action("Merge into nested tactic") {def apply = QuantoLibAPI.mergeSelectedVertices()})
 					contents += new MenuItem(new Action("Delete nodes") {def apply = eltNames.foreach{n => QuantoLibAPI.userDeleteElement(n)}})
 				case "Edge" =>
-					contents += new MenuItem(new Action("Edit edge") {def apply = TinkerDialog.openEditDialog("Edit egde "+eltName, Map("Goal types"->eltValue, "From"->edgeSource, "To"->edgeTarget), updateValueCallback)})
+					contents += new MenuItem(new Action("Edit edge") {
+						def apply = {
+							Service.editEdge(eltName,edgeSource,edgeTarget,eltValue)
+						}
+					})
 					if(QuantoLibAPI.hasBreak(eltName)){
 						contents += new MenuItem(new Action("Remove breakpoint") {def apply = QuantoLibAPI.removeBreakpointFromEdge(eltName)})
 					}

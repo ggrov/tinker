@@ -47,7 +47,7 @@ class TinkerLibraryTree() extends Publisher {
 
 	listenTo(controller)
 	reactions += {
-		case ShowPreviewEvent() =>
+		case ShowPreviewEvent(hasSubgraph:Boolean) =>
 			previewPanel.repaint()
 	}
 }

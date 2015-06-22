@@ -4,7 +4,7 @@ import scala.swing._
 import quanto.util.json._
 import java.io.{FilenameFilter, File}
 import scala.collection.mutable.ArrayBuffer
-import tinkerGUI.utils.ArgumentParser
+import tinkerGUI.utils.{TinkerDialog, ArgumentParser}
 
 class TinkerLibraryController() extends Publisher {
 
@@ -19,7 +19,7 @@ class TinkerLibraryController() extends Publisher {
 					fileName = f.getName().substring(0, f.getName().lastIndexOf("."))
 					json = j
 					QuantoLibAPI.updateLibraryPreviewFromJson((json ? "graph"))
-					publish(ShowPreviewEvent())
+					publish(ShowPreviewEvent(true))
 				case _ => TinkerDialog.openErrorDialog("Error when parsing file "+f.getName()+" to json")
 			}
 		}
@@ -28,7 +28,8 @@ class TinkerLibraryController() extends Publisher {
 
 	val addFileToGraph = new Action("Add to graph"){
 		def apply(){
-			var valuesToReplace = Map[String, String]()
+			// TODO : merge to json together : 1 - add tactic info in model, handle tactic duplication 2 - add nodes in current graph
+			/*var valuesToReplace = Map[String, String]()
 			def updateGraphJsonWithNewNames(json: Json): Json = {
 				var newJson = json
 				valuesToReplace.foreach{ case (oldVal, newVal) =>
@@ -78,7 +79,7 @@ class TinkerLibraryController() extends Publisher {
 				}
 			}
 			Service.setGoalTypes(Service.getGoalTypes + "\n\n\n/* From "+fileName+" */\n\n" + (json / "goal_types").stringValue)
-			QuantoLibAPI.addFromJson(updateGraphJsonWithNewNames((json ? "graph")))
+			QuantoLibAPI.addFromJson(updateGraphJsonWithNewNames((json ? "graph")))*/
 		}
 	}
 }

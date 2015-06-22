@@ -1,6 +1,7 @@
 package quanto.data
 
 import quanto.util.json._
+import tinkerGUI.utils.ArgumentParser
 
 /**
  * An abstract class which provides a general interface for accessing
@@ -59,7 +60,9 @@ case class NodeV(
   /** Type of the vertex */
   val typ = (data / "type").stringValue
 
-  val value: Json = (data.getPath(theory.vertexTypes(typ).value.path)) match {
+  //val value: Json = (data.getPath(theory.vertexTypes(typ).value.path)) match {
+  // changed by Pierre Le Bras : prints the label field instead of tactic default field
+  val value: Json = (data.getPath("$.label")) match {
     case str : JsonString => str
     case obj : JsonObject => obj.getOrElse("pretty", JsonString(""))
     case _ => JsonString("")
@@ -75,7 +78,8 @@ case class NodeV(
   
   /** Create a copy of the current vertex with the new value */
   def withValue(s: String) =
-    copy(data = data.setPath(theory.vertexTypes(typ).value.path, s).setPath("$.label", s).asObject)
+    copy(data = data.setPath(theory.vertexTypes(typ).value.path, ArgumentParser.separateNameFromArgument(s)._1).setPath("$.label", s).asObject)
+  // changed by Pierre Le Bras, uses an argument parser to store only the tactic name in the default field
 
   def isWireVertex = false
   def isBoundary = false

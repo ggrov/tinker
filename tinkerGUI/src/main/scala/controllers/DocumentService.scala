@@ -3,6 +3,8 @@
 
 package tinkerGUI.controllers
 
+import tinkerGUI.utils.TinkerDialog
+
 import scala.swing._
 import java.io.{FileNotFoundException, IOException, File}
 import quanto.util.json._
