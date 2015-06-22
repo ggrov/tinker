@@ -189,8 +189,8 @@ struct
 (**************************************************************
     ML String parsing 
 **************************************************************)
-  type gt_pred = Prover.context -> Prover.term list -> Prover.term -> bool
-  structure GoalTyp_ML_Exec = ML_Exec_Func (structure prover = Prover type ret = gt_pred val struct_name = "SimpleGoalTyp");
+  type gtyp = Prover.context -> Prover.term list -> Prover.term -> bool
+  structure GoalTyp_ML_Exec = ML_Exec_Func (structure prover = Prover type ret = gtyp val struct_name = "SimpleGoalTyp");
 
     fun debug_trace str b = 
       if b then (logging "GOALTYPE" (str ^ " is good !"); b) 
@@ -276,7 +276,7 @@ struct
     type T = T
     type gnode = gnode
     type data = data
-    type gt_pred = gt_pred
+    type gtyp = gtyp
     structure Prover = Prover.Sharing
   end
   end (* local open *)

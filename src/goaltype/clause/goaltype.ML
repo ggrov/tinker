@@ -1,16 +1,12 @@
-functor ClauseGTFun(Prover : PROVER) =
+functor ClauseGTFun(structure Prover : PROVER  
+                    val struct_name : string) =
 struct
 
   structure Prover = Prover;
-  type gt_pred = Prover.context -> Prover.term list -> Prover.term -> bool;
-  val exec_buffer : gt_pred option Unsynchronized.ref = Unsynchronized.ref NONE ;
-  fun exec_gt_exp (s : string) : gt_pred option = (
-    let	val cmd = 
-        "ClauseGoalTyp.exec_buffer := ((" ^ s ^ ") |> SOME handle _ => NONE)";
-      val _ =  Prover.exec_str cmd;
-    in	!exec_buffer
-    end
-  );
+
+  type gtyp = Prover.env -> Prover.pnode -> Prover.env_data list -> Prover.env list 
+  structure GoalTyp_ML_Exec = ML_Exec_Func (structure prover = Prover type ret = gtyp val struct_name = struct_name);
+
   (**********  data ***********)
   (* grammar: 
        definitions ::= definition [ definitions ]
@@ -51,7 +47,7 @@ struct
                                                             
   datatype data = P of {imports : clause list, 
                         defs : clause list,
-                        atomics : Prover.gtyp StrName.NTab.T}  
+                        atomics : (*Prover.*)gtyp StrName.NTab.T}  
   type T = string * (arg list);
  
  val goal_name = I;
@@ -166,7 +162,7 @@ struct
            NONE => Prover.E_Str ("?" ^ v) (* or we should raise exception? *)
          | SOME res => res)
    |  get pnode gtenv Concl = Prover.E_Trm (Prover.get_pnode_concl pnode)
-   |  get pnode gtenv Hyps = Prover.E_Trms (Prover.get_pnode_hyps pnode)
+   |  get pnode gtenv Hyps = map Prover.E_Trm (Prover.get_pnode_hyps pnode) |> Prover.E_L
    |  get pnode gtenv (Term t) = Prover.E_Trm t
    |  get pnode gtenv (Clause _) = raise eval_exp ("clause not supported in goal type")
 
@@ -216,7 +212,6 @@ struct
 
 
    (************** USING DEFINITIONS *********************)
-
    fun eval_atomic_clause (data as (P {atomics,...})) pnode (Clause (f,args)) gtenv  =
       case StrName.NTab.lookup atomics f of
           NONE => [] 
@@ -251,7 +246,7 @@ struct
   (* 
     Goaltype evaluation / goaltype checking
   *)
-
+  val lift = Prover.get_pnode_name
   (* note that this is when atomic on edge *)
   fun match_atomic (data as (P {atomics,...}))  pnode ((f,args):T) gtenv = 
     case StrName.NTab.lookup atomics f of
@@ -261,7 +256,7 @@ struct
   fun match data pnode ((f,args):T) gtenv =
      (match_atomic data pnode (f,args) gtenv) 
    @ (eval_defs data pnode (f,args) gtenv);
-
+  
   fun imatch data pnode gtype = 
     match data pnode gtype StrName.NTab.empty;
 
@@ -375,7 +370,8 @@ struct
     type T = T
     type gnode = gnode
     type data = data
-    type gt_pred = gt_pred
+    type gtyp = gtyp
+    structure Prover = Prover.Sharing
   end
 
 end (* struct *)

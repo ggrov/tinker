@@ -28,8 +28,6 @@ struct
     case get_pnode_env_data pnode name of (E_ML ml_code) => ml_code
     | _ => raise env_data_exp 
  
-  (* type gtyp = env -> pnode -> arg_data list -> env list *)
-
   (* fixme: we need to rethink the allowed argument and when the vars should be instantiated! 
        E.g. rule(exI,?x) -> should the tactic instantiate ?x to what is has in the env or should we?
         also if it is not, then ?x may be instantiated and this updated env should be recorded in the 

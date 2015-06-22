@@ -40,7 +40,7 @@ sig
   type pnode
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
-  (* type gtyp = env -> pnode -> arg_data list -> env list *)
+  (*type gtyp = env -> pnode -> arg_data list -> env list *)
 
   exception gterm_exp
   
