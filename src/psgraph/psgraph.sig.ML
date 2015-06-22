@@ -10,10 +10,6 @@ end
 signature PS_GRAPH =
 sig
   structure Theory : PS_THEORY 
-  structure Tac_ML_Exec : ML_EXEC
-  sharing type Tac_ML_Exec.ret_typ = Theory.GoalTyp.Prover.tactic
-  structure EnvTac_ML_Exec : ML_EXEC
-  sharing type EnvTac_ML_Exec.ret_typ = Theory.GoalTyp.Prover.env_tac
 
   type T
   type subgraph
@@ -33,10 +29,10 @@ sig
   val get_goaltype_data : T -> Theory.Data.GoalTyp.data
   val get_graph : T -> StrName.NTab.name -> int -> Theory.Graph.T
   val get_graphs : T -> StrName.NTab.name -> Theory.Graph.T list
-  val get_atomic_tac_code : T 
+  val get_atomic_tac_code_and_args : T 
     -> StrName.NTab.name (* atomic tactic node name *)
     -> Theory.GoalTyp.Prover.pnode
-    -> string (* return the actual ml code to be evaluated *)
+    -> (string * Theory.GoalTyp.Prover.arg_data list list) (* return the actual ml code to be evaluated *)
   val get_hgraph_args :  T 
     -> StrName.NTab.name
     -> Theory.Data.arg_typ

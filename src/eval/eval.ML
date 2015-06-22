@@ -31,14 +31,14 @@ struct
          val facts = []
          (* get tactic string from the tactic node, and then eval the tac*)
          val if_env_tac = is_env_tactic_name name
-         val tac_code = 
-            EData.PSGraph.get_atomic_tac_code (EData.get_psgraph edata) name pnode
+         val (tac_code, arg_list) = 
+            EData.PSGraph.get_atomic_tac_code_and_args (EData.get_psgraph edata) name pnode
             (* the actual ml code of the tactic to be evaluated *)
          (* val tac = EData.PSGraph.Tac_ML_Exec.eval_ml tac_code *)
        in 
         if if_env_tac 
-        then Prover.apply_env_tactic (EData.PSGraph.EnvTac_ML_Exec.eval_ml tac_code) (pnode,pplan)
-        else Prover.apply_tactic (EData.PSGraph.Tac_ML_Exec.eval_ml tac_code) (pnode,pplan)
+        then Prover.apply_env_tactic arg_list tac_code (pnode,pplan)
+        else Prover.apply_tactic arg_list tac_code (pnode,pplan)
       end
    | apply_tactic _ gnode node = raise node_exp ("not an atomic tactic node",gnode ,node);
 

@@ -1,15 +1,9 @@
-functor PSGraphFun(structure Theory_IO : PSGRAPH_THEORY_IO 
-                   structure Tac_ML_Exec : ML_EXEC
-                   structure EnvTac_ML_Exec : ML_EXEC
-                   sharing type Theory_IO.PS_Theory.GoalTyp.Prover.tactic = Tac_ML_Exec.ret_typ
-                   sharing type Theory_IO.PS_Theory.GoalTyp.Prover.env_tac = EnvTac_ML_Exec.ret_typ) : PS_GRAPH  =
+functor PSGraphFun(structure Theory_IO : PSGRAPH_THEORY_IO) : PS_GRAPH  =
 struct
 
  structure Theory = Theory_IO.PS_Theory;
  structure Prover = Theory.Data.GoalTyp.Prover;
  structure Theory_IO = Theory_IO
- structure Tac_ML_Exec = Tac_ML_Exec
- structure EnvTac_ML_Exec = EnvTac_ML_Exec
 
  local open LoggingHandler in
 (*
@@ -71,10 +65,12 @@ struct
  fun get_graph_tactics (PSGraph rep) = #graph_tactics rep;
  fun get_atomic_tactics (PSGraph rep) = #atomic_tactics rep;
 
-(* tactic string  + args string then susbt env_arg with the actual mo code from env data of the pnode *)
- fun build_tac_code_with_arg tac_code (tac_args : string list list) env_data = 
-  let
-    fun concat a b = b ^ " " ^ a;
+ fun get_atomic_tac_code_and_args ps name pnode = 
+  let 
+    val (Atomic_Tacs atom_tacs) = StrName.NTab.get (get_atomic_tactics ps) name
+    val tac_code = (#tactic atom_tacs)
+    val (tac_args : string list list) =  (#args atom_tacs)
+    val env_data = Theory.GoalTyp.Prover.get_pnode_env pnode
     fun subst_env_var var = 
       case Theory.Graph_Utils.parse_env_var_name var of NONE => var
       | SOME var0  => 
@@ -91,31 +87,8 @@ struct
            (logging "ARG_DATA" ("Illformed arg_data, [] encountered for " ^ tac_code); 
            raise tinker_fail))
       tac_args
-    val tac_args' = 
-      (* there should not be empty list *)
-      map (fn l => case l of [x] => [x] | (x :: xs) => (x :: ":" :: xs)) tac_args_env_var;
-    val args = 
-      case tac_args' of [] => ""
-      | _ => map (fn x => "(" ^ (fold concat x "") ^ " )" ) tac_args'
-            |> (fn y => fold concat y "")
   in
-     tac_code ^ args
-  end;
-(*
- fun build_env_arg_str parent_arg_str arg_str = 
-  String.translate (fn x => if x = #"@" then ("(" ^ parent_arg_str ^ ")") else str x ) arg_str
-  |> (fn x =>(writeln ("ML tac code: " ^ x ^ " using parent arg: " ^ parent_arg_str ^ " and arg str: " ^ arg_str) ; x))
-*)  
-  
- fun get_atomic_tac_code ps name pnode = 
-  let 
-    val (Atomic_Tacs atom_tacs) = StrName.NTab.get (get_atomic_tactics ps) name
-    val tac_code = (#tactic atom_tacs)
-    val (tac_args : string list list) =  (#args atom_tacs)
-    val env_data = Theory.GoalTyp.Prover.get_pnode_env pnode
-  in
-     build_tac_code_with_arg tac_code tac_args env_data (* need the pnode to get env vars *)
-    (*|> (fn x => (writeln "after enter get_atomic_tactic_code0" ; x))*)
+    (tac_code, tac_args_env_var)
   end
 
  fun get_hgraph_args ps name = 

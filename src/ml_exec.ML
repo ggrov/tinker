@@ -6,15 +6,17 @@ sig
    val exec_exp : string -> ret_typ option 
 end;
 
-functor ML_Exec_Func (val struct_name : string type ret structure prover : PROVER) : ML_EXEC = 
+functor ML_Exec_Func (val struct_name : string type ret  val exec_str : string -> unit) : ML_EXEC = 
  struct
  local open LoggingHandler in
   type ret_typ = ret;
+  val exec_str = exec_str;
+
   val exec_buffer : ret_typ option Unsynchronized.ref = Unsynchronized.ref NONE;
   fun exec_exp (s : string) : ret_typ option = (
 	let	val cmd = 
 	    struct_name ^ ".exec_buffer := ((" ^ s ^ ") |> SOME handle _ => NONE)"; 
-		val _ =  prover.exec_str cmd;
+		val _ =  exec_str cmd;
 	in	!exec_buffer
 	end);
  

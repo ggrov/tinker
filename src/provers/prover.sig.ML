@@ -42,6 +42,11 @@ sig
 
   (*type gtyp = env -> pnode -> arg_data list -> env list *)
 
+  structure Tac_ML_Exec : ML_EXEC
+  sharing type Tac_ML_Exec.ret_typ = tactic
+  structure EnvTac_ML_Exec : ML_EXEC
+  sharing type EnvTac_ML_Exec.ret_typ = env_tac
+
   exception gterm_exp
   
   val default_ctxt : context (* used in those places need default general context *)
@@ -57,10 +62,10 @@ sig
 
   val init : context -> term list -> term -> pnode * pplan
 
-  val apply_tactic : (*arg_data list ->*) tactic -> appf
+  val apply_tactic : arg_data list list -> string (* name of tactic *) -> appf
   (* tactics that only update env (used to be in the goaltype)
      this will be registered in the pplan object now \<rightarrow> i.e. a new pnode *)
-  val apply_env_tactic : (* arg_data list -> *) env_tac -> appf
+  val apply_env_tactic :  arg_data list list -> string (* name of env_tac *) -> appf
 
   (* pnode related *)
   val get_open_pnodes : pplan -> pnode list
@@ -104,4 +109,24 @@ sig
     sharing type Sharing.pnode = pnode
 
 end;
+
+structure ProverUtils = 
+struct
+ local open LoggingHandler in
+ fun build_tac_code_with_arg tac_code (tac_args : string list list) = 
+  let
+    fun concat a b = b ^ " " ^ a;
+  
+    val tac_args' = 
+      (* there should not be empty list *)
+      map (fn l => case l of [x] => [x] | (x :: xs) => (x :: ":" :: xs)) tac_args;
+    val args = 
+      case tac_args' of [] => ""
+      | _ => map (fn x => "(" ^ (fold concat x "") ^ " )" ) tac_args'
+            |> (fn y => fold concat y "")
+  in
+     tac_code ^ args
+  end;
+  end
+end
 

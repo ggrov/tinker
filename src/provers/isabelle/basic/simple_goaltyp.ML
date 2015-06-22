@@ -190,7 +190,7 @@ struct
     ML String parsing 
 **************************************************************)
   type gtyp = Prover.context -> Prover.term list -> Prover.term -> bool
-  structure GoalTyp_ML_Exec = ML_Exec_Func (structure prover = Prover type ret = gtyp val struct_name = "SimpleGoalTyp");
+  structure GoalTyp_ML_Exec = ML_Exec_Func (val exec_str = Prover.exec_str type ret = gtyp val struct_name = "SimpleGoalTyp");
 
     fun debug_trace str b = 
       if b then (logging "GOALTYPE" (str ^ " is good !"); b) 

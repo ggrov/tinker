@@ -1,12 +1,13 @@
 structure IsaProver : PROVER =
 struct 
-  local open LoggingHandler in 
+   
+  local open LoggingHandler ProverUtils in 
   type typ = typ
   type term = Term.term  
   type thm = Thm.thm
   type context = Proof.context
 
-  type arg_data = string (*A_Const of string | A_Var of string | A_Trm of term *)
+  type arg_data = string (* A_Const of string | A_Var of string | A_Trm of term *)
   datatype env_data = 
     E_Str of string | 
     E_Trm of term | E_Thm of thm |
@@ -14,10 +15,18 @@ struct
     E_L of env_data list
   type env = env_data StrName.NTab.T 
   type env_tac =  env -> env 
-  exception env_data_exp
-
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term, env : env } 
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
+  type tactic = Proof.context -> int -> Tactical.tactic (*Proof.context -> int -> arg_data list -> Tactical.tactic*)
+  type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
+
+  exception env_data_exp
+
+  val exec_str = eval_text;
+
+  structure EnvTac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = env_tac val struct_name = "IsaProver");
+  structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = "IsaProver");
+
  
   fun update_pnode_env f {pname,pctxt,ptrm,env} = {pname = pname ,pctxt = pctxt ,ptrm = ptrm ,env = f env};
 
@@ -33,9 +42,7 @@ struct
         also if it is not, then ?x may be instantiated and this updated env should be recorded in the 
         env \<rightarrow> where is this handled? Need to work out some examples first I think...
  *)
-  type tactic = Proof.context -> int -> Tactical.tactic (*Proof.context -> int -> arg_data list -> Tactical.tactic*)
-  type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
-
+ 
   exception gterm_exp
 
   val default_ctxt = @{context}
@@ -63,6 +70,7 @@ struct
      (pnode,pplan)
    end;
 
+(*
   fun init_of_thm (ctxt : context) thm = 
     let 
       val prems = Thm.prems_of thm
@@ -77,11 +85,12 @@ struct
    in
      (pnds,pplan)
    end;
+*)
 
-
+(*
   fun init_with_assm _ _ _ =   (* a dummy init which is not used in isabelle by LYH*)
     raise atomic_exp "init_with_assm should not be used in isabelle"
-
+*)
   fun get_ind str _ [] = raise atomic_exp ("goal " ^ str ^ " does not exists")
    |  get_ind str n (x::xs) = if str = (#pname x) then n else get_ind str (n+1) xs;
 
@@ -143,10 +152,11 @@ struct
      Syntax.pretty_term (get_pnode_ctxt pnode) (get_pnode_concl pnode),
      Pretty.str " ]"]
 
-  fun pretty_pplan pnode = Pretty.str "Pretty PPLAN TOTO";
+  fun pretty_pplan _ = Pretty.str "Pretty PPLAN TOTO";
    
-  fun apply_tactic (*args*) (tac : tactic) (pnode,pplan) = 
-    tac (#pctxt pnode) (get_index pnode pplan) (*args*) (#goal pplan)
+  fun apply_tactic args (tac_code : string) (pnode,pplan) = 
+    let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in
+    tac (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
     |> Seq.map (update (pnode,pplan))
     |> Seq.map (fn (x,y) => (map (set_pnode_env (get_pnode_env pnode)) x,y)) (* inherit env *)
     |> (fn x => 
@@ -154,17 +164,18 @@ struct
            => (logging "TACTIC" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode); 
                raise tinker_fail) 
            | _ => x ))
-
+    end
   (* Update the env and then apply a dummy id tac in isabelle *)
-  fun apply_env_tactic (*args*) env_tac (pnode,pplan) = 
-    apply_tactic (*args*) (K (K all_tac)) (update_pnode_env env_tac pnode, pplan)
-
+  fun apply_env_tactic args env_tac_code (pnode,pplan) = 
+    let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in
+    apply_tactic args "(K (K all_tac))" (update_pnode_env env_tac pnode, pplan)
+    end
   (* SOME default tactics *)
 
-  fun lookup_thm ctxt name =
-    Global_Theory.get_thm (Proof_Context.theory_of ctxt) name;
+  (*fun lookup_thm ctxt name =
+    Global_Theory.get_thm (Proof_Context.theory_of ctxt) name;*)
 
-  (* to do: debug etc *)
+  (* to do: debug etc 
   fun rule_tac _ i ((E_Thm thm)::_) = rtac thm i
    |  rule_tac ctxt i ((E_Str name)::_) = rtac (lookup_thm ctxt name) i
    |  rule_tac _ _ _ = raise atomic_exp ("no such type")
@@ -172,17 +183,16 @@ struct
   fun erule_tac _ i ((E_Thm thm)::_) = etac thm i
    |  erule_tac ctxt i ((E_Str name)::_) = etac (lookup_thm ctxt name) i
    |  erule_tac _ _ _ = raise atomic_exp ("no such type")
-
-  val default_tacs = [("rule",rule_tac),("erule",erule_tac)];
+  *)
+ (* val default_tacs = [("rule",rule_tac),("erule",erule_tac)];*)
 
   (**************
     Goal type related 
   ******************)
-  fun symbols trm = StrName.NSet.list_of (TermFeatures.constants trm)
+(*  fun symbols trm = StrName.NSet.list_of (TermFeatures.constants trm)
                   |> map TermFeatures.ignore_module;
-  fun top_symbol trm = the (TermFeatures.top_level_str trm );
+  fun top_symbol trm = the (TermFeatures.top_level_str trm );*)
 
-  val exec_str = eval_text;
   
   val encode_prover_to_gui = I;
   val encode_gui_to_prover = I;
