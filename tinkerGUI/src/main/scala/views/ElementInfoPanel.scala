@@ -2,6 +2,7 @@ package tinkerGUI.views
 
 import javax.swing.ImageIcon
 
+import tinkerGUI.controllers.events.{OneEdgeSelectedEvent, ManyVerticesSelectedEvent, OneVertexSelectedEvent, NothingSelectedEvent}
 import tinkerGUI.model.exceptions.{AtomicTacticNotFoundException, GraphTacticNotFoundException}
 
 import scala.swing._
@@ -16,6 +17,7 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 	val delButton = new Button(
 		new Action(""){
 			def apply(){
+				Service.documentCtrl.registerChanges()
 				QuantoLibAPI.userDeleteElement(nam)
 			}
 		}){
@@ -36,7 +38,8 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 	val editButton = new Button(
 		new Action(""){
 			def apply(){
-				Service.updateTactic(nam,value,typ=="T_Atomic")
+				Service.documentCtrl.registerChanges()
+				Service.editCtrl.updateTactic(nam,value,typ=="T_Atomic")
 			}
 		}){
 		icon = new ImageIcon(MainGUI.getClass.getResource("edit-pen.png"), "Edit")
@@ -81,7 +84,8 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 			val addSubButton = new Button(
 				new Action(""){
 					def apply(){
-						Service.addSubgraph(name)
+						Service.documentCtrl.registerChanges()
+						Service.editCtrl.addSubgraph(name)
 					}
 				}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("add.png"), "Add subgraph")
@@ -95,7 +99,7 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 			val inspectButton = new Button(
 				new Action(""){
 					def apply(){
-						Service.graphInspectorCtrl.inspect(name)
+						Service.inspectorCtrl.inspect(name)
 					}
 				}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("inspect.png"), "Inspect tactic")
@@ -118,6 +122,7 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 			val removeBreak = new Button(
 				new Action("") {
 					def apply() {
+						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.removeBreakpoint(nam)
 					}
 				}){
@@ -139,6 +144,7 @@ class VerticesEditContent(names: Set[String]) extends BoxPanel(Orientation.Verti
 	var dialog = new Dialog()
 	val mergeAction = new Action("Yes"){
 		def apply {
+			Service.documentCtrl.registerChanges()
 			QuantoLibAPI.mergeSelectedVertices()
 			dialog.close()
 		}
@@ -176,7 +182,8 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String) exte
 	val editButton = new Button(
 		new Action("") {
 			def apply() {
-				Service.editEdge(nam,src,tgt,value)
+				Service.documentCtrl.registerChanges()
+				Service.editCtrl.editEdge(nam,src,tgt,value)
 			}
 		}
 	){
@@ -193,6 +200,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String) exte
 			new Button(
 				new Action("") {
 				def apply() {
+					Service.documentCtrl.registerChanges()
 					QuantoLibAPI.removeBreakpointFromEdge(nam)
 				}
 			}){
@@ -209,6 +217,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String) exte
 			new Button(
 				new Action("") {
 					def apply() {
+						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.addBreakpointOnEdge(nam)
 					}
 				}){
@@ -224,6 +233,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String) exte
 	val delButton = new Button(
 		new Action(""){
 			def apply(){
+				Service.documentCtrl.registerChanges()
 				QuantoLibAPI.userDeleteElement(nam)
 			}
 		}){
@@ -254,19 +264,19 @@ class ElementInfoPanel() extends BoxPanel(Orientation.Vertical) {
 	listenTo(QuantoLibAPI)
 	listenTo(Service)
 	reactions += {
-		case OneVertexSelectedEventAPI(nam, typ, value) =>
+		case OneVertexSelectedEvent(nam, typ, value) =>
 			contents.clear()
 			contents += new VertexEditContent(nam, typ, value)
 			revalidate()
-		case ManyVerticesSelectedEventAPI(names) =>
+		case ManyVerticesSelectedEvent(names) =>
 			contents.clear()
 			contents += new VerticesEditContent(names)
 			revalidate()
-		case OneEdgeSelectedEventAPI(nam, value, src, tgt) =>
+		case OneEdgeSelectedEvent(nam, value, src, tgt) =>
 			contents.clear()
 			contents += new EdgeEditContent(nam, value, src, tgt)
 			revalidate()
-		case NothingSelectedEventAPI() | NothingSelectedEvent() =>
+		case NothingSelectedEvent() =>
 			contents.clear()
 			repaint()
 	}

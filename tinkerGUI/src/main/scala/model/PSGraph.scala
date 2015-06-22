@@ -288,6 +288,14 @@ class PSGraph() extends ATManager with GTManager {
 		}
 	}
 
+	/** Method to get the current tactic name.
+		*
+		* @return Tactic name/id.
+		*/
+	def getCurrentGTName: String = {
+		if(isMain) "main" else currentTactic.name
+	}
+
 	/** Method to update the Json representation of the psgraph.
 		*
 		*/
@@ -304,6 +312,21 @@ class PSGraph() extends ATManager with GTManager {
 			"occurrences" -> JsonObject("atomic_tactics" -> atOccArray, "graph_tactics" -> gtOccArray))
 		// println("---------------------------------------------------")
 		// println(jsonPSGraph)
+	}
+
+	/** Method resetting the model.
+		*
+		*/
+	def reset() {
+		currentIndex = 0
+		mainGraph = JsonObject()
+		goalTypes = ""
+		isMain = true
+		currentTactic = new GraphTactic("","")
+		jsonPSGraph = JsonObject()
+		childrenMain = ArrayBuffer()
+		gtCollection = Map()
+		atCollection = Map()
 	}
 
 	/** Method to register a new subgraph and set it as current.

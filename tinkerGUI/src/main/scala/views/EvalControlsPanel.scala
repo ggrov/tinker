@@ -3,158 +3,155 @@ package tinkerGUI.views
 import scala.swing._
 import javax.swing.ImageIcon
 import tinkerGUI.controllers.Service
-import tinkerGUI.controllers.EvalControlsController
-import tinkerGUI.controllers.EnableEvalOptionsEvent
-import tinkerGUI.controllers.DisableEvalOptionsEvent
+import tinkerGUI.controllers.events.EnableEvalOptionsEvent
+import tinkerGUI.controllers.events.DisableEvalOptionsEvent
 import tinkerGUI.utils.ToolBar
 
 class EvalControlsPanel() {
-	val ctrl = Service.evalControlsCtrl
 
 	val FinishButton = new Button(
 		new Action(""){
 			def apply(){
-				ctrl.selectOption("OPT_EVAL_FINISH")
+				Service.evalCtrl.selectEvalOption("OPT_EVAL_FINISH")
 			}
 		}){
 		enabled = false
 		icon = new ImageIcon(MainGUI.getClass.getResource("eval-finish.png"), "Finish")
 		tooltip = "Finish"
-		listenTo(ctrl)
+		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="OPT_EVAL_FINISH") enabled = true}
+			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_FINISH") enabled = true
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
+
 	val CompleteButton = new Button(
 		new Action(""){
 			def apply(){
-				ctrl.selectOption("OPT_EVAL_COMPLETE")
+				Service.evalCtrl.selectEvalOption("OPT_EVAL_COMPLETE")
 			}
 		}){
 		enabled = false
 		icon = new ImageIcon(MainGUI.getClass.getResource("eval-complete.png"), "Complete")
 		tooltip = "Complete"
-		listenTo(ctrl)
+		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="OPT_EVAL_COMPLETE") enabled = true}
+			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_COMPLETE") enabled = true
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
+
 	val UndoButton = new Button(
 		new Action(""){
 			def apply(){
-				ctrl.selectOption("OPT_EVAL_UNDO")
+				Service.evalCtrl.selectEvalOption("OPT_EVAL_UNDO")
 			}
 		}){
 		enabled = false
 		icon = new ImageIcon(MainGUI.getClass.getResource("eval-undo.png"), "Undo")
 		tooltip = "Undo"
-		listenTo(ctrl)
+		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="OPT_EVAL_UNDO") enabled = true}
+			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_UNDO") enabled = true
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
+
 	val StepInButton = new Button(
 		new Action(""){
 			def apply(){
-				ctrl.selectOption("OPT_EVAL_STEP_INTO")
+				Service.evalCtrl.selectEvalOption("OPT_EVAL_STEP_INTO")
 			}
 		}){
 		enabled = false
 		icon = new ImageIcon(MainGUI.getClass.getResource("eval-step-into.png"), "Step into")
 		tooltip = "Step into"
-		listenTo(ctrl)
+		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="OPT_EVAL_STEP_INTO") enabled = true}
+			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_STEP_INTO") enabled = true
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
+
 	val StepOverButton = new Button(
 		new Action(""){
 			def apply(){
-				ctrl.selectOption("OPT_EVAL_STEP_OVER")
+				Service.evalCtrl.selectEvalOption("OPT_EVAL_STEP_OVER")
 			}
 		}){
 		enabled = false
 		icon = new ImageIcon(MainGUI.getClass.getResource("eval-step-over.png"), "Step over")
 		tooltip = "Step over"
-		listenTo(ctrl)
+		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="OPT_EVAL_STEP_OVER") enabled = true}
+			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_STEP_OVER") enabled = true
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
+
 	val StopButton = new Button(
 		new Action(""){
 			def apply() {
-				ctrl.selectOption("OPT_EVAL_STOP")
+				Service.evalCtrl.selectEvalOption("OPT_EVAL_STOP")
 			}
 		}){
 		enabled = false
 		icon = new ImageIcon(MainGUI.getClass.getResource("eval-stop.png"), "Stop")
 		tooltip = "Stop"
-		listenTo(ctrl)
+		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="OPT_EVAL_STOP") enabled = true}
+			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_STOP") enabled = true
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
+
 	val UntilBreakButton = new Button(
 		new Action(""){
 			def apply(){
-				ctrl.selectOption("OPT_EVAL_UNTIL_BREAK")
+				Service.evalCtrl.selectEvalOption("OPT_EVAL_UNTIL_BREAK")
 			}
 		}
 		){
 		enabled = false
 		icon = new ImageIcon(MainGUI.getClass.getResource("eval-debug.png"), "Until Break")
 		tooltip = "Until Break"
-		listenTo(ctrl)
+		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="OPT_EVAL_UNTIL_BREAK") enabled = true}
+			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_UNTIL_BREAK") enabled = true
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
+
 	val NextButton = new Button(
 		new Action(""){
 			def apply(){
-				ctrl.selectOption("OPT_EVAL_NEXT")
+				Service.evalCtrl.selectEvalOption("OPT_EVAL_NEXT")
 			}
 		}
 		){
 		enabled = false
 		icon = new ImageIcon(MainGUI.getClass.getResource("eval-next.png"), "Next")
 		tooltip = "Next"
-		listenTo(ctrl)
+		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="OPT_EVAL_NEXT") enabled = true}
+			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_NEXT") enabled = true
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
+
 	val BacktrackButton = new Button(
 		new Action(""){
 			def apply(){
-				ctrl.selectOption("OPT_EVAL_BACKTRACK")
+				Service.evalCtrl.selectEvalOption("OPT_EVAL_BACKTRACK")
 			}
 		}
 		){
 		enabled = false
 		icon = new ImageIcon(MainGUI.getClass.getResource("eval-backtrack.png"), "Backtrack")
 		tooltip = "Backtrack"
-		listenTo(ctrl)
+		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) =>
-				opt.foreach{o => if(o=="OPT_EVAL_BACKTRACK") enabled = true}
+			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_BACKTRACK") enabled = true
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}

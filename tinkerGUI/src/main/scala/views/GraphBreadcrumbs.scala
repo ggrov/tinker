@@ -1,88 +1,53 @@
 package tinkerGUI.views
 
+import tinkerGUI.controllers.events.CurrentGraphChangedEvent
+
 import scala.swing._
 import scala.swing.event._
 import java.awt.Cursor
 import tinkerGUI.controllers.Service
-import tinkerGUI.controllers.AddCrumbEvent
-import tinkerGUI.controllers.RebuildBreadcrumbParentEvent
-import tinkerGUI.controllers.DelCrumFromEvent
-import tinkerGUI.controllers.GraphBreadcrumbsController
 
 class GraphBreadcrumbs() extends Publisher{
-	val controller = Service.graphBreadcrumsCtrl
-	val current = new Label("main")
-	var parents: Array[Label] = Array()
+	val currentLabel = new Label("main")
+	var parentLabels: Array[Label] = Array()
 	val breadcrumbs = new FlowPanel() {
-		contents += current
+		contents += currentLabel
 	}
 	var addCurrent = true
 
 	def updateContent(){
 		breadcrumbs.contents.clear()
-		parents.foreach { p => 
+		parentLabels.foreach { p => 
 			breadcrumbs.contents += p
 			breadcrumbs.contents += new Label ("\u25B8")
 		}
-		breadcrumbs.contents += current
+		breadcrumbs.contents += currentLabel
 		breadcrumbs.repaint()	
 	}
-	
-	listenTo(controller)
+
+	listenTo(Service.editCtrl)
+	listenTo(Service.documentCtrl)
+	listenTo(Service.evalCtrl)
 	reactions += {
-		case AddCrumbEvent(s) =>
-			if(current.text != s){
-				if(addCurrent){
-					val parent = new Label(current.text)
-					parent.foreground = new Color(0, 128, 255)
-					parents = parents :+ parent
-				}
-				addCurrent = true
-				current.text = s
-				updateContent()
-				parents.foreach { p =>
-					listenTo(p.mouse.moves, p.mouse.clicks)
-					reactions += {
-						case MouseEntered(_, _, _) =>
-							p.cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-						case MouseClicked(src:Label, _, _, _, _) =>
-							current.text = src.text
-							parents.foreach { p =>
-								if(p.text == src.text){
-									if(Service.editSubGraph(src.text, 0)) {
-										parents = parents.splitAt(parents.indexOf(p))._1
-									}
-								}
-							}
-							updateContent()
-					}
-				}
+		case CurrentGraphChangedEvent(current, parents) =>
+			parents match {
+				case Some(p:Array[String]) =>
+					parentLabels = Array()
+					p.foreach{ s => parentLabels = parentLabels :+ new Label(s){foreground = new Color(0,128,255)}}
+				case None => parentLabels = parentLabels :+ new Label(currentLabel.text){foreground = new Color(0,128,255)}
 			}
-		case RebuildBreadcrumbParentEvent(p: Array[String]) =>
-			parents = Array()
-			addCurrent = false
-			p.foreach {s=>
-				val parent = new Label(s)
-				parent.foreground = new Color(0, 128, 255)
-				parents = parents.+:(parent)
-			}
-		case DelCrumFromEvent(s) =>
-			current.text = s
-			parents.foreach { p =>
-				if(p.text == s){
-					parents = parents.splitAt(parents.indexOf(p))._1
-				}
-			}
+			currentLabel.text = current
 			updateContent()
-			// parents.foreach { p =>
-			// 	listenTo(p.mouse.moves, p.mouse.clicks)
-			// 	reactions += {
-			// 		case MouseEntered(_, _, _) =>
-			// 			p.cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-			// 		case MouseClicked(src:Label, _, _, _, _) =>
-			// 			println("change graph " + src.text)
-			// 			controller.changeGraph(src.text)
-			// 	}
-			// }
+			parentLabels.foreach{ p =>
+				listenTo(p.mouse.moves, p.mouse.clicks)
+				reactions += {
+					case MouseEntered(_,_,_) => p.cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+					case MouseClicked(src:Label, _, _, _, _) =>
+						if(p.text == src.text){
+							Service.editCtrl.editSubgraph(p.text,0,Some(parentLabels.splitAt(parentLabels.indexOf(p))._1.foldLeft(Array[String]()){case (a,p) => a:+p.text}))
+						}
+				}
+			}
+			
 	}
 }

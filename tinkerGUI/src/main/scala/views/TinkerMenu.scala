@@ -1,5 +1,7 @@
 package tinkerGUI.views
 
+import tinkerGUI.controllers.events.DocumentChangedEvent
+
 import scala.swing._
 import tinkerGUI.controllers._
 import event.Key
@@ -14,7 +16,6 @@ import ExecutionContext.Implicits.global
 import scala.util.{Success, Failure}
 
 class TinkerMenu() extends MenuBar{
-	val controller = Service.menuCtrl
 	val CommandMask = java.awt.Toolkit.getDefaultToolkit.getMenuShortcutKeyMask
 
 	val FileMenu = new Menu("File") { menu =>
@@ -23,14 +24,14 @@ class TinkerMenu() extends MenuBar{
 			menu.contents += new MenuItem(this) { mnemonic = Key.N }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_N, CommandMask))
 			def apply() {
-				controller.newAction
+				Service.documentCtrl.newDoc()
 			}
 		}
 		val OpenAction = new Action("Open") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.O }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_O, CommandMask))
 			def apply() {
-				controller.openAction
+				Service.documentCtrl.openJson()
 			}
 		}
 		val SaveAction = new Action("Save") {
@@ -38,10 +39,10 @@ class TinkerMenu() extends MenuBar{
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_S, CommandMask))
 			enabled = false
 			def apply() {
-				controller.saveAction
+				Service.documentCtrl.saveJson()
 			}
-			listenTo(controller)
-			reactions += { case DocumentStatusEvent(status) =>
+			listenTo(Service.documentCtrl)
+			reactions += { case DocumentChangedEvent(status) =>
 				enabled = status
 			}
 		}
@@ -49,14 +50,14 @@ class TinkerMenu() extends MenuBar{
 			menu.contents += new MenuItem(this) { mnemonic = Key.A }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_S, CommandMask | Key.Modifier.Shift))
 			def apply() {
-				controller.saveAsAction
+				Service.documentCtrl.saveAsJson()
 			}
 		}
 		val QuitAction = new Action("Quit") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.Q }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_Q, CommandMask))
 			def apply() {
-				controller.quitAction
+				if(Service.documentCtrl.closeDoc()) sys.exit(0)
 			}
 		}
 	}
@@ -68,13 +69,13 @@ class TinkerMenu() extends MenuBar{
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_Z, CommandMask))
 			enabled = false
 			def apply() {
-				controller.undoAction
+				Service.documentCtrl.undo()
 			}
-			listenTo(controller)
+			listenTo(Service.documentCtrl)
 			reactions += {
-				case DocumentActionStackEvent(canUndo, _, undoActionName, _) =>
-					enabled = canUndo
-					title = "Undo " + undoActionName
+				case DocumentChangedEvent(_) =>
+					enabled = !Service.documentCtrl.undoStack.isEmpty
+					title = "Undo"
 			}
 		}
 		val RedoAction = new Action("Redo") {
@@ -82,20 +83,20 @@ class TinkerMenu() extends MenuBar{
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_Z, CommandMask | Key.Modifier.Shift))
 			enabled = false
 			def apply() {
-				controller.redoAction
+				Service.documentCtrl.redo()
 			}
-			listenTo(controller)
+			listenTo(Service.documentCtrl)
 			reactions += {
-				case DocumentActionStackEvent(_, canRedo, _, redoActionName) =>
-					enabled = canRedo
-					title = "Redo " + redoActionName
+				case DocumentChangedEvent(_) =>
+					enabled = !Service.documentCtrl.redoStack.isEmpty
+					title = "Redo"
 			}
 		}
 		val LayoutAction = new Action("Layout Graph") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.L }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_L, CommandMask))
 			def apply() {
-				controller.layoutAction
+				QuantoLibAPI.layoutGraph()
 			}
 		}
 	}
@@ -112,7 +113,7 @@ class TinkerMenu() extends MenuBar{
 		val printJson = new Action("Print JSON in Console") {
 			menu.contents += new MenuItem(this)
 			def apply(){
-				controller.debugPrintJson()
+				Service.debugPrintJson()
 			}
 		}
 	}

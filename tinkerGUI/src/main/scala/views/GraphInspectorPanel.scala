@@ -10,7 +10,7 @@ import tinkerGUI.controllers._
 import scala.swing.event.SelectionChanged
 
 class GraphInspectorPanel() extends BorderPanel {
-	val controller = Service.graphInspectorCtrl
+	val controller = Service.inspectorCtrl
 	val tacticNavigation = new BoxPanel(Orientation.Vertical){
 		contents += new FlowPanel(FlowPanel.Alignment.Right)(){
 			contents += new Button(new Action("") {

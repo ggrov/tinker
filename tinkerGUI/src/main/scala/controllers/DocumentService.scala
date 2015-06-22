@@ -3,6 +3,7 @@
 
 package tinkerGUI.controllers
 
+import tinkerGUI.controllers.events.DocumentChangedEvent
 import tinkerGUI.utils.TinkerDialog
 
 import scala.swing._
@@ -13,14 +14,8 @@ import javax.swing.filechooser.FileNameExtensionFilter
 
 object DocumentService extends Publisher {
 	var file : Option[File] = None
-	var unsavedChanges: Boolean = false
-	
-	def setUnsavedChanges(b: Boolean) {
-		unsavedChanges = b
-		publish(DocumentChanged())
-	}
 
-	def title = file.map(f => f.getName).getOrElse("untitled") + (if (unsavedChanges) "*" else "")
+	def title = file.map(f => f.getName).getOrElse("untitled")
 
 	def previousDir: File = {
 		val prefs = Preferences.userRoot().node(this.getClass.getName)
@@ -39,13 +34,13 @@ object DocumentService extends Publisher {
 			try {
 				json.writeTo(f)
 				file = Some(f)
-				unsavedChanges = false
-				publish(DocumentSaved())
+				Service.documentCtrl.unsavedChanges = false
+				publish(DocumentChangedEvent(false))
 			} catch {
 				case _: IOException => TinkerDialog.openErrorDialog("Error while saving : file unwriteable.")
 				case e: Exception =>
-				TinkerDialog.openErrorDialog("Error while saving : unexpected error.")
-				e.printStackTrace()
+					TinkerDialog.openErrorDialog("Error while saving : unexpected error.")
+					e.printStackTrace()
 			}
 		}
 	}
@@ -76,7 +71,7 @@ object DocumentService extends Publisher {
 	}
 
 	def promptUnsaved(json: Json) = {
-		if (unsavedChanges) {
+		if (Service.documentCtrl.unsavedChanges) {
 			val choice = Dialog.showOptions(
 				title = "Unsaved changes",
 				message = "Do you want to save your changes or discard them?",
@@ -123,7 +118,6 @@ object DocumentService extends Publisher {
 		try {
 			file = Some(f)
 			val json = Json.parse(f)
-			publish(DocumentChanged())
 			Some(json)
 		} catch {
 			case e: JsonParseException => 
