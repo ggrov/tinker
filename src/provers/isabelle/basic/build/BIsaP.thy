@@ -81,6 +81,11 @@ structure IEVal = InteractiveEvalFun (EVal);
 structure Tinker = TinkerProtocol (IEVal);
 *}
 
+ML{*
+structure Env_Tav_Lib = EnvTacLibFunc (Theory);
+open Env_Tav_Lib
+*}
+
 end
 
 
