@@ -3,13 +3,6 @@ theory BIsaP
 imports       
   "../../../../build/isabelle/Tinker"                                                                               
 begin 
- 
-(* simple test of proof representation *)
-      
-ML{*
-  val atomic_tracing = (*tracing*) (fn _ => ());
-  val isar_tracing = (*tracing*) (fn _ => ());
-*}
 
 (* wrapping trm with name structure *)
   ML_file "../../termlib/rippling/unif_data.ML" 
@@ -48,44 +41,27 @@ ML{*
 (* induction *)
   ML_file "../../termlib/induct.ML"
 
-  ML_file "../simple_goaltyp.ML"         
+  ML_file "../../../../goaltype/simple_goaltype.ML"
                             
 
 ML{*
-   structure GT : BASIC_GOALTYPE = SimpleGoalTyp;
-   structure Data = PSGraphDataFun(GT);
-*}
-
-ML{*
+  structure SimpleGoalType : BASIC_GOALTYPE = SimpleGoalType_Fun(structure Prover = IsaProver val struct_name = "SimpleGoalType");
+  structure Data = PSGraphDataFun(SimpleGoalType);
   structure PSDataIO = PSGraphIOFun(structure Data = Data);
-*}
-ML{*
-structure Theory = PSGraph_TheoryFun(structure GoalTyp = SimpleGoalTyp  
+  structure Theory = PSGraph_TheoryFun(structure GoalTyp = SimpleGoalType  
                                      structure Data = Data);
-*}
-ML{*
-structure Theory_IO = PSGraph_Theory_IOFun(structure PSTheory = Theory)
-*}
-ML{*
-structure PSGraph = PSGraphFun(structure Theory_IO = Theory_IO);
-*}             
-
-ML{*
-structure PSComb = PSCombFun (structure PSGraph = PSGraph)
+  structure Theory_IO = PSGraph_Theory_IOFun(structure PSTheory = Theory)
+  structure PSGraph = PSGraphFun(structure Theory_IO = Theory_IO);
+  structure PSComb = PSCombFun (structure PSGraph = PSGraph)
+  structure EData =  EDataFun( PSGraph);
+  structure EVal = EValFun(EData);
+  structure IEVal = InteractiveEvalFun (EVal);
+  structure Tinker = TinkerProtocol (IEVal);
+  structure Env_Tac_Lib = EnvTacLibFunc (Theory);
 *}
 
-ML{*
-structure EData =  EDataFun( PSGraph);
-structure EVal = EValFun(EData);
-structure IEVal = InteractiveEvalFun (EVal);
-structure Tinker = TinkerProtocol (IEVal);
-*}
-
-ML{*
-structure Env_Tav_Lib = EnvTacLibFunc (Theory);
-open Env_Tav_Lib
-*}
-
+  ML_file "../simpleGT_lib.ML"
+  ML{*  open Env_Tac_Lib SimpleGT_Lib *}
 end
 
 

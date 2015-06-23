@@ -1,5 +1,7 @@
 structure InductRTechn = 
 struct
+  val atomic_tracing = LoggingHandler.logging "GOALTYPE"
+
   (* find an element, but keep the rest also *)
   fun pull_elem f l = 
       let fun recf [] L = NONE

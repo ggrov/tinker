@@ -5,7 +5,7 @@ end
 structure BasicRipple = 
 struct
   exception ripple_exp of string;
-   
+  val atomic_tracing = LoggingHandler.logging "GOALTYPE"
   fun get_wrules ctxt = 
     let 
       val thy = (Proof_Context.theory_of ctxt);
