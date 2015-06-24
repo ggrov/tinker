@@ -44,7 +44,7 @@ sig
  (* val set_tactics : Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T -> T -> T *)
   val set_goaltype_data :  Theory.Data.GoalTyp.data -> T -> T
   val set_graph :  StrName.NTab.name -> int -> Theory.Graph.T -> T -> T
-
+ 
   (* update methods *)
   val update_top_graph : (Theory.Graph.T -> Theory.Graph.T) -> T -> T
   val update_graph_tactics : (subgraph StrName.NTab.T 
@@ -58,9 +58,8 @@ sig
                               -> T -> T *)
   val update_goaltype_data :  (Theory.Data.GoalTyp.data -> Theory.Data.GoalTyp.data)
                               -> T -> T
-
   (* fresh name generation *)
-  val fresh_name : T -> StrName.name -> StrName.name
+  val fresh_name : T -> StrName.name ->  StrName.NSet.name
   
   (* merger two psgraph by add merging all the subfields, exception would be raised when duplicated nodes are found*)
   val merge_disjoint : T -> T -> T
@@ -70,7 +69,7 @@ sig
   *)
   (* json i/o *)
   val output_json : T -> Json.json
-  val output_json_as_eval_field : StrName.NTab.name -> int -> T -> Json.json
+  val output_json_as_eval_field : StrName.NTab.name list -> int -> T -> Json.json
   val input_json : Json.json -> T
   val write_json_file : string -> T -> unit
   val read_json_file: string -> T

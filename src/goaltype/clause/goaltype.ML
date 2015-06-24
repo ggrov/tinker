@@ -1,11 +1,13 @@
 functor ClauseGTFun(structure Prover : PROVER  
-                    val struct_name : string) =
+                    val struct_name : string) : BASIC_GOALTYPE  =
 struct
 
   structure Prover = Prover;
 
   type gtyp = Prover.env -> Prover.pnode -> Prover.env_data list -> Prover.env list 
-  structure GoalTyp_ML_Exec = ML_Exec_Func (val exec_str = Prover.exec_str type ret = gtyp val struct_name = struct_name);
+  structure GoalTyp_ML_Exec = ML_Exec_Func (val exec_str = Prover.exec_str 
+                                            type ret = gtyp 
+                                            val struct_name =  struct_name ^".GoalTyp_ML_Exec");
 
   (**********  data ***********)
   (* grammar: 

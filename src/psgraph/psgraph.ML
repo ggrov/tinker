@@ -13,7 +13,7 @@ struct
 
   datatype subgraph = Subgraph of {
     name : StrName.NTab.name,
-    isOr : bool,
+    isOr : string,
     graphs: Theory.Graph.T list,
     args : Theory.Data.arg_typ
     (* node_id : V.name list  the actual graph name plus node id as a key to uniquely identify a node *)
@@ -28,10 +28,10 @@ struct
 
  (* prover tactic : what about evaluation? should this be in the tactic or as args here? *)
  datatype T = PSGraph of {
-      graph : Theory.Graph.T,
+      graph : Theory.Graph.T, (* this is the main / top graph *)
       graph_tactics : subgraph StrName.NTab.T, (* only name of parent *)
       atomic_tactics : atomic_tacs StrName.NTab.T,
-(* as we allow using tactic with various arguements, the types of tactics various, we need to use string *)
+(* as we allow using tactic with various arguments, the types of tactics various, we need to use string *)
      (*  tactics : Prover.tactic StrName.NTab.T, *) (* atomic_tactics name -> tactic *) (* do we still need it ? *)
       goaltype_data : Theory.Data.GoalTyp.data
   }
@@ -56,6 +56,8 @@ struct
              atomic_tactics = #atomic_tactics rep, tactics = f (#tactics rep),
              goaltype_data = #goaltype_data rep, parents = #parents rep}
 *)
+
+
  fun update_goaltype_data f (PSGraph rep) = 
    PSGraph { graph = #graph rep, graph_tactics = #graph_tactics rep, 
              atomic_tactics = #atomic_tactics rep, (* tactics = #tactics rep,*)
@@ -181,7 +183,7 @@ struct
   (fn (Json.Array x) => 
     map 
     (fn y => case y of (Json.String str) => str) 
-    x) 
+    x)
   args 
  | arg_typ_from_json _ =  raise Json.parse_exn "unexcepted json strcure in arg_typ_from_json"
 
@@ -204,14 +206,14 @@ struct
  fun output_subgraph_json (name, (Subgraph subgraph)) = 
    Json.mk_object [
     ("name", Json.String name),
-    ("isOr", Json.Bool (#isOr subgraph)),
+    ("isOr", Json.String (#isOr subgraph)),
     ("graphs", map Theory_IO.out_json (#graphs subgraph) |> Json.Array),
     ("args", arg_typ_to_json (#args subgraph))]
 
  fun input_subgraph_json (Json.Object jobj) =
   let 
     val name =  JsonInputUtils.get_string jobj "name"
-    val isOr = JsonInputUtils.get_bool jobj "isOr"
+    val isOr = JsonInputUtils.get_string jobj "isOr"
     val graphs = JsonInputUtils.get_array jobj "graphs" |> map Theory_IO.in_json
      val args = (arg_typ_from_json (Json.get jobj "args"))
   in
@@ -252,14 +254,14 @@ struct
   in
   Json.mk_object 
   [
-    ("name_current", Json.String name_current),
+    ("name_current", map Json.String name_current |> Json.Array),
     ("index_current", Json.Int index_current),
     ("graphs", 
      Json.Array
      ([
        Json.mk_object[
         ("name", Json.String "main"),
-        ("isOr", Json.Bool false),
+        ("isOr", Json.String ""),
         ("args", Json.Array[]),
         ("graphs", Json.Array [Theory_IO.out_json (get_top_graph ps)])]
      ] @ graph_tactics))
@@ -290,7 +292,6 @@ struct
     (* |> set_tactics tactics*)
   end
  | input_json _ = raise Json.parse_exn "unexcepted json strcure in input_json"
-
 
  fun write_json_file path ps =  File_Io.write_string path (output_json ps |> Json.encode);
 

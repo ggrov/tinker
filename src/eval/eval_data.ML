@@ -1,7 +1,7 @@
 
 functor EDataFun(PSGraph : PS_GRAPH) : EVAL_DATA  =
 struct
-
+local open LoggingHandler in
   structure PSGraph = PSGraph;
   structure Prover = PSGraph.Theory.Data.GoalTyp.Prover;
 
@@ -11,7 +11,7 @@ struct
   datatype active = Active of {
      (*graph : PSGraph.Theory.Graph.T current graph *)
      index_current: int,
-     name_current: StrName.NTab.name,
+     name_current_hie: StrName.NTab.name list,
      parent: (StrName.NTab.name * int) StrName.NTab.T, (* record eval hierechy: child nanme -> parent name *)
      gnodes : gnode list, (* not updated, used to work with evalf for the order of the goal node *)
      searchf : string, (* not support *)
@@ -28,12 +28,14 @@ struct
       current : branch,
       branches : branch list
   }
-
+                                                               
   fun get_agnodes (Active rep) = #gnodes rep;
   fun get_aparent (Active rep) = #parent rep;
   fun get_asearchf (Active rep) = #searchf rep;
   fun get_aevalf (Active rep) = #evalf rep;
-  fun get_aname_current (Active rep) = #name_current rep;
+  fun get_aname_current_hie (Active rep) = #name_current_hie rep;
+  fun get_aname_current rep = get_aname_current_hie rep |> hd 
+  handle Empty => (logging "HIERARCHY" "Try entering parent graph but already at the top"; raise tinker_fail)
   fun get_aindex_current (Active rep) = #index_current rep;
   
   fun get_bactive (Branch rep) = #active rep;
@@ -52,6 +54,7 @@ struct
   val get_graph = (fn x => PSGraph.get_graph (get_psgraph x) ((get_aname_current o get_active) x) ((get_aindex_current o get_active) x));
   val get_parent = get_aparent o get_active;
   val get_name_current = get_aname_current o get_active;
+  val get_name_current_hie = get_aname_current_hie o get_active;
   val get_index_current = get_aindex_current o get_active;
   val get_gnodes = get_agnodes o get_active;
   val get_searchf = get_asearchf o get_active;
@@ -62,6 +65,7 @@ struct
   val get_bsearchf = get_asearchf o get_bactive;
   val get_bevalf = get_aevalf o get_bactive;
   val get_bname_current = get_aname_current o get_bactive;
+  val get_bname_current_hie = get_aname_current_hie o get_bactive;
   val get_bindex_current = get_aindex_current o get_bactive;
   val get_bgraph =  (fn x => PSGraph.get_graph (get_bpsgraph x) (get_bname_current x) (get_bindex_current x));
   fun get_bgraph_gen name idx b =  PSGraph.get_graph (get_bpsgraph b) name idx;
@@ -69,24 +73,24 @@ struct
 
 
   fun update_agnodes f (Active rep) =
-    Active {gnodes = f (#gnodes rep), name_current = #name_current rep, index_current = #index_current rep,
+    Active {gnodes = f (#gnodes rep), name_current_hie = #name_current_hie rep, index_current = #index_current rep,
             searchf = #searchf rep, evalf = #evalf rep, parent = #parent rep};
   fun update_aparent f (Active rep) =
-    Active {gnodes = #gnodes rep, name_current = #name_current rep, index_current = #index_current rep,
+    Active {gnodes = #gnodes rep, name_current_hie = #name_current_hie rep, index_current = #index_current rep,
             searchf = #searchf rep, evalf = #evalf rep, parent = f (#parent rep)};
   fun update_asearchf f (Active rep) =
-    Active {gnodes = #gnodes rep, name_current = #name_current rep, index_current = #index_current rep,
+    Active {gnodes = #gnodes rep, name_current_hie = #name_current_hie rep, index_current = #index_current rep,
             searchf = f (#searchf rep), evalf = #evalf rep, parent = #parent rep};
   fun update_aevalf f (Active rep) =
-    Active {gnodes = #gnodes rep,  name_current = #name_current rep, index_current = #index_current rep,
+    Active {gnodes = #gnodes rep,  name_current_hie = #name_current_hie rep, index_current = #index_current rep,
             searchf = #searchf rep, evalf = f (#evalf rep), parent = #parent rep};
 
-  fun update_aname_current f (Active rep) =
-    Active {gnodes = #gnodes rep,  name_current = f (#name_current rep), index_current = #index_current rep,
+  fun update_aname_current_hie f (Active rep) =
+    Active {gnodes = #gnodes rep,  name_current_hie = f (#name_current_hie rep), index_current = #index_current rep,
             searchf = #searchf rep, evalf = #evalf rep, parent = #parent rep};
 
   fun update_aindex_current f (Active rep) =
-    Active {gnodes = #gnodes rep,  name_current = #name_current rep, index_current = f (#index_current rep),
+    Active {gnodes = #gnodes rep,  name_current_hie = #name_current_hie rep, index_current = f (#index_current rep),
             searchf = #searchf rep, evalf = #evalf rep, parent = #parent rep};
 
 
@@ -94,8 +98,12 @@ struct
   val set_aparent = update_aparent o K;
   val set_asearchf = update_asearchf o K;
   val set_aevalf = update_aevalf o K;
-  val set_aname_current = update_aname_current o K
+  val set_aname_current_hie = update_aname_current_hie o K
   val set_aindex_current = update_aindex_current o K
+
+  val pop_acur_hie = update_aname_current_hie tl
+  handle Empty => (logging "HIERARCHY" "Try entering parent graph but already at the top"; raise tinker_fail)
+  fun push_acur_hie n = update_aname_current_hie (fn x => n :: x)
 
   fun update_bactive f (Branch rep) =
     Branch {active = f (#active rep), pplan = #pplan rep, goals = #goals rep, psgraph = #psgraph rep};
@@ -140,7 +148,9 @@ struct
   val update_searchf =  update_active o update_asearchf;
   val update_evalf =  update_active o update_aevalf;
   val update_parent =  update_active o update_aparent;
-
+  
+  val pop_cur_hie = update_active pop_acur_hie;
+  val push_cur_hie = update_active o push_acur_hie;
   val set_gnodes = update_gnodes o K;
   val set_searchf = update_searchf o K;
   val set_evalf = update_evalf o K;
@@ -165,15 +175,18 @@ struct
   val set_bsearchf = update_bsearchf o K;
   val update_bevalf =  update_bactive o update_aevalf;
   val set_bevalf = update_bevalf o K;
-  val update_bname_current = update_bactive o update_aname_current;
-  val set_bname_current = update_bname_current o K
+  val update_bname_current_hie = update_bactive o update_aname_current_hie;
+  val set_bname_current_hie = update_bname_current_hie o K
+  val pop_bcur_hie = update_bname_current_hie tl 
+  handle Empty => (logging "HIERARCHY" "Try entering parent graph but already at the top"; raise tinker_fail)
+  fun push_bcur_hie n = update_bname_current_hie  (fn x => n :: x)
+
   val update_bindex_current = update_bactive o update_aindex_current;
   val set_bindex_current = update_bindex_current o K
 
-
   fun init_active graph vs =
      Active {gnodes = vs, searchf = "depth_first", 
-     name_current = "main", index_current = 0,
+     name_current_hie = ["main"], index_current = 0,
      evalf = "depth_first", parent = StrName.NTab.empty}
 
   fun init_branch prf psgraph goals vs  =
@@ -213,7 +226,7 @@ struct
      type gnode = gnode
      structure PSGraph = PSGraph.Sharing
    end
-
+end (* end of local *)
 end; (* functor *)
 
 

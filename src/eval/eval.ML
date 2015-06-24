@@ -305,7 +305,7 @@ struct
      EData.set_bgraph graph' (EData.get_current edata) 
      (* move to the subgraph and save the current grah hie in the parent *)
      |> EData.update_bparent (StrName.NTab.ins (hgraph_name, (cur_name, cur_idx)) handle _ => raise Fail "fail to re insert the hgraph")
-     |> EData.set_bname_current hgraph_name
+     |> EData.push_bcur_hie hgraph_name
      (* get subgraphs, for each subgraph, create a branch *)
      |> (fn b => set_hgraph_idx (EData.get_bgraphs_gen hgraph_name b |> List.length |> (fn x => x -1)) b)
      |> maps insert_gnode
@@ -317,7 +317,7 @@ struct
     val cur_name = EData.get_bname_current b
     val (name, idx) = StrName.NTab.get  (EData.get_bparent b) cur_name  
    in
-     EData.set_bname_current name b
+     EData.pop_bcur_hie b
      |> EData.set_bindex_current idx  
      |> EData.update_bparent (StrName.NTab.delete cur_name)
    end
