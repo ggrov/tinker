@@ -1,5 +1,5 @@
 functor ClauseGTFun(structure Prover : PROVER  
-                    val struct_name : string) : BASIC_GOALTYPE  =
+                    val struct_name : string)  =
 struct
 
   structure Prover = Prover;
