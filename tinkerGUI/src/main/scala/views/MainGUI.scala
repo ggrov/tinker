@@ -1,12 +1,11 @@
 package tinkerGUI.views
 
+import tinkerGUI.controllers.events.DocumentChangedEvent
+
 import scala.swing._
 import tinkerGUI.controllers.Service
-import tinkerGUI.controllers.MainGUIController
-import tinkerGUI.controllers.DocumentTitleEvent
 
 object MainGUI extends SimpleSwingApplication {
-	val controller = Service.mainCtrl
 
 	object FourthSplit extends SplitPane {
 		orientation = Orientation.Horizontal
@@ -37,13 +36,13 @@ object MainGUI extends SimpleSwingApplication {
 
 	def top = new MainFrame{
 		minimumSize = new Dimension (1200,600)
-		title = "Tinker - " + controller.getTitle
+		title = "Tinker - " + Service.documentCtrl.title
 		menuBar = new TinkerMenu()
 		contents = MainSplit
-		listenTo(controller)
+		listenTo(Service.documentCtrl)
 		reactions += {
-			case DocumentTitleEvent(t) =>
-				title = "Tinker - " + t
+			case DocumentChangedEvent(_) =>
+				title = "Tinker - " + Service.documentCtrl.title
 		}
 
     Service.setTopFrame(this)

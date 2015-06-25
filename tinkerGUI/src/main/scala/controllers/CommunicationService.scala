@@ -2,6 +2,8 @@ package tinkerGUI.controllers
 
 import java.net._
 import java.io._
+import tinkerGUI.controllers.events.EvalOptionSelectedEvent
+
 import scala.io._
 import scala.concurrent._
 import scala.swing._
@@ -105,7 +107,7 @@ object CommunicationService extends Publisher {
 								// if psgraph found
 								case psgraph:Json =>
 									// loading in model
-									Service.loadJson(psgraph)
+									Service.evalCtrl.loadJson(psgraph)
 									// preparing current eval graph variables
 									var tactic:String = ""
 									var i:Int = 0
@@ -152,7 +154,7 @@ object CommunicationService extends Publisher {
 									}
 
 									// display current graph on view
-									Service.displayEvalGraph(tactic, i, graph)
+									Service.evalCtrl.displayEvalGraph(tactic, i, graph, true)
 
 									// change state
 									state = CommunicationState.WaitingForEvalOptions
@@ -187,13 +189,13 @@ object CommunicationService extends Publisher {
 												}
 											}
 											// enable in view
-											Service.enableEvalOptions(opts)
+											Service.evalCtrl.enableEvalOptions(opts)
 											// change state
 											state = CommunicationState.WaitingForUserChoice
 											// future for user interaction
-											listenTo(Service)
+											listenTo(Service.evalCtrl)
 											reactions+={
-												case UserSelectedEvalOptionEvent(opt, node) =>
+												case EvalOptionSelectedEvent(opt, node) =>
 													// check if correct state
 													if(state == CommunicationState.WaitingForUserChoice){
 														// send option chosen
@@ -254,7 +256,7 @@ object CommunicationService extends Publisher {
 							}
 
 							// display current graph on view
-							Service.displayEvalGraph(tactic, i, graph)
+							Service.evalCtrl.displayEvalGraph(tactic, i, graph, false)
 
 							// change state
 							state = CommunicationState.WaitingForEvalOptions
@@ -288,13 +290,13 @@ object CommunicationService extends Publisher {
 												}
 											}
 											// enable in view
-											Service.enableEvalOptions(opts)
+											Service.evalCtrl.enableEvalOptions(opts)
 											// change state
 											state = CommunicationState.WaitingForUserChoice
 											// future for user interaction
-											listenTo(Service)
+											listenTo(Service.evalCtrl)
 											reactions+={
-												case UserSelectedEvalOptionEvent(opt, node) =>
+												case EvalOptionSelectedEvent(opt, node) =>
 													// check if correct state
 													if(state == CommunicationState.WaitingForUserChoice){
 														// send option chosen

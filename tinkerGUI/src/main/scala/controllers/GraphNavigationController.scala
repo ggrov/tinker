@@ -27,33 +27,37 @@ class GraphNavigationController() extends Publisher {
 
 	def showPrev() {
 		if(currentIndex > 0){
-			Service.editSubGraph(Service.getCurrent, currentIndex-1)
+			Service.documentCtrl.registerChanges()
+			Service.editCtrl.editSubgraph(Service.getCurrent, currentIndex-1)
 		}
 	}
 
 	def showNext() {
 		if(currentIndex < currentTotal-1){
-			Service.editSubGraph(Service.getCurrent, currentIndex+1)
+			Service.documentCtrl.registerChanges()
+			Service.editCtrl.editSubgraph(Service.getCurrent, currentIndex+1)
 		}
 	}
 
 	def addNew() {
-		if(!disableAdd) Service.addSubgraph(Service.getCurrent)
+		if(!disableAdd) {
+			Service.editCtrl.addSubgraph(Service.getCurrent)
+		}
 		else println("no add")
 	}
 
 	def delete() {
 		(currentTotal, currentIndex) match {
 			case (x,y) if (x>1 && y>0) =>
-				Service.deleteSubGraph(Service.getCurrent, currentIndex)
+				Service.editCtrl.deleteSubgraph(Service.getCurrent, currentIndex)
 				showPrev()
 			case (x,0) if (x>1) => 
-				Service.deleteSubGraph(Service.getCurrent, currentIndex)
+				Service.editCtrl.deleteSubgraph(Service.getCurrent, currentIndex)
 				currentIndex -= 1
 				showNext()
 			case (1,_) => 
-				Service.deleteSubGraph(Service.getCurrent, currentIndex)	
-				Service.addSubgraph(Service.getCurrent)
+				Service.editCtrl.deleteSubgraph(Service.getCurrent, currentIndex)
+				Service.editCtrl.addSubgraph(Service.getCurrent)
 			case (0,0) => 
 		}
 	}

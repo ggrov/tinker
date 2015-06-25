@@ -122,7 +122,7 @@ object TinkerDialog {
 					contents += new Label(k+" : ")
 					if(k=="Branch type") {
 						val orRadio = new RadioButton("OR"){selected = v=="OR"}
-						val orelseRadio = new RadioButton("OR ELSE"){selected = v=="OR ELSE"}
+						val orelseRadio = new RadioButton("ORELSE"){selected = v=="ORELSE"}
 						new ButtonGroup(orRadio, orelseRadio)
 						radios = List(orRadio, orelseRadio)
 						contents ++= radios

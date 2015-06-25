@@ -4,13 +4,10 @@ import scala.swing._
 import javax.swing.ImageIcon
 import java.awt.Cursor
 import java.awt.Insets
-import tinkerGUI.controllers.Service
-import tinkerGUI.controllers.GraphEditController
-import tinkerGUI.controllers.NewGraphEvent
+import tinkerGUI.controllers.{QuantoLibAPI, Service, NewGraphEvent}
 
 class GraphEditPanel() extends BorderPanel {
-	val controller = Service.graphEditCtrl
-	var graphPanel = controller.getGraph
+	var graphPanel = QuantoLibAPI.getGraph
 	val editControls = new EditControlsPanel()
 	val evalControls = new EvalControlsPanel()
 	val graphBreadcrums = new GraphBreadcrumbs()
