@@ -84,7 +84,7 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 			val addSubButton = new Button(
 				new Action(""){
 					def apply(){
-						Service.documentCtrl.registerChanges()
+						//Service.documentCtrl.registerChanges()
 						Service.editCtrl.addSubgraph(name)
 					}
 				}){

@@ -69,10 +69,7 @@ class InspectorController(model: PSGraph) extends Publisher {
 	}
 
 	def edit() {
-		var parents:Array[String] = Array()
-		Service.hierarchyCtrl.elementParents.foreach{ case (k,v) =>
-			if (k == tacticToShow) parents = v
-		}
+		val parents = Service.hierarchyCtrl.elementParents.getOrElse(tacticToShow,Array())
 		Service.editCtrl.editSubgraph(tacticToShow, indexToShow, Some(parents))
 	}
 
@@ -89,11 +86,9 @@ class InspectorController(model: PSGraph) extends Publisher {
 			showPreview()
 		}
 	}
+
 	def add(){
-		var parents:Array[String] = Array()
-		Service.hierarchyCtrl.elementParents.foreach{ case (k,v) =>
-			if (k == tacticToShow) parents = v
-		}
+		val parents = Service.hierarchyCtrl.elementParents.getOrElse(tacticToShow,Array())
 		Service.editCtrl.addSubgraph(tacticToShow,Some(parents))
 	}
 

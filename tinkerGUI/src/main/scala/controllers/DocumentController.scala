@@ -34,14 +34,15 @@ class DocumentController(model:PSGraph) extends Publisher {
 					redoStack.push(model.jsonPSGraph)
 					model.loadJsonGraph(j)
 					QuantoLibAPI.loadFromJson(model.getCurrentJson)
-					publish(CurrentGraphChangedEvent(if(model.isMain) "main" else model.currentTactic.name, None))
+					Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
+					publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
 					publish(DocumentChangedEvent(unsavedChanges))
 				} catch {
 					case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 					case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 					case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 				}
-			case None => // do nothing
+			case None => publish(DocumentChangedEvent(unsavedChanges))
 		}
 	}
 
@@ -52,17 +53,19 @@ class DocumentController(model:PSGraph) extends Publisher {
 		redoStack.pop() match {
 			case Some(j:Json) =>
 				try{
-					undoStack.push(j)
+					model.updateJsonPSGraph()
+					undoStack.push(model.jsonPSGraph)
 					model.loadJsonGraph(j)
 					QuantoLibAPI.loadFromJson(model.getCurrentJson)
-					publish(CurrentGraphChangedEvent(model.getCurrentGTName, None))
+					Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
+					publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
 					publish(DocumentChangedEvent(unsavedChanges))
 				} catch {
 					case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 					case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 					case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 				}
-			case None => // do nothing
+			case None => publish(DocumentChangedEvent(unsavedChanges))
 		}
 	}
 
@@ -73,7 +76,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 		*/
 	def registerChanges() {
 		model.updateJsonPSGraph()
-		if(undoStack.getTop().toString != model.jsonPSGraph.toString()){
+		if(undoStack.getTop().toString != model.jsonPSGraph.toString() && (if(!model.isMain) model.getSizeGT(model.getCurrentGTName) > model.currentIndex else true)){
 			undoStack.push(model.jsonPSGraph)
 			redoStack.empty()
 			unsavedChanges = true
@@ -101,7 +104,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 						undoStack.empty()
 						redoStack.empty()
 						publish(GraphTacticListEvent())
-						publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(Service.hierarchyCtrl.elementParents(model.getCurrentGTName))))
+						publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(model.currentParents)))
 						QuantoLibAPI.loadFromJson(model.getCurrentJson)
 						Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
 						unsavedChanges = false
@@ -161,7 +164,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 				redoStack.empty()
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
 				publish(GraphTacticListEvent())
-				publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(Array())))
+				publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
 			} catch {
 				case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 			}

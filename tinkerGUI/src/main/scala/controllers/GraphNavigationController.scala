@@ -27,18 +27,22 @@ class GraphNavigationController() extends Publisher {
 
 	def showPrev() {
 		if(currentIndex > 0){
+			Service.documentCtrl.registerChanges()
 			Service.editCtrl.editSubgraph(Service.getCurrent, currentIndex-1)
 		}
 	}
 
 	def showNext() {
 		if(currentIndex < currentTotal-1){
+			Service.documentCtrl.registerChanges()
 			Service.editCtrl.editSubgraph(Service.getCurrent, currentIndex+1)
 		}
 	}
 
 	def addNew() {
-		if(!disableAdd) Service.editCtrl.addSubgraph(Service.getCurrent)
+		if(!disableAdd) {
+			Service.editCtrl.addSubgraph(Service.getCurrent)
+		}
 		else println("no add")
 	}
 

@@ -519,13 +519,10 @@ class EditController(model:PSGraph) extends Publisher {
 		*/
 	def editSubgraph(tactic:String, index:Int, parents:Option[Array[String]] = None) {
 		try {
-			//Service.documentCtrl.registerChanges()
-			if(model.getCurrentGTName != tactic){
-				publish(CurrentGraphChangedEvent(tactic,parents))
-			}
-			model.changeCurrent(tactic, index)
+			model.changeCurrent(tactic, index, parents)
 			Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
 			QuantoLibAPI.loadFromJson(model.getCurrentJson)
+			publish(CurrentGraphChangedEvent(tactic,parents))
 		} catch {
 			case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 			case e:SubgraphNotFoundException =>
@@ -540,13 +537,11 @@ class EditController(model:PSGraph) extends Publisher {
 		*/
 	def addSubgraph(tactic:String, parents:Option[Array[String]] = None) {
 		try{
-			//Service.documentCtrl.registerChanges()
-			if(model.getCurrentGTName != tactic){
-				publish(CurrentGraphChangedEvent(tactic,parents))
-			}
-			model.newSubgraph(tactic)
+			Service.documentCtrl.registerChanges()
+			model.newSubgraph(tactic, parents)
 			QuantoLibAPI.newGraph()
 			Service.graphNavCtrl.viewedGraphChanged(model.isMain,true)
+			publish(CurrentGraphChangedEvent(tactic,parents))
 		} catch {
 			case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 		}
@@ -558,7 +553,7 @@ class EditController(model:PSGraph) extends Publisher {
 		* @param index Index of the subgraph in the tactic.
 		*/
 	def deleteSubgraph(tactic:String,index:Int) {
-		//Service.documentCtrl.registerChanges()
+		Service.documentCtrl.registerChanges()
 		model.delSubgraphGT(tactic,index)
 	}
 }

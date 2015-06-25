@@ -16,6 +16,9 @@ class PSGraph() extends ATManager with GTManager {
 	/** Currently viewed graph tactic, if not the main one. */
 	var currentTactic: GraphTactic = new GraphTactic("","")
 
+	/** Current parent list.*/
+	var currentParents:Array[String] = Array()
+
 	/** Currently viewed graph index, always 0 for the main one. */
 	var currentIndex = 0
 
@@ -300,7 +303,7 @@ class PSGraph() extends ATManager with GTManager {
 		*
 		*/
 	def updateJsonPSGraph() {
-		val current = if(isMain) "main" else currentTactic.name
+		val current = JsonArray((currentParents :+ getCurrentGTName).reverse)
 		val gtOccArray = toJsonGTOccurrences
 		val atOccArray = toJsonATOccurrences
 		jsonPSGraph = JsonObject("current" -> current,
@@ -323,8 +326,9 @@ class PSGraph() extends ATManager with GTManager {
 		goalTypes = ""
 		isMain = true
 		currentTactic = new GraphTactic("","")
+		currentParents = Array()
 		jsonPSGraph = JsonObject()
-		childrenMain = ArrayBuffer()
+		childrenMain.clear()
 		gtCollection = Map()
 		atCollection = Map()
 	}
@@ -332,9 +336,10 @@ class PSGraph() extends ATManager with GTManager {
 	/** Method to register a new subgraph and set it as current.
 		*
 		* @param tactic Gui id of the graph tactic from which to add the new subgraph.
+		* @param parents Optional list of parents to update the current parents list.
 		* @throws GraphTacticNotFoundException If the graph tactic was not found.
 		*/
-	def newSubgraph(tactic: String){
+	def newSubgraph(tactic: String, parents:Option[Array[String]] = None){
 		isMain = false
 		if(tactic == currentTactic.name){
 			currentIndex = currentTactic.getSize
@@ -342,6 +347,11 @@ class PSGraph() extends ATManager with GTManager {
 		else{
 			gtCollection get tactic match {
 				case Some(t:GraphTactic) =>
+					parents match {
+						case Some(p:Array[String]) =>
+							currentParents = p
+						case None => currentParents = currentParents :+ getCurrentGTName
+					}
 					currentTactic = t
 					currentIndex = t.getSize
 				case None =>
@@ -356,18 +366,36 @@ class PSGraph() extends ATManager with GTManager {
 		* @param index New current index.
 		* @throws GraphTacticNotFoundException If the graph tactic was not found.
 		*/
-	def changeCurrent(tactic: String, index: Int) {
+	def changeCurrent(tactic: String, index: Int, parents:Option[Array[String]] = None) {
 		if(tactic == "main"){
 			isMain = true
 			currentIndex = 0
+			currentParents = Array()
+			currentTactic = new GraphTactic("","")
 		}
 		else {
-			gtCollection get tactic match {
-				case Some(t: GraphTactic) =>
-					isMain = false
-					currentTactic = t
-					currentIndex = index
-				case None => throw new GraphTacticNotFoundException("Graph tactic "+tactic+" not found")
+			if(tactic == currentTactic.name){
+				currentIndex = index
+				parents match {
+					case Some(p: Array[String]) =>
+						currentParents = p
+					case None =>
+				}
+			}
+			else {
+				gtCollection get tactic match {
+					case Some(t: GraphTactic) =>
+						parents match {
+							case Some(p:Array[String]) =>
+								currentParents = p
+							case None =>
+								currentParents = currentParents :+ getCurrentGTName
+						}
+						isMain = false
+						currentTactic = t
+						currentIndex = index
+					case None => throw new GraphTacticNotFoundException("Graph tactic "+tactic+" not found")
+				}
 			}
 		}
 	}
@@ -479,7 +507,8 @@ class PSGraph() extends ATManager with GTManager {
 	def loadJsonGraph(j: Json) {
 		atCollection = Map()
 		gtCollection = Map()
-		val current = (j / "current").stringValue
+		val current = (j / "current").asArray.head.stringValue
+		currentParents = (j / "current").asArray.tail.foldRight(Array[String]()){ case (p,a) => a :+ p.stringValue}
 		currentIndex  = (j / "current_index").intValue
 		goalTypes = (j / "goal_types").stringValue
 		mainGraph = (j / "graph").asObject

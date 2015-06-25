@@ -80,6 +80,7 @@ class TreeGraph() extends Panel{
 	def hit(pt: java.awt.Point){
 		elementCoordinates.foreach { c =>
 			if(pt.getX.toInt > c._2-c._4 && pt.getX.toInt < c._2+c._4 && pt.getY.toInt > c._3-c._5 && pt.getY.toInt < c._3+c._5){
+				//Service.documentCtrl.registerChanges()
 				Service.editCtrl.editSubgraph(c._1, 0, Some(c._6))
 			}
 		}
