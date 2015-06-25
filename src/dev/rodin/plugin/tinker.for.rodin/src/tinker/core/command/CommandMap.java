@@ -3,7 +3,6 @@ package tinker.core.command;
 import java.util.HashMap;
 
 import org.eventb.core.seqprover.ITactic;
-import org.eventb.core.seqprover.eventbExtensions.Tactics;
 
 public class CommandMap {
 	private static CommandMap instance = null;
