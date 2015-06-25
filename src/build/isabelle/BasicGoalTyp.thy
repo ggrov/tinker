@@ -7,6 +7,10 @@ begin
   ML_file "../../ml_exec.ML"
   ML_file "../../provers/prover.sig.ML"  
   ML_file "../../goaltype/basic_goaltyp.sig.ML"
+
+ML{*
+JsonInputUtils.fold_obj_easy
+*}
 end
 
 

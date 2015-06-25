@@ -1,4 +1,4 @@
-functor PSGraphFun(structure Theory_IO : PSGRAPH_THEORY_IO) : PS_GRAPH  =
+functor PSGraphFun(structure Theory_IO : PSGRAPH_THEORY_IO) (*: PS_GRAPH*)  =
 struct
 
  structure Theory = Theory_IO.PS_Theory;
@@ -16,15 +16,25 @@ struct
     isOr : string,
     graphs: Theory.Graph.T list,
     args : Theory.Data.arg_typ
-    (* node_id : V.name list  the actual graph name plus node id as a key to uniquely identify a node *)
   }
 
   datatype atomic_tacs = Atomic_Tacs of {
      name : string, (* map to the node name *)
      tactic: string, (* actual ml code of the tactic *)
      args : Theory.Data.arg_typ
-     (* node_id : V.name list  the actual graph name plus node id as a key to uniquely identify a node *)
   }
+
+  datatype occurences = Occurs of {
+        atomic_tactics : 
+          ((StrName.NTab.name (* graph name *) * 
+           int (* index *)) StrName.NTab.T (* use vname as key for this table *)
+          ) StrName.NTab.T,
+        graph_tactics : 
+          ((StrName.NTab.name (* graph name *) * 
+           int (* index *)) StrName.NTab.T (* use vname as key for this table *)
+          ) StrName.NTab.T
+      }
+  val default_occurs : occurences = Occurs {atomic_tactics = StrName.NTab.empty,graph_tactics = StrName.NTab.empty};
 
  (* prover tactic : what about evaluation? should this be in the tactic or as args here? *)
  datatype T = PSGraph of {
@@ -33,7 +43,8 @@ struct
       atomic_tactics : atomic_tacs StrName.NTab.T,
 (* as we allow using tactic with various arguments, the types of tactics various, we need to use string *)
      (*  tactics : Prover.tactic StrName.NTab.T, *) (* atomic_tactics name -> tactic *) (* do we still need it ? *)
-      goaltype_data : Theory.Data.GoalTyp.data
+      goaltype_data : Theory.Data.GoalTyp.data ,
+      occurs : occurences 
   }
   
  exception tactic_exp of string
@@ -41,15 +52,15 @@ struct
  fun update_top_graph f (PSGraph rep) = 
    PSGraph { graph = f (#graph rep), graph_tactics = #graph_tactics rep, 
              atomic_tactics = #atomic_tactics rep,(* tactics = #tactics rep,*)
-             goaltype_data = #goaltype_data rep}
+             goaltype_data = #goaltype_data rep,  occurs = #occurs rep}
  fun update_graph_tactics f (PSGraph rep) = 
    PSGraph { graph = #graph rep, graph_tactics = f (#graph_tactics rep), 
              atomic_tactics = #atomic_tactics rep, (* tactics = #tactics rep,*)
-             goaltype_data = #goaltype_data rep}
+             goaltype_data = #goaltype_data rep, occurs = #occurs rep}
  fun update_atomic_tactics f (PSGraph rep) = 
    PSGraph { graph = #graph rep, graph_tactics = #graph_tactics rep, 
              atomic_tactics = f (#atomic_tactics rep), (* tactics = #tactics rep,*)
-             goaltype_data = #goaltype_data rep}
+             goaltype_data = #goaltype_data rep, occurs = #occurs rep}
  (* 
  fun update_tactics f (PSGraph rep) = 
    PSGraph { graph = #graph rep, graph_tactics = #graph_tactics rep, 
@@ -57,11 +68,14 @@ struct
              goaltype_data = #goaltype_data rep, parents = #parents rep}
 *)
 
-
  fun update_goaltype_data f (PSGraph rep) = 
    PSGraph { graph = #graph rep, graph_tactics = #graph_tactics rep, 
              atomic_tactics = #atomic_tactics rep, (* tactics = #tactics rep,*)
-             goaltype_data = f (#goaltype_data rep)}
+             goaltype_data = f (#goaltype_data rep), occurs = #occurs rep}
+ fun update_occurs f (PSGraph rep) = 
+   PSGraph { graph = #graph rep, graph_tactics = #graph_tactics rep, 
+             atomic_tactics = #atomic_tactics rep, (* tactics = #tactics rep,*)
+             goaltype_data = #goaltype_data rep, occurs = f(#occurs rep)}
 
  fun get_top_graph (PSGraph rep) = #graph rep;
  fun get_graph_tactics (PSGraph rep) = #graph_tactics rep;
@@ -99,6 +113,7 @@ struct
 
  (* fun get_tactics (PSGraph rep) = #tactics rep;*)
  fun get_goaltype_data (PSGraph rep) = #goaltype_data rep;
+ fun get_occurs (PSGraph rep) = #occurs rep;
  fun get_graphs ps name = 
   case name 
     of "main" => [get_top_graph ps]
@@ -115,9 +130,8 @@ struct
  val set_top_graph = update_top_graph o K;
  val set_graph_tactics = update_graph_tactics o K;
  val set_atomic_tactics = update_atomic_tactics o K;
- 
-(* val set_tactics = update_tactics o K; *)
  val set_goaltype_data = update_goaltype_data o K;
+ val set_occurs = update_occurs o K;
 
  fun replace_nth l nth h = 
   List.take (l, nth + 1) |> rev |> tl |> rev(* but last *)
@@ -140,7 +154,7 @@ struct
              graph_tactics = StrName.NTab.empty,
              atomic_tactics = StrName.NTab.empty,
              (* tactics = StrName.NTab.empty,*)
-             goaltype_data = Theory.Data.GoalTyp.default_data};
+             goaltype_data = Theory.Data.GoalTyp.default_data, occurs = default_occurs};
 
  val empty = of_graph Theory.Graph.empty;
 
@@ -165,8 +179,9 @@ struct
              graph_tactics = graph_tactics',
              atomic_tactics = atomic_tactics',
             (* tactics = tactics',*)
-             goaltype_data =  Theory.Data.GoalTyp.default_data
-(* fixme: should be able to merger data, a function needs to be added in the goaltyp interface*)
+             goaltype_data =  Theory.Data.GoalTyp.default_data,
+             occurs = default_occurs
+            (* TODO: should be able to merger*)
               }
    end
 (*
@@ -220,6 +235,43 @@ struct
     (name, Subgraph {name = name, isOr = isOr, graphs = graphs, args = args})
   end
  | input_subgraph_json _ = raise Json.parse_exn "unexcepted json strcure in input_subgraph_json"
+ 
+ val get_V_from_occurs_record = (fn Json.String s => s) o  List.last;
+ val get_others_from_occurs_record = 
+  (fn x => (hd x |> (fn Json.String x => x), 
+            hd (tl x) |>  (fn Json.Int x => x)))  o rev o tl o rev;
+ fun input_occurs_json (Json.Object jobj)  =
+  let
+    fun array_record_to_tab array =
+      map (fn (Json.Array x) => x) array
+      |> map (fn x => (get_V_from_occurs_record x, get_others_from_occurs_record x))
+      |> StrName.NTab.of_list
+    fun parse_occurs name json = 
+      JsonInputUtils.get_obj json name
+      |> (fn obj => Json.properties obj |> map (fn v => (v, JsonInputUtils.get_array obj v |> array_record_to_tab)))
+      |> StrName.NTab.of_list
+    val atomic_tactics = parse_occurs "atomic_tactics" jobj
+    val graph_tactics = parse_occurs "graph_tactics" jobj
+  in
+    Occurs {atomic_tactics = atomic_tactics, graph_tactics = graph_tactics}
+  end
+ | input_occurs_json _ = raise Json.parse_exn "unexcepted json strcure in input_occurs_json"
+
+ fun mk_occurs_subfield_json (v, (n, idx)) = Json.Array [Json.String n, Json.Int idx, Json.String v];
+ fun mk_occurs_graph_json (v, graph_tab) = (v,  map mk_occurs_subfield_json (StrName.NTab.list_of graph_tab) |> Json.Array)
+ fun output_occurs_json (Occurs occ)  = 
+    [("atomic_tactics", 
+      (#atomic_tactics occ) 
+      |> StrName.NTab.list_of 
+      |> map mk_occurs_graph_json
+      |> Json.mk_object),
+    ("graph_tactics",
+      (#graph_tactics occ) 
+     |> StrName.NTab.list_of 
+     |> map mk_occurs_graph_json
+     |> Json.mk_object)]
+   |> Json.mk_object;
+
 
  fun output_json ps = 
   let 
@@ -235,6 +287,7 @@ struct
     val goaltype_data = Json.String "" (* FIXME *)
     val current = Json.String "main"
     val current_index = Json.Int 0     
+    val occ = output_occurs_json (get_occurs ps)
   in
     Json.mk_object [
       ("current", current),
@@ -242,7 +295,8 @@ struct
       ("graph_tactics", graph_tactics),
       ("atomic_tactics", atomic_tactics),
       ("goal_types", goaltype_data),
-      ("graph", graph)
+      ("graph", graph),
+      ("occurrences", occ)
     ]
   end
 
@@ -261,10 +315,11 @@ struct
      ([
        Json.mk_object[
         ("name", Json.String "main"),
-        ("isOr", Json.String ""),
+        ("isOr", Json.String "OR"),
         ("args", Json.Array[]),
         ("graphs", Json.Array [Theory_IO.out_json (get_top_graph ps)])]
-     ] @ graph_tactics))
+     ] @ graph_tactics)),
+    ("occurrences", output_occurs_json (get_occurs ps))
   ]
   end
 
@@ -280,15 +335,12 @@ struct
       JsonInputUtils.get_array object "atomic_tactics"
       |> map input_atomic_json
       |> StrName.NTab.of_list
-(* TODO: need to test the tactic with the default args before starting evaluation *)
- (*   val tactics = 
-      StrName.NTab.list_of atomic_tactics
-      |> map (fn (name, Atomic_Tacs{tactic,...}) => (name, eval_tactic tactic))
-      |> StrName.NTab.of_list *)
+    val occurs = Json.get object "occurrences" |> input_occurs_json
   in
     of_graph in_graph
     |> set_graph_tactics graph_tactics
     |> set_atomic_tactics atomic_tactics
+    |> set_occurs occurs
     (* |> set_tactics tactics*)
   end
  | input_json _ = raise Json.parse_exn "unexcepted json strcure in input_json"
@@ -310,6 +362,7 @@ struct
   type T = T
   type subgraph = subgraph
   type atomic_tacs = atomic_tacs
+  type occurences = occurences 
   structure Theory = Theory.Sharing
  end
 end

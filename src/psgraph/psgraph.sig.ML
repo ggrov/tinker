@@ -3,6 +3,7 @@ sig
   type T
   type subgraph
   type atomic_tacs
+  type occurences
   structure Theory: PS_THEORY_SHARING
 end
 
@@ -13,7 +14,8 @@ sig
 
   type T
   type subgraph
-  type atomic_tacs
+  type atomic_tacs  
+  type occurences
 
   exception tactic_exp of string
 
@@ -36,6 +38,7 @@ sig
   val get_hgraph_args :  T 
     -> StrName.NTab.name
     -> Theory.Data.arg_typ
+  val get_occurs : T -> occurences
   
  (* set methods *)
   val set_top_graph : Theory.Graph.T -> T -> T
@@ -44,6 +47,7 @@ sig
  (* val set_tactics : Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T -> T -> T *)
   val set_goaltype_data :  Theory.Data.GoalTyp.data -> T -> T
   val set_graph :  StrName.NTab.name -> int -> Theory.Graph.T -> T -> T
+  val set_occurs : occurences -> T -> T
  
   (* update methods *)
   val update_top_graph : (Theory.Graph.T -> Theory.Graph.T) -> T -> T
@@ -58,6 +62,7 @@ sig
                               -> T -> T *)
   val update_goaltype_data :  (Theory.Data.GoalTyp.data -> Theory.Data.GoalTyp.data)
                               -> T -> T
+  val update_occurs : (occurences -> occurences) -> T -> T
   (* fresh name generation *)
   val fresh_name : T -> StrName.name ->  StrName.NSet.name
   
@@ -80,5 +85,6 @@ sig
     sharing type Sharing.T = T
     sharing type Sharing.subgraph = subgraph
     sharing type Sharing.atomic_tacs = atomic_tacs
+    sharing type Sharing.occurences = occurences
     sharing Sharing.Theory = Theory.Sharing
 end

@@ -7,6 +7,19 @@ ML_file "../psgraph_isar_method.ML"
 ML{*-
   val path = "/u1/staff/gg112/";
 *}
+
+ML{*
+val occurs = PSGraph.Occurs {
+  atomic_tactics = 
+    [("dv" , [("v1",( "main", 0 )), 
+              ("v0",( "sgrsdv", 0 ))] |> StrName.NTab.of_list)
+    ] |> StrName.NTab.of_list,
+  graph_tactics = 
+    [("sgrsdv", [("v0", ("main", 0)) ]|>StrName.NTab.of_list)
+    ]|> StrName.NTab.of_list };
+PSGraph.output_occurs_json occurs
+*}
+
 ML{*
 LoggingHandler.active_all_tags ();
 LoggingHandler.print_active();
@@ -36,7 +49,7 @@ ML{*
   PSGraph.write_json_file (path^"demo1.psgraph") ps; 
 *}
 
-ML{* 
+ML{* -
   val edata0 = EVal.init ps @{context} [] @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"} |> hd; 
 IEVal.output_string 
           "CMD_INIT_PSGRAPH" 
