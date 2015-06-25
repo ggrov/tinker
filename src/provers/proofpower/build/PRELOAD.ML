@@ -31,6 +31,7 @@ val backdoor_ORELSE = ORELSE;
 val _ = PolyML.Compiler.forgetValue "ORELSE";
 val _ = PolyML.Compiler.forgetFixity "ORELSE";
 
+val backdoor_use_file = use_file;
 use "ROOT.ML";
 
 (*restore functions*)
@@ -40,6 +41,7 @@ val THEN = backdoor_THEN;
 val ORELSE = backdoor_ORELSE;
 val from = backdoor_from;
 val to = backdoor_to;
+val use_file = backdoor_use_file;
 
 (*val EQUAL = E%Q%UAL;*)
 

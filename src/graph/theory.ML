@@ -82,7 +82,7 @@ struct
   open Theory;
 
  structure Graph_Utils =
-  struct
+  struct local open LoggingHandler in
     (* actual rewriting *)
     fun rewrite_lazy rule graph = 
       let 
@@ -199,11 +199,11 @@ struct
 
    fun goaltype_of graph e = 
      case edge_data graph e of (Data.GT g) => g   
-     |  _ => raise Fail "Err: Unknown goaltype type.";
+     |  _ => (logging "GRAPH" ("Unknown goaltype type in edge" ^ (E.string_of_name e)); raise tinker_fail)
 
    fun gnode_of graph v = 
      case vertex_data graph v of (Data.G gn) => gn
-     | _ => raise Fail "Err: This vetrtice is not a gnode."
+     | _ => (logging "GRAPH" ("This is not a goal node" ^ (V.string_of_name v)); raise tinker_fail) 
 
    fun mk_gnode gnode = Data.G gnode;
 
@@ -227,10 +227,15 @@ struct
      get_vertex_list graph
      |> filter (is_hgragh_with_graph_name graph graph_name)
      |> (fn x => (case x of 
-                   [] => raise Fail ("ERR: fail to find hgraph by name: " ^ graph_name)
+                   [] => 
+                   	(logging "GRAPH" ("Fail to find hgraph by name:" ^ graph_name); 
+                   	raise tinker_fail) 
+                   
                  | [h] => h
-                 | _ => raise Fail ("ERR: fail to find hgraph by name, more than one result are returned: " ^ graph_name)))
-
+                 | _ => 
+                 	(logging "GRAPH" ("ERR: fail to find hgraph by name, more than one result are returned: " ^ graph_name); 
+                 	raise tinker_fail)))
+ 
    (* FIXME: makes one for each input - can be generalised by vars on the edges  instead - then we only need on lhs per rule  *)
    fun mk_lhs graph v =
      let 
@@ -276,7 +281,7 @@ struct
     true end;
   in
     Scan.catch (is_env_tactic_name0) name
-    handle Fail _ => false
+    handle _ => false
   end
 
  (* is a tactic node and also follows the name convension that has a prefix of ENV *)
@@ -285,7 +290,7 @@ struct
       fun gey_tactic_node_name graph vgraph = 
         case lookup_ivertex_data graph vgraph of 
            SOME (Data.T_Atomic n ) => n
-           | _ => raise Fail "this is not a tatic node" (* no need to logging this, as it won't happen *)
+           | _ => raise tinker_fail (*"This is not a tatic node"*) (* no need to logging this, as it won't happen *)
     in
       is_tactic g v andalso is_env_tactic_name (gey_tactic_node_name g v)
     end
@@ -309,7 +314,7 @@ struct
   struct
     structure Data = Data.Sharing
   end
-
+end (* end of local open *)
 end
 
 

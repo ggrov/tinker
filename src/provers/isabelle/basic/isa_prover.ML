@@ -33,7 +33,7 @@ struct
   val set_pnode_env = update_pnode_env o K;
   fun get_pnode_env ({env, ...} : pnode) = env;
   fun get_pnode_env_data pnode name = get_pnode_env pnode |> ( fn x => StrName.NTab.get x name)
-  fun  get_pnode_env_data_as_ML pnode name = 
+  fun get_pnode_env_data_as_ML pnode name = 
     case get_pnode_env_data pnode name of (E_ML ml_code) => ml_code
     | _ => raise env_data_exp 
  

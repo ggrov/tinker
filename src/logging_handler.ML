@@ -10,6 +10,7 @@ struct
     "ENV_DATA",
     "ARG_DATA",
     "SOCKET",
+    "GRAPH",
     "HIERARCHY",
     "JSON_GUI",
     "JSON_CORE",

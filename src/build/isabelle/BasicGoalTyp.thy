@@ -8,9 +8,6 @@ begin
   ML_file "../../provers/prover.sig.ML"  
   ML_file "../../goaltype/basic_goaltyp.sig.ML"
 
-ML{*
-JsonInputUtils.fold_obj_easy
-*}
 end
 
 

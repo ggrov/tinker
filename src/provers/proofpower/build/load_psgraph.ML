@@ -4,12 +4,12 @@
   fun x |> f = f x;
 
 (* basic goaltype *)
-  use "../../../rtechn_names.ML"; 
+  use "../../../psgraph_names.ML"; 
+  use "../../../logging_handler.ML";
+  use "../../../ml_exec.ML";
   use "../../prover.sig.ML";   
   use "../../../goaltype/basic_goaltyp.sig.ML";
-
 (* graph *)
-  use "../../../debug_handler.ML";
   use "../../../graph/graph_data.sig.ML" ;         
   use "../../../graph/graph_data.ML" ;                                          
   use "../../../graph/io.ML";
@@ -32,7 +32,6 @@
   use "../../../eval/ieval.sig.ML";                                       
   use "../../../eval/ieval.ML";    
   (* socket communication for the tinker gui *)
-  use "../../../debug_handler.ML";  
   use "../../../interface/text_socket.ML";
   use "../../../interface/tinker_protocol.ML";
 
@@ -41,4 +40,5 @@
   use "../termlib/term_feature.ML";  
   use "../../prover.sig.ML";
   use "../pp_prover.ML";
+
 
