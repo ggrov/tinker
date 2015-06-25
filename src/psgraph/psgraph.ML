@@ -1,4 +1,4 @@
-functor PSGraphFun(structure Theory_IO : PSGRAPH_THEORY_IO) (*: PS_GRAPH*)  =
+functor PSGraphFun(structure Theory_IO : PSGRAPH_THEORY_IO) : PS_GRAPH  =
 struct
 
  structure Theory = Theory_IO.PS_Theory;
@@ -13,7 +13,7 @@ struct
 
   datatype subgraph = Subgraph of {
     name : StrName.NTab.name,
-    isOr : string,
+    branchType : string,
     graphs: Theory.Graph.T list,
     args : Theory.Data.arg_typ
   }
@@ -144,7 +144,7 @@ struct
       StrName.NTab.get (get_graph_tactics ps) name
       |> (fn (Subgraph rep) => 
         (Subgraph{args = #args rep, name = #name rep, 
-                  isOr = #isOr rep,
+                  branchType = #branchType rep,
                   graphs = replace_nth (#graphs rep) idx g}))
       |> (fn x => StrName.NTab.update (name, x)  (get_graph_tactics ps))
       |> (fn x => set_graph_tactics x ps)
@@ -221,18 +221,18 @@ struct
  fun output_subgraph_json (name, (Subgraph subgraph)) = 
    Json.mk_object [
     ("name", Json.String name),
-    ("isOr", Json.String (#isOr subgraph)),
+    ("branchType", Json.String (#branchType subgraph)),
     ("graphs", map Theory_IO.out_json (#graphs subgraph) |> Json.Array),
     ("args", arg_typ_to_json (#args subgraph))]
 
  fun input_subgraph_json (Json.Object jobj) =
   let 
     val name =  JsonInputUtils.get_string jobj "name"
-    val isOr = JsonInputUtils.get_string jobj "isOr"
+    val branchType = JsonInputUtils.get_string jobj "branchType"
     val graphs = JsonInputUtils.get_array jobj "graphs" |> map Theory_IO.in_json
      val args = (arg_typ_from_json (Json.get jobj "args"))
   in
-    (name, Subgraph {name = name, isOr = isOr, graphs = graphs, args = args})
+    (name, Subgraph {name = name, branchType = branchType, graphs = graphs, args = args})
   end
  | input_subgraph_json _ = raise Json.parse_exn "unexcepted json strcure in input_subgraph_json"
  
@@ -315,7 +315,7 @@ struct
      ([
        Json.mk_object[
         ("name", Json.String "main"),
-        ("isOr", Json.String "OR"),
+        ("branchType", Json.String "OR"),
         ("args", Json.Array[]),
         ("graphs", Json.Array [Theory_IO.out_json (get_top_graph ps)])]
      ] @ graph_tactics)),

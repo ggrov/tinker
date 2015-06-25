@@ -66,7 +66,7 @@ end (* signature *)
 
 functor PSGraph_TheoryFun (structure GoalTyp : BASIC_GOALTYPE
                            structure  Data : PSGRAPH_DATA
-                           sharing GoalTyp.BasicSharing = Data.Sharing.GoalTyp ) =
+                           sharing GoalTyp.BasicSharing = Data.Sharing.GoalTyp ) : PS_THEORY=
 struct
   structure GoalTyp = GoalTyp;
 
@@ -308,13 +308,13 @@ struct
     Scan.catch (get_env_arg_name0) str
     handle Fail _ => NONE
   end
+  end (* end of local open *)
   end (* structure Util *)
 
   structure Sharing = 
   struct
     structure Data = Data.Sharing
   end
-end (* end of local open *)
 end
 
 

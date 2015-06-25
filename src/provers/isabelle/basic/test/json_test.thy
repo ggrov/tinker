@@ -9,6 +9,9 @@ ML{*-
 *}
 
 ML{*
+ GT_top_symbol ["conj"] () () @{term "A \<or> B"};
+*}
+ML{*
 val occurs = PSGraph.Occurs {
   atomic_tactics = 
     [("dv" , [("v1",( "main", 0 )), 
@@ -41,15 +44,13 @@ fun test_true1 _ _ _ = true
 *}
 ML{* "top_symbol(HOL.implies)"; "top_symbol(HOL.conj)";*}
 (* read and load a psgraph created by gui *)
-ML{*
+ML{* 
  
-  val ps = PSGraph.read_json_file (path^"demo_flat.psgraph");
-  val ps0 = PSGraph.read_json_file (path^"demo_pred.psgraph");
-
+  val ps = PSGraph.read_json_file (path^"demo_new.psgraph");
   PSGraph.write_json_file (path^"demo1.psgraph") ps; 
 *}
 
-ML{* -
+ML{* 
   val edata0 = EVal.init ps @{context} [] @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"} |> hd; 
 IEVal.output_string 
           "CMD_INIT_PSGRAPH" 
@@ -63,7 +64,7 @@ ML{*-
   TextSocket.safe_close();
 *}
 ML{*-
-Tinker.start_ieval @{context} ps [] @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"};
+Tinker.start_ieval @{context} ps [] @{prop "(A)  \<longrightarrow>  (A \<and>  A \<and> A)"};
 *}
 
 
