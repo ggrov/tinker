@@ -65,7 +65,11 @@ case class NodeV(
   val value: Json = (data.getPath("$.label")) match {
     case str : JsonString => str
     case obj : JsonObject => obj.getOrElse("pretty", JsonString(""))
-    case _ => JsonString("")
+    case _ => (data.getPath(theory.vertexTypes(typ).value.path)) match {
+      case str : JsonString => str
+      case obj : JsonObject => obj.getOrElse("pretty", JsonString(""))
+      case _ => JsonString("")
+    }
   }
 
   def label = data.getOrElse("label",value).stringValue

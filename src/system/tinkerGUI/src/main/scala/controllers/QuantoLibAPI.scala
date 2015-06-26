@@ -9,13 +9,13 @@ import quanto.gui.graphview._
 import quanto.layout._
 import quanto.layout.constraint._
 import tinkerGUI.controllers.events.{OneEdgeSelectedEvent, ManyVerticesSelectedEvent, OneVertexSelectedEvent, NothingSelectedEvent}
+import tinkerGUI.model.exceptions.{GraphTacticNotFoundException, AtomicTacticNotFoundException}
 import scala.swing._
 import scala.swing.event._
 import scala.swing.event.Key.Modifiers
 import scala.swing.event.Key.Modifier
 import scala.math._
-import tinkerGUI.utils.ArgumentParser
-import tinkerGUI.utils.SelectionBox
+import tinkerGUI.utils.{TinkerDialog, ArgumentParser, SelectionBox}
 
 
 /** API file for the library based on quantomatic.
@@ -60,6 +60,36 @@ object QuantoLibAPI extends Publisher{
 		publish(NothingSelectedEvent())
 	}
 
+	/** Private method setting the labels on nodes with complete names of tactic (including arguments).
+		*
+		* @param json Input graph in json format.
+		* @return Updated graph object.
+		*/
+	private def graphWithCompleteLabels(json:JsonObject):Graph = {
+		var gr = Graph.fromJson(json, theory)
+		gr.vdata.foreach{
+			case (k,v:NodeV) =>
+				v.data.get("label") match {
+					case Some(j:Json) =>
+					case None =>
+						try{
+							gr = gr.updateVData(k) { _ => v.withValue(Service.model.getATFullName(v.label)) }
+						} catch {
+							case e:AtomicTacticNotFoundException =>
+								try{
+									gr = gr.updateVData(k) { _ => v.withValue(Service.model.getGTFullName(v.label)) }
+								} catch {
+									case e:GraphTacticNotFoundException =>
+										//TinkerDialog.openErrorDialog(e.msg)
+										gr = gr.updateVData(k) { _ => v.withValue(v.label) }
+								}
+						}
+				}
+			case _ =>
+		}
+		gr
+	}
+
 	/** Method to load a graph from a Json object.
 	  *
 	  * @param json Json object to load.
@@ -68,7 +98,7 @@ object QuantoLibAPI extends Publisher{
 		document.clear()
 		// val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
 		// wrap Graph.fromJson .... with layout.layout(...) in next line to activate layout
-		document.graph = Graph.fromJson(json, theory)
+		document.graph = graphWithCompleteLabels(json)
 		document.publish(GraphReplaced(document, clearSelection = true))
 		localUpdate()
 		publish(NothingSelectedEvent())
@@ -100,7 +130,7 @@ object QuantoLibAPI extends Publisher{
 		subgraphPreview.subgraphPreviewDoc.clear()
 		// val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
 		// wrap Graph.fromJson .... with layout.layout(...) in next line to activate layout
-		subgraphPreview.subgraphPreviewDoc.graph = Graph.fromJson(json, theory)
+		subgraphPreview.subgraphPreviewDoc.graph = graphWithCompleteLabels(json)
 		subgraphPreview.subgraphPreviewDoc.publish(GraphReplaced(subgraphPreview.subgraphPreviewDoc, clearSelection = true))
 	}
 

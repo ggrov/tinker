@@ -69,8 +69,8 @@ object CommunicationService extends Publisher {
 				b.append(in.readLine)
 			}
 			//try {
-				println("message : "+b.toString);
-				val j = Json.parse(b.toString);
+				println("message : "+b.toString)
+				val j = Json.parse(b.toString)
 				parseAndExecute(j)
 		//	}
 			//catch {
@@ -81,14 +81,14 @@ object CommunicationService extends Publisher {
 	}
 
 	def parseAndExecute(j: Json){
-		(j ? "cmd") match {
+		j ? "cmd" match {
 			// if no command found
-			case cmd: Json if(cmd == JsonNull) => sendSimpleResponse("RSP_ERROR_NO_CMD", "")
+			case cmd: Json if cmd == JsonNull => sendSimpleResponse("RSP_ERROR_NO_CMD", "")
 			// if command found
 			case cmd: Json =>
-				(cmd ? "name") match {
+				cmd ? "name" match {
 				// if no name found
-				case name: Json if(name == JsonNull) => sendSimpleResponse("RSP_ERROR_NO_CMD_NAME", "")
+				case name: Json if name == JsonNull => sendSimpleResponse("RSP_ERROR_NO_CMD_NAME", "")
 				// if no name found
 				case name: Json => name.stringValue match{
 					//show and hide tinker gui from the tinker core
@@ -101,9 +101,9 @@ object CommunicationService extends Publisher {
 						// if correct state
 						if(state == CommunicationState.WaitingForPsgraph){
 							// get psgraph
-							(j ? "psgraph") match {
+							j ? "psgraph" match {
 								// if psgraph not found
-								case psgraph: Json if(psgraph == JsonNull) => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no psgraph field")
+								case psgraph: Json if psgraph == JsonNull => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no psgraph field")
 								// if psgraph found
 								case psgraph:Json =>
 									// loading in model
@@ -111,35 +111,38 @@ object CommunicationService extends Publisher {
 									// preparing current eval graph variables
 									var tactic:String = ""
 									var i:Int = 0
+									var parents:Array[String] = Array()
 									var graph:JsonObject = JsonObject()
                   println ("end of loading psgraph")
 									// get eval field
-									(j ? "eval_psgraph") match {
+									j ? "eval_psgraph" match {
 										// if eval field not found
-										case eval: Json if(eval == JsonNull) => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no eval field")
+										case eval: Json if eval == JsonNull => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no eval field")
 										// if eval field found
 										case eval: Json =>
 											// get current name
-											(eval ? "name_current") match {
+											eval ? "current" match {
 												// error send if name not found
-												case currentTacticName: Json if(currentTacticName == JsonNull) => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no current name field in eval")
-												case currentTacticName: Json => tactic = currentTacticName.stringValue
+												case currentTacticName: Json if currentTacticName == JsonNull => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no current name field in eval")
+												case currentTacticName: Json =>
+													tactic = currentTacticName.asArray.head.stringValue
+													parents = currentTacticName.asArray.tail.foldRight(Array[String]()){ case (p,a) => a :+ p.stringValue}
 											}
 											// get current index
-											(eval ? "index_current") match {
+											eval ? "current_index" match {
 												// error send if index not found
-												case currentTacticIndex: Json if(currentTacticIndex == JsonNull) => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no current index field in eval")
+												case currentTacticIndex: Json if currentTacticIndex == JsonNull => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no current index field in eval")
 												case currentTacticIndex: Json => i = currentTacticIndex.intValue
 											}
 											// get current graph (should be main[0] at first)
 
-											(eval ? "graphs") match {
+											eval ? "graphs" match {
 												// error send if graphs array not found
-												case graphs:Json if(graphs == JsonNull) => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no graphs field in eval")
+												case graphs:Json if graphs == JsonNull => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no graphs field in eval")
 												case graphs:JsonArray =>
-													var graphList = graphs.vectorValue
-													var gr:Option[Json] = None;
-													graphList.foreach{g =>
+													//var graphList = graphs.vectorValue
+													var gr:Option[Json] = None
+													graphs.vectorValue.foreach{g =>
 														if((g ? "name").stringValue == tactic){
 															gr = (g ? "graphs").get(i)
 														}
@@ -154,7 +157,7 @@ object CommunicationService extends Publisher {
 									}
 
 									// display current graph on view
-									Service.evalCtrl.displayEvalGraph(tactic, i, graph, true)
+									Service.evalCtrl.displayEvalGraph(tactic, i, graph, parents)
 
 									// change state
 									state = CommunicationState.WaitingForEvalOptions
@@ -165,28 +168,25 @@ object CommunicationService extends Publisher {
 						// check if correct state
 						if(state == CommunicationState.WaitingForEvalOptions){
 							// get options
-							(cmd ? "args") match {
+							cmd ? "args" match {
 								// if arguments not found
-								case args: Json if(args == JsonNull) => sendSimpleResponse("RSP_ERROR_ARGS", "arguments not found")
+								case args: Json if args == JsonNull => sendSimpleResponse("RSP_ERROR_ARGS", "arguments not found")
 								// arguments found
 								case args: JsonArray =>
 									// getting first argument, should be list of eval options
-									args.vectorValue(0) match {
+									args.vectorValue.head match {
 										// if nothing found
-										case options: Json if(options == JsonNull) => sendSimpleResponse("RSP_ERROR_ARGS", "expected arguments but list is empty")
+										case options: Json if options == JsonNull => sendSimpleResponse("RSP_ERROR_ARGS", "expected arguments but list is empty")
 										// if array found, good format
 										case options: JsonArray =>
 											// get options as vector
-											var optsTmp = options.vectorValue
 											var opts = ArrayBuffer[String]()
-											optsTmp.foreach{ o =>
-												o match {
-													case option: JsonString =>
-														opts = opts :+ option.stringValue
-													// if not string
-													case _ =>
-														sendSimpleResponse("RSP_ERROR_EVAL_PSGRAPH", "expected list of string as first argument")
-												}
+											options.vectorValue.foreach {
+												case option: JsonString =>
+													opts = opts :+ option.stringValue
+												// if not string
+												case _ =>
+													sendSimpleResponse("RSP_ERROR_EVAL_PSGRAPH", "expected list of string as first argument")
 											}
 											// enable in view
 											Service.evalCtrl.enableEvalOptions(opts)
@@ -215,33 +215,36 @@ object CommunicationService extends Publisher {
 							// preparing current eval graph variables
 							var tactic:String = ""
 							var i:Int = 0
+							var parents:Array[String] = Array()
 							var graph:JsonObject = JsonObject()
 							// get eval field
-							(j ? "eval_psgraph") match {
+							j ? "eval_psgraph" match {
 								// if eval field not found
-								case eval: Json if(eval == JsonNull) => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "no eval field")
+								case eval: Json if eval == JsonNull => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "no eval field")
 								// if eval field found
 								case eval: Json =>
 									// get current name
-									(eval ? "name_current") match {
+									eval ? "current" match {
 										// error send if name not found
-										case currentTacticName: Json if(currentTacticName == JsonNull) => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "no current name field in eval")
-										case currentTacticName: Json => tactic = currentTacticName.stringValue
+										case currentTacticName: Json if currentTacticName == JsonNull => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "no current name field in eval")
+										case currentTacticName: Json =>
+											tactic = currentTacticName.asArray.head.stringValue
+											parents = currentTacticName.asArray.tail.foldRight(Array[String]()){ case (p,a) => a :+ p.stringValue}
 									}
 									// get current index
-									(eval ? "index_current") match {
+									eval ? "current_index" match {
 										// error send if index not found
-										case currentTacticIndex: Json if(currentTacticIndex == JsonNull) => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "no current index field in eval")
+										case currentTacticIndex: Json if currentTacticIndex == JsonNull => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "no current index field in eval")
 										case currentTacticIndex: Json => i = currentTacticIndex.intValue
 									}
 									// get current graph (should be main[0] at first)
-									(eval ? "graphs") match {
+									eval ? "graphs" match {
 										// error send if graphs array not found
-										case graphs:Json if(graphs == JsonNull) => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "no graphs field in eval")
+										case graphs:Json if graphs == JsonNull => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "no graphs field in eval")
 										case graphs:JsonArray =>
-											var graphList = graphs.vectorValue
-											var gr:Option[Json] = None;
-											graphList.foreach{g =>
+											//var graphList = graphs.vectorValue
+											var gr:Option[Json] = None
+											graphs.vectorValue.foreach{g =>
 												if((g ? "name").stringValue == tactic){
 													gr = (g ? "graphs").get(i)
 												}
@@ -256,7 +259,7 @@ object CommunicationService extends Publisher {
 							}
 
 							// display current graph on view
-							Service.evalCtrl.displayEvalGraph(tactic, i, graph, false)
+							Service.evalCtrl.displayEvalGraph(tactic, i, graph, parents)
 
 							// change state
 							state = CommunicationState.WaitingForEvalOptions
@@ -266,28 +269,26 @@ object CommunicationService extends Publisher {
 						// check if correct state
 						if(state == CommunicationState.WaitingForEvalOptions){
 							// get options
-							(cmd ? "args") match {
+							cmd ? "args" match {
 								// if arguments not found
-								case args: Json if(args == JsonNull) => sendSimpleResponse("RSP_ERROR_ARGS", "arguments not found")
+								case args: Json if args == JsonNull => sendSimpleResponse("RSP_ERROR_ARGS", "arguments not found")
 								// arguments found
 								case args: JsonArray =>
 									// getting first argument, should be list of eval options
-									args.vectorValue(0) match {
+									args.vectorValue.head match {
 										// if nothing found
-										case options: Json if(options == JsonNull) => sendSimpleResponse("RSP_ERROR_ARGS", "expected arguments but list is empty")
+										case options: Json if options == JsonNull => sendSimpleResponse("RSP_ERROR_ARGS", "expected arguments but list is empty")
 										// if array found, good format
 										case options: JsonArray =>
 											// get options as vector
-											var optsTmp = options.vectorValue
+											//var optsTmp = options.vectorValue
 											var opts = ArrayBuffer[String]()
-											optsTmp.foreach{ o =>
-												o match {
-													case option: JsonString =>
-														opts = opts :+ option.stringValue
-													// if not string
-													case _ =>
-														sendSimpleResponse("RSP_ERROR_EVAL_PSGRAPH", "expected list of string as first argument")
-												}
+											options.vectorValue.foreach {
+												case option: JsonString =>
+													opts = opts :+ option.stringValue
+												// if not string
+												case _ =>
+													sendSimpleResponse("RSP_ERROR_EVAL_PSGRAPH", "expected list of string as first argument")
 											}
 											// enable in view
 											Service.evalCtrl.enableEvalOptions(opts)
@@ -335,7 +336,7 @@ object CommunicationService extends Publisher {
 
 	def send(msg: String){
 		if(connected){
-			var out = new PrintStream(prover.getOutputStream)
+			val out = new PrintStream(prover.getOutputStream)
 			out.println(msg)
 			out.flush
 		}
@@ -343,7 +344,7 @@ object CommunicationService extends Publisher {
 
 	def send(j:Json){
 		if(connected){
-			var out = new PrintStream(prover.getOutputStream)
+			val out = new PrintStream(prover.getOutputStream)
 			j.writeTo(out)
 			out.flush
 		}

@@ -39,16 +39,15 @@ class EvalController(model:PSGraph) extends Publisher {
 		* @param tactic Id of the current tactic, used to change it in the model.
 		* @param index Index of the current subgraph, used to change it in the model.
 		* @param j Json object of the graph to display.
-		* @param isFirst Boolean stating if it is the first display (to redo the breadcrumbs) or not (just
+		* @param parents List of parents of the graph
 		*/
-	def displayEvalGraph(tactic:String, index:Int, j:JsonObject, isFirst:Boolean) {
+	def displayEvalGraph(tactic:String, index:Int, j:JsonObject, parents:Array[String]) {
 	 try{
-		 model.changeCurrent(tactic,index)
+		 model.changeCurrent(tactic,index,Some(parents))
 		 //DocumentService.setUnsavedChanges(true)
 		 QuantoLibAPI.loadFromJson(j)
 		 Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
-		 if(isFirst) publish(CurrentGraphChangedEvent(tactic,Some(Service.hierarchyCtrl.elementParents(tactic))))
-		 else publish(CurrentGraphChangedEvent(tactic,None))
+		 publish(CurrentGraphChangedEvent(tactic,Some(parents)))
 	 } catch {
 		 case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 	 }

@@ -364,6 +364,7 @@ class PSGraph() extends ATManager with GTManager {
 		*
 		* @param tactic New current graph tactic.
 		* @param index New current index.
+		* @param parents Potential list of parents, default is None.
 		* @throws GraphTacticNotFoundException If the graph tactic was not found.
 		*/
 	def changeCurrent(tactic: String, index: Int, parents:Option[Array[String]] = None) {
@@ -577,7 +578,12 @@ class PSGraph() extends ATManager with GTManager {
 		*/
 	def rebuildHierarchy(){
 		childrenMain = ArrayBuffer()
-		(mainGraph ? "node_vertices").asObject.foreach {
+		gtCollection.foreach{ case(k,v) =>
+			v.occurrences.foreach{ o => if(o._1 == "main") childrenMain = childrenMain :+ v}
+			//buildPartialHierarchy(v)
+		}
+		childrenMain.foreach{ c => buildPartialHierarchy(c)}
+		/*(mainGraph ? "node_vertices").asObject.foreach {
 			case (k, v) if ((v / "data").asObject / "type").stringValue == "T_Graph" =>
 				val name = ArgumentParser.separateNameFromArgument((v / "data" / "subgraph").stringValue)._1
 				gtCollection get name match {
@@ -590,7 +596,7 @@ class PSGraph() extends ATManager with GTManager {
 			childrenMain.foreach{ c => buildPartialHierarchy(c)}
 		} catch {
 			case e:GraphTacticNotFoundException => throw e
-		}
+		}*/
 	}
 
 	/** Method to find the children of a graph tactic, and their children as well.
@@ -600,7 +606,11 @@ class PSGraph() extends ATManager with GTManager {
 		*/
 	def buildPartialHierarchy(parent:GraphTactic) {
 		if(parent.children.isEmpty){
-			parent.graphs.foreach {g =>
+			gtCollection.foreach{ case(k,v) =>
+				v.occurrences.foreach{ o => if(o._1 == parent.name) parent.children = parent.children :+ v}
+				//buildPartialHierarchy(v)
+			}
+			/*parent.graphs.foreach {g =>
 				(g ? "node_vertices").asObject.foreach {
 					case (k, v) if ((v / "data").asObject / "type").stringValue == "T_Graph" =>
 						val name = ArgumentParser.separateNameFromArgument((v / "data" / "subgraph").stringValue)._1
@@ -610,7 +620,7 @@ class PSGraph() extends ATManager with GTManager {
 						}
 					case _ => // do nothing
 				}
-			}
+			}*/
 			parent.children.foreach{ c => buildPartialHierarchy(c)}
 		}
 	}
