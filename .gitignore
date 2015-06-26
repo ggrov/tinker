@@ -1,5 +1,5 @@
 /.idea
-
+.metadata
 *.class
 
 # Package Files #
@@ -8,5 +8,3 @@
 *.ear
 *.*~
 \#*.*\# 
-
-

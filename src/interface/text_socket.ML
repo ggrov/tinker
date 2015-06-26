@@ -275,7 +275,7 @@ struct
       (* exists a current connecntion, just return the current one*)
         of (SOME s_data) => s_data
       (* does not exist, create one *)
-        | NONE => run_in_atomic obtain_new_socket
+        | NONE => (run_in_atomic obtain_new_socket)
     end
 
 (* safe server always clear the current connection *)
