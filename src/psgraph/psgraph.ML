@@ -1,4 +1,4 @@
-functor PSGraphFun(structure Theory_IO : PSGRAPH_THEORY_IO) : PS_GRAPH  =
+functor PSGraphFun(structure Theory_IO : PSGRAPH_THEORY_IO) (*: PS_GRAPH *) =
 struct
 
  structure Theory = Theory_IO.PS_Theory;
@@ -285,7 +285,7 @@ struct
        (StrName.NTab.list_of (get_atomic_tactics ps) 
        |> map output_atomic_json)
     val goaltype_data = Json.String "" (* FIXME *)
-    val current = Json.String "main"
+    val current = Json.Array[Json.String "main"]
     val current_index = Json.Int 0     
     val occ = output_occurs_json (get_occurs ps)
   in
@@ -308,7 +308,7 @@ struct
   in
   Json.mk_object 
   [
-    ("name_current", map Json.String name_current |> Json.Array),
+    ("current", map Json.String name_current |> Json.Array),
     ("index_current", Json.Int index_current),
     ("graphs", 
      Json.Array
