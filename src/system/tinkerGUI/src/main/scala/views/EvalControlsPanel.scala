@@ -2,12 +2,34 @@ package tinkerGUI.views
 
 import scala.swing._
 import javax.swing.ImageIcon
-import tinkerGUI.controllers.Service
-import tinkerGUI.controllers.events.EnableEvalOptionsEvent
-import tinkerGUI.controllers.events.DisableEvalOptionsEvent
+import tinkerGUI.controllers.{CommunicationService, Service}
+import tinkerGUI.controllers.events.{ConnectedToCoreEvent, EnableEvalOptionsEvent, DisableEvalOptionsEvent}
 import tinkerGUI.utils.ToolBar
 
 class EvalControlsPanel() {
+
+	val ConnectButton = new Button(
+		new Action(""){
+			def apply(){
+				if(CommunicationService.connected) CommunicationService.closeConnection
+				else if(!CommunicationService.connecting && !CommunicationService.connected) CommunicationService.openConnection
+			}
+		}){
+		enabled = true
+		icon = new ImageIcon(MainGUI.getClass.getResource("eval-disconnected.png"), "Connect")
+		tooltip = "Connect"
+		listenTo(CommunicationService)
+		reactions += {
+			case ConnectedToCoreEvent(connected) =>
+				if(connected){
+					icon = new ImageIcon(MainGUI.getClass.getResource("eval-connected.png"), "Disconnect")
+					tooltip = "Disconnect"
+				} else {
+					icon = new ImageIcon(MainGUI.getClass.getResource("eval-disconnected.png"), "Connect")
+					tooltip = "Connect"
+				}
+		}
+	}
 
 	val FinishButton = new Button(
 		new Action(""){
@@ -157,6 +179,6 @@ class EvalControlsPanel() {
 	}
 
 	val EvalToolBar = new ToolBar{
-		contents += (NextButton, UndoButton, StepInButton, StepOverButton, BacktrackButton, CompleteButton, FinishButton, StopButton, UntilBreakButton)
+		contents += (ConnectButton, NextButton, UndoButton, StepInButton, StepOverButton, BacktrackButton, CompleteButton, FinishButton, StopButton, UntilBreakButton)
 	}
 }

@@ -74,3 +74,10 @@ case class EvalOptionSelectedEvent(o:String, n:String) extends Event
 	* @param unsavedChanges Boolean for unsaved changes.
 	*/
 case class DocumentChangedEvent(unsavedChanges:Boolean) extends Event
+
+// Launched by CommunicationService
+/** Event notifying of a connection established or lost with core.
+	*
+	* @param connected Boolean for connection status.
+	*/
+case class ConnectedToCoreEvent(connected:Boolean) extends Event

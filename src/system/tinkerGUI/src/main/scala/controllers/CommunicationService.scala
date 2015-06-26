@@ -2,7 +2,7 @@ package tinkerGUI.controllers
 
 import java.net._
 import java.io._
-import tinkerGUI.controllers.events.EvalOptionSelectedEvent
+import tinkerGUI.controllers.events.{ConnectedToCoreEvent, EvalOptionSelectedEvent}
 
 import scala.io._
 import scala.concurrent._
@@ -12,46 +12,71 @@ import scala.util.{Success, Failure}
 import quanto.util.json._
 import scala.collection.mutable.ArrayBuffer
 
+/** Object listing the potential proof status.*/
 object CommunicationState extends Enumeration {
 	val WaitingForPsgraph, NotConnected, WaitingForEvalOptions, WaitingForUserChoice, WaitingForPsgraphUpdate = Value
 }
 
+/** Service establishing and managing the connection with the core.*/
 object CommunicationService extends Publisher {
-	var connected = false
-	var gui: ServerSocket = null
-	var prover: Socket = null
-	var state:CommunicationState.Value = CommunicationState.NotConnected
-	reInitConnection
 
-	def reInitConnection {
+	/** Connection status.*/
+	var connected = false
+
+	/** Ongoing connection status.*/
+	var connecting = false
+
+	/** Gui side socket.*/
+	var gui: ServerSocket = null
+
+	/** Core side socket.*/
+	var prover: Socket = null
+
+	/** Status in proof.*/
+	var state:CommunicationState.Value = CommunicationState.NotConnected
+	//reInitConnection
+
+	/** Method closing all connection.*/
+	def closeConnection {
 		if(connected){
 			gui.close()
 			prover.close()
+			connected = false
+			Service.evalCtrl.setInEval(false)
+			publish(ConnectedToCoreEvent(connected))
 		}
-		connected = false
-		gui = new ServerSocket(1790)
-		val init: Future[Socket] = future {
-			println("GUI speaking : connecting ...")
-			gui.accept
+	}
+
+	def openConnection {
+		if(!connecting){
+			connecting = true
+			gui = new ServerSocket(1790)
+			val init: Future[Socket] = future {
+				println("GUI speaking : connecting ...")
+				gui.accept
+			}
+			init onComplete {
+				case Success(c) =>
+					connecting = false
+					prover = c
+					println("GUI speaking : connected !")
+					publish(ConnectedToCoreEvent(connected))
+					connected = true
+					state = CommunicationState.WaitingForPsgraph
+					listen
+				case Failure(t) =>
+					connecting = false
+					println("GUI speaking : Not connected, an error has occured: " + t.getMessage)
+			}
 		}
 
-		init onComplete {
-			case Success(c) =>
-				prover = c
-				println("GUI speaking : connected !")
-				connected = true
-				state = CommunicationState.WaitingForPsgraph
-				listen
-			case Failure(t) =>
-				println("GUI speaking : Not connected, an error has occured: " + t.getMessage)
-		}
 	}
 
 	def listen {
 		if(connected){
 			println("listening ...")
-			var in = new BufferedReader(new InputStreamReader(prover.getInputStream))
-			var input : Future[String] = future {
+			val in = new BufferedReader(new InputStreamReader(prover.getInputStream))
+			val input : Future[String] = future {
 				in.readLine
 			}
 			input onComplete {
@@ -322,7 +347,7 @@ object CommunicationService extends Publisher {
 						/*prover.close
 						gui.close
 						connected = false*/
-						reInitConnection
+						closeConnection
           // end of the eval session, but keep the current socket connection
           case "CMD_END_EVAL_SESSION" =>
             println ("receive cmd CMD_END_EVAL_SESSION: reset state")

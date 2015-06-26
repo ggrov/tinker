@@ -11,7 +11,7 @@ import scala.collection.mutable.ArrayBuffer
 
 object Service extends Publisher {
 	// other services
-	val c = CommunicationService // the communication needs to be "instantiates" to actually listen for connections
+	//val c = CommunicationService // the communication needs to be "instantiates" to actually listen for connections
 	// Models
 	//val hierarchyModel = new HierarchyModel()
 	/** Psgrah model. */
