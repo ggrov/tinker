@@ -24,6 +24,10 @@ object CommunicationService extends Publisher {
 	reInitConnection
 
 	def reInitConnection {
+		if(connected){
+			gui.close()
+			prover.close()
+		}
 		connected = false
 		gui = new ServerSocket(1790)
 		val init: Future[Socket] = future {
@@ -70,7 +74,7 @@ object CommunicationService extends Publisher {
 			}
 			//try {
 				println("message : "+b.toString)
-				val j = Json.parse(b.toString)
+				val j = Json.parse(b.toString())
 				parseAndExecute(j)
 		//	}
 			//catch {
@@ -98,6 +102,7 @@ object CommunicationService extends Publisher {
 						Service.showTinkerGUI(false)
 					// initialisation command
 					case "CMD_INIT_PSGRAPH" =>
+						Service.evalCtrl.setInEval(true)
 						// if correct state
 						if(state == CommunicationState.WaitingForPsgraph){
 							// get psgraph
@@ -312,14 +317,16 @@ object CommunicationService extends Publisher {
 						}
 					// close connection command
 					case "CMD_CLOSE_CONNECT" =>
+						Service.evalCtrl.setInEval(false)
 						sendSimpleResponse("RSP_CLOSE_CONNECT", "closing connection")
-						prover.close
+						/*prover.close
 						gui.close
-						connected = false
+						connected = false*/
 						reInitConnection
           // end of the eval session, but keep the current socket connection
           case "CMD_END_EVAL_SESSION" =>
             println ("receive cmd CMD_END_EVAL_SESSION: reset state")
+						Service.evalCtrl.setInEval(false)
             state = CommunicationState.WaitingForPsgraph
           // unsupported command
           case _ =>
@@ -338,7 +345,7 @@ object CommunicationService extends Publisher {
 		if(connected){
 			val out = new PrintStream(prover.getOutputStream)
 			out.println(msg)
-			out.flush
+			out.flush()
 		}
 	}
 
@@ -346,7 +353,7 @@ object CommunicationService extends Publisher {
 		if(connected){
 			val out = new PrintStream(prover.getOutputStream)
 			j.writeTo(out)
-			out.flush
+			out.flush()
 		}
 	}
 

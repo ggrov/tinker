@@ -1,6 +1,6 @@
 package tinkerGUI.views
 
-import tinkerGUI.controllers.events.CurrentGraphChangedEvent
+import tinkerGUI.controllers.events.{DisableActionsForEvalEvent, CurrentGraphChangedEvent}
 
 import scala.swing._
 import scala.swing.event._
@@ -16,14 +16,20 @@ class GraphBreadcrumbs() extends Publisher{
 		contents += currentLabel
 	}
 
+	var enableEdit = true
+	listenTo(Service.evalCtrl)
+	reactions += {
+		case DisableActionsForEvalEvent(inEval) => enableEdit = !inEval
+	}
+
 	def updateContent(){
 		breadcrumbs.contents.clear()
 		parentLabels.foreach { p =>
 			breadcrumbs.contents += p
 			listenTo(p.mouse.moves, p.mouse.clicks)
 			reactions += {
-				case MouseEntered(_,_,_) => p.cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-				case e:MouseClicked =>
+				case MouseEntered(_,_,_) if enableEdit => p.cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+				case e:MouseClicked if enableEdit =>
 					if(p == e.source && !e.consumed){
 						e.consume()
 						Service.editCtrl.editSubgraph(p.text,0,Some(parentLabels.splitAt(parentLabels.indexOf(p))._1.foldLeft(Array[String]()){case (a,p) => a:+p.text}))

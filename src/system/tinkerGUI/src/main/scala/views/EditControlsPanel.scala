@@ -1,6 +1,6 @@
 package tinkerGUI.views
 
-import tinkerGUI.controllers.events.DocumentChangedEvent
+import tinkerGUI.controllers.events.{DisableActionsForEvalEvent, DocumentChangedEvent}
 
 import scala.swing._
 import javax.swing.ImageIcon
@@ -35,7 +35,15 @@ object GoalTypeEditor extends Frame {
 	}
 }
 
-class EditControlsPanel() {
+class EditControlsPanel() extends Publisher {
+	var enableEdit = true
+
+	listenTo(Service.evalCtrl)
+	reactions += {
+		case DisableActionsForEvalEvent(inEval) =>
+			enableEdit = !inEval
+	}
+
 	val SelectButton = new ToggleButton() {
 		action = new Action(""){def apply{Service.editCtrl.changeMouseState("select")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("select-rectangular.png"), "Select")
@@ -46,21 +54,25 @@ class EditControlsPanel() {
 		action = new Action(""){def apply{Service.editCtrl.changeMouseState("addIDVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_id.png"), "Add Vertex")
 		tooltip = "Add an identity vertex"
+		enabled = enableEdit
 	}
 	val AddATMVertexButton = new ToggleButton() {
 		action = new Action(""){def apply{Service.editCtrl.changeMouseState("addATMVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_atomic.png"), "Add Vertex")
 		tooltip = "Add an atomic vertex"
+		enabled = enableEdit
 	}
 	val AddNSTVertexButton = new ToggleButton() {
 		action = new Action(""){def apply{Service.editCtrl.changeMouseState("addNSTVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_nested.png"), "Add Vertex")
 		tooltip = "Add a nested vertex"
+		enabled = enableEdit
 	}
 	val AddEdgeButton = new ToggleButton() {
 		action = new Action(""){def apply{Service.editCtrl.changeMouseState("addEdge")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw-edge.png"), "Add Edge")
 		tooltip = "Add edge"
+		enabled = enableEdit
 	}
 	val GraphToolGroup = new ButtonGroup(SelectButton, AddIDVertexButton, AddEdgeButton, AddATMVertexButton, AddNSTVertexButton)
 
@@ -71,6 +83,7 @@ class EditControlsPanel() {
 		}) {
 		icon = new ImageIcon(MainGUI.getClass.getResource("edit-goal-type.png"), "Edit Goal Types")
 		tooltip = "Edit goal types"
+		enabled = enableEdit
 	}
 
 	val MainToolBar = new ToolBar {

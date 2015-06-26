@@ -1,5 +1,6 @@
 package tinkerGUI.views
 
+import tinkerGUI.controllers.events.DisableActionsForEvalEvent
 import tinkerGUI.utils.MutableComboBox
 
 import scala.swing._
@@ -12,6 +13,11 @@ import scala.swing.event.SelectionChanged
 class GraphInspectorPanel() extends BorderPanel {
 	val controller = Service.inspectorCtrl
 	val tacticNavigation = new BoxPanel(Orientation.Vertical){
+		var enableEdit = true
+		listenTo(Service.evalCtrl)
+		reactions += {
+			case DisableActionsForEvalEvent(inEval) => enableEdit = !inEval
+		}
 		contents += new FlowPanel(FlowPanel.Alignment.Right)(){
 			contents += new Button(new Action("") {
 				def apply() {
@@ -62,10 +68,11 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+				enabled = enableEdit
 				listenTo(controller)
 				reactions += {
 					case DisableNavigationEvent(a:Array[String]) =>
-						enabled = !(a contains "edit")
+						enabled = !(a contains "edit") && enableEdit
 				}
 			}
 			contents += new Button(new Action(""){
@@ -80,10 +87,11 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+				enabled = enableEdit
 				listenTo(controller)
 				reactions += {
 					case DisableNavigationEvent(a:Array[String]) =>
-						enabled = !(a contains "add")
+						enabled = !(a contains "add") && enableEdit
 				}
 			}
 			contents += new Button(new Action("") {
@@ -98,10 +106,11 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+				enabled = enableEdit
 				listenTo(controller)
 				reactions += {
 					case DisableNavigationEvent(a:Array[String]) =>
-						enabled = !(a contains "del")
+						enabled = !(a contains "del") && enableEdit
 				}
 			}
 		}
