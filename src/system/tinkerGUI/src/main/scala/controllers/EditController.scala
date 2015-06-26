@@ -301,7 +301,7 @@ class EditController(model:PSGraph) extends Publisher {
 							var confirmDialog = new Dialog()
 							val message:String = "The atomic tactic "+name+" already exists, do you wish to link this node with it ?"
 							val reuseInfo = new Action("Link node"){
-								def apply() {
+								def apply {
 									// TODO : consider linking all occurrences
 									deleteTactic(tacticOldName,nodeId,true)
 									model.addATOccurrence(name,nodeId)
@@ -310,7 +310,7 @@ class EditController(model:PSGraph) extends Publisher {
 								}
 							}
 							val redoUpdate = new Action("Choose another name"){
-								def apply() {
+								def apply {
 									dialog = TinkerDialog.openEditDialog("Update node", fieldMap, successCallback, failureCallback)
 									confirmDialog.close()
 								}
@@ -349,7 +349,7 @@ class EditController(model:PSGraph) extends Publisher {
 							var confirmDialog = new Dialog()
 							val message:String = "The graph tactic "+name+" already exists, do you wish to link this node with it ?"
 							val reuseInfo = new Action("Link node"){
-								def apply() {
+								def apply {
 									// TODO : consider linking all occurrences
 									deleteTactic(tacticOldName,nodeId,false)
 									model.addGTOccurrence(name,nodeId)
@@ -359,7 +359,7 @@ class EditController(model:PSGraph) extends Publisher {
 								}
 							}
 							val redoUpdate = new Action("Choose another name"){
-								def apply() {
+								def apply {
 									dialog = TinkerDialog.openEditDialog("Update node", fieldMap, successCallback, failureCallback)
 									confirmDialog.close()
 								}
