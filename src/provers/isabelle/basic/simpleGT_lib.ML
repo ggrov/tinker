@@ -1,6 +1,8 @@
 structure SimpleGT_Lib  = 
 struct
   local open LoggingHandler TermFeatures in
+  fun GT_NOT gt ctxt tl t : bool = not (gt ctxt tl t);
+  fun GT_OR gt_l ctxt tl t : bool = exists I (map (fn f => f ctxt tl t) gt_l)
 (**************************************************************
   A List of Simple GT:
   GT_top_symbol (symbol_list : string list)

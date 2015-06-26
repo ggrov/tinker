@@ -1,5 +1,5 @@
 functor SimpleGoalType_Fun(structure Prover : PROVER  
-                    val struct_name : string) : BASIC_GOALTYPE =
+                    val struct_name : string) (* BASIC_GOALTYPE *)=
 struct
   local open LoggingHandler in
 
@@ -45,6 +45,7 @@ struct
     ML String parsing 
 **************************************************************)
   type gtyp = Prover.context -> Prover.term list -> Prover.term -> bool
+  
   structure GoalTyp_ML_Exec = 
     ML_Exec_Func (val exec_str = Prover.exec_str 
                   type ret = gtyp 
@@ -60,17 +61,12 @@ struct
 **************************************************************)
      fun liftp pn pred = 
      if pred then  [(Prover.get_pnode_name pn)] else []; 
- 
-    val splitstr =  String.tokens (member (op =) [#" ",#",",#"(",#")",#"[",#"]"]);
-    val split_args = String.tokens (member (op =) [#"|"]);
+
 
     fun lift_list _ _ [] = false
      |  lift_list pn data (x::xs) =
           ((case x of 
-            "not"       => not (lift_list pn data xs) 
-           | "or"        => exists I (map (lift_list pn data) (map split_args (xs))) |> debug_trace x
-           | "any"       => true (* default *)
-           | "anything"   => true (* default *)
+           "any"       => true (* default *)
            | "label"      => true
            |  exp         =>  GoalTyp_ML_Exec.eval_ml 
                                 exp (Prover.get_pnode_ctxt pn) 
@@ -79,7 +75,7 @@ struct
                               |> debug_trace x)
         (*handle _ => false*));
 
-   fun lift' pn (data, str) = lift_list pn data (splitstr str)
+   fun lift' pn (data, str) = lift_list pn data [str] (*splitstr str*)
    (*handle _ => raise gt_exp "int lift'";*)
 
    fun init_lift (data,str) pn =

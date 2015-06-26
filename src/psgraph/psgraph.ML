@@ -309,7 +309,7 @@ struct
   Json.mk_object 
   [
     ("current", map Json.String name_current |> Json.Array),
-    ("index_current", Json.Int index_current),
+    ("current_index", Json.Int index_current),
     ("graphs", 
      Json.Array
      ([
