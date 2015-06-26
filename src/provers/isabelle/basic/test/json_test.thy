@@ -29,7 +29,7 @@ LoggingHandler.print_active();
   val path = "/Users/yuhuilin/Desktop/psgraph/" ;
 *}
 ML{*
-val impI_thm = @{thm conjI};
+val impI_thm = @{thm impI};
 fun rule_tac thm _ i =  rtac thm i;
 fun impI_tac  _ i  = rtac @{thm impI} i;
 fun conjI_tac _ i  = rtac @{thm conjI} i
@@ -42,7 +42,6 @@ fun test_failed_pred _ _ _ = false
 fun test_true1 _ _ _ = true
 
 *}
-ML{* "top_symbol(HOL.implies)"; "top_symbol(HOL.conj)";*}
 (* read and load a psgraph created by gui *)
 ML{* 
  
