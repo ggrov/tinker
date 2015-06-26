@@ -10,28 +10,28 @@ sig
     exception unhandled_type of string
     exception connection_close of string
 
-    val connect : int -> connection
-    val close : connection -> string
-    val receivestr : connection -> string
 
     val buildCommand : string -> params -> command
     
-
+    val close : string -> string
     val getCmdName : command -> string
     val getParam : command -> string -> string
     val getParamKeys : command -> string list
 
     val getParamValues : command -> string list
-    val fromRodin : connection -> command
+
 
     val toJsonStr : commandsimple -> string
-    val toRodin : connection  -> commandsimple -> connection
-    
+
+    val fromRodin : connection -> command
+    val toRodin : commandsimple -> connection
+
+
 end                                                                                          
 
 structure Rodin : RODIN= 
 struct 
-  open JsonInputUtils  rodin_socket
+  open JsonInputUtils  rodin_socket IO
   type connection = TextSocket.T
 
   type param = (string * string) (* only consider string for now*)
@@ -43,29 +43,45 @@ struct
   exception unhandled_type of string
   exception connection_close of string
 
-  fun connect port = 
-  let val _ =TextSocket.close (TextSocket.safe_local_client port) in
-   ( TextSocket.local_client port )
+  fun connect port = connectRodin port
+
+
+  fun getInstance port = 
+  let 
+       val result=connect port;
+  in result 
   end
+  handle ec "TINKER_HAND_SHAKE" =>  raise ec "HAND_SHAKE_FAILED"    (* connect port *)
+
+
+  fun instance _ = getInstance 1991 
 
   fun sendstr rodin str = 
   let 
-    val _ =(TextSocket.write rodin (str ^ "\n"));
-    val _ =(TextSocket.flushOut rodin)
+    val _  =rodin_socket.send rodin str
   in
     rodin
   end
   
-  fun close rodin =
+  fun cmd_end rodin =
   let 
-  val _ =(sendstr rodin "TINKER_DISCONNECT");
-(*   val _ =(TextSocket.close rodin) *)
+  val _ =(sendstr rodin "COMMAND_END");
+  val _ =(TextSocket.close rodin) 
+  in
+  "Command Finished."
+  end
+
+  fun close _ =
+  let 
+  val ins=instance "";
+  val _ =(sendstr ins "TINKER_DISCONNECT");
+  val _ =(TextSocket.close ins) 
   in
   "Disconnected."
   end
 
   fun receivestr rodin =
-  let val result=TextSocket.read rodin
+  let val result=read rodin
   in
     if result="CONNECTION_CLOSE" then
       let val _ = close rodin in
@@ -95,13 +111,13 @@ struct
                                                                              | _ => raise bad_input_exp (key^" key is not found","");
          val value=case param of Json.String v => v     | _ => raise unhandled_type "Only handle string"
          in
-         value
+         UnicodeHelper.replaceEUC value
     end
 
   fun getParamValues cmd = map (getParam cmd) (getParamKeys cmd) 
 
   fun build_jsonParams_from_params ((key, value)::xs) = 
-      let val objval=  Json.String value
+      let val objval=  Json.String (UnicodeHelper.replaceUC value)
       in
       (key,  objval) :: build_jsonParams_from_params xs 
       end
@@ -120,14 +136,22 @@ struct
         Json.encode (Json.mk_object [("CMD", (Json.String str)), ("PARAMS",  Json.mk_object json_params )])
     end
 
-  fun fromRodin connection = 
-    let val str= receivestr connection;
+  fun fromRodin ins = 
+    let
+        val str= receivestr ins;
         val result= case Json.of_string str of  Json.Object obj =>  obj 
-                                                                | _ => raise unhandled_type "Wrong input"
+                                                           | _ => raise unhandled_type "Wrong input";
+        val _ = cmd_end ins
         in 
         result
     end
 
-  fun toRodin rodin cmdsimp= toJsonStr cmdsimp |>  sendstr rodin
+  fun toRodin cmdsimp = 
+  let val ins=instance "SEND" ;
+      val _ = sendstr ins (toJsonStr cmdsimp)
+  in
+      ins
+  end;
+(* SysErr *)
 
 end

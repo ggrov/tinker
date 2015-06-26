@@ -1,6 +1,8 @@
 package tinker.core.command;
 
 import java.util.HashMap;
+
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -32,7 +34,7 @@ public class CommandParser {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			result.setCommand("ERROR");
-			result.setParameters(new HashMap<String,Object>());
+			result.setParameters(new HashMap<String,String>());
 			return result;
 		}
 

@@ -1,19 +1,38 @@
 
 structure rodin_socket = 
 struct
+exception ec of string
 
-fun connectRodin port = 
-  let val _ =TextSocket.close (TextSocket.safe_local_client port) in
-   ( TextSocket.local_client port )
-   end
+
+    
+
+
+
+
   
 fun send sock cmd =
   let 
   val _ =(TextSocket.write sock (cmd ^ "\n"));
-  val _ =(TextSocket.flushOut sock)
+  val _ =(TextSocket.flushOut sock )
   in
-  "Command Sent"
+  sock
   end
+  handle _ => raise ec cmd
+
+fun connectRodin port = 
+  let val _=TextSocket.close (TextSocket.safe_local_client port);
+      val sock=  ( TextSocket.local_client port )
+      val handshake=(send sock "TINKER_HAND_SHAKE" )
+   in
+      sock
+   end   
+
+fun reuse port = 
+let val sock= TextSocket.safe_local_client port;
+    val handshake=(send sock "TINKER_HAND_SHAKE" )
+in 
+    sock
+end handle ec "TINKER_HAND_SHAKE" => raise ec "TINKER_HAND_SHAKE";
 
 fun close sock =
   let 
@@ -34,7 +53,7 @@ in
     "EXCEPTION" 
   else
     result
-end;
+end   handle _ => raise ec ""
 
 end
 

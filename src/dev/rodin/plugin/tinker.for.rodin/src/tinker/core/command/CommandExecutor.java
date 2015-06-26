@@ -43,7 +43,7 @@ public class CommandExecutor {
 
 	@SuppressWarnings("unchecked")
 	public static String execute(Command command, IProofTreeNode pt,
-			IProofMonitor pm, TinkerConnector tinker) {
+			IProofMonitor pm, TinkerConnector tinker) throws Exception {
 		System.out.println("EXECUTE:\t" + command.getCommand());
 
 		String result = null;
@@ -52,7 +52,7 @@ public class CommandExecutor {
 		switch (command.getCommand()) {
 		case "GET_OPEN_DESCENDANTS_NUM":
 			result = (new Command("PENDING_NODES_NUM")).addParamter("NUM",
-					pt.getOpenDescendants().length).addParamter("TEST", "⇔").toString();
+					pt.getOpenDescendants().length).toString();
 
 			break;
 		case "NAME_OPEN_NODES":
@@ -67,6 +67,7 @@ public class CommandExecutor {
 					nameToNodeMap.put(name, nodes[j]);
 					nodeToNameMap.put(nodes[j], name);
 					
+					System.out.println(nodes[j].toString());
 					j++;
 				}
 			}
@@ -79,8 +80,8 @@ public class CommandExecutor {
 			HashMap temp = new HashMap<>();
 			for (int i = 0; i < nodes.length; i++) {
 				if (nodeToNameMap.get(nodes[i]) == null) {
-					throw new UnsupportedOperationException(
-							"Tinker must name all node before this operation");
+					String require=(new Command("NEED_NAMING")).addParamter("NUM", nodes.length).toString();
+					return require;
 				}
 				temp.put(String.valueOf(i), nodeToNameMap.get(nodes[i]));
 

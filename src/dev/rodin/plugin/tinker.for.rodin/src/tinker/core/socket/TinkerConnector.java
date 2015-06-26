@@ -44,8 +44,7 @@ public class TinkerConnector {
 
 	public Object serve() {
 
-		System.out.println("Connecting tinker..");
-
+		System.out.println("WAIT TINKER COMMAND.." );
 		while (getState() != STATE_CONNECTED) {
 			if (monitor != null && !monitor.isCanceled()) {
 				try {
@@ -60,7 +59,7 @@ public class TinkerConnector {
 							connection.getOutputStream(), "UTF-8"));
 
 					setState(STATE_CONNECTED);
-					System.out.println("Connected to tinker.");
+					System.out.println("INCOMING CMD");
 					return null;
 				} catch (Exception ex) {
 					if (ex instanceof SocketTimeoutException) {
@@ -94,19 +93,28 @@ public class TinkerConnector {
 			while (monitor != null && !monitor.isCanceled()) {
 				try {
 
+					
 					String result = (input.readLine());
 					System.out.println("RECEIVE:\t" + result);
 					
 					if (result.equals("TINKER_DISCONNECT")) {
 						setState(STATE_TERMINATED);
-						return null;
+						return UNCONNECTED;
+					}
+					if (result.equals("COMMAND_END")){
+						this.close();
+						return result;
+					}
+					if (result.equals("TINKER_HAND_SHAKE")){
+						setState(STATE_CONNECTED);
+						return receive();
 					}
 					
 					setState(STATE_CONNECTED);
 					return result;
 				} catch (Exception e) {
 					if (e instanceof SocketTimeoutException) {
-						continue;
+						continue;	
 					} else if (e instanceof SocketException) {
 						setState(STATE_EXCEPTIONALLY_TERMINATED);
 					}

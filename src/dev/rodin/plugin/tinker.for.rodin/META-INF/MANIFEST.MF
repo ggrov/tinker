@@ -13,4 +13,4 @@ Require-Bundle: org.eclipse.ui,
  org.eventb.core.seqprover
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: .,lib/json-simple-1.1.1.jar
+Bundle-ClassPath: .,lib/json-simple-1.1.1.jar,lib/commons-lang3-3.4.jar
