@@ -1,6 +1,6 @@
 
 structure StrTable = Table(struct type key = string; val ord = String.compare end);
-structure TermFeature =
+structure TermFeatures =
 struct
   local open PPTermLib in
   

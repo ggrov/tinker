@@ -1,192 +1,56 @@
-val symbol_table : string StrName.NTab.T Unsynchronized.ref  = Unsynchronized.ref StrName.NTab.empty;
-fun init_symbol_table l = symbol_table := StrName.NTab.of_list l; 
-(* "use_file" can only be used in the top level, otherwise some strange problem will occur,
- this hack is to avoid the probelm *)
-
-structure SimpleGoalTyp : BASIC_GOALTYPE = 
+structure SimpleGT_Lib  = 
 struct
-  local open DebugHandler in  
-  structure Prover = PPProver;
-  type T = string
-  type gnode = string (* or with term? *)
-  type data  = unit;
+  local open LoggingHandler TermFeatures in
 
+  (* use a symbol table to represent those non-standdatd ascii symbols *)
+  val symbol_table : string StrName.NTab.T Unsynchronized.ref  = Unsynchronized.ref StrName.NTab.empty;
+  fun init_symbol_table l = symbol_table := StrName.NTab.of_list l; 
+  init_symbol_table [("HOL.conj", "%and%"), ("HOL.implies", "%implies%")];
+
+  (* "use_file" can only be used in the top level, otherwise some strange problem will occur,
+   this hack is to avoid the probelm *)
+
+  fun GT_NOT gt ctxt tl t : bool = not (gt ctxt tl t);
+  fun GT_OR gt_l ctxt tl t : bool = exists I (map (fn f => f ctxt tl t) gt_l)
   
-  exception gt_exp of string
-  val default = "any";
-  val default_gnode = "?";
-  val default_data = ();
-
-  val ord = String.compare;
-  fun eq (t1,t2) = case ord(t1,t2) of EQUAL => true | _ => false;
-
-  val gnode_ord = String.compare;
-  fun gnode_eq (g1,g2) = case gnode_ord(g1,g2) of EQUAL => true | _ => false;
-
-  val goal_name = I;
-
-  val gnode_to_json = Json.String;
-  fun gnode_from_json (Json.String str) = str
-
 (**************************************************************
-    JSON I/O
+  A List of Simple GT: ctxt -> assms -> concl -> bool 
+  GT_top_symbol (symbol_list : string list)
+  GT_has_symbol (symbol_list : string list)
 **************************************************************)
-  fun tac_args_to_json (name, arg_list) = 
-    Json.mk_object [
-      ("tac_args_name", Json.String name),
-      ("tac_args_list", Json.Array (map Json.String arg_list))
-    ]
-  
-  fun tac_args_from_json (Json.Object jobj) =
-   let
-    val name = JsonInputUtils.get_string jobj "tac_args_name"
-    val arg_list = JsonInputUtils.get_array jobj "tac_args_list" |> map (fn (Json.String str) => str)
-   in
-    (name, arg_list)
-   end
-
-  fun gnode_to_json gnode =
-   let
-    val name = Json.String (get_gnode_name gnode)
-    val par_tac = Json.String (get_gnode_par_tac gnode)
-    val env =  Json.Array (StrName.NTab.list_of (get_gnode_env gnode) |> map tac_args_to_json)
-   in
-    Json.mk_object [
-     ("gnode_name", name),
-     ("par_tac", par_tac),
-     ("env", env)
-    ]
-   end
-    
-  fun gnode_from_json (Json.Object jobj) =
-   let 
-    val name = JsonInputUtils.get_string jobj "gnode_name"
-    val par_tac = JsonInputUtils.get_string jobj "par_tac"
-    val env = 
-      JsonInputUtils.get_array jobj "env" 
-      |> map tac_args_from_json
-      |> StrName.NTab.of_list
-   in
-    GN {name = name, par_tac = par_tac, env = env}
-   end
-  | gnode_from_json _ = raise gt_exp "gnode_from_json: ill-formed json structure"
-
-
-  fun data_to_json data = Json.String data;
-  fun data_from_json (Json.String str) = str
-  fun pretty_data str = Pretty.str str;
-
-(*
-  val to_json = Json.String;
-  fun from_json (Json.String str) = str;
-*)
-  fun to_json str = Json.String str
-
-  fun from_json (Json.String str) = str
-  | from_json _ = raise gt_exp "from_json: ill-formed json structure"
-
-  val pretty_gnode = Pretty.str;
-  val pretty = Pretty.str;
 
 (**************************************************************
     Term manipulation and term related predicate definations
 **************************************************************)
-  structure TF = TermFeature;
-  local open Prover in
-
-    fun top_level' str pn = 
-      case TF.top_level_str (get_pnode_concl pn) of
+    fun top_level' str goal = 
+      case top_level_str goal of
          NONE => false
        | SOME v => (*v = str*)(
        (*let val _ = writeln v  val _ = writeln str in v = str end *) v = str
        );
     
-    fun top_level strs pn = 
+    fun top_level strs _ _ goal = 
       map (fn str => top_level' 
       			(case StrName.NTab.lookup (!symbol_table) str of (SOME str') => str' | _ => str) 
-      			pn) 
-      strs;
+      			goal) strs
+      |> exists I (top_level xs goal)
+      
 
-    fun has_symbol strs pn = 
-      forall (fn str => TF.has_constant_by_str 
+    fun has_symbol strs _ _ goal = 
+      forall (fn str => has_constant_by_str 
     			(case StrName.NTab.lookup (!symbol_table) str of (SOME str') => str' | _ => str) 
-    			(get_pnode_concl pn)) 
+    			goal) 
       strs ;
 
-    fun liftp pn pred = 
-     if pred then [(get_pnode_name pn)] else []; 
- 
-    val splitstr =  String.tokens (member (op =) [#" ",#",",#"(",#")",#"[",#"]"]);
-    
-    val keywords = ["top_symbol", "has_symbol", "not", "or", "any"];
-    fun is_keyword x = exists (fn y => x = y) keywords
-
-    fun get_args (x :: xs) = 
-      if is_keyword x then ([], x::xs) 
-      else (
-        let val (p1,p2) = get_args xs in
-       ( x ::p1,p2) end )
-      | get_args [] = ([],[]);
-
-(*
-    fun split_args xs = 
-      let val (args, l) = get_args (tl xs) in 
-      if l = [] then [(hd xs) :: args]
-      else ((hd xs) :: args) :: (split_args l) end;
-*)
-    val split_args = String.tokens (member (op =) [#"|"]);
-
-    fun debug_print pn gt ret = 
-      if ret then writeln ("GoalType: " ^ gt ^ " is OK for " ^ (get_pnode_name pn))
-      else writeln ("GoalType: " ^ gt ^ " fails for " ^ (get_pnode_name pn))
-      
-      
-    val (default_GT : ( GOAL -> bool) StrName.NTab.T Unsynchronized.ref) = Unsynchronized.ref StrName.NTab.empty;
-
-    fun add_default_GTs gts = 
-      (fold (fn gt => StrName.NTab.doadd gt) gts (!default_GT)
-       |> (fn x => default_GT := x));
-    
-    fun get_GOAL_from_pnode pn = 
-    	(Prover.get_pnode_hyps pn,
-    	 Prover.get_pnode_concl pn)
-(**************************************************************
-    ML String parsing 
-**************************************************************)
-
-
-    type gt_pred = Prover.context -> Prover.term list -> Prover.term -> bool
-    val exec_gt_buffer : gt_pred option Unsynchronized.ref = Unsynchronized.ref NONE ;
-
-    fun exec_gt_exp data (s : string) : gt_pred option = (
-      let	val cmd = 
-          "SimpleGoalTyp.exec_gt_buffer := ((" ^ s ^ " " ^ data ^ ") |> SOME handle _ => NONE)";
-        val _ =  Prover.exec_str cmd;
-      in	!exec_gt_buffer
-      end
-    );
-
-    fun eval_gt pn data str = 
-     let
-        val pred =  case exec_gt_exp data str 
-          of SOME gt_pred => gt_pred
-          | NONE => raise gt_exp ("ERR: fail to eval " ^ str ^ " with " ^ data ^ "as a goal type predicate." )
-     in
-        pred (get_pnode_ctxt pn) (get_pnode_hyps pn) (get_pnode_concl pn)
-     end
-
-	 
+     val GT_top_symbol = top_level;
+     val GT_has_symbol = has_symbol;
 (**************************************************************
     simple goaltype parsing 
 **************************************************************)
     fun lift_list pn data [] = false
      |  lift_list pn data (x::xs) =
           (case x of 
-             "top_symbol" => exists I (top_level xs pn) |> (fn r => (debug_print pn x r; r))
-           | "has_symbol" => has_symbol xs pn |> (fn r => (debug_print pn x r; r))
-           | "not"       => not (lift_list pn data xs) 
-           | "or"        => exists I (map (lift_list pn data) (map split_args (xs)))
-           | "any"       => true (* default *)
+           "any"       => true (* default *)
            |  exp         => eval_gt pn data exp 
           (* | others      => case (StrName.NTab.lookup (!default_GT) others) 
            			of (SOME gt) => gt (get_GOAL_from_pnode pn)

@@ -4,7 +4,7 @@ struct
   fun GT_NOT gt ctxt tl t : bool = not (gt ctxt tl t);
   fun GT_OR gt_l ctxt tl t : bool = exists I (map (fn f => f ctxt tl t) gt_l)
 (**************************************************************
-  A List of Simple GT:
+  A List of Simple GT: ctxt -> assms -> concl -> bool 
   GT_top_symbol (symbol_list : string list)
   GT_has_symbol (symbol_list : string list)
   GT_hyp_embeds

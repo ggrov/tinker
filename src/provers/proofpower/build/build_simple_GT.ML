@@ -1,5 +1,3 @@
-(* simple goaltyp *)
-  use "../../../goaltype/basic_goaltyp.sig.ML";
      
 (* instaintiate functors *) 
   structure SimpleGoalType : BASIC_GOALTYPE = SimpleGoalType_Fun(structure Prover = PPProver val struct_name = "SimpleGoalType");
@@ -16,8 +14,14 @@
   structure Tinker = TinkerProtocol (IEVal);
   structure Env_Tac_Lib = EnvTacLibFunc (Theory);
 
-  ML_file "../simpleGT_lib.ML"???
+(* load the library for term manipulation and goal type predicates *)
+  use "../termlib/termlib.ML"
+  use "../termlib/term_features.ML"
+  use "../simpleGT_lib.ML"
+  
+(* top level inteface for pp *)
+  use "../pp_intf.ML"; 
+   
   open Env_Tac_Lib SimpleGT_Lib
 
-  use "../pp_intf.ML"; 
 

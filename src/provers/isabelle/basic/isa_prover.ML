@@ -17,7 +17,7 @@ struct
   type env_tac =  env -> env 
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term, env : env } 
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
-  type tactic = Proof.context -> int -> Tactical.tactic (*Proof.context -> int -> arg_data list -> Tactical.tactic*)
+  type tactic = Proof.context -> int -> Tactical.tactic (* Proof.context -> int -> arg_data list -> Tactical.tactic*)
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
   exception env_data_exp
@@ -110,7 +110,7 @@ struct
       fun ins t (gls,gset) =
        let 
         val (n,gset') = StrName.NSet.add_new "a" gset
-        val g' = {pname = n,ptrm = t,pctxt = ctxt,env=StrName.NTab.empty}
+        val g' = {pname = n,ptrm = t,pctxt = ctxt, env = StrName.NTab.empty}
        in (gls@[g'],gset') end
     in
       fold ins goals ([],nameset)

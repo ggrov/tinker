@@ -2,28 +2,11 @@
  structure PPIntf = 
   struct
   
-   val (default_tacs : (string * TACTIC) list Unsynchronized.ref) = 
-     Unsynchronized.ref 
-       [("step_strip_any_tac", step_strip_tac), 
-        ("step_strip_conj", step_strip_tac), 
-        ("step_strip_imp", step_strip_tac), 
-        ("step_assm", step_strip_tac)];
-
-   fun add_default_tacs ntacs = default_tacs := (!default_tacs) @ ntacs;
-   
-   fun print_default_tacs _ = 
-     map (fn x => Pretty.str (fst x)) (!default_tacs) 
-     |> (fn x => [Pretty.str "{-------- default tactic names"] @ x @ [Pretty.str "----------------}"] |> Pretty.chunks)
-     |> Pretty.string_of
-     |> DebugHandler.debug_print DebugHandler.TACTIC;
-
-     
   fun set_psg_goal (assms, goal) ps = 
     let 
       val ctxt = get_current_pc() 
-      val ps' = PSGraph.load_atomics (!default_tacs) ps
     in
-      Tinker.start_ieval ctxt ps' assms goal 
+      Tinker.start_ieval ctxt ps assms goal 
     end
  (*    
    fun set_psg_goal (assms, goal) mode psg searchf goalf = 

@@ -5,10 +5,8 @@ struct
   type typ = TYPE
   type term = TERM
   type thm = THM
-  type tactic = TACTIC
+  type tactic = (*context ->*) TACTIC (* TODO: need pc ? *)
   type context = string list * string (* context string list * theory string *)
-
-  (* get_current_pc () open_theory, set_pc *)
   
   type arg_data = string (* A_Const of string | A_Var of string | A_Trm of term *)
   datatype env_data = 
@@ -17,7 +15,30 @@ struct
     E_ML of string | 
     E_L of env_data list
   type env = env_data StrName.NTab.T 
-  type env_tac =  env -> env 
+  type env_tac =  env -> env
+  
+  (* atomic part *)
+  type pnode = 
+      {pname : string (* goal ref in psg *), 
+       g: GOAL (* ([ams], concl ) *), 
+       pctxt : context,
+       global : string list (* referece used in subgoal system in pp, it's defnied as string list, but only the first one is used *),
+       env : env} 
+  
+  (* TODO: maybe to add a table to store some meta info, e.g. hints? measures? *)
+  type pplan = 
+      {opengs : pnode StrName.NTab.T, 
+      usedgs : StrName.NSet.T}
+  type appf = pnode * pplan -> (pnode list * pplan) Seq.seq (* in pp, tactic is deteminted, seq is always singleton *)
+   
+  (* get_current_pc () open_theory, set_pc *)
+  
+   
+  exception env_data_exp
+  val exec_str = use_string;
+
+  structure EnvTac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = env_tac val struct_name = "PPProver.EnvTac_ML_Exec");
+  structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = "PPProver.Tac_ML_Exec");
 
   exception gterm_exp
   
@@ -43,19 +64,6 @@ struct
   fun string_of_trm _ = fn trm => PrettyPrinter.format_term true trm |> String.concat
   fun pretty_trm _ trm = Pretty.block (map Pretty.str (PrettyPrinter.format_term true trm))
 
-(* atomic part *)
-  type pnode = 
-      {pname : string (* goal ref in psg *), 
-       g: GOAL (* ([ams], concl ) *), 
-       pctxt : context,
-       global : string list (* referece used in subgoal system in pp, it's defnied as string list, but only the first one is used *),
-       env : env} 
-  
-  (* TODO: maybe to add a table to store some meta info, e.g. hints? measures? *)
-  type pplan = 
-      {opengs : pnode StrName.NTab.T, 
-      usedgs : StrName.NSet.T}
-  exception env_data_exp
 
   fun get_all_assms (pnode : pnode)  = (#g pnode) 
   			      |> fst (* a list of term *)
@@ -74,8 +82,6 @@ struct
     case get_pnode_env_data pnode name of (E_ML ml_code) => ml_code
     | _ => raise env_data_exp 
   
-  type appf = pnode * pplan -> (pnode list * pplan) Seq.seq (* in pp, tactic is deteminted, seq is always singleton *)
-
   exception atomic_exp of string
   val psgraph_prover_i = "proofpower";
   (* there is no interface to init a pnode and pplan ?*)
@@ -94,11 +100,8 @@ struct
     in
       (pnode, pplan)
     end;
-    
-  (*fun update _ _ = ([], {opengs = [], usedgs = StrName.NSet.empty})*)
-  
+      
   (*val update : TACTIC -> (pnode * pplan) -> (pnode list * pplan) *)
-  
   fun update (tac : tactic) (pnode : pnode, pplan : pplan)  : (pnode list * pplan) = 
     let 
       fun gen_fresh_psgname nset (g : (string list * GOAL)) = 
@@ -118,7 +121,7 @@ struct
           (case String.compare ((#pname x), name) of EQUAL => false 
           | _ => true))
         plist
-      fun gen_pnode (name, g) = ({pname = name, pctxt = ctxt, g = snd g, global = fst g});
+      fun gen_pnode (name, g) = ({pname = name, pctxt = ctxt, g = snd g, global = fst g, env = StrName.NTab.empty});
     in
       if (List.length sgs) = 0 (* no sgs *) 
       then 
@@ -148,12 +151,10 @@ struct
 
       )
      end
-  
 
   fun apply_tactic args (tac_code : string) (pnode,pplan) = 
     let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in
-    tac (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
-    |> Seq.singleton(update (pnode,pplan))
+    Seq.single (update tac (pnode,pplan))
     |> Seq.map (fn (x,y) => (map (set_pnode_env (get_pnode_env pnode)) x,y)) (* inherit env *)
     |> (fn x => 
         (case Seq.pull x of NONE 
@@ -164,11 +165,9 @@ struct
   (* Update the env and then apply a dummy id tac in isabelle *)
   fun apply_env_tactic args env_tac_code (pnode,pplan) = 
     let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in
-    apply_tactic args "(K (K all_tac))" (update_pnode_env env_tac pnode, pplan)
-    end
+    apply_tactic args "id_tac" (update_pnode_env env_tac pnode, pplan)
+    end  
    
-  val exec_str = use_string;
-
   fun pretty_pnode pnode = 
     Pretty.block
     [Pretty.str "[ Goal ", 
@@ -178,11 +177,17 @@ struct
     Pretty.str " ]"];
   
   fun pretty_pplan pnode = Pretty.str "Pretty PPLAN TOTO";
+  
+(*  
   val encode_gui_to_prover = implode o map unicode_to_pp o utf8_string_to_unicode;
   fun encode_prover_to_gui str =
    (set_flag ("output_in_utf8", true);
     ReaderWriter.translate_for_output str)
    |> (fn x => (set_flag ("output_in_utf8", false); x));
+*)   
+
+  val encode_prover_to_gui = I;
+  val encode_gui_to_prover = I;
 
   structure Sharing = 
   struct   
