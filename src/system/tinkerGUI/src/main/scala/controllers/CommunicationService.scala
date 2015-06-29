@@ -60,8 +60,8 @@ object CommunicationService extends Publisher {
 					connecting = false
 					prover = c
 					println("GUI speaking : connected !")
-					publish(ConnectedToCoreEvent(connected))
 					connected = true
+					publish(ConnectedToCoreEvent(connected))
 					state = CommunicationState.WaitingForPsgraph
 					listen
 				case Failure(t) =>

@@ -36,13 +36,6 @@ object GoalTypeEditor extends Frame {
 }
 
 class EditControlsPanel() extends Publisher {
-	var enableEdit = true
-
-	listenTo(Service.evalCtrl)
-	reactions += {
-		case DisableActionsForEvalEvent(inEval) =>
-			enableEdit = !inEval
-	}
 
 	val SelectButton = new ToggleButton() {
 		action = new Action(""){def apply{Service.editCtrl.changeMouseState("select")}}
@@ -54,25 +47,41 @@ class EditControlsPanel() extends Publisher {
 		action = new Action(""){def apply{Service.editCtrl.changeMouseState("addIDVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_id.png"), "Add Vertex")
 		tooltip = "Add an identity vertex"
-		enabled = enableEdit
+		listenTo(Service.evalCtrl)
+		reactions += {
+			case DisableActionsForEvalEvent(inEval) =>
+				enabled = !inEval
+		}
 	}
 	val AddATMVertexButton = new ToggleButton() {
 		action = new Action(""){def apply{Service.editCtrl.changeMouseState("addATMVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_atomic.png"), "Add Vertex")
 		tooltip = "Add an atomic vertex"
-		enabled = enableEdit
+		listenTo(Service.evalCtrl)
+		reactions += {
+			case DisableActionsForEvalEvent(inEval) =>
+				enabled = !inEval
+		}
 	}
 	val AddNSTVertexButton = new ToggleButton() {
 		action = new Action(""){def apply{Service.editCtrl.changeMouseState("addNSTVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_nested.png"), "Add Vertex")
 		tooltip = "Add a nested vertex"
-		enabled = enableEdit
+		listenTo(Service.evalCtrl)
+		reactions += {
+			case DisableActionsForEvalEvent(inEval) =>
+				enabled = !inEval
+		}
 	}
 	val AddEdgeButton = new ToggleButton() {
 		action = new Action(""){def apply{Service.editCtrl.changeMouseState("addEdge")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw-edge.png"), "Add Edge")
 		tooltip = "Add edge"
-		enabled = enableEdit
+		listenTo(Service.evalCtrl)
+		reactions += {
+			case DisableActionsForEvalEvent(inEval) =>
+				enabled = !inEval
+		}
 	}
 	val GraphToolGroup = new ButtonGroup(SelectButton, AddIDVertexButton, AddEdgeButton, AddATMVertexButton, AddNSTVertexButton)
 
@@ -80,10 +89,14 @@ class EditControlsPanel() extends Publisher {
 		def apply() {
 			GoalTypeEditor.open()
 		}
-		}) {
+	}) {
 		icon = new ImageIcon(MainGUI.getClass.getResource("edit-goal-type.png"), "Edit Goal Types")
 		tooltip = "Edit goal types"
-		enabled = enableEdit
+		listenTo(Service.evalCtrl)
+		reactions += {
+			case DisableActionsForEvalEvent(inEval) =>
+				enabled = !inEval
+		}
 	}
 
 	val MainToolBar = new ToolBar {
