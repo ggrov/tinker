@@ -1,6 +1,6 @@
 package tinkerGUI.views
 
-import tinkerGUI.controllers.events.{DisableActionsForEvalEvent, DocumentChangedEvent, redrawHierarchyTreeEvent}
+import tinkerGUI.controllers.events.{DisableActionsForEvalEvent, DocumentChangedEvent, RedrawHierarchyTreeEvent}
 import tinkerGUI.utils.TinkerDialog
 import views.exceptions.InfiniteTreeException
 
@@ -106,7 +106,7 @@ class TreeGraph() extends Panel{
 
 	listenTo(Service.hierarchyCtrl)
 	reactions += {
-		case redrawHierarchyTreeEvent() => this.repaint()
+		case RedrawHierarchyTreeEvent() => this.repaint()
 	}
 }
 

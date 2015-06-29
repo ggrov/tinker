@@ -16,7 +16,7 @@ case class CurrentGraphChangedEvent(current:String, parents:Option[Array[String]
 
 // Launched by HierarchyController
 /** Event for redrawing the hierarchy tree.*/
-case class redrawHierarchyTreeEvent() extends Event
+case class RedrawHierarchyTreeEvent() extends Event
 
 // Launched by QuantoLibAPI
 /** Event notifying of an empty selection.*/
@@ -81,3 +81,30 @@ case class DocumentChangedEvent(unsavedChanges:Boolean) extends Event
 	* @param connected Boolean for connection status.
 	*/
 case class ConnectedToCoreEvent(connected:Boolean) extends Event
+
+// Launched by InspectorController and LibraryController
+/** Event notifying of a preview to show or hide.
+	*
+	* @param show Boolean stating if view should show or hide preview.
+	* @param hasPreview Boolean stating if there is graph to show, typically a subgraph can be
+	*                   empty therefore the view should display a message instead.
+	*/
+case class PreviewEvent(show:Boolean, hasPreview:Boolean) extends Event
+
+// Launched by InspectorController
+/** Event notifying of a new tactic to inspect.
+	*
+	* @param tactic Tactic id.
+	*/
+case class UpdateSelectedTacticToInspectEvent(tactic:String) extends Event
+
+/** Event to change the tactic list ot inspect.
+	*
+	*/
+case class UpdateGTListEvent() extends Event
+
+/** Event to enable/disable navigation options.
+	*
+	* @param a List of option to disable.
+	*/
+case class DisableNavigationEvent(a:Array[String]) extends Event

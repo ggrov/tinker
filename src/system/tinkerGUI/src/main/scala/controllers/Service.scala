@@ -24,8 +24,8 @@ object Service extends Publisher {
 	val documentCtrl = new DocumentController(model)
 	val hierarchyCtrl = new HierarchyController(model)
 	val inspectorCtrl = new InspectorController(model)
+	val graphNavCtrl = new GraphNavigationController(model)
 	// TODO get rid of unecessary controllers
-	val graphNavCtrl = new GraphNavigationController()
 	val libraryTreeCtrl = new TinkerLibraryController()
 
 	// getter-setter of the main frame
@@ -68,14 +68,6 @@ object Service extends Publisher {
 	def setGoalTypes(s: String){
 		//documentCtrl.registerChanges()
 		model.goalTypes = s
-	}
-
-	listenTo(QuantoLibAPI)
-	reactions += {
-		case GraphEventAPI(graph) =>
-			//documentCtrl.registerChanges()
-			model.saveGraph(graph)
-			graphNavCtrl.disableAdd = false
 	}
 
   def showTinkerGUI (b : Boolean) {
