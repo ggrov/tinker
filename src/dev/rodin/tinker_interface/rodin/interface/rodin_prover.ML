@@ -1,6 +1,6 @@
 
    
-signature PROVER= 
+signature PROVER = 
 sig
 
  type typ 
