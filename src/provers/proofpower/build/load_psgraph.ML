@@ -16,6 +16,8 @@
   use "../../../graph/theory.ML";
   use "../../../graph/theory_io.sig.ML";    
   use "../../../graph/theory_io.ML";
+  use "../../../graph/env_tac_lib.ML";
+
        
 (* PSGraph *)
   use "../../../psgraph/psgraph.sig.ML";        
@@ -37,7 +39,7 @@
 
 (* prover related *)
   use "../termlib/termlib.ML";
-  use "../termlib/term_feature.ML";  
+  use "../termlib/term_features.ML";  
   use "../../prover.sig.ML";
   use "../pp_prover.ML";
 

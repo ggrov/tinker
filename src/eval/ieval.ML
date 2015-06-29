@@ -67,7 +67,7 @@ struct
        |> map (EVal.EData.PSGraph.Theory.Graph_Utils.gnode_of graph)
        |> map (EVal.EData.PSGraph.Theory.GoalTyp.goal_name)
        |> (fn x => 
-            (((Pretty.str "[[- all goals in the current graph: " ::
+            (((Pretty.str "all goals in the current graph: " ::
               (map (fn y => Pretty.block [Pretty.str y, Pretty.str " "] ) x)) |> Pretty.block 
               |> Pretty.str_of |> logging "EVAL");
             x))

@@ -11,17 +11,6 @@ ML{*-
 ML{*
  GT_top_symbol ["conj"] () () @{term "A \<or> B"};
 *}
-ML{*
-val occurs = PSGraph.Occurs {
-  atomic_tactics = 
-    [("dv" , [("v1",( "main", 0 )), 
-              ("v0",( "sgrsdv", 0 ))] |> StrName.NTab.of_list)
-    ] |> StrName.NTab.of_list,
-  graph_tactics = 
-    [("sgrsdv", [("v0", ("main", 0)) ]|>StrName.NTab.of_list)
-    ]|> StrName.NTab.of_list };
-PSGraph.output_occurs_json occurs
-*}
 
 ML{*
 LoggingHandler.active_all_tags ();

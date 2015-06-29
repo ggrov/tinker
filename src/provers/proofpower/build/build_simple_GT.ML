@@ -1,3 +1,4 @@
+  use "../../../goaltype/simple_goaltype.ML";
      
 (* instaintiate functors *) 
   structure SimpleGoalType : BASIC_GOALTYPE = SimpleGoalType_Fun(structure Prover = PPProver val struct_name = "SimpleGoalType");
@@ -15,13 +16,11 @@
   structure Env_Tac_Lib = EnvTacLibFunc (Theory);
 
 (* load the library for term manipulation and goal type predicates *)
-  use "../termlib/termlib.ML"
-  use "../termlib/term_features.ML"
-  use "../simpleGT_lib.ML"
+  use_file "../simpleGT_lib.ML";
   
 (* top level inteface for pp *)
   use "../pp_intf.ML"; 
    
-  open Env_Tac_Lib SimpleGT_Lib
+  open Env_Tac_Lib 
 
 

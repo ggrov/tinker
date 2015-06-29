@@ -94,9 +94,9 @@ struct
     let
       val bufsize = (*Unsynchronized.ref*) 4096;
       val buffering = IO.BLOCK_BUF;
-      val socket_name = "tinker_gui_socket";
+      val socket_name = "text_socket";
       val reader = TextPrimIO.RD {
-        name      = "tinker_gui_socket",
+        name      = "text_socket",
         chunkSize = bufsize,
         readVec   =  SOME (fn vec => Byte.bytesToString(Socket.recvVec(sock, vec))),
         readArr   =  NONE, (* would this be a problem ??*)

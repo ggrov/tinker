@@ -5,7 +5,6 @@ struct
   (* use a symbol table to represent those non-standdatd ascii symbols *)
   val symbol_table : string StrName.NTab.T Unsynchronized.ref  = Unsynchronized.ref StrName.NTab.empty;
   fun init_symbol_table l = symbol_table := StrName.NTab.of_list l; 
-  init_symbol_table [("HOL.conj", "%and%"), ("HOL.implies", "%implies%")];
 
   (* "use_file" can only be used in the top level, otherwise some strange problem will occur,
    this hack is to avoid the probelm *)
@@ -33,7 +32,7 @@ struct
       map (fn str => top_level' 
       			(case StrName.NTab.lookup (!symbol_table) str of (SOME str') => str' | _ => str) 
       			goal) strs
-      |> exists I (top_level xs goal)
+      |> exists I ;
       
 
     fun has_symbol strs _ _ goal = 
@@ -44,59 +43,12 @@ struct
 
      val GT_top_symbol = top_level;
      val GT_has_symbol = has_symbol;
-(**************************************************************
-    simple goaltype parsing 
-**************************************************************)
-    fun lift_list pn data [] = false
-     |  lift_list pn data (x::xs) =
-          (case x of 
-           "any"       => true (* default *)
-           |  exp         => eval_gt pn data exp 
-          (* | others      => case (StrName.NTab.lookup (!default_GT) others) 
-           			of (SOME gt) => gt (get_GOAL_from_pnode pn)
-           			| _ => false) *)
-        (*handle _ => (writeln "exception catched when checking goaltypes "; false)*))
 
-   fun lift' pn (data, str) = lift_list pn data (splitstr str)
-   (*handle _ => raise gt_exp "int lift'";*)
-
-   fun init_lift (_,str) pn =
-     let 
-        val ls = String.tokens (fn c => c = #";") str
-     in 
-       case ls of 
-         []  =>  []
-         | _ => ls |> map (lift' pn)
-                |> forall I 
-                |> liftp pn
-     end
      (*handle _ => raise gt_exp "in init lift";*)
 
-  end; (* local open *)
-
-  (* assume gn is the name of pn *)
-  fun match gn gt pn = 
-    case init_lift ((), gt) pn of
-     [] => false
-    | _ => true;
-
-  val lift : gnode -> (data * T) -> Prover.pnode -> gnode list = K init_lift;
-
-  (* delete *)
-  fun lookup_fact_names _ _ = NONE;
-  (* need to pretend there is a single fact *)
-  fun get_fact_names _ _ = StrName.NSet.single ("True_def");
-  
-  fun data_to_json _ = Json.String "";
-  fun data_from_json _ = ()
-  fun pretty_data _ = Pretty.str "";
-
-  structure BasicSharing =
-  struct
-    type T = T
-    type gnode = gnode
-    type data = data
-    type gt_pred = gt_pred
-  end
   end (* local open *)
 end(* struct *);
+
+open SimpleGT_Lib;
+init_symbol_table [("HOL.conj", "%and%"), ("HOL.implies", "%implies%")];
+

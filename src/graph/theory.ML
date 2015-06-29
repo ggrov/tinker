@@ -68,6 +68,8 @@ functor PSGraph_TheoryFun (structure GoalTyp : BASIC_GOALTYPE
                            structure  Data : PSGRAPH_DATA
                            sharing GoalTyp.BasicSharing = Data.Sharing.GoalTyp ) : PS_THEORY=
 struct
+  exception Fail = RunCall.Fail;
+
   structure GoalTyp = GoalTyp;
 
   (* may need some sharing stuff here *)

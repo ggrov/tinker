@@ -16,6 +16,7 @@ functor ML_Exec_Func (val struct_name : string type ret  val exec_str : string -
   fun exec_exp (s : string) : ret_typ option = (
 	let	val cmd = 
 	    struct_name ^ ".exec_buffer := ((" ^ s ^ ") |> SOME handle _ => NONE)"; 
+	        val _ = logging "TACTIC" ("cmd in exec_buffer - " ^ cmd);
 		val _ =  exec_str cmd;
 	in	!exec_buffer
 	end);
