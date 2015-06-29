@@ -1,7 +1,7 @@
 (* simple test of proof representation *)
 theory CIsaP                                             
 imports       
-  "../../../build/isabelle/BasicIsaPS"                                                                               
+  "../../../build/isabelle/Tinker"                                                                               
 begin     
  -- "the goaltype"
  ML_file "../../../goaltype/clause/goaltype.ML"                                                                                                                        
@@ -10,19 +10,24 @@ begin
  ML_file "../basic/isa_prover.ML"   
 
  -- "setting up PSGraph"
- ML{*
-   structure GT : BASIC_GOALTYPE  = ClauseGTFun(IsaProver); 
-   structure Data = PSGraphDataFun(GT);   
-   structure PSDataIO = PSGraphIOFun(structure Data = Data);
-   structure Theory = PSGraph_TheoryFun(GT);
-   structure PSGraph = PSGraphFun(Theory);
- *}     
- 
- -- "setting up Evaluation"
- ML{*
+
+ML{*
+  structure Clause_GT : BASIC_GOALTYPE = ClauseGTFun(structure Prover = IsaProver val struct_name = "Clause_GT");
+  structure Data = PSGraphDataFun(Clause_GT);
+  structure PSDataIO = PSGraphIOFun(structure Data = Data);
+  structure Theory = PSGraph_TheoryFun(structure GoalTyp = Clause_GT  
+                                     structure Data = Data);
+  structure Theory_IO = PSGraph_Theory_IOFun(structure PSTheory = Theory)
+  structure PSGraph = PSGraphFun(structure Theory_IO = Theory_IO);
+  structure PSComb = PSCombFun (structure PSGraph = PSGraph)
   structure EData =  EDataFun( PSGraph);
   structure EVal = EValFun(EData);
- *}
+  structure IEVal = InteractiveEvalFun (EVal);
+  structure Tinker = TinkerProtocol (IEVal);
+  structure Env_Tac_Lib = EnvTacLibFunc (Theory);
+*}
+
+ML{*  open Env_Tac_Lib  *}
 
 end
 
