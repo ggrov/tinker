@@ -1,13 +1,12 @@
 package tinkerGUI.views
 
+import tinkerGUI.controllers.events.PreviewEvent
+
 import scala.swing._
 import java.io.{FilenameFilter, File}
 import quanto.gui.FileTree
 import quanto.gui.FileOpened
 import tinkerGUI.controllers.Service
-import tinkerGUI.controllers.TinkerLibraryController
-import tinkerGUI.controllers.ShowPreviewEvent
-import tinkerGUI.controllers.HidePreviewEvent
 
 class TinkerLibraryTree() extends Publisher {
 	val controller = Service.libraryTreeCtrl
@@ -47,7 +46,7 @@ class TinkerLibraryTree() extends Publisher {
 
 	listenTo(controller)
 	reactions += {
-		case ShowPreviewEvent(hasSubgraph:Boolean) =>
+		case PreviewEvent(_,_) =>
 			previewPanel.repaint()
 	}
 }

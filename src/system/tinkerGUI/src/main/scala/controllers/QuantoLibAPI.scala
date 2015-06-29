@@ -180,7 +180,8 @@ object QuantoLibAPI extends Publisher{
 	private def changeGraph(gr: Graph){
 		graphPanel.graphDoc.graph = gr
 		graph = graphPanel.graphDoc.graph
-		publish(GraphEventAPI(Graph.toJson(graph, theory)))
+		Service.model.saveGraph(Graph.toJson(graph, theory))
+		Service.graphNavCtrl.viewedGraphChanged(Service.model.isMain,false)
 	}
 
 	// ------------------------------------------------------------
@@ -206,7 +207,6 @@ object QuantoLibAPI extends Publisher{
 			case data:NodeV if data.typ == "G_Break" =>
 				removeBreakpoint(v.s)
 			case _ =>
-				//document.undoStack.start("Delete Vertex")
 				graph.adjacentEdges(v).foreach {deleteEdge}
 				if(graph.vdata.contains(v)){
 					d match {

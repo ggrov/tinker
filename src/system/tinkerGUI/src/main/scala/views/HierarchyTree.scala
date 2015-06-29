@@ -1,6 +1,6 @@
 package tinkerGUI.views
 
-import tinkerGUI.controllers.events.{DisableActionsForEvalEvent, DocumentChangedEvent, redrawHierarchyTreeEvent}
+import tinkerGUI.controllers.events.{DisableActionsForEvalEvent, DocumentChangedEvent, RedrawHierarchyTreeEvent}
 import tinkerGUI.utils.TinkerDialog
 import views.exceptions.InfiniteTreeException
 
@@ -10,7 +10,7 @@ import scala.swing.event.MouseClicked
 import tinkerGUI.controllers.Service
 import java.awt.{BasicStroke, Graphics2D, Color}
 
-class TreeGraph(var enableEdit:Boolean) extends Panel{
+class TreeGraph() extends Panel{
 	preferredSize = new Dimension(500,500)
 
 	var elementCoordinates : Array[(String,Int,Int,Int,Int,Array[String])] = Array()
@@ -100,18 +100,13 @@ class TreeGraph(var enableEdit:Boolean) extends Panel{
 
 	listenTo(this.mouse.moves, this.mouse.clicks)
 	reactions += {
-		case MouseClicked(_, pt, _, _, _) if enableEdit =>
+		case MouseClicked(_, pt, _, _, _) if !Service.evalCtrl.inEval =>
 			hit(pt)
 	}
 
 	listenTo(Service.hierarchyCtrl)
 	reactions += {
-		case redrawHierarchyTreeEvent() => this.repaint()
-	}
-
-	listenTo(Service.evalCtrl)
-	reactions += {
-		case DisableActionsForEvalEvent(inEval) => enableEdit = !inEval
+		case RedrawHierarchyTreeEvent() => this.repaint()
 	}
 }
 
@@ -123,10 +118,5 @@ object HierarchyTree extends Frame {
 		case DocumentChangedEvent(_) =>
 			title = "Tinker - " + Service.documentCtrl.title + " - hierarchy tree"
 	}
-	var enableEdit = true
-	listenTo(Service.evalCtrl)
-	reactions += {
-		case DisableActionsForEvalEvent(inEval) => enableEdit = !inEval
-	}
-	contents = new ScrollPane(new TreeGraph(enableEdit))
+	contents = new ScrollPane(new TreeGraph())
 }

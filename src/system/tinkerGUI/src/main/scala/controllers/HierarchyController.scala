@@ -1,6 +1,6 @@
 package tinkerGUI.controllers
 
-import tinkerGUI.controllers.events.{CurrentGraphChangedEvent, redrawHierarchyTreeEvent, GraphTacticListEvent}
+import tinkerGUI.controllers.events.{CurrentGraphChangedEvent, RedrawHierarchyTreeEvent, GraphTacticListEvent}
 import tinkerGUI.model.PSGraph
 
 import scala.swing.Publisher
@@ -46,8 +46,8 @@ class HierarchyController(model:PSGraph) extends Publisher {
 	reactions += {
 		case GraphTacticListEvent() =>
 			elementParents = updateElementParents()
-			publish(redrawHierarchyTreeEvent())
+			publish(RedrawHierarchyTreeEvent())
 		case CurrentGraphChangedEvent(_,_) =>
-			publish(redrawHierarchyTreeEvent())
+			publish(RedrawHierarchyTreeEvent())
 	}
 }

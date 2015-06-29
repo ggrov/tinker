@@ -1,23 +1,18 @@
 package tinkerGUI.views
 
-import tinkerGUI.controllers.events.DisableActionsForEvalEvent
+import tinkerGUI.controllers.{QuantoLibAPI, Service}
+import tinkerGUI.controllers.events._
 import tinkerGUI.utils.MutableComboBox
 
 import scala.swing._
 import javax.swing.{ImageIcon}
 import java.awt.{Font, Cursor, Insets}
-import tinkerGUI.controllers._
 
 import scala.swing.event.SelectionChanged
 
 class GraphInspectorPanel() extends BorderPanel {
 	val controller = Service.inspectorCtrl
 	val tacticNavigation = new BoxPanel(Orientation.Vertical){
-		var enableEdit = true
-		listenTo(Service.evalCtrl)
-		reactions += {
-			case DisableActionsForEvalEvent(inEval) => enableEdit = !inEval
-		}
 		contents += new FlowPanel(FlowPanel.Alignment.Right)(){
 			contents += new Button(new Action("") {
 				def apply() {
@@ -68,11 +63,10 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-				enabled = enableEdit
 				listenTo(controller)
 				reactions += {
 					case DisableNavigationEvent(a:Array[String]) =>
-						enabled = !(a contains "edit") && enableEdit
+						enabled = !(a contains "edit")
 				}
 			}
 			contents += new Button(new Action(""){
@@ -87,11 +81,10 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-				enabled = enableEdit
 				listenTo(controller)
 				reactions += {
 					case DisableNavigationEvent(a:Array[String]) =>
-						enabled = !(a contains "add") && enableEdit
+						enabled = !(a contains "add")
 				}
 			}
 			contents += new Button(new Action("") {
@@ -106,11 +99,10 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-				enabled = enableEdit
 				listenTo(controller)
 				reactions += {
 					case DisableNavigationEvent(a:Array[String]) =>
-						enabled = !(a contains "del") && enableEdit
+						enabled = !(a contains "del")
 				}
 			}
 		}
@@ -165,20 +157,21 @@ class GraphInspectorPanel() extends BorderPanel {
 
 	listenTo(controller)
 	reactions += {
-		case ShowPreviewEvent(hasSubgraph:Boolean) =>
-			if(hasSubgraph){
-				subgraphPanel.visible = true
-				noSubgraphLabel.visible = false
+		case PreviewEvent(show,hasSubgraph) =>
+			if(show){
+				if(hasSubgraph){
+					subgraphPanel.visible = true
+					noSubgraphLabel.visible = false
+				} else {
+					noSubgraphLabel.visible = true
+					subgraphPanel.visible = false
+				}
+				tacticNavigation.visible = true
 			} else {
-				noSubgraphLabel.visible = true
 				subgraphPanel.visible = false
+				noSubgraphLabel.visible = false
+				tacticNavigation.visible = false
 			}
-			tacticNavigation.visible = true
-			this.repaint()
-		case HidePreviewEvent() =>
-			subgraphPanel.visible = false
-			noSubgraphLabel.visible = false
-			tacticNavigation.visible = false
 			this.repaint()
 	}
 }

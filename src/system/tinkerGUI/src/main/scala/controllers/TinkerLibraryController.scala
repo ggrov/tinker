@@ -1,5 +1,7 @@
 package tinkerGUI.controllers
 
+import tinkerGUI.controllers.events.PreviewEvent
+
 import scala.swing._
 import quanto.util.json._
 import java.io.{FilenameFilter, File}
@@ -19,7 +21,7 @@ class TinkerLibraryController() extends Publisher {
 					fileName = f.getName().substring(0, f.getName().lastIndexOf("."))
 					json = j
 					QuantoLibAPI.updateLibraryPreviewFromJson((json ? "graph"))
-					publish(ShowPreviewEvent(true))
+					publish(PreviewEvent(true,true))
 				case _ => TinkerDialog.openErrorDialog("Error when parsing file "+f.getName()+" to json")
 			}
 		}

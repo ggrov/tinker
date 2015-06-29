@@ -1,6 +1,6 @@
 package tinkerGUI.controllers
 
-import tinkerGUI.controllers.events.GraphTacticListEvent
+import tinkerGUI.controllers.events._
 import tinkerGUI.model.PSGraph
 import tinkerGUI.model.exceptions.{GraphTacticNotFoundException, SubgraphNotFoundException}
 
@@ -16,9 +16,17 @@ class InspectorController(model: PSGraph) extends Publisher {
 
 	var gtList = model.gtCollection.keys.toList :+ "main"
 
+	var enableEdit = true
+	listenTo(Service.evalCtrl)
+	reactions += {
+		case DisableActionsForEvalEvent(inEval) =>
+			enableEdit = !inEval
+			if(inEval) publish(DisableNavigationEvent(Array("add","edit","del")))
+	}
+
 	def inspect(name:String){
 		if(name == "Select a tactic"){
-			publish(HidePreviewEvent())
+			publish(PreviewEvent(false,false))
 		} else {
 			try{
 				tacticToShow = name
@@ -28,7 +36,7 @@ class InspectorController(model: PSGraph) extends Publisher {
 				publish(UpdateSelectedTacticToInspectEvent(tacticToShow))
 				showPreview()
 			} catch {
-				case e:GraphTacticNotFoundException => publish(HidePreviewEvent())
+				case e:GraphTacticNotFoundException => publish(PreviewEvent(false,false))
 			}
 		}
 	}
@@ -37,18 +45,26 @@ class InspectorController(model: PSGraph) extends Publisher {
 		try{
 			if(tacticToShow == "main"){
 				QuantoLibAPI.updateSubgraphPreviewFromJson((model.mainGraph))
-				publish(DisableNavigationEvent(Array("next","prev","del","add")))
+				var arr = Array("next","prev","del","add")
+				if (!enableEdit) arr = arr :+ "edit"
+				publish(DisableNavigationEvent(arr))
 			} else{
 				QuantoLibAPI.updateSubgraphPreviewFromJson(model.getSubgraphGT(tacticToShow, indexToShow))
-				publish(DisableNavigationEvent(Array()))
+				var arr = Array[String]()
+				if(!enableEdit) arr = arr :+ "edit" :+ "add" :+ "del"
+				if(indexToShow <= 0) arr = arr :+ "prev"
+				if(indexToShow >= tacticTotal-1) arr = arr :+ "next"
+				publish(DisableNavigationEvent(arr))
 			}
-			publish(ShowPreviewEvent(true))
+			publish(PreviewEvent(true,true))
 		} catch {
-			case e:GraphTacticNotFoundException => publish(HidePreviewEvent())
+			case e:GraphTacticNotFoundException => publish(PreviewEvent(false,false))
 			case e:SubgraphNotFoundException =>
 				indexOnTotal.text = indexToShow + " / " + tacticTotal
-				publish(DisableNavigationEvent(Array("next","prev","del","edit")))
-				publish(ShowPreviewEvent(false))
+				var arr = Array("next","prev","del","edit")
+				if(!enableEdit) arr = arr :+ "add"
+				publish(DisableNavigationEvent(arr))
+				publish(PreviewEvent(true,false))
 		}
 	}
 
@@ -75,7 +91,7 @@ class InspectorController(model: PSGraph) extends Publisher {
 
 	def delete() {
 		if(tacticTotal == 1){
-			publish(HidePreviewEvent())
+			publish(PreviewEvent(true,false))
 			Service.editCtrl.deleteSubgraph(tacticToShow, indexToShow)
 		}
 		else {

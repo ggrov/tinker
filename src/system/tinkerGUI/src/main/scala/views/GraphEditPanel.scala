@@ -4,7 +4,7 @@ import scala.swing._
 import javax.swing.ImageIcon
 import java.awt.Cursor
 import java.awt.Insets
-import tinkerGUI.controllers.{QuantoLibAPI, Service, NewGraphEvent}
+import tinkerGUI.controllers.QuantoLibAPI
 
 class GraphEditPanel() extends BorderPanel {
 	var graphPanel = QuantoLibAPI.getGraph
