@@ -96,7 +96,7 @@ object QuantoLibAPI extends Publisher{
 	  */
 	def loadFromJson(json: JsonObject) {
 		document.clear()
-		// val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
+		//val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
 		// wrap Graph.fromJson .... with layout.layout(...) in next line to activate layout
 		document.graph = graphWithCompleteLabels(json)
 		document.publish(GraphReplaced(document, clearSelection = true))

@@ -10,7 +10,9 @@ import scala.swing._
 	*
 	* - one reporting errors ;
 	*
-	* - one enabling field completion ;
+	* - one simply displaying messages ;
+	*
+	* - one enabling field completion.
 	*/
 object TinkerDialog {
 	/** Maximum dimensions of the dialog window.*/
@@ -26,6 +28,7 @@ object TinkerDialog {
 		*/
 	def openConfirmationDialog(message: String, actions: Array[Action]):Dialog = {
 		val confirmationDialog: Dialog = new Dialog()
+		confirmationDialog.resizable = false
 		confirmationDialog.maximumSize = max
 		confirmationDialog.minimumSize = min
 		confirmationDialog.title = "Tinker - Confirmation"
@@ -49,6 +52,7 @@ object TinkerDialog {
 		*/
 	def openErrorDialog(message: String):Dialog = {
 		val errorDialog:Dialog = new Dialog()
+		errorDialog.resizable = false
 		errorDialog.maximumSize = max
 		errorDialog.minimumSize = min
 		errorDialog.title = "Tinker - Error"
@@ -79,6 +83,7 @@ object TinkerDialog {
 		*/
 	def openInformationDialog(message: String):Dialog = {
 		val infoDialog:Dialog = new Dialog()
+		infoDialog.resizable = false
 		infoDialog.maximumSize = max
 		infoDialog.minimumSize = min
 		infoDialog.title = "Tinker - Message"
@@ -107,11 +112,12 @@ object TinkerDialog {
 		*/
 	def openEditDialog(message: String, fields: Map[String,String], success:(Map[String,String])=>Unit, failure:()=>Unit):Dialog = {
 		val editDialog:Dialog = new Dialog()
+		editDialog.resizable = false
 		editDialog.maximumSize = max
 		editDialog.minimumSize = min
 		editDialog.title = "Tinker - Edition"
 		var newValMap = Map[String, String]()
-		var textfieldMap = Map[String, TextField]()
+		var textfieldMap = Map[String, TextComponent]()
 		var radios:List[RadioButton] = List()
 		editDialog.contents = new GridPanel(fields.size+2, 1){
 			contents += new FlowPanel() {
@@ -127,11 +133,17 @@ object TinkerDialog {
 						radios = List(orRadio, orelseRadio)
 						contents ++= radios
 						textfieldMap += (k -> new TextField())
-					} /*else if(k=="Tactic"){
-
-					}*/ else {
+					} else if(k=="From" || k=="To"){
+						val t = new TextField(v, 5)
+						contents += t
+						textfieldMap += (k -> t)
+					} else if(k=="Name"){
 						val t = new TextField(v, 15)
 						contents += t
+						textfieldMap += (k -> t)
+					} else {
+						val t = new TextArea(v, 3, 20)
+						contents += new ScrollPane(t)
 						textfieldMap += (k -> t)
 					}
 				}

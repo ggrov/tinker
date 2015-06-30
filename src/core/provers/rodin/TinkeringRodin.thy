@@ -7,7 +7,7 @@ begin
 ML_file "./interface/unicode_helper.ML"
 ML_file "./interface/rodin_socket.ml"
 ML_file "./interface/interface.ML" 
-ML_file "./interface/rodin_prover.ML"
+ML_file "./rodin_prover.ML"
 ML_file "./interface/rodin_extra.ML"
 
 ML{*
@@ -27,3 +27,4 @@ ML{*
 *}
 
 ML{*  open Env_Tac_Lib  *}
+

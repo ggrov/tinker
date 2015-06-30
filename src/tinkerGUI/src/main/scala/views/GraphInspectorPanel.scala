@@ -148,8 +148,8 @@ class GraphInspectorPanel() extends BorderPanel {
 	add(header, BorderPanel.Position.North)
 	add(subgraphPanel, BorderPanel.Position.Center)
 
-	minimumSize = new Dimension(400, 500)
-	preferredSize = new Dimension(400, 550)
+	minimumSize = new Dimension(200, 200)
+	//preferredSize = new Dimension(400, 550)
 
 	subgraphPanel.visible = false
 	noSubgraphLabel.visible = false
