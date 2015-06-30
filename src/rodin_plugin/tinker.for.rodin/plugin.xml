@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eventb.ui.proofTactics">
+      <tactic
+            icon="icons/sample.gif"
+            id="org.eventb.ui.tinker"
+            interrupt="true"
+            name="tinker"
+            priority="20"
+            tacticProvider="tinker.core.plugin.TinkerTacticProvider"
+            target="global"
+            toolbar="org.eventb.ui.tinkerToolbar"
+            tooltip="tooltip">
+      </tactic>
+      <toolbar
+            id="org.eventb.ui.tinkerToolbar"
+            name="tinkertoolbar"
+            priority="1">
+      </toolbar>
+   </extension>
+
+</plugin>
