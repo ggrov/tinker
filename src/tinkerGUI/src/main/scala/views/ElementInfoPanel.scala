@@ -265,8 +265,8 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, enab
 }
 
 class ElementInfoPanel() extends BoxPanel(Orientation.Vertical) {
-	//minimumSize = new Dimension(250, 250)
-	preferredSize = new Dimension(250, 250)
+	minimumSize = new Dimension(200, 200)
+	//preferredSize = new Dimension(250, 250)
 
 	var enableEdit = true
 

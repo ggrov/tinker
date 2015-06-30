@@ -13,7 +13,8 @@ class TinkerLibraryTree() extends Publisher {
 
 	// the following code is a copy from the quantomatic project, slightly modified
 	val libraryFileTree = new FileTree
-	libraryFileTree.preferredSize = new Dimension(250,360)
+	//libraryFileTree.preferredSize = new Dimension(250,360)
+	libraryFileTree.minimumSize = new Dimension(100,200)
 	libraryFileTree.filenameFilter = Some(new FilenameFilter {
 		val extns = Set("hello", "psgraph")
 		def accept(parent: File, name: String) = {
@@ -38,6 +39,7 @@ class TinkerLibraryTree() extends Publisher {
 	// end of copy
 
 	val previewPanel = new BorderPanel(){
+		minimumSize = new Dimension(100,200)
 		add(new FlowPanel() {
 			contents += new Button(controller.addFileToGraph)
 		}, BorderPanel.Position.North)
