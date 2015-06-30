@@ -1,6 +1,6 @@
   val root_path = OS.FileSys.getDir();
   val build_path = root_path ^ "/psgraph/src/core/provers/proofpower/build";
-  val supergraph_path = root_path ^ "/experiment/supergraph/";
+  val supergraph_path = root_path ^ "/experiment/supertac_c/supergraph/";
   OS.FileSys.chDir build_path;
 
   use "load_psgraph";
