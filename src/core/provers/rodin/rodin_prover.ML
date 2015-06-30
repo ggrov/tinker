@@ -84,7 +84,7 @@ struct
               | _ => raise error "Wrong command"
      val nodes = Rodin.getParamValues next
   in  
-      nodes  
+      map (fn x=> {pname = x, env = StrName.NTab.empty }) nodes  
   end;
 
   fun get_pnode_name pnode = #pname pnode;
@@ -114,8 +114,11 @@ struct
 
 (* TODO :*)
   val typ_of = I;
-  fun  init _ = raise Fail "TODO";
-  fun get_open_pnodes _ = raise Fail "TODO";
+  fun  init _  _ _=  
+let val {pname = init_node, env=_} = List.hd (get_open_pnodes "")
+in
+   ({pname=init_node,env=StrName.NTab.empty}, init_node)
+end
  
   structure Sharing = 
   struct
