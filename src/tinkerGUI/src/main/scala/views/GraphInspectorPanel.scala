@@ -5,10 +5,10 @@ import tinkerGUI.controllers.events._
 import tinkerGUI.utils.MutableComboBox
 
 import scala.swing._
-import javax.swing.{ImageIcon}
+import scala.swing.event.SelectionChanged
+import javax.swing.ImageIcon
 import java.awt.{Font, Cursor, Insets}
 
-import scala.swing.event.SelectionChanged
 
 class GraphInspectorPanel() extends BorderPanel {
 	val controller = Service.inspectorCtrl

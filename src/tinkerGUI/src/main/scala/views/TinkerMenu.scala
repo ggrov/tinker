@@ -1,19 +1,12 @@
 package tinkerGUI.views
 
 import tinkerGUI.controllers.events.DocumentChangedEvent
+import tinkerGUI.controllers.{QuantoLibAPI, Service}
 
 import scala.swing._
-import tinkerGUI.controllers._
 import event.Key
 import javax.swing.KeyStroke
 import java.awt.event.KeyEvent
-// for test purpose only
-import java.net._
-import java.io._
-import scala.io._
-import scala.concurrent._
-import ExecutionContext.Implicits.global
-import scala.util.{Success, Failure}
 
 class TinkerMenu() extends MenuBar{
 	val CommandMask = java.awt.Toolkit.getDefaultToolkit.getMenuShortcutKeyMask

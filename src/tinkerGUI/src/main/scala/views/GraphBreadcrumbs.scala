@@ -1,17 +1,15 @@
 package tinkerGUI.views
 
 import tinkerGUI.controllers.events.{DisableActionsForEvalEvent, CurrentGraphChangedEvent}
+import tinkerGUI.controllers.Service
 
 import scala.swing._
 import scala.swing.event._
 import java.awt.Cursor
-import tinkerGUI.controllers.Service
 
 class GraphBreadcrumbs() extends Publisher{
 	val currentLabel = new Label("main")
 	var parentLabels: Array[Label] = Array()
-	//var parents:Array[String] = Array()
-	//var current:String = "main"
 	val breadcrumbs = new FlowPanel() {
 		contents += currentLabel
 	}
@@ -32,7 +30,7 @@ class GraphBreadcrumbs() extends Publisher{
 				case e:MouseClicked if enableEdit =>
 					if(p == e.source && !e.consumed){
 						e.consume()
-						Service.editCtrl.editSubgraph(p.text,0,Some(parentLabels.splitAt(parentLabels.indexOf(p))._1.foldLeft(Array[String]()){case (a,p) => a:+p.text}))
+						Service.editCtrl.editSubgraph(p.text,0,Some(parentLabels.splitAt(parentLabels.indexOf(p))._1.foldLeft(Array[String]()){case (a,parent) => a:+parent.text}))
 					}
 			}
 			breadcrumbs.contents += new Label ("\u25B8")
@@ -53,15 +51,5 @@ class GraphBreadcrumbs() extends Publisher{
 			}
 			currentLabel.text = current
 			updateContent()
-			/*parentLabels.foreach{ p =>
-				listenTo(p.mouse.moves, p.mouse.clicks)
-				reactions += {
-					case MouseEntered(_,_,_) => p.cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-					case MouseClicked(src, _, _, _, _) =>
-						if(p == src){
-							Service.editCtrl.editSubgraph(p.text,0,Some(parentLabels.splitAt(parentLabels.indexOf(p))._1.foldLeft(Array[String]()){case (a,p) => a:+p.text}))
-						}
-				}
-			}*/
 	}
 }
