@@ -231,6 +231,9 @@ struct
    in
      apply_tactic edata gnode tac
      |> Seq.maps apply_one
+(*   |> Seq.list_of
+     |> map (fn (x,y) => ((EData.get_bpplan x |> Prover.get_open_pnodes |> map Prover.pretty_pnode |> Pretty.chunks |> Pretty.writeln); (x,y)))
+     |> Seq.of_list*)
    end
 
   fun add_gnode n e g =
@@ -262,6 +265,9 @@ struct
              of [] => [(EData.set_bgraph graph' b(*, rs*))] |> Seq.of_list (* no new goal is produced *)
                | _ => (map (fn res => (EData.set_bgraph (add_gnodes out_edges res graph') b(*, rs*))) rs) (* comment out gnode list *) 
                        |> Seq.of_list)) result
+     (*|> Seq.list_of
+     |> map (fn (x) => ((EData.get_bpplan x |> Prover.get_open_pnodes |> map Prover.pretty_pnode |> Pretty.chunks |> Pretty.writeln); (x)))
+     |> Seq.of_list*)
    end
 
  fun enter_hgraph gnode_name hgraph_nv edata = 
