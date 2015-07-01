@@ -1,13 +1,13 @@
 package tinkerGUI.views
 
-import javax.swing.ImageIcon
 
-import tinkerGUI.controllers.events._
 import tinkerGUI.model.exceptions.{AtomicTacticNotFoundException, GraphTacticNotFoundException}
+import tinkerGUI.controllers._
+import tinkerGUI.controllers.events._
+import tinkerGUI.utils.{TinkerDialog, ArgumentParser}
 
 import scala.swing._
-import tinkerGUI.controllers._
-import tinkerGUI.utils.{TinkerDialog, ArgumentParser}
+import javax.swing.ImageIcon
 import java.awt.{Cursor, Font}
 
 class VertexEditContent(nam: String, typ: String, value: String, enableEdit: Boolean) extends BoxPanel(Orientation.Vertical) {
@@ -146,20 +146,20 @@ class VertexEditContent(nam: String, typ: String, value: String, enableEdit: Boo
 class VerticesEditContent(names: Set[String], enableEdit: Boolean) extends BoxPanel(Orientation.Vertical) {
 	var dialog = new Dialog()
 	val mergeAction = new Action("Yes"){
-		def apply {
+		def apply() = {
 			Service.documentCtrl.registerChanges()
 			QuantoLibAPI.mergeSelectedVertices()
 			dialog.close()
 		}
 	}
 	val cancelAction = new Action("Cancel"){
-		def apply {
+		def apply() = {
 			dialog.close()
 		}
 	}
 	val mergeButton = new Button(
 		new Action("Merge nodes"){
-			def apply() {
+			def apply() = {
 				dialog = TinkerDialog.openConfirmationDialog("<html>You are about to merge these nodes.</br>Do you wish to continue ?</html>", Array(mergeAction, cancelAction))
 			}
 			enabled = enableEdit
@@ -185,7 +185,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, enab
 	contents += new FlowPanel(FlowPanel.Alignment.Center)(new Label("Edge Information"){font = titleFont})
 	val editButton = new Button(
 		new Action("") {
-			def apply() {
+			def apply() = {
 				Service.documentCtrl.registerChanges()
 				Service.editCtrl.editEdge(nam,src,tgt,value)
 			}
@@ -204,7 +204,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, enab
 		if(QuantoLibAPI.hasBreak(nam)){
 			new Button(
 				new Action("") {
-				def apply() {
+				def apply() = {
 					Service.documentCtrl.registerChanges()
 					QuantoLibAPI.removeBreakpointFromEdge(nam)
 				}
@@ -221,7 +221,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, enab
 		else {
 			new Button(
 				new Action("") {
-					def apply() {
+					def apply() = {
 						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.addBreakpointOnEdge(nam)
 					}
@@ -237,7 +237,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, enab
 		}
 	val delButton = new Button(
 		new Action(""){
-			def apply(){
+			def apply() = {
 				Service.documentCtrl.registerChanges()
 				QuantoLibAPI.userDeleteElement(nam)
 			}

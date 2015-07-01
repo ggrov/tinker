@@ -1,18 +1,18 @@
 package tinkerGUI.controllers
 
-import java.net._
-import java.io._
 import tinkerGUI.controllers.events.{ConnectedToCoreEvent, EvalOptionSelectedEvent}
 
-import scala.io._
-import scala.concurrent._
-import scala.swing._
-import ExecutionContext.Implicits.global
-import scala.util.{Success, Failure}
 import quanto.util.json._
-import scala.collection.mutable.ArrayBuffer
 
-/** Object listing the potential proof status.*/
+import scala.swing._
+import scala.concurrent._
+import scala.collection.mutable.ArrayBuffer
+import scala.util.{Success, Failure}
+import java.net._
+import java.io._
+import ExecutionContext.Implicits.global
+
+/** Object listing the potential evaluation statuses.*/
 object CommunicationState extends Enumeration {
 	val WaitingForPsgraph, NotConnected, WaitingForEvalOptions, WaitingForUserChoice, WaitingForPsgraphUpdate = Value
 }
@@ -32,12 +32,14 @@ object CommunicationService extends Publisher {
 	/** Core side socket.*/
 	var prover: Socket = null
 
-	/** Status in proof.*/
+	/** Evaluation status.*/
 	var state:CommunicationState.Value = CommunicationState.NotConnected
 	//reInitConnection
 
-	/** Method closing all connection.*/
-	def closeConnection {
+	/** Method closing the connection.
+		*
+		*/
+	def closeConnection() {
 		if(connected){
 			gui.close()
 			prover.close()
@@ -48,7 +50,12 @@ object CommunicationService extends Publisher {
 		}
 	}
 
-	def openConnection {
+	/** Method opening a connection.
+		*
+		* It will launch a socket and wait for a connection on it.
+		* A successful connection will launch the 'listen' method.
+		*/
+	def openConnection() {
 		if(!connecting){
 			connecting = true
 			gui = new ServerSocket(1790)
@@ -64,7 +71,7 @@ object CommunicationService extends Publisher {
 					connected = true
 					publish(ConnectedToCoreEvent(connected))
 					state = CommunicationState.WaitingForPsgraph
-					listen
+					listen()
 				case Failure(t) =>
 					connecting = false
 					println("GUI speaking : Not connected, an error has occured: " + t.getMessage)
@@ -73,7 +80,11 @@ object CommunicationService extends Publisher {
 
 	}
 
-	def listen {
+	/** Method listening for incoming messages.
+		*
+		* As soon as a message arrives in the buffered reader, the 'getMessage' method is launched.
+		*/
+	def listen() {
 		if(connected){
 			println("listening ...")
 			val in = new BufferedReader(new InputStreamReader(prover.getInputStream))
@@ -90,6 +101,14 @@ object CommunicationService extends Publisher {
 		}
 	}
 
+	/** Method getting a complete message from a buffered reader.
+		*
+		* The message is fetched while there are strings in the buffered reader.
+		* When it is finish the 'parseAndExecute' method is launched, and the 'listen' method after that.
+		*
+		* @param in Buffered Reader were the message is incoming.
+		* @param firstLine Message's first line that came in the reader.
+		*/
 	def getMessage(in: BufferedReader, firstLine: String){
 		if(connected){
 			val b = new StringBuilder()
@@ -106,10 +125,14 @@ object CommunicationService extends Publisher {
 			//catch {
 			//	case e: Exception => println(b.toString+" -> diz iz no Json : "+e.getMessage)
 			//}
-			listen
+			listen()
 		}
 	}
 
+	/** Method parsing a json message and executing the command it contains.
+		*
+		* @param j Json message.
+		*/
 	def parseAndExecute(j: Json){
 		j ? "cmd" match {
 			// if no command found
@@ -348,7 +371,7 @@ object CommunicationService extends Publisher {
 						/*prover.close
 						gui.close
 						connected = false*/
-						closeConnection
+						closeConnection()
           // end of the eval session, but keep the current socket connection
           case "CMD_END_EVAL_SESSION" =>
             println ("receive cmd CMD_END_EVAL_SESSION: reset state")
@@ -367,6 +390,10 @@ object CommunicationService extends Publisher {
 		}
 	}
 
+	/** Method sending a string message to the core.
+		*
+		* @param msg String message.
+		*/
 	def send(msg: String){
 		if(connected){
 			val out = new PrintStream(prover.getOutputStream)
@@ -375,6 +402,10 @@ object CommunicationService extends Publisher {
 		}
 	}
 
+	/** Method sending a json message to the core.
+		*
+		* @param j Json message.
+		*/
 	def send(j:Json){
 		if(connected){
 			val out = new PrintStream(prover.getOutputStream)
@@ -383,6 +414,13 @@ object CommunicationService extends Publisher {
 		}
 	}
 
+	/** Shortcut method to send a Json message with standard format :
+		*
+		* {"cmd":{"name":"commandName","args":["commandMessage"]}}
+		*
+		* @param c Command name.
+		* @param m Command argument/message.
+		*/
 	def sendSimpleResponse(c:String, m:String){
 		send(JsonObject("cmd" -> JsonObject("name" -> c, "args" -> JsonArray(Vector(JsonString(m))))))
 	}

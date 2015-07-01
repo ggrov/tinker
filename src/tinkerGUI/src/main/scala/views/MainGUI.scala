@@ -1,11 +1,9 @@
 package tinkerGUI.views
 
-import javax.swing.ImageIcon
-
 import tinkerGUI.controllers.events.DocumentChangedEvent
+import tinkerGUI.controllers.Service
 
 import scala.swing._
-import tinkerGUI.controllers.Service
 
 object MainGUI extends SimpleSwingApplication {
 
