@@ -61,6 +61,7 @@ ML{*
 
   ML_file "../simpleGT_lib.ML"
   ML{*  open Env_Tac_Lib SimpleGT_Lib *}
+  (* ML_file "../psgraph_isar_method.ML"*) (*method does not work because fail to exec ml code*)
 end
 
 

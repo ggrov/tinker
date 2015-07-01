@@ -3,10 +3,11 @@ struct
   local open IsaProver in
     fun thm_of_pplan (pplan:pplan) = #goal pplan;
   end;
+ structure IsaMethod_ML_Exec = 
+  ML_Exec_Func (val exec_str = IsaProver.exec_str type ret = PSGraph.T val struct_name = "PSGraphIsarMethod.IsaMethod_ML_Exec");
 
-  fun tinker_tac path ctxt thm = 
+  fun tinker_tac ps ctxt thm = 
     let
-      val ps =  PSGraph.read_json_file (path);
       val g = Thm.prop_of thm
     in
       Tinker.start_ieval ctxt ps [] g
@@ -15,7 +16,10 @@ struct
       |> Seq.single
    end
 
-  fun tinker_method arg ctxt =  SIMPLE_METHOD (tinker_tac arg ctxt);
+  fun tinker_method str ctxt =  
+    let val ps  = IsaMethod_ML_Exec.eval_ml str
+    in SIMPLE_METHOD (tinker_tac ps ctxt) end;
+
   val str_parser : string context_parser = (Scan.lift (Args.name));
   
   val _ = Context.>> (Context.map_theory

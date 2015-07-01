@@ -116,6 +116,8 @@ struct
   val typ_of = I;
   fun  init _ = raise Fail "TODO";
   fun get_open_pnodes _ = raise Fail "TODO";
+  fun get_goal_thm pplan = raise Fail "TODO";
+
  
   structure Sharing = 
   struct
