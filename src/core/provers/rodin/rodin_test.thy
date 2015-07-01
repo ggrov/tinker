@@ -16,16 +16,16 @@ ML{*
 ML{* 
  
   val ps = PSGraph.read_json_file (path2^"demo_rodin.psgraph"); 
-  PSGraph.write_json_file (path2^"demo_rodin.psgraph") ps;  
+  PSGraph.write_json_file (path2^"demo_rodin.psgraph") ps;  s
 *}
 
 
 
 
 ML{*
-  TextSocket.safe_close();    
+  TextSocket.safe_close();               
 *}
 ML{*  
-Tinker.start_ieval "" ps [] "";  
+Tinker.start_ieval "" ps [] "";              
 Rodin.close ""; 
 *} 

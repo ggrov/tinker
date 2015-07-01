@@ -26,9 +26,10 @@ struct
 
   val default_ctxt = "Rodin ctxt"
   val exec_str = eval_text;
+  val this_name="RodinProver";
 
-  structure EnvTac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = env_tac val struct_name = "RodinProver.EnvTac_ML_Exec");
-  structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = "RodinProver.Tac_ML_Exec");
+  structure EnvTac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = env_tac val struct_name = this_name^".EnvTac_ML_Exec");
+  structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = this_name^".Tac_ML_Exec");
 
   fun match context  (ta ,tb) = true    (*TODO : context -> (term * term) -> bool *)
   fun concl_of_thm  thm ="term" (* TODO: thm -> term *)
