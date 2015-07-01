@@ -128,6 +128,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 			case Some(_) => DocumentService.save(None, model.jsonPSGraph)
 			case None => DocumentService.saveAs(None, model.jsonPSGraph)
 		}
+		publish(DocumentChangedEvent(unsavedChanges))
 		// we leave the setting of unsavedChanges and the event in document service as errors might happen
 	}
 
@@ -137,6 +138,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 	def saveAsJson() {
 		model.updateJsonPSGraph()
 		DocumentService.saveAs(None, model.jsonPSGraph)
+		publish(DocumentChangedEvent(unsavedChanges))
 		// we leave the setting of unsavedChanges and the event in document service as errors might happen
 	}
 
@@ -163,8 +165,10 @@ class DocumentController(model:PSGraph) extends Publisher {
 				undoStack.empty()
 				redoStack.empty()
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
+				DocumentService.file = None
 				publish(GraphTacticListEvent())
 				publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
+				publish(DocumentChangedEvent(unsavedChanges))
 			} catch {
 				case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 			}
