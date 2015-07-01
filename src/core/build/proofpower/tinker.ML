@@ -1,11 +1,11 @@
   val root_path = OS.FileSys.getDir();
   val build_path = root_path ^ "/psgraph/src/core/provers/proofpower/build";
-  val supergraph_path = root_path ^ "/experiment/supergrph/";
   OS.FileSys.chDir build_path;
 
   use "load_psgraph";
   use "build_simple_GT.ML"; 
  (* use "build_clause_GT.ML"; *)
+ OS.FileSys.chDir root_path;
  
 (* enable the subgoal package printing 
   set_flags [

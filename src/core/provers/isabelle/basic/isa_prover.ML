@@ -56,6 +56,7 @@ struct
 
   val asms_of_thm = Thm.prems_of
   val concl_of_thm = Thm.concl_of
+  fun get_goal_thm pplan = #goal pplan
 
   exception atomic_exp of string
 

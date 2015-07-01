@@ -129,8 +129,8 @@ struct
 let val {pname = init_node, env=_} = List.hd (get_open_pnodes "")
 in
    ({pname=init_node,env=StrName.NTab.empty}, init_node)
-end
- 
+end;
+  fun get_goal_thm pplan = raise Fail "TODO"; 
   structure Sharing = 
   struct
     type typ = typ
