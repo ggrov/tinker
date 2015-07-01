@@ -110,7 +110,7 @@ struct
           (StrName.NSet.new nset "g",  g)
         else
           (hd (fst g), g)
-      (*val _ = writeln "called update"*)
+      val _ = writeln ("called set label on " ^  (hd (#global pnode))) handle _ => writeln "empty list on goal "; 
       val _ = ((if (#global pnode) = [] then () else set_labelled_goal (hd (#global pnode)));
       		apply_tactic tac); (* set current goal and apply tactic*)
       val sgs = top_goals(); (* string list * (term list * term) list *)
@@ -188,6 +188,7 @@ struct
 
   val encode_prover_to_gui = I;
   val encode_gui_to_prover = I;
+  fun get_goal_thm pplan = raise RunCall.Fail "TODO"; 
 
   structure Sharing = 
   struct   

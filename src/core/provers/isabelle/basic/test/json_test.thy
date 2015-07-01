@@ -2,9 +2,8 @@ theory json_test
 imports       
   "../build/BIsaP"    
 begin
-ML_file "../psgraph_isar_method.ML"
 
-ML{*-
+ML{*- 
   val path = "/u1/staff/gg112/";
 *}
 
@@ -16,7 +15,6 @@ ML{*
 LoggingHandler.active_all_tags ();
 LoggingHandler.print_active();
   val path = "/Users/yuhuilin/Desktop/psgraph/" ;
-  val path2= "F:/Library/Documents/git/tinker/src/tinkerGUI/release/tinker_library/";
 *}
 ML{*
 val impI_thm = @{thm impI};
@@ -34,9 +32,8 @@ fun test_true1 _ _ _ = true
 *}
 (* read and load a psgraph created by gui *)
 ML{*
- 
-  val ps = PSGraph.read_json_file (path2^"demo_rodin.psgraph");
-  PSGraph.write_json_file (path2^"demo_rodin.psgraph") ps; 
+  val ps = PSGraph.read_json_file (path^"demo_new.psgraph");
+  PSGraph.write_json_file (path^"demo1.psgraph") ps; 
 *}
 
 ML{* 
@@ -48,12 +45,13 @@ IEVal.output_string
 
 *} 
 
-
 ML{* -
   TextSocket.safe_close();
 *}
-ML{*
+ML{*-
 Tinker.start_ieval @{context} ps [] @{prop "(A)  \<longrightarrow>  (A \<and>  A \<and> A)"};
 *}
 
+lemma "(A)  \<longrightarrow>  (A \<and>  A \<and> A)"
+apply (tactic {* tinker_tac ps @{context} *})
 

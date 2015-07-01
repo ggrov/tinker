@@ -38,7 +38,8 @@ class GraphEditPanel() extends BorderPanel {
 		add(new BoxPanel(Orientation.Horizontal){
 			contents += editControls.SecondaryToolBar
 			contents += editControls.MainToolBar
-			contents += evalControls.EvalToolBar
+			contents += evalControls.SecondaryEvalToolBar
+			contents += evalControls.MainEvalToolBar
 		}, BorderPanel.Position.South)
 	}, BorderPanel.Position.North)
 	add(graphPanel, BorderPanel.Position.Center)

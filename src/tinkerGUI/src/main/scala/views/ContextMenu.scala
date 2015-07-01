@@ -14,7 +14,7 @@ object ContextMenu extends PopupMenu {
 	var edgeSource = ""
 	var edgeTarget = ""
 	var eltNames = Set[String]()
-	var enableEdit = true
+	var enableEdit = !Service.evalCtrl.inEval
 
 	listenTo(Service.evalCtrl)
 	reactions += {
@@ -174,6 +174,7 @@ object ContextMenu extends PopupMenu {
 				}){
 					this.peer.setEnabled(enableEdit)
 				}
+			case "Goal" => // do nothing
 		}
 		super.show(invoker, x, y)
 	}

@@ -369,6 +369,7 @@ class EditController(model:PSGraph) extends Publisher {
 							isUnique = model.updateGT(tacticOldName,name,branchType,args)
 							if(isUnique){
 								QuantoLibAPI.setVertexValue(nodeId, name+"("+args+")")
+								publish(GraphTacticListEvent())
 							} else {
 								var confirmDialog = new Dialog()
 								val message:String = "<html>The graph tactic "+name+" has many occurrences. <br> Do you wish to edit all of them or make a new tactic ?</html>"
