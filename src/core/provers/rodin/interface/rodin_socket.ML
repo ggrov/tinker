@@ -20,20 +20,20 @@ fun send sock cmd =
   handle _ => raise ec cmd
 
 fun connectRodin port = 
-  let val _=TextSocket.close (TextSocket.safe_local_client port);
+  let(*  val _=TextSocket.close (TextSocket.safe_local_client port); *)
       val sock=  ( TextSocket.local_client port )
       val handshake=(send sock "TINKER_HAND_SHAKE" )
    in
       sock
    end   
 
-fun reuse port = 
+(* fun reuse port = 
 let val sock= TextSocket.safe_local_client port;
     val handshake=(send sock "TINKER_HAND_SHAKE" )
 in 
     sock
 end handle ec "TINKER_HAND_SHAKE" => raise ec "TINKER_HAND_SHAKE";
-
+ *)
 fun close sock =
   let 
   val _ =(send sock "TINKER_DISCONNECT");

@@ -9,6 +9,7 @@ ML_file "./interface/rodin_socket.ml"
 ML_file "./interface/interface.ML" 
 ML_file "./rodin_prover.ML"
 ML_file "./interface/rodin_extra.ML"
+ML_file "../../goaltype/simple_goaltype.ML"
 
 ML{*
   structure SimpleGoalType : BASIC_GOALTYPE = SimpleGoalType_Fun(structure Prover = RodinProver val struct_name = "SimpleGoalType");
@@ -27,4 +28,6 @@ ML{*
 *}
 
 ML{*  open Env_Tac_Lib  *}
+
+end
 
