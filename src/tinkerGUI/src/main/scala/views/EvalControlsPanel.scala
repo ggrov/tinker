@@ -1,10 +1,11 @@
 package tinkerGUI.views
 
-import scala.swing._
-import javax.swing.ImageIcon
 import tinkerGUI.controllers.{CommunicationService, Service}
 import tinkerGUI.controllers.events.{ConnectedToCoreEvent, EnableEvalOptionsEvent, DisableEvalOptionsEvent}
 import tinkerGUI.utils.ToolBar
+
+import scala.swing._
+import javax.swing.ImageIcon
 
 class EvalControlsPanel() {
 
@@ -119,7 +120,7 @@ class EvalControlsPanel() {
 		}){
 		enabled = false
 		icon = new ImageIcon(MainGUI.getClass.getResource("eval-stop.png"), "Stop")
-		tooltip = "Stop"
+		tooltip = "Stop Evaluation"
 		listenTo(Service.evalCtrl)
 		reactions += {
 			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_STOP") enabled = true
@@ -179,10 +180,10 @@ class EvalControlsPanel() {
 	}
 
 	val MainEvalToolBar = new ToolBar{
-		contents += (NextButton, UndoButton, StepInButton, StepOverButton, BacktrackButton, CompleteButton, FinishButton, StopButton, UntilBreakButton)
+		contents += (NextButton, UndoButton, StepInButton, StepOverButton, BacktrackButton, CompleteButton, FinishButton, UntilBreakButton)
 	}
 
 	val SecondaryEvalToolBar = new ToolBar{
-		contents += (ConnectButton)
+		contents += (ConnectButton, StopButton)
 	}
 }

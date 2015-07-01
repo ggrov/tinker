@@ -1,33 +1,33 @@
 package tinkerGUI.views
 
 import tinkerGUI.controllers.events.DisableNavigationEvent
+import tinkerGUI.controllers.Service
 
 import scala.swing._
 import javax.swing.ImageIcon
 import java.awt.Cursor
 import java.awt.Insets
-import tinkerGUI.controllers.Service
 
 class GraphNavigation() extends Publisher {
 	val controller = Service.graphNavCtrl
 
 	val nextAction = new Action("") {
-		def apply() {
+		def apply() = {
 			controller.showNext()
 		}
 	}
 	val prevAction = new Action("") {
-		def apply() {
+		def apply() = {
 			controller.showPrev()
 		}
 	}
 	val addNewAction = new Action("") {
-		def apply() {
+		def apply() = {
 			controller.addNew()
 		}
 	}
 	val delAction = new Action("") {
-		def apply() {
+		def apply() = {
 			controller.delete()
 		}
 	}

@@ -2,9 +2,9 @@ package tinkerGUI.views
 
 import tinkerGUI.controllers._
 import tinkerGUI.controllers.events._
+import tinkerGUI.utils._
 
 import scala.swing._
-import tinkerGUI.utils._
 
 object ContextMenu extends PopupMenu {
 
@@ -44,7 +44,7 @@ object ContextMenu extends PopupMenu {
 
 	override def show(invoker: Component, x: Int, y: Int){
 		val deleteNodeAction = new Action("Delete node") {
-			def apply = {
+			def apply() = {
 				Service.documentCtrl.registerChanges()
 				QuantoLibAPI.userDeleteElement(eltName)
 			}
@@ -53,7 +53,7 @@ object ContextMenu extends PopupMenu {
 		elt match {
 			case "None" =>
 				contents += new MenuItem(new Action("Add an identity node") {
-					def apply = {
+					def apply() = {
 						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.userAddVertex(new java.awt.Point(x, y), "T_Identity")
 					}
@@ -61,7 +61,7 @@ object ContextMenu extends PopupMenu {
 					this.peer.setEnabled(enableEdit)
 				}
 				contents += new MenuItem(new Action("Add an atomic tactic node") {
-					def apply = {
+					def apply() = {
 						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.userAddVertex(new java.awt.Point(x, y), "T_Atomic")
 					}
@@ -69,7 +69,7 @@ object ContextMenu extends PopupMenu {
 					this.peer.setEnabled(enableEdit)
 				}
 				contents += new MenuItem(new Action("Add a nested tactic node") {
-					def apply = {
+					def apply() = {
 						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.userAddVertex(new java.awt.Point(x, y), "T_Graph")
 					}
@@ -82,9 +82,9 @@ object ContextMenu extends PopupMenu {
 				}
 			case "Atomic" =>
 				contents += new MenuItem(new Action("Edit node") {
-					def apply = {
+					def apply() = {
 						Service.documentCtrl.registerChanges()
-						Service.editCtrl.updateTactic(eltName,eltValue,true)
+						Service.editCtrl.updateTactic(eltName,eltValue,isAtomicTactic = true)
 					}
 				}){
 					this.peer.setEnabled(enableEdit)
@@ -94,20 +94,20 @@ object ContextMenu extends PopupMenu {
 				}
 			case "Nested" =>
 				contents += new MenuItem(new Action("Edit node") {
-					def apply() {
+					def apply() = {
 						Service.documentCtrl.registerChanges()
-						Service.editCtrl.updateTactic(eltName,eltValue,false)
+						Service.editCtrl.updateTactic(eltName,eltValue,isAtomicTactic = false)
 					}
 				}){
 					this.peer.setEnabled(enableEdit)
 				}
 				contents += new MenuItem(new Action("Inspect tactic") {
-					def apply() {
+					def apply() = {
 						Service.inspectorCtrl.inspect(ArgumentParser.separateNameFromArgument(eltValue)._1)
 					}
 				})
 				contents += new MenuItem(new Action("Add a subgraph") {
-					def apply = {
+					def apply() = {
 						Service.documentCtrl.registerChanges()
 						Service.editCtrl.addSubgraph(ArgumentParser.separateNameFromArgument(eltValue)._1)
 					}
@@ -119,14 +119,14 @@ object ContextMenu extends PopupMenu {
 				}
 			case "Breakpoint" =>
 				contents += new MenuItem(new Action("Remove breakpoint") {
-					def apply = {
+					def apply() = {
 						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.removeBreakpoint(eltName)
 					}
 				})
 			case "Many" =>
 				contents += new MenuItem(new Action("Merge into nested tactic") {
-					def apply = {
+					def apply() = {
 						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.mergeSelectedVertices()
 					}
@@ -134,7 +134,7 @@ object ContextMenu extends PopupMenu {
 					this.peer.setEnabled(enableEdit)
 				}
 				contents += new MenuItem(new Action("Delete nodes") {
-					def apply = {
+					def apply() = {
 						Service.documentCtrl.registerChanges()
 						eltNames.foreach{n => QuantoLibAPI.userDeleteElement(n)}
 					}
@@ -143,7 +143,7 @@ object ContextMenu extends PopupMenu {
 				}
 			case "Edge" =>
 				contents += new MenuItem(new Action("Edit edge") {
-					def apply = {
+					def apply() = {
 						Service.documentCtrl.registerChanges()
 						Service.editCtrl.editEdge(eltName,edgeSource,edgeTarget,eltValue)
 					}
@@ -152,7 +152,7 @@ object ContextMenu extends PopupMenu {
 				}
 				if(QuantoLibAPI.hasBreak(eltName)){
 					contents += new MenuItem(new Action("Remove breakpoint") {
-						def apply = {
+						def apply() = {
 							Service.documentCtrl.registerChanges()
 							QuantoLibAPI.removeBreakpointFromEdge(eltName)
 						}
@@ -160,14 +160,14 @@ object ContextMenu extends PopupMenu {
 				}
 				else {
 					contents += new MenuItem(new Action("Add breakpoint") {
-						def apply = {
+						def apply() = {
 							Service.documentCtrl.registerChanges()
 							QuantoLibAPI.addBreakpointOnEdge(eltName)
 						}
 					})
 				}
 				contents += new MenuItem(new Action("Delete edge") {
-					def apply = {
+					def apply() = {
 						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.userDeleteElement(eltName)
 					}

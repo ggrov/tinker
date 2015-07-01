@@ -1,12 +1,12 @@
 package tinkerGUI.views
 
 import tinkerGUI.controllers.events.PreviewEvent
+import tinkerGUI.controllers.Service
+
+import quanto.gui.{FileTree, FileOpened}
 
 import scala.swing._
 import java.io.{FilenameFilter, File}
-import quanto.gui.FileTree
-import quanto.gui.FileOpened
-import tinkerGUI.controllers.Service
 
 class TinkerLibraryTree() extends Publisher {
 	val controller = Service.libraryTreeCtrl

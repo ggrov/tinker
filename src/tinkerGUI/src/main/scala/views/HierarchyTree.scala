@@ -1,21 +1,19 @@
 package tinkerGUI.views
 
-import tinkerGUI.controllers.events.{DisableActionsForEvalEvent, DocumentChangedEvent, RedrawHierarchyTreeEvent}
+import tinkerGUI.controllers.events.{DocumentChangedEvent, RedrawHierarchyTreeEvent}
+import tinkerGUI.controllers.Service
 import tinkerGUI.utils.TinkerDialog
-import views.exceptions.InfiniteTreeException
+import tinkerGUI.views.exceptions.InfiniteTreeException
 
-import scala.math._
 import scala.swing._
 import scala.swing.event.MouseClicked
-import tinkerGUI.controllers.Service
+import scala.math._
 import java.awt.{BasicStroke, Graphics2D, Color}
 
 class TreeGraph() extends Panel{
 	preferredSize = new Dimension(500,500)
 
 	var elementCoordinates : Array[(String,Int,Int,Int,Int,Array[String])] = Array()
-
-	listenTo()
 
 	def drawTree(g:Graphics2D): Unit ={
 		elementCoordinates = Array()

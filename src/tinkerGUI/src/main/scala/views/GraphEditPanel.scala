@@ -1,16 +1,17 @@
 package tinkerGUI.views
 
+import tinkerGUI.controllers.QuantoLibAPI
+
 import scala.swing._
 import javax.swing.ImageIcon
 import java.awt.Cursor
 import java.awt.Insets
-import tinkerGUI.controllers.QuantoLibAPI
 
 class GraphEditPanel() extends BorderPanel {
 	var graphPanel = QuantoLibAPI.getGraph
 	val editControls = new EditControlsPanel()
 	val evalControls = new EvalControlsPanel()
-	val graphBreadcrums = new GraphBreadcrumbs()
+	val graphBreadcrumbs = new GraphBreadcrumbs()
 	val graphNav = new GraphNavigation
 	add(new BorderPanel(){
 		add(new BorderPanel(){
@@ -29,7 +30,7 @@ class GraphEditPanel() extends BorderPanel {
 					opaque = false
 					cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 				}
-				contents += graphBreadcrums.breadcrumbs
+				contents += graphBreadcrumbs.breadcrumbs
 			}, BorderPanel.Position.West)
 			add(new BoxPanel(Orientation.Vertical){
 				contents += graphNav.navigation

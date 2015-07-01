@@ -105,15 +105,17 @@ struct
   fun update (tac : tactic) (pnode : pnode, pplan : pplan)  : (pnode list * pplan) = 
     let 
       fun gen_fresh_psgname nset (g : (string list * GOAL)) = 
-        if (fst g) = [""] 
+        if (fst g) = [""] (* the case of single goal *)
         then 
-          (StrName.NSet.new nset "g",  g)
+          (StrName.NSet.new nset "g",  g) (* following this convesion to gen nwe goal name *)
         else
-          (hd (fst g), g)
-      val _ = writeln ("called set label on " ^  (hd (#global pnode))) handle _ => writeln "empty list on goal "; 
-      val _ = ((if (#global pnode) = [] then () else set_labelled_goal (hd (#global pnode)));
-      		apply_tactic tac); (* set current goal and apply tactic*)
-      val sgs = top_goals(); (* string list * (term list * term) list *)
+          (hd (fst g), g) (* otherwise, use the name from pp *)
+      (*val _ = writeln ("called set label on pname "  ^ (#pname pnode))*) 
+      (*val _ = Pretty.writeln  (Pretty.chunks (map Pretty.str ((#global pnode))))*)
+      (* set current goal and apply tactic then get the list of goals in the format of :
+      	string list * (term list * term) list *)
+      val sgs = (((if (#global pnode) = [] then () else set_labelled_goal (hd (#global pnode)));
+      		SubgoalPackage.apply_tactic tac); top_goals())
       val ctxt = get_current_pc();   
       fun filter_goals plist name = 
         filter 
@@ -128,9 +130,10 @@ struct
         ([], {opengs = StrName.NTab.empty, usedgs = (#usedgs pplan)})
       else((* a list of sgs*)
         let
-          val sgs' = map (gen_fresh_psgname (#usedgs pplan)) sgs
-	  val new_pnodel = map gen_pnode sgs' (* all open subgoals *)
-	  val new_pnodel' = 
+          val sgs' = map (gen_fresh_psgname (#usedgs pplan)) sgs 
+	  val all_pnodel = map gen_pnode sgs' (* all open subgoals *)
+	  (* filter out new goals *)
+	  val new_pnodel = 
 	    List.foldr
 	    (fn (n, pns) =>
 	        filter 
@@ -138,24 +141,42 @@ struct
 	        		of EQUAL => false 
 	        		| _ => true))
         	pns)
-            new_pnodel
+            all_pnodel
 	    (StrName.NSet.list_of (#usedgs pplan))
+	    |> map (set_pnode_env (get_pnode_env pnode)) (* inherit env from the consumed one *)
+	  val new_opengs =  (* del old consumed goal then add new goals *)
+	    (#opengs pplan)
+	    |> StrName.NTab.delete (#pname pnode)
+	    |> (fn n => List.foldr (fn (x,y) => StrName.NTab.ins ((#pname x), x) y) n new_pnodel)
 
           val new_pplan = 
-            {opengs = (map (fn x => ((#pname x), x)) new_pnodel) 
-        		 |> StrName.NTab.of_list, (* get all current sgs name *)
-             usedgs = StrName.NSet.add_list (map fst sgs') (#usedgs pplan)  }
-	in
-	  (new_pnodel', new_pplan) 
+            {opengs = new_opengs, (* get all current sgs name *)
+             usedgs = StrName.NSet.add_list (map fst sgs') (#usedgs pplan)}
+          (*val _ = [Pretty.str "new sg list: ["] @ (map (Pretty.str o get_pnode_name) new_pnodel) @ [Pretty.str "]"] 
+          	   |> Pretty.chunks |> Pretty.writeln
+	   val _ = [Pretty.str "new opengs status: ["] @ (StrName.NTab.keys new_opengs|> map Pretty.str)@ [Pretty.str "]"]
+	           |> Pretty.chunks |> Pretty.writeln*)
+
+       in
+	  (new_pnodel, new_pplan) 
 	end
 
       )
      end
 
+  fun pretty_pnode pnode = 
+    Pretty.block
+    [Pretty.str "[ Goal ", 
+    Pretty.str (get_pnode_name pnode),
+    Pretty.str " : ",
+    pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode),
+    Pretty.str " ]"];
+    
   fun apply_tactic args (tac_code : string) (pnode,pplan) = 
     let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in
-    Seq.single (update tac (pnode,pplan))
-    |> Seq.map (fn (x,y) => (map (set_pnode_env (get_pnode_env pnode)) x,y)) (* inherit env *)
+    update tac (pnode,pplan)
+    (*|> (fn (l,p) => ((get_open_pnodes p |> map pretty_pnode |> Pretty.chunks |> Pretty.writeln) ; (l,p)))*)
+    |> Seq.single
     |> (fn x => 
         (case Seq.pull x of NONE 
            => (logging "TACTIC" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode); 
@@ -167,14 +188,7 @@ struct
     let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in
     apply_tactic args "id_tac" (update_pnode_env env_tac pnode, pplan)
     end  
-   
-  fun pretty_pnode pnode = 
-    Pretty.block
-    [Pretty.str "[ Goal ", 
-    Pretty.str (get_pnode_name pnode),
-    Pretty.str " : ",
-    pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode),
-    Pretty.str " ]"];
+  
   
   fun pretty_pplan pnode = Pretty.str "Pretty PPLAN TOTO";
   

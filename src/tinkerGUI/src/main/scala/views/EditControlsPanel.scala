@@ -1,12 +1,12 @@
 package tinkerGUI.views
 
 import tinkerGUI.controllers.events.{DisableActionsForEvalEvent, DocumentChangedEvent}
-
-import scala.swing._
-import javax.swing.ImageIcon
 import tinkerGUI.controllers.Service
 import tinkerGUI.utils.ToolBar
-import scala.swing.event.{ButtonClicked, KeyReleased}
+
+import scala.swing._
+import scala.swing.event.KeyReleased
+import javax.swing.ImageIcon
 
 object GoalTypeEditor extends Frame {
 	title = "Tinker - " + Service.documentCtrl.title + " - Goal Type Editor"
@@ -38,13 +38,13 @@ object GoalTypeEditor extends Frame {
 class EditControlsPanel() extends Publisher {
 
 	val SelectButton = new ToggleButton() {
-		action = new Action(""){def apply{Service.editCtrl.changeMouseState("select")}}
+		action = new Action(""){def apply()={Service.editCtrl.changeMouseState("select")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("select-rectangular.png"), "Select")
 		tooltip = "Select"
 		selected = true
 	}
 	val AddIDVertexButton = new ToggleButton() {
-		action = new Action(""){def apply{Service.editCtrl.changeMouseState("addIDVertex")}}
+		action = new Action(""){def apply()={Service.editCtrl.changeMouseState("addIDVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_id.png"), "Add Vertex")
 		tooltip = "Add an identity vertex"
 		listenTo(Service.evalCtrl)
@@ -54,7 +54,7 @@ class EditControlsPanel() extends Publisher {
 		}
 	}
 	val AddATMVertexButton = new ToggleButton() {
-		action = new Action(""){def apply{Service.editCtrl.changeMouseState("addATMVertex")}}
+		action = new Action(""){def apply()={Service.editCtrl.changeMouseState("addATMVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_atomic.png"), "Add Vertex")
 		tooltip = "Add an atomic vertex"
 		listenTo(Service.evalCtrl)
@@ -64,7 +64,7 @@ class EditControlsPanel() extends Publisher {
 		}
 	}
 	val AddNSTVertexButton = new ToggleButton() {
-		action = new Action(""){def apply{Service.editCtrl.changeMouseState("addNSTVertex")}}
+		action = new Action(""){def apply()={Service.editCtrl.changeMouseState("addNSTVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_nested.png"), "Add Vertex")
 		tooltip = "Add a nested vertex"
 		listenTo(Service.evalCtrl)
@@ -74,7 +74,7 @@ class EditControlsPanel() extends Publisher {
 		}
 	}
 	val AddEdgeButton = new ToggleButton() {
-		action = new Action(""){def apply{Service.editCtrl.changeMouseState("addEdge")}}
+		action = new Action(""){def apply()={Service.editCtrl.changeMouseState("addEdge")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw-edge.png"), "Add Edge")
 		tooltip = "Add edge"
 		listenTo(Service.evalCtrl)
@@ -103,6 +103,6 @@ class EditControlsPanel() extends Publisher {
 		contents += (SelectButton, AddIDVertexButton, AddATMVertexButton, AddNSTVertexButton, AddEdgeButton)
 	}
 	val SecondaryToolBar = new ToolBar {
-		contents += (EditGoalTypesButton)
+		contents += EditGoalTypesButton
 	}
 }

@@ -71,10 +71,10 @@ struct
               (map (fn y => Pretty.block [Pretty.str y, Pretty.str " "] ) x)) |> Pretty.block 
               |> Pretty.str_of |> logging "EVAL");
             x))
-       |> map (fn g => EVal.eval_goal_goalname true g edata
+       |> hd(* pick the first one *)
+       |> (fn g => EVal.eval_goal_goalname true g edata
                        |> Seq.list_of
                        (*|> map fst*))
-       |> List.concat
        |> update_branches edata
   end;
 

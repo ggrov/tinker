@@ -3,7 +3,7 @@ imports
   "../../provers/isabelle/basic/build/BIsaP"    
 begin
 
-ML{*-
+ML{*
   val path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/src/core/demo/AdvisoryBoardMeeting2015/" ;
 *}
 ML{*-
