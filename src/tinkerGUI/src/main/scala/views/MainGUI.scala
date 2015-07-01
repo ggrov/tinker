@@ -1,5 +1,7 @@
 package tinkerGUI.views
 
+import javax.swing.ImageIcon
+
 import tinkerGUI.controllers.events.DocumentChangedEvent
 
 import scala.swing._
@@ -44,7 +46,6 @@ object MainGUI extends SimpleSwingApplication {
 			case DocumentChangedEvent(_) =>
 				title = "Tinker - " + Service.documentCtrl.title
 		}
-
     Service.setTopFrame(this)
 	}
 
