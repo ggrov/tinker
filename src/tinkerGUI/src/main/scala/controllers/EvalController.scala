@@ -32,7 +32,10 @@ class EvalController(model:PSGraph) extends Publisher {
 	def setInEval(b:Boolean) {
 		inEval = b
 		publish(DisableActionsForEvalEvent(inEval))
-		if(!b) publish(DisableEvalOptionsEvent())
+		if(!b) {
+			publish(DisableEvalOptionsEvent())
+			QuantoLibAPI.loadFromJson(model.getCurrentJson)
+		}
 	}
 
 	/** Method displaying an evaluation graph.
