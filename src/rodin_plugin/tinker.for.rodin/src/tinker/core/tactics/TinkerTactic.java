@@ -17,7 +17,7 @@ public class TinkerTactic implements ITactic {
 
 		pm.setTask("Wait for Tinker..");
 		TinkerSession session = new TinkerSession();
-		TinkerConnector tinker = new TinkerConnector(pm);
+		TinkerConnector tinker = new TinkerConnector(pm, session);
 		String result = null;
 		boolean isException = false;
 
