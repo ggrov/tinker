@@ -103,13 +103,6 @@ class TinkerMenu() extends MenuBar{
 
 	// for test purpose
 	val debug = new Menu("debug"){ menu =>
-		val createClient = new Action("Create client") {
-			menu.contents += new MenuItem(this)
-			def apply(){
-				val c = new ClientSocket
-				c.open()
-			}
-		}
 		val printJson = new Action("Print JSON in Console") {
 			menu.contents += new MenuItem(this)
 			def apply(){
@@ -119,83 +112,4 @@ class TinkerMenu() extends MenuBar{
 	}
 
 	contents += (FileMenu, EditMenu, debug)
-}
-
-class ClientSocket extends Frame {
-	title = "Tinker - sockets communication, client simulator"
-	minimumSize = new Dimension(300, 200)
-	var connected = false
-	var response = new Label("Response :")
-	var clientSocket: Socket = null
-	var out : PrintStream = null
-	val txtArea = new TextArea(""){editable = false}
-	val sendButton = new Button(new Action("Send message"){
-		def apply() {
-			if(clientSocket != null){
-				out.println(txtArea.text)
-				txtArea.text = ""
-			}
-		}
-	}){
-		enabled = false
-	}
-	val disconnectButton = new Button(new Action("Disconnect"){
-		def apply(){
-			out.println("{\"cmd\":\"CLOSE_CONNECT\"}")
-			connected = false
-			close()
-		}
-	}){
-		enabled = false
-	}
-	val connectButton = new Button(new Action("Connect"){
-		def apply(){
-			clientSocket = new Socket(InetAddress.getByName("localhost"), 1790)
-			out = new PrintStream(clientSocket.getOutputStream)
-			var in = new BufferedSource(clientSocket.getInputStream).getLines
-			if(in.next == "SRV_LISTENING"){
-				connected = true
-				enabled = false
-				sendButton.enabled = true
-				disconnectButton.enabled = true
-				txtArea.editable = true
-				listen
-			}
-		}
-	})
-	val box = new BoxPanel(Orientation.Vertical){
-		contents += connectButton
-		contents += disconnectButton
-		contents += txtArea
-		contents += sendButton
-		contents += response
-	}
-	def listen{
-		if(connected){
-			val in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream))
-			var input : Future[String] = future {
-				in.readLine
-			}
-			input onComplete{
-				case Success(s) =>
-					getMessage(in, s)
-				case Failure(t) => 
-			}
-		}
-	}
-	def getMessage(in: BufferedReader, firstLine: String){
-		if(connected){
-			val b = new StringBuilder()
-			b.append(firstLine)
-			while(in.ready){
-				b.append("\n")
-				b.append(in.readLine)
-			}
-			println(b.toString)
-			response.text = "Response : \n"+b.toString
-			box.repaint()
-			listen
-		}
-	}
-	contents = box
 }

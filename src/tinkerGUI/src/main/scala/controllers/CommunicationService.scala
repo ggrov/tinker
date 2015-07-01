@@ -42,6 +42,7 @@ object CommunicationService extends Publisher {
 			gui.close()
 			prover.close()
 			connected = false
+			state = CommunicationState.NotConnected
 			Service.evalCtrl.setInEval(false)
 			publish(ConnectedToCoreEvent(connected))
 		}

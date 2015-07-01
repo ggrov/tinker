@@ -33,7 +33,7 @@ fun test_true1 _ _ _ = true
 
 *}
 (* read and load a psgraph created by gui *)
-ML{* 
+ML{*
  
   val ps = PSGraph.read_json_file (path2^"demo_rodin.psgraph");
   PSGraph.write_json_file (path2^"demo_rodin.psgraph") ps; 
@@ -49,7 +49,7 @@ IEVal.output_string
 *} 
 
 
-ML{*-
+ML{* -
   TextSocket.safe_close();
 *}
 ML{*
