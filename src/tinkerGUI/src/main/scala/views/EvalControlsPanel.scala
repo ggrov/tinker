@@ -178,7 +178,11 @@ class EvalControlsPanel() {
 		}
 	}
 
-	val EvalToolBar = new ToolBar{
-		contents += (ConnectButton, NextButton, UndoButton, StepInButton, StepOverButton, BacktrackButton, CompleteButton, FinishButton, StopButton, UntilBreakButton)
+	val MainEvalToolBar = new ToolBar{
+		contents += (NextButton, UndoButton, StepInButton, StepOverButton, BacktrackButton, CompleteButton, FinishButton, StopButton, UntilBreakButton)
+	}
+
+	val SecondaryEvalToolBar = new ToolBar{
+		contents += (ConnectButton)
 	}
 }
