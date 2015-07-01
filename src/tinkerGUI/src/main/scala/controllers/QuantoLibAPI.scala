@@ -327,6 +327,7 @@ object QuantoLibAPI extends Publisher{
 				changeGraph(graph.updateVData(VName(nodeId)) { _ => data.withValue(newValue) })
 				view.invalidateVertex(VName(nodeId))
 				graph.adjacentEdges(VName(nodeId)).foreach { view.invalidateEdge }
+				publishSelectedVerts()
 			case _ => // do nothing
 		}
 	}

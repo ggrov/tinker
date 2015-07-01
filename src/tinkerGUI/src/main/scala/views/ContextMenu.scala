@@ -174,6 +174,7 @@ object ContextMenu extends PopupMenu {
 				}){
 					this.peer.setEnabled(enableEdit)
 				}
+			case "Goal" => // do nothing
 		}
 		super.show(invoker, x, y)
 	}

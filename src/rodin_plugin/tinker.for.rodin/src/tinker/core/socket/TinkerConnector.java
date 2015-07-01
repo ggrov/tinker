@@ -5,6 +5,8 @@ import java.io.*;
 
 import org.eventb.core.seqprover.IProofMonitor;
 
+import tinker.core.command.TinkerSession;
+
 public class TinkerConnector {
 	public static String WRITE_SUCCESS = "WRITE_SUCCESS";
 	public static String WRITE_FAIL = "WRITE_FAIL";
@@ -27,9 +29,13 @@ public class TinkerConnector {
 	Socket connection = null;
 	BufferedReader input = null;
 	BufferedWriter output = null;
-
+	
 	private int state = STATE_CONNECTING;
-
+	
+	private TinkerSession session;
+	
+	
+	
 	public int getState() {
 		return state;
 	}
@@ -38,8 +44,9 @@ public class TinkerConnector {
 		this.state = state;
 	}
 
-	public TinkerConnector(IProofMonitor pm) {
+	public TinkerConnector(IProofMonitor pm, TinkerSession session) {
 		this.monitor = pm;
+		this.session=session;
 	}
 
 	public Object serve() {

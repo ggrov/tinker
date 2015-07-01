@@ -47,25 +47,22 @@ public class CommandExecutor {
 
 	private static ProofTreeUI getProofTreeUI(IWorkbenchWindow ww) {
 		final IViewReference[] Pages = ww.getPages()[0].getViewReferences();
-		System.out.println("pages len="+Pages.length+", p");
+		//System.out.println("pages len=" + Pages.length + ", p");
 		for (int i = 0; i < Pages.length; i++) {
-			
-			IViewReference ir=Pages[i];
-			if (ir.getPart(false) instanceof ProofTreeUI){
-				//ProofTreeUI result = (ProofTreeUI)ir.getPart(true);
-				//return result;
-				ProofTreeUI ptu=(ProofTreeUI) ir.getPart(true);
+
+			IViewReference ir = Pages[i];
+			if (ir.getPart(false) instanceof ProofTreeUI) {
+				// ProofTreeUI result = (ProofTreeUI)ir.getPart(true);
+				// return result;
+				ProofTreeUI ptu = (ProofTreeUI) ir.getPart(true);
 				return ptu;
 			}
 			/*
-			final IAdaptable[] parts = Pages[i];
-			for (int j = 0; j < parts.length; j++) {
-				System.out.println(parts[j].getClass().getName());
-				if ((parts[j] instanceof ProofTreeUI)) {
-					return (ProofTreeUI) parts[j];
-				}
-			}
-			*/
+			 * final IAdaptable[] parts = Pages[i]; for (int j = 0; j <
+			 * parts.length; j++) {
+			 * System.out.println(parts[j].getClass().getName()); if ((parts[j]
+			 * instanceof ProofTreeUI)) { return (ProofTreeUI) parts[j]; } }
+			 */
 		}
 		return null;
 	}
@@ -113,8 +110,18 @@ public class CommandExecutor {
 
 			break;
 		case "GET_ALL_OPEN_NODES":
-			names = command.getParameters();
-			nodes = pt.getOpenDescendants();
+			String pplan = command.getParameter("PPLAN");
+			if (pplan.equals("")) {
+				nodes = pt.getOpenDescendants();
+			} else {
+				nodes = session.nameToNodeMap.get(pplan).getOpenDescendants();
+				if (nodes == null) {
+					result = (new Command("ERROR")).addParamter("INFO",
+							"EXCEPTION FOUND: PPLAN IS NOT FOUND IN SESSION")
+							.toString();
+				}
+			}
+
 			HashMap temp = new HashMap<>();
 			for (int i = 0; i < nodes.length; i++) {
 				if (session.nodeToNameMap.get(nodes[i]) == null) {
@@ -135,27 +142,34 @@ public class CommandExecutor {
 					String.valueOf(pnode.getSequent().goal().getTag()))
 					.toString();
 			break;
+
+		case "GET_PNODE_GOAL_TYPE":
+
+			break;
 		case "APPLY_TACTIC":
 
 			String tactic = command.getParameter("TACTIC");
 			String targetNode = command.getParameter("NODE");
 			IProofTreeNode target = session.nameToNodeMap.get(targetNode);
-			System.out.println("applying tactic = " + tactic);
+
+			pt.getSequent().goal().getGivenTypes();
+			// System.out.println("applying tactic = " + tactic);
 			Object tac_result = getTactic(tactic).apply(target, pm);
 			final IWorkbenchWindow ww = PlatformUI.getWorkbench()
 					.getWorkbenchWindows()[0];
 			final ProofTreeUI ui = getProofTreeUI(ww);
 			final ProofTreeUIPage ptp = (ProofTreeUIPage) ui.getCurrentPage();
-			Display.getDefault().asyncExec(new Runnable(){
+			Display.getDefault().asyncExec(new Runnable() {
 
 				@Override
 				public void run() {
 					ptp.getViewer().expandAll();
 					ptp.getViewer().refresh();
-					
-				}});
-			Thread.sleep(5000);
-			System.out.println("tactic result = " + tac_result);
+
+				}
+			});
+			Thread.sleep(1000);
+			// System.out.println("tactic result = " + tac_result);
 			if (tac_result == null) {
 				// null means no error
 				int new_node_num = target.getOpenDescendants().length;
