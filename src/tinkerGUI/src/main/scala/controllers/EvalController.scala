@@ -32,6 +32,7 @@ class EvalController(model:PSGraph) extends Publisher {
 	def setInEval(b:Boolean) {
 		inEval = b
 		publish(DisableActionsForEvalEvent(inEval))
+		if(!b) publish(DisableEvalOptionsEvent())
 	}
 
 	/** Method displaying an evaluation graph.
