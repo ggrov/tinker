@@ -106,19 +106,20 @@ struct
    |  insert_at n newgs x::xs = x :: insert_at (n-1) newgs xs;
 *)
 
-  fun to_goal_nms ctxt goals nameset = 
+  fun to_goal_nms ctxt goals new_env nameset = 
     let 
       fun ins t (gls,gset) =
        let 
         val (n,gset') = StrName.NSet.add_new "a" gset
-        val g' = {pname = n,ptrm = t,pctxt = ctxt, env = StrName.NTab.empty}
+        val g' = {pname = n,ptrm = t,pctxt = ctxt, env = new_env}
        in (gls@[g'],gset') end
     in
       fold ins goals ([],nameset)
     end;     
 
-  fun update (pnode,pplan) newgoal = 
+  fun update env_tac (pnode,pplan) newgoal = 
    let 
+    val cur_env = get_pnode_env pnode
     val (b,ind,a) = othergs (#pname pnode) 1 (#opengs pplan) []; 
     (* 1 for current goal *)
     val numb = 1 + (Thm.nprems_of newgoal) - (Thm.nprems_of (#goal pplan))
@@ -128,7 +129,7 @@ struct
        then drop (ind-1) prems 
             |> take numb  
        else []
-    val (newgoals,goalset) = to_goal_nms (#pctxt pnode) newgoals' (#usedgs pplan)
+    val (newgoals,goalset) = to_goal_nms (#pctxt pnode) newgoals' (env_tac cur_env)(#usedgs pplan)
     val ogoals = b @ newgoals @ a
     val pplan' = {goal = newgoal,opengs = ogoals, usedgs = goalset}
   in
@@ -158,8 +159,7 @@ struct
   fun apply_tactic args (tac_code : string) (pnode,pplan) = 
     let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in
     tac (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
-    |> Seq.map (update (pnode,pplan))
-    |> Seq.map (fn (x,y) => (map (set_pnode_env (get_pnode_env pnode)) x,y)) (* inherit env *)
+    |> Seq.map (update I (pnode,pplan))
     |> (fn x => 
         (case Seq.pull x of NONE 
            => (logging "TACTIC" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode); 
@@ -169,7 +169,13 @@ struct
   (* Update the env and then apply a dummy id tac in isabelle *)
   fun apply_env_tactic args env_tac_code (pnode,pplan) = 
     let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in
-    apply_tactic args "(K (K all_tac))" (update_pnode_env env_tac pnode, pplan)
+    (K (K all_tac)) (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
+    |> Seq.map (update env_tac (pnode,pplan))
+    |> (fn x => 
+        (case Seq.pull x of NONE 
+           => (logging "TACTIC" ("Fail to apply env tactic for pnode " ^ get_pnode_name pnode); 
+               raise tinker_fail) 
+           | _ => x ))
     end
   (* SOME default tactics *)
 
