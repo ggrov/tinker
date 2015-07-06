@@ -1,0 +1,133 @@
+{
+  "name" : "Proof strategy graph",
+  "core_name" : "ps_graph",
+  "vertex_types" : {
+    "T_Identity" : {
+      "value" : {
+        "path" : "$.id_name",
+        "validate_with_core" : false,
+        "latex_constants" : false,
+        "type" : "string"
+      },
+      "style" : {
+        "label" : {
+          "position" : "inside",
+          "fg_color" : [ 0.1, 0.1, 0.1 ]
+        },
+        "stroke_color" : [ 0.1, 0.1, 0.1 ],
+        "fill_color" : [ 0.6, 0.8, 1.0 ],
+        "shape" : "triangle"
+      },
+      "default_data" : {
+        "id_name" : "",
+        "type" : "T_Identity"
+      }
+    },
+    "G_Break" : {
+      "value" : {
+        "path" : "$.label",
+        "validate_with_core" : false,
+        "latex_constants" : false,
+        "type" : "string"
+      },
+      "style" : {
+        "label" : {
+          "position" : "inside",
+          "fg_color" : [ 1.0, 1.0, 1.0 ]
+        },
+        "stroke_color" : [ 1.0, 0.2, 0.2 ],
+        "fill_color" : [ 1.0, 0.2, 0.2 ],
+        "shape" : "octagon"
+      },
+      "default_data" : {
+        "label" : "STOP",
+        "type" : "G_Break"
+      }
+    },
+    "T_Atomic" : {
+      "value" : {
+        "path" : "$.atm",
+        "validate_with_core" : false,
+        "latex_constants" : false,
+        "type" : "string"
+      },
+      "style" : {
+        "label" : {
+          "position" : "inside",
+          "fg_color" : [ 0.1, 0.1, 0.1 ]
+        },
+        "stroke_color" : [ 0.1, 0.1, 0.1 ],
+        "fill_color" : [ 0.8, 1.0, 0.6 ],
+        "shape" : "rectangle"
+      },
+      "default_data" : {
+        "atm" : "tactic",
+        "type" : "T_Atomic"
+      }
+    },
+    "T_Graph" : {
+      "value" : {
+        "path" : "$.subgraph",
+        "validate_with_core" : false,
+        "latex_constants" : false,
+        "type" : "string"
+      },
+      "style" : {
+        "label" : {
+          "position" : "inside",
+          "fg_color" : [ 0.1, 0.1, 0.1 ]
+        },
+        "stroke_color" : [ 0.1, 0.1, 0.1 ],
+        "fill_color" : [ 1.0, 0.8, 0.6 ],
+        "shape" : "multirect"
+      },
+      "default_data" : {
+        "subgraph" : "nested",
+        "type" : "T_Graph"
+      }
+    },
+    "G" : {
+      "value" : {
+        "path" : "$.gn",
+        "validate_with_core" : false,
+        "latex_constants" : false,
+        "type" : "string"
+      },
+      "style" : {
+        "label" : {
+          "position" : "inside",
+          "fg_color" : [ 0.0, 0.2, 0.0 ]
+        },
+        "stroke_color" : [ 0.0, 0.2, 0.0 ],
+        "fill_color" : [ 0.8, 1.0, 1.0 ],
+        "shape" : "circle"
+      },
+      "default_data" : {
+        "gn" : "g",
+        "type" : "G"
+      }
+     }
+  },
+  "edge_types" : {
+    "GT" : {
+      "value" : {
+        "path" : "$.gtyp",
+        "validate_with_core" : false,
+        "latex_constants" : false,
+        "type" : "string"
+      },
+      "style" : {
+        "stroke_color" : [ 0.0, 0.0, 0.0 ],
+        "stroke_width" : 1,
+        "label" : {
+          "position" : "center",
+          "fg_color" : [ 0.0, 0.0, 1.0 ],
+          "bg_color" : [ 0.8, 0.8, 1.0, 0.7 ]
+        }
+      },
+      "default_data" : {"gtyp" : "any", "type" : "GT", "break" : false}
+    }
+  },
+  "default_vertex_type" : "T_Atomic",
+  "default_edge_type" : "GT"
+}

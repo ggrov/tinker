@@ -1,3 +1,0 @@
-version:
-- 0.1: gui only
-- 0.2: connected to the tinker core, supports evaluating both flat diagrams and hierarchical ones. 

@@ -1,0 +1,58 @@
+**** INSTALLATION *****
+-----------------------------------
+Downloading and Installing ProofPower
+-----------------------------------
+
+Go to 
+
+ http://www.lemma-one.com/ProofPower/getting/versions/
+
+and install ProofPower
+
+------------------------------------
+Downloading and Installing Quantomatic
+-----------------------------------
+get the quantomatic library (requires git)
+
+  git clone git://github.com/Quantomatic/quantomatic.git
+  cd quantomatic
+  git checkout integration
+  git pull
+  
+
+------------------------------------
+Building quanto + psgraph on the top of pp
+-----------------------------------  
+
+Create a pp db/heap based on zed theory
+  pp_make_database -p zed $PPHOME/db/zed_psgraph
+
+clean up previous bulid
+  find . -type d -name .polysave | xargs rm -rf
+  find . -type f -name *.heap | xargs rm -rf
+  
+go to the build direcory:
+  cd PSGRAPHDIR/src/provers/proofpower/build
+
+start pp with the fresh empty db
+  xpp -d zed_psgraph
+
+in the poly ml interface: 
+build quanto + psgraph
+  use "install.ml";
+
+  
+------------------------------------
+Building PSGraph
+-----------------------------------  
+now the db zed_psgraph should contain the quantomatic library, 
+load this db directly
+
+  xpp -d zed_psgraph
+
+to build PSGraph
+
+  use "build_psgraph.ml";
+
+
+
