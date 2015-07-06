@@ -3,10 +3,10 @@ imports
   "../../provers/isabelle/basic/build/BIsaP"    
 begin
 
-ML{*
+ML{*-
   val path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/src/core/demo/AdvisoryBoardMeeting2015/" ;
 *}
-ML{*-
+ML{*
   val path = "/home/pierre/Documents/HW/Tinker/tinkerGit/tinker/src/core/demo/AdvisoryBoardMeeting2015/"
 *}
 ML{*
