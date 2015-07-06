@@ -11,6 +11,8 @@ ML{*
 
 ML{*
   val guiPath = "/home/pierre/Documents/HW/Tinker/tinkerGit/tinker/src/tinkerGUI/release/";
+*}
+ML{*
   local open CInterface in
   val get = get_sym (guiPath^"guiLauncher.so");
   val opengui = call2 (get "openGUI") (STRING,STRING) INT;
