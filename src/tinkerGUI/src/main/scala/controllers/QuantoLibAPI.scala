@@ -1022,27 +1022,32 @@ object QuantoLibAPI extends Publisher{
 	  *
 	  * @param json Json object to add
 	  */
-	def addFromJson(json: Json) {
+	def addFromJson(json: Json):Map[String,String] = {
 		view.selectedVerts.foreach { v => view.selectedVerts -= v}
-		var newNameMap = Map[String, String]()
+		var newNodeIdMap = Map[String, String]()
+		var nameNodeIdMap = Map[String,String]()
 		(json ? "wire_vertices").mapValue.foreach{ case (k,v) =>
 			val bName = graph.verts.freshWithSuggestion(VName("b0"))
-			newNameMap = newNameMap + ((k, bName.s))
+			newNodeIdMap = newNodeIdMap + (k -> bName.s)
 			changeGraph(graph.addVertex(bName, WireV.fromJson(v, theory)))
 			view.selectedVerts += bName
 		}
 		(json ? "node_vertices").mapValue.foreach{ case (k,v) =>
 			val vName = graph.verts.freshWithSuggestion(VName("v0"))
-			newNameMap = newNameMap + ((k, vName.s))
+			newNodeIdMap = newNodeIdMap + (k -> vName.s)
 			changeGraph(graph.addVertex(vName, NodeV.fromJson(v, theory)))
+			graph.vdata(vName) match { case d:NodeV if d.typ == "T_Atomic" || d.typ == "T_Graph" => nameNodeIdMap = nameNodeIdMap + (ArgumentParser.separateNameFromArgument(d.value.stringValue)._1->vName.s)}
 			view.selectedVerts += vName
 		}
 		(json ? "dir_edges").mapValue.foreach{ case (k,v) =>
 			val eName = graph.edges.freshWithSuggestion(EName("e0"))
 			val data = v.getOrElse("data", theory.defaultEdgeData).asObject
 			val annotation = (v ? "annotation").asObject
-			changeGraph(graph.addEdge(eName, DirEdge(data, annotation, theory), (newNameMap((v / "src").stringValue), newNameMap((v / "tgt").stringValue))))
+			changeGraph(graph.addEdge(eName, DirEdge(data, annotation, theory), (newNodeIdMap((v / "src").stringValue), newNodeIdMap((v / "tgt").stringValue))))
 		}
+		view.resizeViewToFit()
+		publishSelectedVerts()
+		nameNodeIdMap
 	}
 
 	/** listener to view mouse clicks and moves */

@@ -43,6 +43,7 @@ class HierarchyController(model:PSGraph) extends Publisher {
 	listenTo(Service.editCtrl)
 	listenTo(Service.documentCtrl)
 	listenTo(Service.evalCtrl)
+	listenTo(Service.libraryTreeCtrl)
 	reactions += {
 		case GraphTacticListEvent() =>
 			elementParents = updateElementParents()

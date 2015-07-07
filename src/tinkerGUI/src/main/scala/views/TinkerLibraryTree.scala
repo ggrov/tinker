@@ -4,9 +4,12 @@ import tinkerGUI.controllers.events.PreviewEvent
 import tinkerGUI.controllers.Service
 
 import quanto.gui.{FileTree, FileOpened}
+import tinkerGUI.utils.MutableComboBox
 
 import scala.swing._
 import java.io.{FilenameFilter, File}
+
+import scala.swing.event.SelectionChanged
 
 class TinkerLibraryTree() extends Publisher {
 	val controller = Service.libraryTreeCtrl
@@ -40,15 +43,24 @@ class TinkerLibraryTree() extends Publisher {
 
 	val previewPanel = new BorderPanel(){
 		minimumSize = new Dimension(100,200)
+		val cb = new MutableComboBox[String]
+		cb.items = controller.gtList
 		add(new FlowPanel() {
-			contents += new Button(controller.addFileToGraph)
+			contents += cb
+			contents += new Button(new Action("Add to graph"){def apply() = controller.addFileToGraph})
 		}, BorderPanel.Position.North)
 		add(controller.getLibraryView, BorderPanel.Position.Center)
+		listenTo(cb)
+		reactions += {
+			case SelectionChanged(`cb`) => controller.previewGTFromJson(cb.item,0)
+		}
 	}
 
 	listenTo(controller)
 	reactions += {
 		case PreviewEvent(_,_) =>
+			previewPanel.cb.items = controller.gtList
+			previewPanel.cb.item = controller.selectedGt
 			previewPanel.repaint()
 	}
 }
