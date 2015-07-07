@@ -1,3 +1,10 @@
+/**
+	To create library file, using gcc:
+	$ gcc -m32 -c -fPIC guiLauncher.c -o guiLauncher.o
+	$ gcc -m32 -shared -fPIC guiLauncher.o -o guiLauncher.so
+*/
+
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -19,6 +26,8 @@ int openGUI(const char *path, const char *version) {
 	pid_t pid;
 	pid = fork ();
 	if (pid == 0) {
+		//setenv("PATH", path,1);
+		chdir(path);
       /* This is the child process.  Execute the shell command. */
 		execlp ("java", "java", "-jar", jarFile, NULL);
 		_exit (EXIT_FAILURE);
