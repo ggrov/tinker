@@ -8,7 +8,7 @@ struct
 
   (* Proof state *)
   type fixes = string list;
-  (* to do: add features,
+  (* to do: add features,                                              
       syntax:
          type: e.g. g_feature
          name: string e.g. top_level
@@ -34,10 +34,10 @@ struct
 
   datatype PT = Gap
     | Proof of why * PG list
-    | Failure of {failures : PT list, valid : PT option} (* assume failed is ordered *)
+    | Failure of {failures : PT list, valid : PG list (*PT option *)} (* assume failed is ordered *)
   and PG = Goal of {state : PS, cont : PT};
 
- datatype Theory = Th of PG StrName.NTab.T;
+ (* datatype Theory = Th of PG StrName.NTab.T;*)
 
   (* encoding and decoding of xml representation *)
   exception decode_exp of string * XML.tree;
@@ -81,8 +81,10 @@ struct
 
   fun decode_tac_single_arg (XML.Text x) = x
   fun decode_tac_arg (XML.Elem (("Arg",[]),arg)) = map decode_tac_single_arg arg;
+  fun decode_tac_args (XML.Elem (("Args",_),args)) = maps decode_tac_arg args;
 
-  fun decode_tac (XML.Elem (("Tac",[("val",name)]),args)) = Tac (name,map decode_tac_arg args);
+  fun decode_tac (XML.Elem (("Tac",[("val",name)]),args)) = Tac (name,map decode_tac_args args)
+   | decode_tac (xml) = Tac (XML.string_of xml,[]); (* dummy *)
 
   fun encode_why (s,m) = XML.Elem (("Why",[("why_info",s)]),[encode_tac m]);
   fun decode_why (XML.Elem (("Why",[("why_info",s)]),[m])) = (s,decode_tac m)
@@ -90,28 +92,39 @@ struct
 
   fun encode_pt Gap = XML.Elem (("Gap",[]),[])
    | encode_pt (Proof(w, goals)) = XML.Elem (("Proof",[]),[encode_why w, XML.Elem (("Goals",[]), map encode_pg goals)])
+   (* FIXME: not working *)
    | encode_pt (Failure {failures,valid}) = XML.Elem (("Failure",[]),
        [XML.Elem (("Failures",[]),map encode_pt failures),
-        XML.Elem (("Valid",[]),[encode_opt (Option.map encode_pt valid)])])
+        XML.Elem (("Valid",[]),[] (* encode_opt (Option.map encode_pt valid)] *) )])
   and encode_pg (Goal {state,cont}) = XML.Elem (("Goal",[]),[encode_ps state,encode_pt cont]);
 
   fun decode_pt (XML.Elem (("Gap",[]),[])) = Gap
    | decode_pt (XML.Elem (("Proof",[]),(w_tree :: XML.Elem (("Goals",[]), goals_trees) :: _))) =
         Proof (decode_why w_tree, map decode_pg goals_trees)
-   | decode_pt (XML.Elem (("Failure",[]),[XML.Elem (("Failures",[]),failures_trees), XML.Elem (("Valid",[]),[valid_tree])])) =
-         Failure {failures = map decode_pt failures_trees,valid = Option.map decode_pt (decode_opt valid_tree)}
+   | decode_pt (XML.Elem (("Failure",[]),[XML.Elem (("Failures",[]),failures_trees), XML.Elem (("Valid",[]),[valid_tree])])) = 
+        Failure {failures = map decode_pt failures_trees,valid = decode_goals valid_tree (* Option.map decode_pt (decode_opt valid_tree) *)}
    | decode_pt tree = raise decode_exp ("cannot decode proof element",tree)
   and decode_pg (XML.Elem (("Goal",[]),[state_tree,cont_tree])) =
         Goal {state = decode_ps state_tree,cont = decode_pt cont_tree}
-   | decode_pg tree = raise decode_exp ("cannot decode proof goal",tree);
+   | decode_pg tree = raise decode_exp ("cannot decode proof goal",tree)
+  and decode_goals (XML.Elem (("Goals",[]),goals)) = map decode_pg goals;
 
  fun decode_lemma (XML.Elem (("Lemma",[("name",s)]),[m])) = (s,decode_pg m);
 
- fun decode_theory (XML.Elem (("Theory",_),_),lemmas) = 
+ fun decode_theory (XML.Elem (("Theory",_),lemmas)) = 
    lemmas
    |> map decode_lemma 
-   |> StrName.NTab.of_list
-   |> Th;
+(*   |> StrName.NTab.of_list
+   |> Th *) ;
+
+ fun parse_only_file filename = 
+   let
+     val is = TextIO.openIn filename
+     val inp = TextIO.inputAll is;
+     val _ = TextIO.closeIn is;
+   in
+     inp 
+   end;
 
  fun parse_file filename = 
    let
@@ -121,15 +134,16 @@ struct
    in
      inp |> YXML.parse_body 
          |> hd (* not sure what's in the rest of the list *)
-         |> decode_pg (* should be decode_theory *)
+         |> decode_theory (* should be decode_theory *)
    end;
 
+(*
   fun path th = Path.implode (Thy_Load.master_directory th) ^ "/";
   fun fname' th = (Context.theory_name th) ^ ".pp";
   fun filename th = (path th) ^ (fname' th);
 
   val parse_theory = parse_file o filename;
-
+*)
 
 end;
 
