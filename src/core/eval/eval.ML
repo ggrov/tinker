@@ -22,7 +22,6 @@ struct
   (*******
     Application of tactic - link with TP systems
   *******)   
-  (* FIXME: raise exception if it fails *)
   fun apply_tactic edata gnode (GData.T_Atomic name) = 
        let 
          val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)

@@ -1,3 +1,7 @@
+  open_theory "hol";
+  new_pc "psgraph";
+  set_pc "psgraph";
+  
   val root_path = OS.FileSys.getDir();
   val build_path = root_path ^ "/psgraph/src/core/provers/proofpower/build";
   OS.FileSys.chDir build_path;
@@ -13,5 +17,4 @@
   ("output_in_utf8", false), 
   ("input_in_utf8", false)];(* disable uftp-8 encoding for GUI *)
 *)
-  new_pc "psgraph";
-  set_pc "psgraph";
+ 

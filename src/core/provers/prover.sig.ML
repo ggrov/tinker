@@ -31,8 +31,11 @@ sig
     E_Trm of term  | E_Thm of thm |
     E_ML of string | 
     E_L of env_data list
+  val pretty_env_data : context -> env_data -> Pretty.T
 
   type env = env_data StrName.NTab.T 
+  val pretty_env :  context -> env -> Pretty.T
+
   type env_tac
   exception env_data_exp 
 

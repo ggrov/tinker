@@ -1,8 +1,20 @@
 theory json_test                                           
 imports       
-  "../build/BIsaP"    
+  "../build/BIsaP"   
 begin
 
+ML{*
+
+
+
+val env = StrName.NTab.of_list [("x", E_Str "is E_Str"), ("y", E_Trm @{term "a + b"}), ("thm", E_Thm @{thm impI}),
+("ml", E_ML "ml code"), ("el",  E_L [E_Str "is E_Str",  E_Trm @{term "a + b"}])]; 
+
+pretty_env @{context} env |> Pretty.writeln ;
+    E_Trm of term | E_Thm of thm |
+    E_ML of string | 
+    E_L of env_data list
+*}
 ML{*- 
   val path = "/u1/staff/gg112/";
   val guiPath = "/u1/staff/gg112/tinker/src/tinkerGUI/release/";
@@ -12,7 +24,7 @@ ML{*
   val path = "/Users/yuhuilin/Desktop/psgraph/" ;
   val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
   val guiPath = tinker_path ^ "src/tinkerGUI/release/";
-  val sys = "osx"
+  val sys = "osx_32"
 *}
 
 ML{*-
@@ -26,7 +38,7 @@ ML{*
   set_guiPath guiPath sys;
 *}
 
-ML{*-
+ML{*  
   open_gui_single();
 *}
 
@@ -46,6 +58,7 @@ ML{*
 
 ML{*
 val impI_thm = @{thm impI};
+val conjI_thm = @{thm conjI};
 fun rule_tac thm _ i =  rtac thm i;
 fun impI_tac  _ i  = rtac @{thm impI} i;
 fun conjI_tac _ i  = rtac @{thm conjI} i
@@ -60,7 +73,7 @@ fun test_true1 _ _ _ = true
 *}
 (* read and load a psgraph created by gui *)
 ML{*
-  val ps = PSGraph.read_json_file (path^"demo_new.psgraph");
+  val ps = PSGraph.read_json_file (path^"demo_env.psgraph");
   PSGraph.write_json_file (path^"demo1.psgraph") ps; 
 *}
 
@@ -73,13 +86,11 @@ IEVal.output_string
 
 *} 
 
-ML{* -
+ML{*-
   TextSocket.safe_close();
 *}
 ML{*-
-Tinker.start_ieval @{context} ps [] @{prop "(A)  \<longrightarrow>  (A \<and>  A \<and> A)"};
+Tinker.start_ieval @{context} ps [] @{prop "(A)  \<longrightarrow>  ((B \<longrightarrow>A) \<and>  (B \<longrightarrow>A) \<and> (B \<longrightarrow>A))"};
 *}
 
-lemma "(A)  \<longrightarrow>  (A \<and>  A \<and> A)"
-apply (tactic {* tinker_tac ps @{context} *})
 

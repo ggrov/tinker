@@ -92,10 +92,10 @@ struct
       | SOME var0  => 
         (case StrName.NTab.get env_data var0 of (Prover.E_ML var') => var'
           | _ =>  (logging "ENV_DATA" ("Only E_ML is supported, please check the type of " ^ var0  ^ " in " ^ tac_code); 
-                   raise tinker_fail)
-        handle StrName.Tab.UNDEF _ => 
+                   raise tinker_fail))
+    handle StrName.Tab.UNDEF _ => 
           (logging "ENV_DATA" ("Undefined env_var " ^ var0  ^ " for " ^ tac_code); 
-           raise tinker_fail))
+           raise tinker_fail)
     val tac_args_env_var : string list list = 
       map 
       (fn arg => (subst_env_var (hd arg)) :: (tl arg)
@@ -103,6 +103,11 @@ struct
            (logging "ARG_DATA" ("Illformed arg_data, [] encountered for " ^ tac_code); 
            raise tinker_fail))
       tac_args
+     val _ = logging "TACTIC" (
+               "tac_code [" ^ tac_code ^ "] \t" ^ 
+               "tac_args_env_var [" ^ 
+               ((Pretty.chunks (map Pretty.str (List.concat tac_args_env_var))) |> Pretty.string_of) ^ 
+               "]")
   in
     (tac_code, tac_args_env_var)
   end
