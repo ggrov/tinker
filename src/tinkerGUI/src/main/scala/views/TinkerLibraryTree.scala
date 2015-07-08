@@ -1,7 +1,10 @@
 package tinkerGUI.views
 
+import java.awt.{Font, Cursor}
+import javax.swing.ImageIcon
+
 import tinkerGUI.controllers.events.PreviewEvent
-import tinkerGUI.controllers.Service
+import tinkerGUI.controllers.{QuantoLibAPI, Service}
 
 import quanto.gui.{FileTree, FileOpened}
 import tinkerGUI.utils.MutableComboBox
@@ -43,13 +46,86 @@ class TinkerLibraryTree() extends Publisher {
 
 	val previewPanel = new BorderPanel(){
 		minimumSize = new Dimension(100,200)
+
 		val cb = new MutableComboBox[String]
 		cb.items = controller.gtList
-		add(new FlowPanel() {
-			contents += cb
-			contents += new Button(new Action("Add to graph"){def apply() = controller.addFileToGraph})
+		val comboBox = new FlowPanel(FlowPanel.Alignment.Left)(cb)
+		comboBox.visible = false
+
+		val navigation = new FlowPanel(FlowPanel.Alignment.Right)(){
+			contents += new Button(new Action(""){
+				def apply() = {}
+			}){
+				icon = new ImageIcon(MainGUI.getClass.getResource("previous.png"), "Previous")
+				tooltip = "Previous"
+				borderPainted = false
+				margin = new Insets(0,0,0,0)
+				contentAreaFilled = false
+				opaque = false
+				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+			}
+			contents += new Button(new Action(""){
+				def apply() = {}
+			}){
+				icon = new ImageIcon(MainGUI.getClass.getResource("next.png"), "Next")
+				tooltip = "Next"
+				borderPainted = false
+				margin = new Insets(0,0,0,0)
+				contentAreaFilled = false
+				opaque = false
+				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+			}
+			contents += new Button(new Action(""){
+				def apply() = {}
+			}){
+				icon = new ImageIcon(MainGUI.getClass.getResource("zoom-in.png"), "Zoom in")
+				tooltip = "Zoom in"
+				borderPainted = false
+				margin = new Insets(0,0,0,0)
+				contentAreaFilled = false
+				opaque = false
+				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+			}
+			contents += new Button(new Action(""){
+				def apply() = {}
+			}){
+				icon = new ImageIcon(MainGUI.getClass.getResource("zoom-out.png"), "Zoom out")
+				tooltip = "Zoom out"
+				borderPainted = false
+				margin = new Insets(0,0,0,0)
+				contentAreaFilled = false
+				opaque = false
+				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+			}
+			contents += new Button(new Action(""){
+				def apply() = controller.addFileToGraph
+			}){
+				icon = new ImageIcon(MainGUI.getClass.getResource("add-to-graph.png"), "Add to graph")
+				tooltip = "Add to graph"
+				borderPainted = false
+				margin = new Insets(0,0,0,0)
+				contentAreaFilled = false
+				opaque = false
+				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+			}
+		}
+		navigation.visible = false
+
+		val noGraphLabel = new FlowPanel(FlowPanel.Alignment.Center)(new Label("Select a file in the library to preview it here."))
+
+		val graphPanel = QuantoLibAPI.getLibraryPreview
+		graphPanel.visible = false
+
+		val titleFont = new Font("Dialog",Font.BOLD,14)
+		val title = new Label("Library file preview"){font = titleFont}
+
+		add(new BorderPanel() {
+			add(new FlowPanel(FlowPanel.Alignment.Center)(title),BorderPanel.Position.North)
+			add(comboBox, BorderPanel.Position.West)
+			add(navigation, BorderPanel.Position.East)
+			add(noGraphLabel, BorderPanel.Position.South)
 		}, BorderPanel.Position.North)
-		add(controller.getLibraryView, BorderPanel.Position.Center)
+		add(graphPanel, BorderPanel.Position.Center)
 		listenTo(cb)
 		reactions += {
 			case SelectionChanged(`cb`) => controller.previewGTFromJson(cb.item,0)
@@ -61,6 +137,11 @@ class TinkerLibraryTree() extends Publisher {
 		case PreviewEvent(_,_) =>
 			previewPanel.cb.items = controller.gtList
 			previewPanel.cb.item = controller.selectedGt
+			previewPanel.comboBox.visible = true
+			previewPanel.navigation.visible = true
+			previewPanel.graphPanel.visible = true
+			previewPanel.noGraphLabel.visible = false
+			previewPanel.title.text = controller.fileName+controller.fileExtn+" preview"
 			previewPanel.repaint()
 	}
 }
