@@ -8,13 +8,38 @@ struct
   type tactic = (*context ->*) TACTIC (* TODO: need pc ? *)
   type context = string list * string (* context string list * theory string *)
   
+  val default_ctxt = get_current_pc (); (* used in those place need context in general *)
+
+    
+  fun pretty_trm _ trm = Pretty.block (map Pretty.str (PrettyPrinter.format_term true trm))
+    
   type arg_data = string (* A_Const of string | A_Var of string | A_Trm of term *)
+  
   datatype env_data = 
     E_Str of string | 
     E_Trm of term | E_Thm of thm |
     E_ML of string | 
     E_L of env_data list
+  fun pretty_env_data _ (E_Str str) = Pretty.block [Pretty.str "E_Str(", Pretty.str str, Pretty.str ")"]
+  |   pretty_env_data _ (E_Trm trm) = Pretty.block [Pretty.str "E_Trm(", pretty_trm default_ctxt trm, Pretty.str ")"]
+  |   pretty_env_data _ (E_Thm thm) = Pretty.block [Pretty.str "E_Thm(", concl thm |> pretty_trm default_ctxt, Pretty.str ")"]
+  |   pretty_env_data _ (E_ML str) = Pretty.block [Pretty.str "E_ML(", Pretty.str str, Pretty.str ")"]
+  |   pretty_env_data _ (E_L l) =  
+        Pretty.block [Pretty.str "E_L(\n",
+                      Pretty.chunks (map (pretty_env_data default_ctxt) l 
+                         |> map (fn p => Pretty.block [Pretty.str "\t\t", p])), 
+                      Pretty.str ")"];
+
   type env = env_data StrName.NTab.T 
+  
+  fun pretty_env ctxt env = 
+    let fun pretty_pair (n, env_data) = Pretty.block [Pretty.str n, Pretty.str ": ", pretty_env_data ctxt env_data] in
+    StrName.NTab.list_of env
+    |> map pretty_pair
+    |> (fn xs => Pretty.chunks ((Pretty.str "ENV_DATA: [" :: (map (fn x => (Pretty.block[Pretty.str "\t", x]))xs)) @ [Pretty.str "]"]) )
+    end
+    
+    
   type env_tac =  env -> env
   
   (* atomic part *)
@@ -42,7 +67,6 @@ struct
 
   exception gterm_exp
   
-  val default_ctxt = get_current_pc (); (* used in those place need context in general *)
   val typ_of = type_of
   fun match _ = (op ~=$) 
 
@@ -62,7 +86,6 @@ struct
   
 (* TODO: how to print those fancy symbols in proofpower ?*)
   fun string_of_trm _ = fn trm => PrettyPrinter.format_term true trm |> String.concat
-  fun pretty_trm _ trm = Pretty.block (map Pretty.str (PrettyPrinter.format_term true trm))
 
 
   fun get_all_assms (pnode : pnode)  = (#g pnode) 
@@ -123,7 +146,7 @@ struct
           (case String.compare ((#pname x), name) of EQUAL => false 
           | _ => true))
         plist
-      fun gen_pnode (name, g) = ({pname = name, pctxt = ctxt, g = snd g, global = fst g, env = StrName.NTab.empty});
+      fun gen_pnode (name, g) = ({pname = name, pctxt = ctxt, g = snd g, global = fst g, env = get_pnode_env pnode});
     in
       if (List.length sgs) = 0 (* no sgs *) 
       then 

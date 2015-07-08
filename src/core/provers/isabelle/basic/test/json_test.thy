@@ -21,8 +21,8 @@ ML{*-
 *}
 
 ML{*
-  val path = "/Users/yuhuilin/Desktop/psgraph/" ;
   val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
+  val path = tinker_path ^ "src/dev/psgraph/";
   val guiPath = tinker_path ^ "src/tinkerGUI/release/";
   val sys = "osx_32"
 *}
@@ -38,7 +38,7 @@ ML{*
   set_guiPath guiPath sys;
 *}
 
-ML{*  
+ML{*  -
   open_gui_single();
 *}
 
@@ -89,7 +89,7 @@ IEVal.output_string
 ML{*-
   TextSocket.safe_close();
 *}
-ML{*-
+ML{* -
 Tinker.start_ieval @{context} ps [] @{prop "(A)  \<longrightarrow>  ((B \<longrightarrow>A) \<and>  (B \<longrightarrow>A) \<and> (B \<longrightarrow>A))"};
 *}
 

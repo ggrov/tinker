@@ -1,12 +1,9 @@
  use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
 
-get_theory_names();
 
-
- val path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/src/core/demo/AdvisoryBoardMeeting2015/" ;
-
-  val path = "/Users/yuhuilin/Desktop/psgraph/" ;
+  val path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/
   val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
+  val path = tinker_path ^ "src/dev/psgraph/";
   val guiPath = tinker_path ^ "src/tinkerGUI/release/";
   val sys = "osx_64";
   
@@ -14,6 +11,8 @@ get_theory_names();
   open_gui_single();
 
   val _ = LoggingHandler.active_all_tags ();
+  val _ = LoggingHandler.clear_active_tags();
+  val _ = map LoggingHandler.ins_active_tag ["ENV_DATA"];
   val _ = LoggingHandler.print_active();
 
   val impI_thm = "This is a impI thm !";
@@ -35,4 +34,3 @@ get_theory_names();
   PPIntf.set_psg_goal ([¬B : BOOL®], ¬A ´ (A ± B ± (C ´ C))®) ps;
 
   TextSocket.safe_close();
-Pretty.string_of;
