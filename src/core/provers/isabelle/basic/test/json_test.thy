@@ -8,14 +8,14 @@ ML{*-
   val guiPath = "/u1/staff/gg112/tinker/src/tinkerGUI/release/";
 *}
 
-ML{*
+ML{*-
   val path = "/Users/yuhuilin/Desktop/psgraph/" ;
   val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
   val guiPath = tinker_path ^ "src/tinkerGUI/release/";
   val sys = "osx"
 *}
 
-ML{*-
+ML{*
   val path = "/home/pierre/Documents/HW/Tinker/tinkerGit/tinker/src/core/demo/AdvisoryBoardMeeting2015/"
   val tinker_path ="/home/pierre/Documents/HW/Tinker/tinkerGit/tinker/" 
   val guiPath = tinker_path ^ "src/tinkerGUI/release/";

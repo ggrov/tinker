@@ -1,6 +1,6 @@
 package tinkerGUI.controllers
 
-import tinkerGUI.controllers.events.{GraphTacticListEvent, PreviewEvent}
+import tinkerGUI.controllers.events.{UpdateGTListEvent, DisableNavigationEvent, GraphTacticListEvent, PreviewEvent}
 import tinkerGUI.utils.TinkerDialog
 import tinkerGUI.model.PSGraph
 
@@ -18,8 +18,12 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 	var selectedGt:String = ""
 	/** Currently selected file name.*/
 	var fileName = ""
-	/**Currently selected file extension.*/
+	/** Currently selected file extension.*/
 	var fileExtn = ""
+	/** Currently viewed subgraph index on total of subgraphs.*/
+	var indexOnTotalText = ""
+	/** Currently viewed subgraph index.*/
+	var currentIndex = 0
 
 	/** Method to get the preview from QuantoLibAPI.*/
 	def getLibraryView = QuantoLibAPI.getLibraryPreview
@@ -38,19 +42,45 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 					gtList = (json / "graph_tactics").asArray.foldLeft(List[String]()){case (l,gt)=> l:+(gt / "name").stringValue} :+ "main"
 					selectedGt = "main"
 					QuantoLibAPI.updateLibraryPreviewFromJson(json / "graph")
+					indexOnTotalText = "1 / 1"
 					publish(PreviewEvent(show = true,hasPreview = true))
+					publish(DisableNavigationEvent(Array("next","previous")))
+					publish(UpdateGTListEvent())
 				case _ => TinkerDialog.openErrorDialog("Error when parsing file "+f.getName+" to json")
 			}
 		}
 	}
 
 	def previewGTFromJson(tactic:String,index:Int) {
-		if(tactic == "main") QuantoLibAPI.updateLibraryPreviewFromJson(json / "graph")
+		var show = true
+		if(tactic == "main") {
+			currentIndex = 0
+			QuantoLibAPI.updateLibraryPreviewFromJson(json / "graph")
+			indexOnTotalText = "1 / 1"
+			publish(DisableNavigationEvent(Array("next","previous")))
+		}
 		else (json / "graph_tactics").asArray.foreach{ gt =>
-			if((gt / "name").stringValue == tactic) QuantoLibAPI.updateLibraryPreviewFromJson((gt / "graphs").asArray.get(index))
+			if((gt / "name").stringValue == tactic) {
+				if ((gt / "graphs").asArray.nonEmpty) {
+					currentIndex = index
+					val tacSize = (gt / "graphs").asArray.size
+					QuantoLibAPI.updateLibraryPreviewFromJson((gt / "graphs").asArray.get(index))
+					indexOnTotalText = (index+1)+" / "+tacSize
+					var arr = Array[String]()
+					if(index==0) arr = arr :+ "previous"
+					if(index == tacSize-1) arr = arr :+ "next"
+					publish(DisableNavigationEvent(arr))
+				} else {
+					//QuantoLibAPI.updateLibraryPreviewFromJson(json / "graph")
+					currentIndex = 0
+					indexOnTotalText = "0 / 0"
+					publish(DisableNavigationEvent(Array("next","previous","zoomin","zoomout")))
+					show = false
+				}
+			}
 		}
 		selectedGt = tactic
-		publish(PreviewEvent(show = true,hasPreview = true))
+		publish(PreviewEvent(show,hasPreview = true))
 	}
 
 	/** Method adding a json file to the current psgraph.
@@ -62,7 +92,7 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 		def updateGraphJsonWithNewNames(json: Json): Json = {
 			var newJson = json
 			valuesToReplace.foreach{ case (oldVal, newVal) =>
-				newJson = Json.parse(newJson.toString.replace(oldVal, newVal))
+				newJson = Json.parse(newJson.toString.replace("\""+oldVal+"\"", "\""+newVal+"\"").replace("\""+oldVal+"(", "\""+newVal+"("))
 			}
 			newJson
 		}
@@ -72,6 +102,7 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 			else appendIndex(name, index+1)
 		}
 		try{
+			Service.documentCtrl.registerChanges()
 			(json / "atomic_tactics").asArray.foreach{ tct =>
 				val oldName = (tct / "name").stringValue
 				val tctName = appendIndex(fileName+"-"+oldName,0)
