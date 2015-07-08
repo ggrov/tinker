@@ -28,7 +28,8 @@ sig
 
   datatype env_data = 
     E_Str of string | 
-    E_Trm of term  | E_Thm of thm |
+    E_Trm of term  | 
+    E_Thm of thm |
     E_ML of string | 
     E_L of env_data list
 
