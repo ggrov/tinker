@@ -1,7 +1,7 @@
 signature GUI_LANUCHER = 
 sig
    exception gui_launcher_exp of string
-   val close_gui_single : unit -> int 
+   val close_gui_single : unit -> unit 
    val open_gui_single : unit -> unit
    val set_guiPath : string (*path*)-> string (*system : osx linux or win*) -> bool 
 end
@@ -35,6 +35,7 @@ struct
       | SOME pid => pid
 
   fun set_guiPID pid = guiPID := SOME pid
+  fun reset_guiPID _ =  guiPID := NONE
 
   fun get _  = 
    let val (path, sys) = get_guiPath () in
@@ -49,7 +50,7 @@ struct
    end
 
   fun close_gui_single _ = 
-     (call1 (get () "closeGUI") (INT) INT (get_guiPID ())
+     ((call1 (get () "closeGUI") (INT) INT (get_guiPID ()) ; reset_guiPID ())
      handle gui_launcher_exp _ => raise gui_launcher_exp "Fail to close GUI, as no GUI is open.")
   end (* local open *)
 end

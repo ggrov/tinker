@@ -36,6 +36,7 @@
   (* socket communication for the tinker gui *)
   use "../../../interface/text_socket.ML";
   use "../../../interface/tinker_protocol.ML";
+  use "../../../interface/gui_launcher.ML";
 
 (* prover related *)
   use "../termlib/termlib.ML";

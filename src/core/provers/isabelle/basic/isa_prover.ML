@@ -7,14 +7,39 @@ struct
   type thm = Thm.thm
   type context = Proof.context
 
+  val trm_of_string = Syntax.parse_term;
+  val string_of_trm = Syntax.string_of_term;
+  val pretty_trm = Syntax.pretty_term;
+
+
   type arg_data = string (* A_Const of string | A_Var of string | A_Trm of term *)
   datatype env_data = 
     E_Str of string | 
     E_Trm of term | E_Thm of thm |
     E_ML of string | 
     E_L of env_data list
-  type env = env_data StrName.NTab.T 
+
+  fun pretty_env_data _ (E_Str str) = Pretty.block [Pretty.str "E_Str(", Pretty.str str, Pretty.str ")"]
+  |   pretty_env_data ctxt (E_Trm trm) = Pretty.block [Pretty.str "E_Trm(", pretty_trm ctxt trm, Pretty.str ")"]
+  |   pretty_env_data ctxt (E_Thm thm) = Pretty.block [Pretty.str "E_Thm(", Thm.prop_of thm |> pretty_trm ctxt, Pretty.str ")"]
+  |   pretty_env_data _ (E_ML str) = Pretty.block [Pretty.str "E_ML(", Pretty.str str, Pretty.str ")"]
+  |   pretty_env_data ctxt (E_L l) =  
+        Pretty.block [Pretty.str "E_L(\n",
+                      Pretty.chunks (map (pretty_env_data ctxt) l 
+                         |> map (fn p => Pretty.block [Pretty.str "\t\t", p])), 
+                      Pretty.str ")"];
+
+  type env = env_data StrName.NTab.T
+  
+  fun pretty_env ctxt env = 
+    let fun pretty_pair (n, env_data) = Pretty.block [Pretty.str n, Pretty.str ": ", pretty_env_data ctxt env_data] in
+    StrName.NTab.list_of env
+    |> map pretty_pair
+    |> (fn xs => Pretty.chunks ((Pretty.str "ENV_DATA: [" :: (map (fn x => (Pretty.block[Pretty.str "\t", x]))xs)) @ [Pretty.str "]"]) )
+    end
+
   type env_tac =  env -> env 
+
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term, env : env } 
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
   type tactic = Proof.context -> int -> Tactical.tactic (* Proof.context -> int -> arg_data list -> Tactical.tactic*)
@@ -48,11 +73,6 @@ struct
   val default_ctxt = @{context}
   val typ_of = Term.type_of
   fun match ctxt = Pattern.matches (Context.Proof_Context.theory_of ctxt)
-
-  (* fixme: I am not sure this will handle variables! *)
-  val trm_of_string = Syntax.parse_term;
-  val string_of_trm = Syntax.string_of_term;
-  val pretty_trm = Syntax.pretty_term;
 
   val asms_of_thm = Thm.prems_of
   val concl_of_thm = Thm.concl_of

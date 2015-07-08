@@ -21,6 +21,6 @@
 (* top level inteface for pp *)
   use "../pp_intf.ML"; 
    
-  open Env_Tac_Lib 
+  open Env_Tac_Lib PPProver 
 
 
