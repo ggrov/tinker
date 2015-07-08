@@ -20,19 +20,14 @@ ML{*-
   val guiPath = "/u1/staff/gg112/tinker/src/tinkerGUI/release/";
 *}
 
-<<<<<<< HEAD
 ML{*-
-  val path = "/Users/yuhuilin/Desktop/psgraph/" ;
-=======
-ML{*
->>>>>>> d0b3e79b2c5f4e0ecb509d1e345d1f6099b0f6ba
   val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
   val path = tinker_path ^ "src/dev/psgraph/";
   val guiPath = tinker_path ^ "src/tinkerGUI/release/";
   val sys = "osx_32"
 *}
 
-ML{*
+ML{*-
   val path = "/home/pierre/Documents/HW/Tinker/tinkerGit/tinker/src/core/demo/AdvisoryBoardMeeting2015/"
   val tinker_path ="/home/pierre/Documents/HW/Tinker/tinkerGit/tinker/" 
   val guiPath = tinker_path ^ "src/tinkerGUI/release/";
@@ -43,7 +38,7 @@ ML{*
   set_guiPath guiPath sys;
 *}
 
-ML{*  -
+ML{*-
   open_gui_single();
 *}
 
