@@ -18,6 +18,8 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 	var selectedGt:String = ""
 	/** Currently selected file name.*/
 	var fileName = ""
+	/**Currently selected file extension.*/
+	var fileExtn = ""
 
 	/** Method to get the preview from QuantoLibAPI.*/
 	def getLibraryView = QuantoLibAPI.getLibraryPreview
@@ -31,6 +33,7 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 			Json.parse(f) match {
 				case j: JsonObject =>
 					fileName = f.getName.substring(0, f.getName.lastIndexOf("."))
+					fileExtn = f.getName.substring(f.getName.lastIndexOf("."))
 					json = j
 					gtList = (json / "graph_tactics").asArray.foldLeft(List[String]()){case (l,gt)=> l:+(gt / "name").stringValue} :+ "main"
 					selectedGt = "main"
