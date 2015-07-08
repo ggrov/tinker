@@ -2,12 +2,10 @@ functor ClauseGTFun(structure Prover : PROVER
                     val struct_name : string)  =
 struct
 
-  structure Prover = Prover;
+  val DEBUG_ON = true;
+  fun dbg msg = if DEBUG_ON then writeln msg else ();
 
-  type gtyp = Prover.env -> Prover.pnode -> Prover.env_data list -> Prover.env list 
-  structure GoalTyp_ML_Exec = ML_Exec_Func (val exec_str = Prover.exec_str 
-                                            type ret = gtyp 
-                                            val struct_name =  struct_name ^".GoalTyp_ML_Exec");
+  structure Prover = Prover;
 
   (**********  data ***********)
   (* grammar: 
@@ -32,6 +30,18 @@ struct
   datatype clause = Def of string * string list * arg list
                   | Constraint of arg; (* will this be used at all? *)
 
+
+  type env = Prover.env (* provided by prover *)
+
+
+  type gtyp = Prover.env -> Prover.pnode -> arg list -> Prover.env list 
+  
+  structure GoalTyp_ML_Exec = ML_Exec_Func (val exec_str = Prover.exec_str 
+                                            type ret = gtyp 
+                                            val struct_name =  struct_name ^".GoalTyp_ML_Exec");
+  
+
+
   (* imports not supported yet *)
   (* to do: add atomics as a field *)
 
@@ -43,7 +53,7 @@ struct
                     | LS_T of string list
 *)
 
-  type env = Prover.env (* provided by prover *)
+
 
   type gnode = string;
                                                             
@@ -53,6 +63,52 @@ struct
   type T = string * (arg list);
  
  val goal_name = I;
+
+
+  (**********************
+     JSON/PRETTY PRINTING
+  ***********************)
+
+  fun pretty_arg (Name n) = Pretty.str n
+   |  pretty_arg Ignore = Pretty.str "_"
+   |  pretty_arg (Var n) = Pretty.str (n)
+   |  pretty_arg (PVar n) = Pretty.str ("?" ^ n)
+   |  pretty_arg (Concl) = Pretty.str "concl"
+   |  pretty_arg  (Hyps) = Pretty.str "hyps"
+   |  pretty_arg  (Term trm) = 
+        Pretty.block 
+         [Pretty.str "\"",
+          Prover.pretty_trm Prover.default_ctxt trm,
+          Pretty.str "\""]
+   |  pretty_arg (Clause (str,args)) =
+       Pretty.block 
+        [Pretty.str str,
+         Pretty.enclose "(" ")" (Pretty.separate "," (map pretty_arg args))] 
+
+  fun pretty_clause (Def (nm,args,body)) =
+       Pretty.block 
+        [Pretty.str nm,
+         Pretty.enclose "(" ")" (Pretty.separate "," (map Pretty.str args)),
+         Pretty.enclose ":-" ".\n" (Pretty.separate "," (map pretty_arg body))]   
+   |  pretty_clause (Constraint arg) =
+       Pretty.block [pretty_arg arg, Pretty.str ".\n"]  ;
+
+  fun pretty_data (P {imports,defs,atomics}) =
+    Pretty.block (map pretty_clause defs);
+
+  fun pretty (s,args) = 
+        Pretty.block 
+         [Pretty.str s, 
+          Pretty.enclose "(" ")" (Pretty.separate "," (map pretty_arg args))];
+      
+  fun pretty_gnode name = Pretty.str name;
+
+  val pretty_env = StrName.NTab.pretty pretty_arg;
+  val str_env = pretty_env #> Pretty.string_of;
+  val dbg_env = str_env #> dbg;
+  val str_cls = pretty_clause #> Pretty.string_of;
+  val str_arg = pretty_arg #> Pretty.string_of;
+
 (* 
   fun get_gnode_env (GN {env,...}) = env;
   fun goal_name (GN {name,...}) = name;
@@ -72,6 +128,18 @@ struct
   val default_gnode = "?" (* GN {name = "?", env = StrName.NTab.empty}; *)
   val default_data = P {imports = [], defs = [], atomics = StrName.NTab.empty};
 
+  fun get_imports (P {imports,...}) = imports;
+  fun get_defs (P {defs,...}) = defs;
+  fun get_atomics (P {atomics,...}) = atomics;
+
+  fun update_imports f (P data) = P {imports = f (#imports data), defs = #defs data, atomics = #atomics data};
+  fun update_defs f (P data) = P {imports = #imports data, defs = f (#defs data), atomics = #atomics data};
+  fun update_atomics f (P data) = P {imports = #imports data, defs = #defs data, atomics = f (#atomics data)};
+
+  fun add_atomic name atom = update_atomics (StrName.NTab.ins (name,atom));
+  fun add_defs new_defs = update_defs (fn defs => defs @ new_defs);
+                              
+
   (* required? *)
   fun eq (t1,t2) = true;
   fun gnode_eq (g1,g2) = (g1 = g2);
@@ -85,8 +153,10 @@ struct
 
  (* scan of letters and identifiers *)
  val valid_id_symbols = ["_"]
+ val valid_follow_symbols = ["."]
  fun valid_letter x = Symbol.is_ascii_identifier x  orelse member (op =) valid_id_symbols x ;
- fun valid_letter_or_digit x = Symbol.is_ascii_identifier x orelse Symbol.is_digit x orelse member (op =) valid_id_symbols x ;
+ fun valid_letter_or_digit x = Symbol.is_ascii_identifier x orelse Symbol.is_digit x orelse 
+                                  member (op =) valid_id_symbols x orelse member (op =) valid_follow_symbols x ;
  val scan_letter = Scan.one valid_letter;
  val scan_letter_or_digit =  Scan.one valid_letter_or_digit
  val scan_id  = (scan_letter || $$ "?") -- ((Scan.repeat scan_letter_or_digit) >> implode) >> op ^ ;
@@ -103,12 +173,13 @@ struct
    let 
      val (str,rest) = scan_id xs 
      fun checkupper () = Symbol.is_ascii_upper (String.substring (str,0,1));
+     fun checkpvar () = (String.substring (str,0,1)) = "?";
    in 
      case str of 
        "_" => (Ignore,rest)
      | "hyps" => (Hyps,rest)
      | "concl" => (Concl,rest)
-     | _ => if checkupper () then (Var str,rest) else (Name str,rest)
+     | _ => if checkupper () then (Var str,rest) else if checkpvar() then (PVar (String.substring (str,1,String.size(str)-1)),rest) else (Name str,rest)
    end;
 
  (* scan clause *)
@@ -154,26 +225,44 @@ struct
 
   (* helper functions : needs rethink! *)
 
-  fun get pnode gtenv (Name nm) = Prover.E_Str nm
-   |  get pnode gtenv (Var v) = 
-      (case StrName.NTab.lookup gtenv v of
-           NONE => Prover.E_Str v
-         | SOME res => res)
-   |  get pnode gtenv (PVar v) = 
-        (case StrName.NTab.lookup (Prover.get_pnode_env pnode) v of
-           NONE => Prover.E_Str ("?" ^ v) (* or we should raise exception? *)
-         | SOME res => res)
-   |  get pnode gtenv Concl = Prover.E_Trm (Prover.get_pnode_concl pnode)
-   |  get pnode gtenv Hyps = map Prover.E_Trm (Prover.get_pnode_hyps pnode) |> Prover.E_L
-   |  get pnode gtenv (Term t) = Prover.E_Trm t
-   |  get pnode gtenv (Clause _) = raise eval_exp ("clause not supported in goal type")
+  (* why not just have this handled in the atomic? *)
 
+  fun lookup _ _  (Name nm) = SOME (Prover.E_Str nm)
+   |  lookup _ gtenv (Var v) = 
+      (case StrName.NTab.lookup gtenv v of
+           NONE => NONE
+         | SOME res => SOME res)
+   |  lookup pnode _ (PVar v) = 
+        (case StrName.NTab.lookup (Prover.get_pnode_env pnode) v of
+           NONE => NONE (* raise eval_exp ("Variable " ^ v ^ " not bound in environment") *)
+         | SOME res => SOME res)
+   |  lookup pnode _ Concl = SOME (Prover.E_Trm (Prover.get_pnode_concl pnode))
+   |  lookup pnode _ Hyps = SOME (map Prover.E_Trm (Prover.get_pnode_hyps pnode) |> Prover.E_L)
+   |  lookup _ _ Ignore = NONE
+   |  lookup _ _ (Term t) = SOME (Prover.E_Trm t)
+   |  lookup _ _ (Clause _) = NONE
+
+(*
+  fun get _ _  (Name nm) = AAP (Prover.E_Str nm)
+   |  get _ gtenv (Var v) = 
+      (case StrName.NTab.lookup gtenv v of
+           NONE => AAV v
+         | SOME res => AAP res)
+   |  get pnode _ (PVar v) = 
+        (case StrName.NTab.lookup (Prover.get_pnode_env pnode) v of
+           NONE =>  raise eval_exp ("Variable " ^ v ^ " not bound in environment")
+         | SOME res => AAP res)
+   |  get pnode _ Concl = AAP (Prover.E_Trm (Prover.get_pnode_concl pnode))
+   |  get pnode _ Hyps = AAP (map Prover.E_Trm (Prover.get_pnode_hyps pnode) |> Prover.E_L)
+   |  get _ _ Ignore = AAP (Prover.E_Str "_") 
+   |  get _ _ (Term t) = AAP (Prover.E_Trm t)
+   |  get _ _ (Clause _) = raise eval_exp ("clause not supported in goal type")
+*)
+(*
   fun isVar (Var _) = true
    |  isVar (PVar _) = true
    |  isVar _ = false;
-
-  fun isProverString (Prover.E_Str _) = true
-   |  isProverString _ = false;
+*)
 
   (* assumes: length f_args = length a_args
                each f_args is unique! and in capital letters?
@@ -181,12 +270,9 @@ struct
   fun inst_gtenv pnode f_args a_args gtenv = 
     let 
       fun add fv arg =
-        let
-          val res = get pnode gtenv arg
-          val notvar = not(isVar arg) orelse not(isProverString res)
-        in
-           if notvar then [(fv,res)] else []
-        end handle _ => [];
+       case lookup pnode gtenv arg of
+         SOME v => [(fv,v)]
+        | NONE => []
      fun addall (x::xs) (y::ys) = (add x y) @ (addall xs ys)
       |  addall [] [] = []
     in 
@@ -214,10 +300,11 @@ struct
 
 
    (************** USING DEFINITIONS *********************)
-   fun eval_atomic_clause (data as (P {atomics,...})) pnode (Clause (f,args)) gtenv  =
+   fun eval_atomic_clause (data as (P {atomics,...})) pnode (cls as Clause (f,args)) gtenv  =
       case StrName.NTab.lookup atomics f of
           NONE => [] 
-        | SOME f_a => f_a gtenv pnode (map (get pnode gtenv) args);  (* isn't ctxt in pnode? *)
+        | SOME f_a =>  ((dbg ("evaluating goaltype " ^ str_arg cls (* ^ " with env " ^ str_env gtenv *)));
+                          f_a gtenv pnode args);
 
    (* no overriding so both atomic and non-atomic *)
    fun eval_arg  (data as P {defs,...}) pnode (cls as Clause (name,args)) gtenv =
@@ -253,14 +340,17 @@ struct
   fun match_atomic (data as (P {atomics,...}))  pnode ((f,args):T) gtenv = 
     case StrName.NTab.lookup atomics f of
      NONE => []
-    | SOME f_a => f_a gtenv pnode (map (get pnode gtenv) args);
+    | SOME f_a => 
+        ((dbg ("evaluating goaltype " ^ f (* ^ " with env " ^ str_env gtenv *)));
+        f_a gtenv pnode args);
 
   fun match data pnode ((f,args):T) gtenv =
      (match_atomic data pnode (f,args) gtenv) 
    @ (eval_defs data pnode (f,args) gtenv);
   
-  fun imatch data pnode gtype = 
-    match data pnode gtype StrName.NTab.empty;
+  fun imatch data pnode (t as (gtnm,gtargs)) = 
+    ((dbg ("evaluating goaltype " ^ (str_arg (Clause t)) ^ " with env " ^ str_env StrName.NTab.empty));
+    match data pnode (gtnm,gtargs) StrName.NTab.empty);
 
   fun type_check data pnode gtype = 
     case imatch data pnode gtype of
@@ -291,42 +381,7 @@ struct
   fun check (gt_data,gtype) (_,pnode) = type_check gt_data pnode gtype;
 
 
-  (**********************
-     JSON/PRETTY PRINTING
-  ***********************)
 
-  fun pretty_arg (Name n) = Pretty.str n
-   |  pretty_arg Ignore = Pretty.str "_"
-   |  pretty_arg (Var n) = Pretty.str ("?" ^ n)
-   |  pretty_arg (Concl) = Pretty.str "concl"
-   |  pretty_arg  (Hyps) = Pretty.str "hyps"
-   |  pretty_arg  (Term trm) = 
-        Pretty.block 
-         [Pretty.str "\"",
-          Prover.pretty_trm Prover.default_ctxt trm,
-          Pretty.str "\""]
-   |  pretty_arg (Clause (str,args)) =
-       Pretty.block 
-        [Pretty.str str,
-         Pretty.enclose "(" ")" (Pretty.separate "," (map pretty_arg args))] 
-
-  fun pretty_clause (Def (nm,args,body)) =
-       Pretty.block 
-        [Pretty.str nm,
-         Pretty.enclose "(" ")" (Pretty.separate "," (map Pretty.str args)),
-         Pretty.enclose ":-" ".\n" (Pretty.separate "," (map pretty_arg body))]   
-   |  pretty_clause (Constraint arg) =
-       Pretty.block [pretty_arg arg, Pretty.str ".\n"]  ;
-
-  fun pretty_data (P {imports,defs,atomics}) =
-    Pretty.block (map pretty_clause defs);
-
-  fun pretty (s,args) = 
-        Pretty.block 
-         [Pretty.str s, 
-          Pretty.enclose "(" ")" (Pretty.separate "," (map pretty_arg args))];
-      
-  fun pretty_gnode name = Pretty.str name;
 
   exception gt_exp of string;
 
