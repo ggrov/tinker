@@ -6,4 +6,5 @@ begin
   (* socket communication for the tinker gui *)
   ML_file "../../interface/text_socket.ML"
   ML_file "../../interface/tinker_protocol.ML"
+  ML_file "../../interface/gui_launcher.ML"
 end

@@ -5,17 +5,45 @@ begin
 
 ML{*- 
   val path = "/u1/staff/gg112/";
+  val guiPath = "/u1/staff/gg112/tinker/src/tinkerGUI/release/";
 *}
+
+ML{*
+  val path = "/Users/yuhuilin/Desktop/psgraph/" ;
+  val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
+  val guiPath = tinker_path ^ "src/tinkerGUI/release/";
+  val sys = "osx"
+*}
+
+ML{*-
+  val path = "/home/pierre/Documents/HW/Tinker/tinkerGit/tinker/src/core/demo/AdvisoryBoardMeeting2015/"
+  val tinker_path ="/home/pierre/Documents/HW/Tinker/tinkerGit/tinker/" 
+  val guiPath = tinker_path ^ "src/tinkerGUI/release/";
+  val sys = "linux"
+*}
+
+ML{*
+  set_guiPath guiPath sys;
+*}
+
+ML{*-
+  open_gui_single();
+*}
+
+ML{*-
+ close_gui_single ();
+*}
+ML{*
+  LoggingHandler.active_all_tags ();
+  LoggingHandler.print_active();
+*}
+
 
 ML{*
  GT_top_symbol ["conj"] () () @{term "A \<or> B"};
 *}
 
-ML{*
-LoggingHandler.active_all_tags ();
-LoggingHandler.print_active();
-  val path = "/Users/yuhuilin/Desktop/psgraph/" ;
-*}
+
 ML{*
 val impI_thm = @{thm impI};
 fun rule_tac thm _ i =  rtac thm i;
