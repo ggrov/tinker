@@ -90,7 +90,7 @@ begin
    val scan_def = C.scan_data @{context};
    val def1 = "topconcl(Z) :- top_symbol(concl,Z).";
    val pdef1 = scan_def def1;
-   val data = C.update_defs (K pdef1) data;
+   val data = C.update_data_defs (K pdef1) data;
   *}
 
   ML{*
