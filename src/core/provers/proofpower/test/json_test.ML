@@ -1,7 +1,6 @@
  use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
 
 
-  val path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/
   val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
   val path = tinker_path ^ "src/dev/psgraph/";
   val guiPath = tinker_path ^ "src/tinkerGUI/release/";
@@ -34,3 +33,14 @@
   PPIntf.set_psg_goal ([¬B : BOOL®], ¬A ´ (A ± B ± (C ´ C))®) ps;
 
   TextSocket.safe_close();
+
+======
+
+  val ps = PSGraph.read_json_file (path^"nonascii_tac.psgraph");
+  PPIntf.set_psg_goal ([],¬µx· x = x®) ps;
+
+
+
+set_goal 
+a µ_tac;
+open_gui_single (); 
