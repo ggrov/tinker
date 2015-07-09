@@ -173,6 +173,20 @@ object QuantoLibAPI extends Publisher{
 	  */
 	def getSubgraphPreview = subgraphPreview
 
+	/** Method to zoom in the subgraph preview.
+		*
+		*/
+	def zoomInSubgraphPreview() {
+		subgraphPreview.subgraphPreviewView.zoom *= 1.5
+	}
+
+	/** Method to zoom out the subgraph preview.
+		*
+		*/
+	def zoomOutSubgraphPreview() {
+		subgraphPreview.subgraphPreviewView.zoom *= 0.5
+	}
+
 	/** Method to update the subgraph preview with a json.
 	  *
 	  * @param json Json representation of the subgraph.
@@ -203,9 +217,9 @@ object QuantoLibAPI extends Publisher{
 	  */
 	def getLibraryPreview = libraryPreview
 
-	/** Method to update the library psgraph preview with a json
+	/** Method to update the library psgraph preview with a json.
 	  *
-	  * @param json Json representation of the graph
+	  * @param json Json representation of the graph.
 	  */
 	def updateLibraryPreviewFromJson(json: Json) {
 		libraryPreview.libraryPreviewDoc.clear()
@@ -214,6 +228,20 @@ object QuantoLibAPI extends Publisher{
 		libraryPreview.libraryPreviewDoc.graph = Graph.fromJson(json, theory)
 		libraryPreview.libraryPreviewDoc.publish(GraphReplaced(libraryPreview.libraryPreviewDoc, clearSelection = true))
 		libraryPreview.libraryPreviewView.resizeViewToFit()
+	}
+
+	/** Method to zoom in the library preview.
+		*
+		*/
+	def zoomInLibraryPreview() {
+		libraryPreview.libraryPreviewView.zoom *= 1.5
+	}
+
+	/** Method to zoom out the library preview.
+		*
+		*/
+	def zoomOutLibraryPreview() {
+		libraryPreview.libraryPreviewView.zoom *= 0.5
 	}
 
 	/** Private method to update the local variables.
@@ -235,6 +263,20 @@ object QuantoLibAPI extends Publisher{
 		graph = graphPanel.graphDoc.graph
 		if(!Service.evalCtrl.inEval) Service.model.saveGraph(Graph.toJson(graph, theory))
 		Service.graphNavCtrl.viewedGraphChanged(Service.model.isMain,false)
+	}
+
+	/** Method zooming in the graph view.
+		*
+		*/
+	def zoomInGraph() {
+		view.zoom *= 1.5
+	}
+
+	/** Method zooming out the graph view.
+		*
+		*/
+	def zoomOutGraph() {
+		view.zoom *= 0.5
 	}
 
 	// ------------------------------------------------------------
@@ -349,7 +391,7 @@ object QuantoLibAPI extends Publisher{
 		res
 	}
 
-	/** Method chicking if given node has nested tactics after.
+	/** Method checking if given node has nested tactics after.
 		*
 		* @param n Node id.
 		* @return Boolean telling if there is a nested tactic after or not.
@@ -1036,7 +1078,11 @@ object QuantoLibAPI extends Publisher{
 			val vName = graph.verts.freshWithSuggestion(VName("v0"))
 			newNodeIdMap = newNodeIdMap + (k -> vName.s)
 			changeGraph(graph.addVertex(vName, NodeV.fromJson(v, theory)))
-			graph.vdata(vName) match { case d:NodeV if d.typ == "T_Atomic" || d.typ == "T_Graph" => nameNodeIdMap = nameNodeIdMap + (ArgumentParser.separateNameFromArgument(d.value.stringValue)._1->vName.s)}
+			graph.vdata(vName) match {
+				case d:NodeV if d.typ == "T_Atomic" || d.typ == "T_Graph" =>
+					nameNodeIdMap = nameNodeIdMap + (ArgumentParser.separateNameFromArgument(d.value.stringValue)._1->vName.s)
+				case _ =>  // do nothing
+			}
 			view.selectedVerts += vName
 		}
 		(json ? "dir_edges").mapValue.foreach{ case (k,v) =>
@@ -1078,7 +1124,7 @@ object QuantoLibAPI extends Publisher{
 				view.repaint()
 				publish(NothingSelectedEvent())
 			}
-		case KeyPressed(_, Key.Minus, _, _)  => view.zoom *= 0.6
-		case KeyPressed(_, Key.Equals, _, _) => view.zoom *= 1.6
+		case KeyPressed(_, Key.Minus, _, _)  => zoomInGraph()
+		case KeyPressed(_, Key.Equals, _, _) => zoomOutGraph()
 	}
 }

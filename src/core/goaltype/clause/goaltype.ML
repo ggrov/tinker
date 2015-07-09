@@ -2,23 +2,26 @@ functor ClauseGTFun(structure Prover : PROVER
                     val struct_name : string)  =
 struct
 
-  val DEBUG_ON = true;
-  fun dbg msg = if DEBUG_ON then writeln msg else ();
-
   structure Prover = Prover;
 
-  (**********  data ***********)
-  (* grammar: 
-       definitions ::= definition [ definitions ]
-       definition ::= name [ '(' [ args ] ')' ] [ ':-' body ]
-       name ::= low_letter low_letters*
-       var ::= cap_letter any_letter*
-       args ::= var [',' args]
-       body ::= clause [ `.' | `,' body ] 
-       single_arg ::= name | var | clause | "term"
-       clause ::= name '(' app_args  ')'
-       app_args ::= single_arg [`,` app_args ]
-   *)
+  (* debugging -> replace by logging stuff *)
+  val DEBUG_ON = true;
+  val tab = Unsynchronized.ref 0;
+  fun inctab() = (tab := !tab +1);
+  fun dectab() = if !tab >= 0 then (tab := !tab -1) else ();
+  fun tabs () = 
+      let fun p 0 = ""
+           |  p n = " " ^ p (n-1)
+      in p (!tab) end;
+  fun dbg msg = if DEBUG_ON then writeln (tabs() ^ msg) else ();
+  fun dbg_res res = 
+      ((case res of 
+         [] => dbg "FAILURE" 
+        | _ => dbg "SUCCESS"); res);
+
+  exception eval_exp of string;
+  exception gt_exp of string; (* used by JSON *)
+
   datatype arg = Name of string (* x,y,x *)
                 | Var of string (* X,Y,Z *)
                 | PVar of string (* ?x,?y,?z ...*)
@@ -30,9 +33,7 @@ struct
   datatype clause = Def of string * string list * arg list
                   | Constraint of arg; (* will this be used at all? *)
 
-
   type env = Prover.env (* provided by prover *)
-
 
   type gtyp = Prover.env -> Prover.pnode -> arg list -> Prover.env list 
   
@@ -40,33 +41,24 @@ struct
                                             type ret = gtyp 
                                             val struct_name =  struct_name ^".GoalTyp_ML_Exec");
   
-
-
-  (* imports not supported yet *)
-  (* to do: add atomics as a field *)
-
-  (* binding environment: maybe string is sufficient! just use singleton! *)
-(*
-  datatype env_data = ET_T of Prover.term
-                    | LT_T of Prover.term list 
-                    | ES_T of string
-                    | LS_T of string list
-*)
-
-
-
   type gnode = string;
                                                             
   datatype data = P of {imports : clause list, 
                         defs : clause list,
                         atomics : (*Prover.*)gtyp StrName.NTab.T}  
   type T = string * (arg list);
- 
- val goal_name = I;
+  val goal_name = I;
 
+  val default = ("any",[]); (* fixme: does not evaluate *)
+  val default_gnode = "?" (* GN {name = "?", env = StrName.NTab.empty}; *)
+  val default_data = P {imports = [], defs = [], atomics = StrName.NTab.empty};
+
+  (* required? *)
+  fun eq (t1,t2) = true;
+  fun gnode_eq (g1,g2) = (g1 = g2);
 
   (**********************
-     JSON/PRETTY PRINTING
+     PRETTY PRINTING
   ***********************)
 
   fun pretty_arg (Name n) = Pretty.str n
@@ -103,129 +95,55 @@ struct
       
   fun pretty_gnode name = Pretty.str name;
 
-  val pretty_env = StrName.NTab.pretty pretty_arg;
+  val pretty_env = StrName.NTab.pretty (Prover.pretty_env_data Prover.default_ctxt);
+
   val str_env = pretty_env #> Pretty.string_of;
   val dbg_env = str_env #> dbg;
   val str_cls = pretty_clause #> Pretty.string_of;
   val str_arg = pretty_arg #> Pretty.string_of;
 
-(* 
-  fun get_gnode_env (GN {env,...}) = env;
-  fun goal_name (GN {name,...}) = name;
+  (**********************
+     Record GET/SET/UPDATE methods
+  ***********************)
 
-  fun update_gnode_env f (GN {name,env}) = GN {name = name, env = f env};
-  val set_gnode_env = update_gnode_env o K; 
-
-  fun update_gnode_name f (GN {name,env}) = GN {name = f name, env = env};
-  val set_gnode_name = update_gnode_name o K; 
-*)
-
-  fun update_data_defs f (P {imports,defs,atomics}) =
-    P {imports = imports, defs = f defs, atomics = atomics};
-  val set_data_defs = update_data_defs o K;
-
-  val default = ("any",[]); (* fixme: does not evaluate *)
-  val default_gnode = "?" (* GN {name = "?", env = StrName.NTab.empty}; *)
-  val default_data = P {imports = [], defs = [], atomics = StrName.NTab.empty};
 
   fun get_imports (P {imports,...}) = imports;
-  fun get_defs (P {defs,...}) = defs;
+  fun get_data_defs (P {defs,...}) = defs;
   fun get_atomics (P {atomics,...}) = atomics;
 
   fun update_imports f (P data) = P {imports = f (#imports data), defs = #defs data, atomics = #atomics data};
-  fun update_defs f (P data) = P {imports = #imports data, defs = f (#defs data), atomics = #atomics data};
+  fun update_data_defs f (P data) = P {imports = #imports data, defs = f (#defs data), atomics = #atomics data};
   fun update_atomics f (P data) = P {imports = #imports data, defs = #defs data, atomics = f (#atomics data)};
 
+  val set_imports = update_imports o K;
+  val set_data_defs = update_data_defs o K;
+  val set_atomics = update_atomics o K;
+
   fun add_atomic name atom = update_atomics (StrName.NTab.ins (name,atom));
-  fun add_defs new_defs = update_defs (fn defs => defs @ new_defs);
-                              
+  fun add_defs new_defs = update_data_defs (fn defs => defs @ new_defs);          
 
-  (* required? *)
-  fun eq (t1,t2) = true;
-  fun gnode_eq (g1,g2) = (g1 = g2);
+  (**********************
+    HELPER METHODS
+   **********************)
 
+  (* projects terms *)
+  fun project_terms _ _ (Name nm) = []
+   |  project_terms env pnode (Var v) = 
+        (case StrName.NTab.lookup env v of
+           NONE => [] (* or error? *)
+         | SOME (Prover.E_Trm t) =>  [t]
+         | SOME _ => [])
+   |  project_terms _ pnode Concl = [Prover.get_pnode_concl pnode]
+   |  project_terms _ pnode Hyps = Prover.get_pnode_hyps pnode
+   |  project_terms _ _ (Term t) = [t]
+   |  project_terms _ _ (Clause _) = []
 
-  (************************************
-    SCAN/PARSE data and goaltype
-  *************************************)
-
-  (* FIXME: PVar ?x -> var X *)
-
- (* scan of letters and identifiers *)
- val valid_id_symbols = ["_"]
- val valid_follow_symbols = ["."]
- fun valid_letter x = Symbol.is_ascii_identifier x  orelse member (op =) valid_id_symbols x ;
- fun valid_letter_or_digit x = Symbol.is_ascii_identifier x orelse Symbol.is_digit x orelse 
-                                  member (op =) valid_id_symbols x orelse member (op =) valid_follow_symbols x ;
- val scan_letter = Scan.one valid_letter;
- val scan_letter_or_digit =  Scan.one valid_letter_or_digit
- val scan_id  = (scan_letter || $$ "?") -- ((Scan.repeat scan_letter_or_digit) >> implode) >> op ^ ;
- val scan_name  = (scan_letter) -- ((Scan.repeat scan_letter_or_digit) >> implode) >> op ^ ;
-
- (* turn string into list of singleton strings - throw away whitespace etc  *)
- val filter_pred' = member (op =) [" ","\n","\t"];
- val filter_pred = not o filter_pred'; 
- val filter_symbs = filter filter_pred;
- val explode = Symbol.explode #> filter_symbs;
- val scan_empty  = $$ "("  -- $$ ")" >> K ([]);
-
- fun scan_arg_name xs =
-   let 
-     val (str,rest) = scan_id xs 
-     fun checkupper () = Symbol.is_ascii_upper (String.substring (str,0,1));
-     fun checkpvar () = (String.substring (str,0,1)) = "?";
-   in 
-     case str of 
-       "_" => (Ignore,rest)
-     | "hyps" => (Hyps,rest)
-     | "concl" => (Concl,rest)
-     | _ => if checkupper () then (Var str,rest) else if checkpvar() then (PVar (String.substring (str,1,String.size(str)-1)),rest) else (Name str,rest)
-   end;
-
- (* scan clause *)
- fun scan_term ctxt = $$ "\"" |--  Scan.many (fn s => not(s = "\"")) --| $$ "\"" >> implode >> (Term o (Prover.trm_of_string ctxt));  
- fun scan_clause ctxt xs  =  (scan_name -- ((scan_args ctxt) || scan_empty) >> Clause) xs 
- (* Note does not turn into term *)
- (* note: terms not supported*)
- and scan_arg ctxt xs = ((scan_clause ctxt) || scan_arg_name  || scan_term ctxt) xs
- and scan_args ctxt xs = (* gen_scan_para_args scan_arg xs *)
-  ($$ "("  |--  (scan_arg ctxt) -- Scan.repeat ($$ "," |-- scan_arg ctxt) --| $$ ")" >> op :: ) xs; 
-
- fun scan_sig_args xs = 
-  ($$ "("  |--  scan_name -- Scan.repeat ($$ "," |-- scan_name) --| $$ ")" >> op :: ) xs; 
- val scan_sig = scan_name -- scan_sig_args;
-
- (* body *)
- fun scan_body ctxt = 
-   (scan_clause ctxt) -- Scan.repeat ($$ "," |-- scan_clause ctxt) --| $$ "." >> op :: ; 
- fun scan_prog ctxt = (* note: should not allow general arguments *)
-    (scan_sig --| ($$ ":" -- $$ "-") -- (scan_body ctxt) >> (fn ((n,a),b) => Def (n,a,b)))
-    ||
-    (scan_clause ctxt --| $$ "." >> Constraint);
-  fun scan_all f [] = []
-   |  scan_all f xs = 
-       let 
-          val (result,str) = f xs
-       in
-          result :: scan_all f str
-       end;
-
-  fun scan_data ctxt = explode #> scan_all (scan_prog ctxt); 
-
-  fun scan_gt_single ctxt = scan_name -- (scan_args ctxt || scan_empty)
-  fun scan_gt_full ctxt = (scan_gt_single ctxt) -- Scan.repeat ($$ "," |-- (scan_gt_single ctxt)) --| $$ "." >> op :: ; 
-  fun scan_goaltyp ctxt = explode #> scan_gt_single ctxt #> #1; 
-
+  fun project_name _ (Name nm) = nm
+  (* |  project_name env (Var v) = *)
 
   (**********************
     EVALUATION
    **********************)
-
-  exception eval_exp of string;
-
-  (* helper functions : needs rethink! *)
-
-  (* why not just have this handled in the atomic? *)
 
   fun lookup _ _  (Name nm) = SOME (Prover.E_Str nm)
    |  lookup _ gtenv (Var v) = 
@@ -234,7 +152,7 @@ struct
          | SOME res => SOME res)
    |  lookup pnode _ (PVar v) = 
         (case StrName.NTab.lookup (Prover.get_pnode_env pnode) v of
-           NONE => NONE (* raise eval_exp ("Variable " ^ v ^ " not bound in environment") *)
+           NONE =>  raise eval_exp ("Variable " ^ v ^ " not bound in environment") 
          | SOME res => SOME res)
    |  lookup pnode _ Concl = SOME (Prover.E_Trm (Prover.get_pnode_concl pnode))
    |  lookup pnode _ Hyps = SOME (map Prover.E_Trm (Prover.get_pnode_hyps pnode) |> Prover.E_L)
@@ -242,27 +160,6 @@ struct
    |  lookup _ _ (Term t) = SOME (Prover.E_Trm t)
    |  lookup _ _ (Clause _) = NONE
 
-(*
-  fun get _ _  (Name nm) = AAP (Prover.E_Str nm)
-   |  get _ gtenv (Var v) = 
-      (case StrName.NTab.lookup gtenv v of
-           NONE => AAV v
-         | SOME res => AAP res)
-   |  get pnode _ (PVar v) = 
-        (case StrName.NTab.lookup (Prover.get_pnode_env pnode) v of
-           NONE =>  raise eval_exp ("Variable " ^ v ^ " not bound in environment")
-         | SOME res => AAP res)
-   |  get pnode _ Concl = AAP (Prover.E_Trm (Prover.get_pnode_concl pnode))
-   |  get pnode _ Hyps = AAP (map Prover.E_Trm (Prover.get_pnode_hyps pnode) |> Prover.E_L)
-   |  get _ _ Ignore = AAP (Prover.E_Str "_") 
-   |  get _ _ (Term t) = AAP (Prover.E_Trm t)
-   |  get _ _ (Clause _) = raise eval_exp ("clause not supported in goal type")
-*)
-(*
-  fun isVar (Var _) = true
-   |  isVar (PVar _) = true
-   |  isVar _ = false;
-*)
 
   (* assumes: length f_args = length a_args
                each f_args is unique! and in capital letters?
@@ -303,31 +200,54 @@ struct
    fun eval_atomic_clause (data as (P {atomics,...})) pnode (cls as Clause (f,args)) gtenv  =
       case StrName.NTab.lookup atomics f of
           NONE => [] 
-        | SOME f_a =>  ((dbg ("evaluating goaltype " ^ str_arg cls (* ^ " with env " ^ str_env gtenv *)));
-                          f_a gtenv pnode args);
+        | SOME f_a =>  ((dbg ("evaluating " ^ str_arg cls ^ " with  " ^ str_env gtenv ));
+                        dbg_res (f_a gtenv pnode args));
 
    (* no overriding so both atomic and non-atomic *)
    fun eval_arg  (data as P {defs,...}) pnode (cls as Clause (name,args)) gtenv =
      (eval_atomic_clause data pnode cls gtenv) @
+     (eval_filter_clause data pnode cls gtenv) @
      (eval_clauses data pnode defs (name,args) gtenv)
 
-   and eval_clause data pnode (Def (f',f_args,body)) (f,a_args) gtenv =
+  (* hardcoded filter function: cannot give empty list and v has to be fresh*)
+  (* assumes first argument is name that takes single (term) arg *)
+  and  eval_filter_clause (data as P {defs,...}) pnode (cls as Clause ("filter",[Name nf,arg,Var v])) gtenv =
+    let 
+      val trms = project_terms gtenv pnode arg
+      val _ = dbg ("filtering " ^ nf ^ " : ") 
+      fun apply_one t = (case eval_arg data pnode (Clause (nf,[Term t])) gtenv of
+                          [] => []
+                         | _ => [Prover.E_Trm t])
+      val res = maps apply_one trms;
+    in 
+       (case (res,StrName.NTab.lookup gtenv v) of
+           ([],_) => []
+         | (xs,NONE) => [StrName.NTab.ins (v,Prover.E_L res) gtenv]
+         | _ => [])
+    end
+   |   eval_filter_clause _ _ _ _ = []
+
+   and eval_clause data pnode (d as Def (f',f_args,body)) (f,a_args) gtenv =
      if f = f'  
       then 
+        (dbg ("evaluating " ^  (str_cls d)  ^ " with " ^ str_env gtenv);
         if length f_args = length a_args
          then
            let 
              val gtenv0 = inst_gtenv pnode f_args a_args gtenv
+             val _ = (dbg ("evaluating " ^ f ^ " body with " ^ str_env gtenv0); inctab())
              fun evalbody arg = maps (eval_arg data pnode arg)
+             val res = (fold evalbody body [gtenv0] 
+                 |> (map (res_gtenv f_args a_args)))
            in
-             fold evalbody body [gtenv0] 
-             |> (map (res_gtenv f_args a_args))
+             dectab();dbg_res res
           end
-       else []
+       else (dbg "ERROR: wrong number of args";[]))
       else []
 
+   (* TO DO: is this reflected in formal semantics? *)
    and eval_clauses data pnode clauses (name,args) gtenv = 
-         maps (fn c => eval_clause data pnode c (name,args) gtenv) clauses;
+         maps (fn c => eval_clause data pnode c (name,args) gtenv handle eval_exp msg => (dbg ("ERROR: " ^ msg);[])) clauses;
  
   fun eval_defs (data as P {defs,...}) pnode (name,args) gtenv = 
      eval_clauses data pnode defs (name,args) gtenv
@@ -336,54 +256,109 @@ struct
     Goaltype evaluation / goaltype checking
   *)
   val lift = Prover.get_pnode_name
+
   (* note that this is when atomic on edge *)
-  fun match_atomic (data as (P {atomics,...}))  pnode ((f,args):T) gtenv = 
+  fun match_atomic (data as (P {atomics,...}))  pnode (t as (f,args):T) gtenv = 
     case StrName.NTab.lookup atomics f of
      NONE => []
     | SOME f_a => 
-        ((dbg ("evaluating goaltype " ^ f (* ^ " with env " ^ str_env gtenv *)));
-        f_a gtenv pnode args);
+        ((dbg ("evaluating " ^  (str_arg (Clause t))  ^ " with " ^ str_env gtenv ));
+        dbg_res (f_a gtenv pnode args));
 
   fun match data pnode ((f,args):T) gtenv =
      (match_atomic data pnode (f,args) gtenv) 
    @ (eval_defs data pnode (f,args) gtenv);
   
   fun imatch data pnode (t as (gtnm,gtargs)) = 
-    ((dbg ("evaluating goaltype " ^ (str_arg (Clause t)) ^ " with env " ^ str_env StrName.NTab.empty));
-    match data pnode (gtnm,gtargs) StrName.NTab.empty);
+    ((dbg ("evaluating goaltype " ^ (str_arg (Clause t)) ^ " with pnode env " ^ str_env (Prover.get_pnode_env pnode) ); inctab());
+    let val res = match data pnode (gtnm,gtargs) StrName.NTab.empty in dectab(); dbg_res res end);
 
   fun type_check data pnode gtype = 
     case imatch data pnode gtype of
        [] => false
      | _  => true;
 
-  (* other stuff *)
-
-  fun project_terms _ _ (Name nm) = []
-   |  project_terms env pnode (Var v) = 
-        (case StrName.NTab.lookup env v of
-           NONE => [] (* or error? *)
-         | SOME (Prover.E_Trm t) =>  [t]
-         | SOME _ => [])
-   |  project_terms _ pnode Concl = [Prover.get_pnode_concl pnode]
-   |  project_terms _ pnode Hyps = Prover.get_pnode_hyps pnode
-   |  project_terms _ _ (Term t) = [t]
-   |  project_terms _ _ (Clause _) = []
-
-  fun project_name _ (Name nm) = nm
-  (* |  project_name env (Var v) = *)
-
-
-  val default_data = P {imports = [], defs = [], atomics = StrName.NTab.empty};
-
-  (* Lifting / proper evaluation *)
- 
+  (* lifting/proper eval *)
   fun check (gt_data,gtype) (_,pnode) = type_check gt_data pnode gtype;
 
+                             
+                             
 
+  (************************************
+    SCAN/PARSE data and goaltype
+  *************************************)
 
+ (* scan of letters and identifiers *)
+ val valid_id_symbols = ["_"]
+ val valid_follow_symbols = ["."]
+ fun valid_letter x = Symbol.is_ascii_identifier x  orelse member (op =) valid_id_symbols x ;
+ fun valid_letter_or_digit x = Symbol.is_ascii_identifier x orelse Symbol.is_digit x orelse 
+                                  member (op =) valid_id_symbols x orelse member (op =) valid_follow_symbols x ;
+ val scan_letter = Scan.one valid_letter;
+ val scan_letter_or_digit =  Scan.one valid_letter_or_digit
+ val scan_id  = (scan_letter || $$ "?") -- ((Scan.repeat scan_letter_or_digit) >> implode) >> op ^ ;
+ val scan_name  = (scan_letter) -- ((Scan.repeat scan_letter_or_digit) >> implode) >> op ^ ;
 
-  exception gt_exp of string;
+ (* turn string into list of singleton strings - throw away whitespace etc  *)
+ val filter_pred' = member (op =) [" ","\n","\t"];
+ val filter_pred = not o filter_pred'; 
+ val filter_symbs = filter filter_pred;
+ val explode = Symbol.explode #> filter_symbs;
+ val scan_empty  = $$ "("  -- $$ ")" >> K ([]);
+
+ fun scan_arg_name xs =
+   let 
+     val (str,rest) = scan_id xs 
+     fun checkvar () = Symbol.is_ascii_upper (String.substring (str,0,1));
+     fun checkpvar () = (String.substring (str,0,1)) = "?";
+     fun skipfirst s  = String.substring (s,1,String.size(s)-1)
+   in 
+     case str of 
+       "_" => (Ignore,rest)
+     | "hyps" => (Hyps,rest)
+     | "concl" => (Concl,rest)
+     | _ => if checkvar () then (Var str,rest) else if checkpvar() then (PVar (skipfirst str),rest) else (Name str,rest)
+   end;
+
+ (* scan clause *)
+ fun scan_term ctxt = $$ "\"" |--  Scan.many (fn s => not(s = "\"")) --| $$ "\"" >> implode >> (Term o (Prover.trm_of_string ctxt));  
+ fun scan_clause ctxt xs  =  (scan_name -- ((scan_args ctxt) || scan_empty) >> Clause) xs 
+ (* Note: does not turn into term *)
+ (*       terms not supported*)
+ and scan_arg ctxt xs = ((scan_clause ctxt) || scan_arg_name  || scan_term ctxt) xs
+ and scan_args ctxt xs = (* gen_scan_para_args scan_arg xs *)
+  ($$ "("  |--  (scan_arg ctxt) -- Scan.repeat ($$ "," |-- scan_arg ctxt) --| $$ ")" >> op :: ) xs; 
+
+ fun scan_sig_args xs = 
+  ($$ "("  |--  scan_name -- Scan.repeat ($$ "," |-- scan_name) --| $$ ")" >> op :: ) xs; 
+ val scan_sig = scan_name -- scan_sig_args;
+
+ (* body *)
+ fun scan_body ctxt = 
+   (scan_clause ctxt) -- Scan.repeat ($$ "," |-- scan_clause ctxt) --| $$ "." >> op :: ; 
+ fun scan_prog ctxt = (* note: should not allow general arguments *)
+    (scan_sig --| ($$ ":" -- $$ "-") -- (scan_body ctxt) >> (fn ((n,a),b) => Def (n,a,b)))
+    ||
+    (scan_clause ctxt --| $$ "." >> Constraint);
+  fun scan_all f [] = []
+   |  scan_all f xs = 
+       let 
+          val (result,str) = f xs
+       in
+          result :: scan_all f str
+       end;
+
+  fun scan_data ctxt = explode #> scan_all (scan_prog ctxt); 
+
+  fun scan_gt_single ctxt = scan_name -- (scan_args ctxt || scan_empty)
+  fun scan_gt_full ctxt = (scan_gt_single ctxt) -- Scan.repeat ($$ "," |-- (scan_gt_single ctxt)) --| $$ "." >> op :: ; 
+  fun scan_goaltyp ctxt = explode #> scan_gt_single ctxt #> #1; 
+
+  (* add to defs *)
+  fun add_parse_def new_def = add_defs (scan_data Prover.default_ctxt new_def);
+  (************************************
+    JSON export/import
+  *************************************)
 
   (* JSON on goal types *)
   fun to_json gt = 
@@ -419,8 +394,6 @@ struct
         |> scan_data Prover.default_ctxt
         |> (fn defs => set_data_defs defs default_data)
   | data_from_json _ = raise gt_exp "from_json: ill-formed json structure"
-
- (* TO DO: write type checker *)
 
   structure BasicSharing =
   struct

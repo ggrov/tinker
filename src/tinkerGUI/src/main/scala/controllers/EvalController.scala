@@ -31,11 +31,13 @@ class EvalController(model:PSGraph) extends Publisher {
 		*/
 	def setInEval(b:Boolean) {
 		inEval = b
-		publish(DisableActionsForEvalEvent(inEval))
 		if(!b) {
 			publish(DisableEvalOptionsEvent())
 			QuantoLibAPI.loadFromJson(model.getCurrentJson)
+		} else {
+			Service.editCtrl.changeMouseState("select")
 		}
+		publish(DisableActionsForEvalEvent(inEval))
 	}
 
 	/** Method displaying an evaluation graph.

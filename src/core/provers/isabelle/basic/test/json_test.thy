@@ -20,7 +20,7 @@ ML{*-
   val guiPath = "/u1/staff/gg112/tinker/src/tinkerGUI/release/";
 *}
 
-ML{*
+ML{*-
   val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
   val path = tinker_path ^ "src/dev/psgraph/";
   val guiPath = tinker_path ^ "src/tinkerGUI/release/";
@@ -38,7 +38,7 @@ ML{*
   set_guiPath guiPath sys;
 *}
 
-ML{*  -
+ML{*-
   open_gui_single();
 *}
 

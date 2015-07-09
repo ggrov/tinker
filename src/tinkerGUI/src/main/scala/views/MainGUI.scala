@@ -19,7 +19,7 @@ object MainGUI extends SimpleSwingApplication {
 		//minimumSize = new Dimension (300,800)
 		//preferredSize = new Dimension (300,800)
 		val tinkerLibTree = new TinkerLibraryTree()
-		contents_=(tinkerLibTree.libraryFileTree, tinkerLibTree.previewPanel)
+		contents_=(tinkerLibTree.libraryTreePanel, tinkerLibTree.libraryPreviewPanel)
 	}
 
 	object SecondSplit extends SplitPane {
