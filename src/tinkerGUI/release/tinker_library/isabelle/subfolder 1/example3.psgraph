@@ -1,5 +1,10 @@
 {
   "graph_tactics" : [ {
+    "name" : "toto",
+    "branchType" : "OR",
+    "graphs" : [ ],
+    "args" : [ ]
+  },{
     "name" : "nested",
     "branchType" : "OR",
     "graphs" : [ {
@@ -80,6 +85,52 @@
           },
           "annotation" : {
             "coord" : [ 1.00, 1.00 ]
+          }
+        }
+      }
+    },{
+      "dir_edges" : {
+        "e0" : {
+          "data" : {
+            "gtyp" : "any",
+            "type" : "GT",
+            "break" : false
+          },
+          "src" : "b0",
+          "tgt" : "v0"
+        },
+        "e1" : {
+          "data" : {
+            "gtyp" : "any",
+            "type" : "GT",
+            "break" : false
+          },
+          "src" : "v0",
+          "tgt" : "b1"
+        }
+      },
+      "wire_vertices" : {
+        "b1" : {
+          "annotation" : {
+            "boundary" : true,
+            "coord" : [ 0.00, -2.00 ]
+          }
+        },
+        "b0" : {
+          "annotation" : {
+            "boundary" : true,
+            "coord" : [ 0.00, 2.00 ]
+          }
+        }
+      },
+      "node_vertices" : {
+        "v0" : {
+          "data" : {
+            "id_name" : "",
+            "type" : "T_Identity"
+          },
+          "annotation" : {
+            "coord" : [ 0.00, 0.00 ]
           }
         }
       }

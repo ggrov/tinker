@@ -20,7 +20,7 @@ struct
     E_L of env_data list
 
   fun pretty_env_data _ (E_Str str) = Pretty.block [Pretty.str "E_Str(", Pretty.str str, Pretty.str ")"]
-  |   pretty_env_data ctxt (E_Trm trm) = Pretty.block [Pretty.str "E_Trm(", Syntax.pretty_term ctxt trm, Pretty.str ")"]
+  |   pretty_env_data ctxt (E_Trm trm) = Pretty.block [Pretty.str "E_Trm(", pretty_trm ctxt trm, Pretty.str ")"]
   |   pretty_env_data ctxt (E_Thm thm) = Pretty.block [Pretty.str "E_Thm(", Thm.prop_of thm |> pretty_trm ctxt, Pretty.str ")"]
   |   pretty_env_data _ (E_ML str) = Pretty.block [Pretty.str "E_ML(", Pretty.str str, Pretty.str ")"]
   |   pretty_env_data ctxt (E_L l) =  
