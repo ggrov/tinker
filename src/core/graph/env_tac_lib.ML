@@ -16,15 +16,15 @@ sig
     -> PS_Theory.GoalTyp.Prover.env  
     -> PS_Theory.GoalTyp.Prover.env
   val ENV_update_var : 
-    string -> 
-    (PS_Theory.GoalTyp.Prover.env_data -> PS_Theory.GoalTyp.Prover.env_data) 
+    ('a -> PS_Theory.GoalTyp.Prover.env_data -> PS_Theory.GoalTyp.Prover.env_data) 
+    -> string -> 'a
     -> PS_Theory.GoalTyp.Prover.env -> PS_Theory.GoalTyp.Prover.env
 
   structure Sharing : ENV_TAC_LIB_SHARING
     sharing Sharing.PS_Theory = PS_Theory.Sharing
 end
 
-functor EnvTacLibFunc (Theory : PS_THEORY) = 
+functor EnvTacLibFunc (Theory : PS_THEORY) : ENV_TAC_LIB = 
 struct
   structure PS_Theory = Theory
   local open LoggingHandler in 
@@ -46,11 +46,11 @@ struct
           else logging "ENV_DATA" ("The env variable name to be deleted doesn't exist " ^ name) in
       StrName.NTab.delete (parse_env_var_name' name) env end
 
-    fun ENV_update_var name f env = 
+    fun ENV_update_var f name arg env = 
       let val _ = 
           if StrName.NTab.contains env (parse_env_var_name' name) then ()
           else logging "ENV_DATA" ("The env variable name to be updated doesn't exist " ^ name) in
-      StrName.NTab.update (f (StrName.NTab.get env (parse_env_var_name' name))) env end
+      StrName.NTab.update (name, f arg (StrName.NTab.get env (parse_env_var_name' name))) env end
   end (* end of local open *)
 
   structure Sharing = 
