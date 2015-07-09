@@ -111,7 +111,7 @@ begin
   Pretty.string_of;
    val res = IsaProver.E_Str "t";
    val pnode = IsaProver.update_pnode_env (StrName.NTab.ins ("x",res)) pnode;
-   C.imatch data pnode ("topconcl",[C.PVar "y"]);   
+   C.imatch data pnode ("topconcl",[C.PVar "x"]);   
  *}
 
 

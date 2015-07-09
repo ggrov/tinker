@@ -103,7 +103,7 @@ struct
       
   fun pretty_gnode name = Pretty.str name;
 
-  val pretty_env = StrName.NTab.pretty pretty_arg;
+  val pretty_env = Prover.pretty_env Prover.default_ctxt;
   val str_env = pretty_env #> Pretty.string_of;
   val dbg_env = str_env #> dbg;
   val str_cls = pretty_clause #> Pretty.string_of;
@@ -234,7 +234,7 @@ struct
          | SOME res => SOME res)
    |  lookup pnode _ (PVar v) = 
         (case StrName.NTab.lookup (Prover.get_pnode_env pnode) v of
-           NONE => NONE (* raise eval_exp ("Variable " ^ v ^ " not bound in environment") *)
+           NONE =>  raise eval_exp ("Variable " ^ v ^ " not bound in environment") 
          | SOME res => SOME res)
    |  lookup pnode _ Concl = SOME (Prover.E_Trm (Prover.get_pnode_concl pnode))
    |  lookup pnode _ Hyps = SOME (map Prover.E_Trm (Prover.get_pnode_hyps pnode) |> Prover.E_L)
@@ -303,8 +303,10 @@ struct
    fun eval_atomic_clause (data as (P {atomics,...})) pnode (cls as Clause (f,args)) gtenv  =
       case StrName.NTab.lookup atomics f of
           NONE => [] 
-        | SOME f_a =>  ((dbg ("evaluating goaltype " ^ str_arg cls (* ^ " with env " ^ str_env gtenv *)));
-                          f_a gtenv pnode args);
+        | SOME f_a =>  ((dbg ("evaluating " ^ str_arg cls ^ " with  " ^ str_env gtenv ));
+                        let val res = f_a gtenv pnode args in 
+                            ((case res of [] => dbg " FAILURE" | _ => dbg " SUCCESS"); res)
+                         end);
 
    (* no overriding so both atomic and non-atomic *)
    fun eval_arg  (data as P {defs,...}) pnode (cls as Clause (name,args)) gtenv =
@@ -320,14 +322,15 @@ struct
              val gtenv0 = inst_gtenv pnode f_args a_args gtenv
              fun evalbody arg = maps (eval_arg data pnode arg)
            in
-             fold evalbody body [gtenv0] 
-             |> (map (res_gtenv f_args a_args))
+             (fold evalbody body [gtenv0] 
+             |> (map (res_gtenv f_args a_args)))
           end
        else []
       else []
 
+   (* TO DO: is this reflected in formal semantics? *)
    and eval_clauses data pnode clauses (name,args) gtenv = 
-         maps (fn c => eval_clause data pnode c (name,args) gtenv) clauses;
+         maps (fn c => eval_clause data pnode c (name,args) gtenv handle eval_exp msg => (dbg ("ERROR: " ^ msg);[])) clauses;
  
   fun eval_defs (data as P {defs,...}) pnode (name,args) gtenv = 
      eval_clauses data pnode defs (name,args) gtenv
@@ -337,19 +340,22 @@ struct
   *)
   val lift = Prover.get_pnode_name
   (* note that this is when atomic on edge *)
-  fun match_atomic (data as (P {atomics,...}))  pnode ((f,args):T) gtenv = 
+  fun match_atomic (data as (P {atomics,...}))  pnode (t as (f,args):T) gtenv = 
     case StrName.NTab.lookup atomics f of
      NONE => []
     | SOME f_a => 
-        ((dbg ("evaluating goaltype " ^ f (* ^ " with env " ^ str_env gtenv *)));
-        f_a gtenv pnode args);
+        ((dbg ("evaluating " ^  (str_arg (Clause t))  ^ " with " ^ str_env gtenv ));
+        let val res = f_a gtenv pnode args
+        in 
+         ((case res of [] => dbg " FAILURE" | _ => dbg " SUCCESS"); res)
+        end);
 
   fun match data pnode ((f,args):T) gtenv =
      (match_atomic data pnode (f,args) gtenv) 
    @ (eval_defs data pnode (f,args) gtenv);
   
   fun imatch data pnode (t as (gtnm,gtargs)) = 
-    ((dbg ("evaluating goaltype " ^ (str_arg (Clause t)) ^ " with env " ^ str_env StrName.NTab.empty));
+    ((dbg ("evaluating goaltype " ^ (str_arg (Clause t)) ^ " with pnode env " ^ str_env (Prover.get_pnode_env pnode) ));
     match data pnode (gtnm,gtargs) StrName.NTab.empty);
 
   fun type_check data pnode gtype = 
