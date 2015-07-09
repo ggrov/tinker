@@ -123,6 +123,25 @@ struct
   fun add_defs new_defs = update_data_defs (fn defs => defs @ new_defs);          
 
   (**********************
+    HELPER METHODS
+   **********************)
+
+  (* projects terms *)
+  fun project_terms _ _ (Name nm) = []
+   |  project_terms env pnode (Var v) = 
+        (case StrName.NTab.lookup env v of
+           NONE => [] (* or error? *)
+         | SOME (Prover.E_Trm t) =>  [t]
+         | SOME _ => [])
+   |  project_terms _ pnode Concl = [Prover.get_pnode_concl pnode]
+   |  project_terms _ pnode Hyps = Prover.get_pnode_hyps pnode
+   |  project_terms _ _ (Term t) = [t]
+   |  project_terms _ _ (Clause _) = []
+
+  fun project_name _ (Name nm) = nm
+  (* |  project_name env (Var v) = *)
+
+  (**********************
     EVALUATION
    **********************)
 
@@ -187,7 +206,26 @@ struct
    (* no overriding so both atomic and non-atomic *)
    fun eval_arg  (data as P {defs,...}) pnode (cls as Clause (name,args)) gtenv =
      (eval_atomic_clause data pnode cls gtenv) @
+     (eval_filter_clause data pnode cls gtenv) @
      (eval_clauses data pnode defs (name,args) gtenv)
+
+  (* hardcoded filter function: cannot give empty list and v has to be fresh*)
+  (* assumes first argument is name that takes single (term) arg *)
+  and  eval_filter_clause (data as P {defs,...}) pnode (cls as Clause ("filter",[Name nf,arg,Var v])) gtenv =
+    let 
+      val trms = project_terms gtenv pnode arg
+      val _ = dbg ("filtering " ^ nf ^ " : ") 
+      fun apply_one t = (case eval_arg data pnode (Clause (nf,[Term t])) gtenv of
+                          [] => []
+                         | _ => [Prover.E_Trm t])
+      val res = maps apply_one trms;
+    in 
+       (case (res,StrName.NTab.lookup gtenv v) of
+           ([],_) => []
+         | (xs,NONE) => [StrName.NTab.ins (v,Prover.E_L res) gtenv]
+         | _ => [])
+    end
+   |   eval_filter_clause _ _ _ _ = []
 
    and eval_clause data pnode (d as Def (f',f_args,body)) (f,a_args) gtenv =
      if f = f'  
@@ -233,7 +271,7 @@ struct
   
   fun imatch data pnode (t as (gtnm,gtargs)) = 
     ((dbg ("evaluating goaltype " ^ (str_arg (Clause t)) ^ " with pnode env " ^ str_env (Prover.get_pnode_env pnode) ); inctab());
-    let val res = match data pnode (gtnm,gtargs) StrName.NTab.empty in dectab(); res end);
+    let val res = match data pnode (gtnm,gtargs) StrName.NTab.empty in dectab(); dbg_res res end);
 
   fun type_check data pnode gtype = 
     case imatch data pnode gtype of
@@ -243,25 +281,8 @@ struct
   (* lifting/proper eval *)
   fun check (gt_data,gtype) (_,pnode) = type_check gt_data pnode gtype;
 
-  (**********************
-    HELPER METHODS
-   **********************)
-
-  (* projects terms *)
-  fun project_terms _ _ (Name nm) = []
-   |  project_terms env pnode (Var v) = 
-        (case StrName.NTab.lookup env v of
-           NONE => [] (* or error? *)
-         | SOME (Prover.E_Trm t) =>  [t]
-         | SOME _ => [])
-   |  project_terms _ pnode Concl = [Prover.get_pnode_concl pnode]
-   |  project_terms _ pnode Hyps = Prover.get_pnode_hyps pnode
-   |  project_terms _ _ (Term t) = [t]
-   |  project_terms _ _ (Clause _) = []
-
-  fun project_name _ (Name nm) = nm
-  (* |  project_name env (Var v) = *)
-
+                             
+                             
 
   (************************************
     SCAN/PARSE data and goaltype
@@ -333,6 +354,8 @@ struct
   fun scan_gt_full ctxt = (scan_gt_single ctxt) -- Scan.repeat ($$ "," |-- (scan_gt_single ctxt)) --| $$ "." >> op :: ; 
   fun scan_goaltyp ctxt = explode #> scan_gt_single ctxt #> #1; 
 
+  (* add to defs *)
+  fun add_parse_def new_def = add_defs (scan_data Prover.default_ctxt new_def);
   (************************************
     JSON export/import
   *************************************)
