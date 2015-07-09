@@ -992,14 +992,14 @@ object QuantoLibAPI extends Publisher{
 				case d:NodeV =>
 					if(d.typ == "T_Graph"){
 						Service.editCtrl.changeTacticOccurrence(v.s,
-							ArgumentParser.separateNameFromArgument(d.label)._1,
-							ArgumentParser.separateNameFromArgument(newData.label)._1,
+							ArgumentParser.separateNameArgs(d.label)._1,
+							ArgumentParser.separateNameArgs(newData.label)._1,
 							0,
 							false)
 					} else if (d.typ == "T_Atomic") {
 						Service.editCtrl.changeTacticOccurrence(v.s,
-							ArgumentParser.separateNameFromArgument(d.label)._1,
-							ArgumentParser.separateNameFromArgument(newData.label)._1,
+							ArgumentParser.separateNameArgs(d.label)._1,
+							ArgumentParser.separateNameArgs(newData.label)._1,
 							0,
 							true)
 					}
@@ -1055,9 +1055,9 @@ object QuantoLibAPI extends Publisher{
 		}
 		// saving json graph
 		val jsonGraph = Graph.toJson(newSubgraph, theory)
-		Service.saveGraphSpecificTactic(ArgumentParser.separateNameFromArgument(newData.label)._1, jsonGraph, 0)
+		Service.saveGraphSpecificTactic(ArgumentParser.separateNameArgs(newData.label)._1, jsonGraph, 0)
 		publish(NothingSelectedEvent())
-		Service.editCtrl.updateTactic(newName.s, ArgumentParser.separateNameFromArgument(newData.label)._1, false)
+		Service.editCtrl.updateTactic(newName.s, ArgumentParser.separateNameArgs(newData.label)._1, false)
 	}
 
 	/** Method to add vertices and edges from specified json into our graph.
@@ -1080,7 +1080,7 @@ object QuantoLibAPI extends Publisher{
 			changeGraph(graph.addVertex(vName, NodeV.fromJson(v, theory)))
 			graph.vdata(vName) match {
 				case d:NodeV if d.typ == "T_Atomic" || d.typ == "T_Graph" =>
-					nameNodeIdMap = nameNodeIdMap + (ArgumentParser.separateNameFromArgument(d.value.stringValue)._1->vName.s)
+					nameNodeIdMap = nameNodeIdMap + (ArgumentParser.separateNameArgs(d.value.stringValue)._1->vName.s)
 				case _ =>  // do nothing
 			}
 			view.selectedVerts += vName

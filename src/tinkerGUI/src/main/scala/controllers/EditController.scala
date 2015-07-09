@@ -160,8 +160,8 @@ class EditController(model:PSGraph) extends Publisher {
 			values.foreach{case (k,v) =>
 				k match {
 					case "Name" =>
-						name = ArgumentParser.separateNameFromArgument(v)._1
-						args = ArgumentParser.separateNameFromArgument(v)._2
+						name = ArgumentParser.separateNameArgs(v)._1
+						args = ArgumentParser.separateNameArgs(v)._2
 					case "Tactic" =>
 						tactic = v
 					case "Branch type" =>
@@ -267,7 +267,7 @@ class EditController(model:PSGraph) extends Publisher {
 		var branchType:String = ""
 		var isUnique:Boolean = false
 		var existingName:Boolean = false
-		val tacticOldName = ArgumentParser.separateNameFromArgument(nodeName)._1
+		val tacticOldName = ArgumentParser.separateNameArgs(nodeName)._1
 		var fieldMap = Map("Name"->nodeName)
 		if(isAtomicTactic){
 			fieldMap += ("Tactic"->model.getATCoreId(tacticOldName))
@@ -281,8 +281,8 @@ class EditController(model:PSGraph) extends Publisher {
 			values.foreach{case (k,v) =>
 				k match {
 					case "Name" =>
-						name = ArgumentParser.separateNameFromArgument(v)._1
-						args = ArgumentParser.separateNameFromArgument(v)._2
+						name = ArgumentParser.separateNameArgs(v)._1
+						args = ArgumentParser.separateNameArgs(v)._2
 					case "Tactic" =>
 						tactic = v
 					case "Branch type" =>
@@ -414,7 +414,7 @@ class EditController(model:PSGraph) extends Publisher {
 	def deleteTactic(nodeName:String, nodeId:String, isAtomicTactic:Boolean) {
 		try {
 
-			val tacticName = ArgumentParser.separateNameFromArgument(nodeName)._1
+			val tacticName = ArgumentParser.separateNameArgs(nodeName)._1
 			val lastOcc:Boolean = if(isAtomicTactic) model.removeATOccurrence(tacticName, nodeId) else model.removeGTOccurrence(tacticName,nodeId)
 			publish(GraphTacticListEvent())
 			if(lastOcc){

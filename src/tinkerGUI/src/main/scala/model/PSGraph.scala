@@ -52,8 +52,12 @@ class PSGraph() extends ATManager with GTManager {
 				case None => throw new AtomicTacticNotFoundException("Atomic tactic "+name+" not found")
 			}
 			val nodeIds = updateForceAT(name,newName,newTactic,newArgs,graph,currentIndex)
-			if(name != newName) updateValueInJsonGraphs(name, newName)
-			if(oldArgs != newArgs) updateValueInJsonGraphs(newName+"("+oldArgs+")", newName+"("+newArgs+")")
+			if(name != newName) {
+				updateValueInJsonGraphs(name, newName)
+				if(oldArgs != newArgs) updateValueInJsonGraphs(name+"("+oldArgs+")", newName+"("+newArgs+")")
+			} else if(oldArgs != newArgs){
+				updateValueInJsonGraphs(name+"("+oldArgs+")", name+"("+newArgs+")")
+			}
 			nodeIds
 		} catch {
 			case e:AtomicTacticNotFoundException => throw e
@@ -83,8 +87,10 @@ class PSGraph() extends ATManager with GTManager {
 				updateValueInJsonGraphs(name, newName)
 				for((k,v)<-gtCollection) v.changeOccurrences(name, newName)
 				for((k,v)<-atCollection) v.changeOccurrences(name, newName)
+				if(oldArgs != newArgs) updateValueInJsonGraphs(name+"("+oldArgs+")", newName+"("+newArgs+")")
+			} else if(oldArgs != newArgs){
+				updateValueInJsonGraphs(newName+"("+oldArgs+")", newName+"("+newArgs+")")
 			}
-			if(oldArgs != newArgs) updateValueInJsonGraphs(newName+"("+oldArgs+")", newName+"("+newArgs+")")
 			nodeIds
 		} catch {
 			case e:GraphTacticNotFoundException => throw e
@@ -104,11 +110,15 @@ class PSGraph() extends ATManager with GTManager {
 		*/
 	override def updateGT(name:String, newName:String, newBranchType:String, newArgs:String):Boolean = {
 		try{
-			if(name != newName){
-				for((k,v)<-gtCollection) v.changeOccurrences(name, newName)
-				for((k,v)<-atCollection) v.changeOccurrences(name, newName)
+			if(super.updateGT(name, newName, newBranchType, newArgs)){
+				if(name != newName){
+					for((k,v)<-gtCollection) v.changeOccurrences(name, newName)
+					for((k,v)<-atCollection) v.changeOccurrences(name, newName)
+				}
+				true
+			} else {
+				false
 			}
-			super.updateGT(name, newName, newBranchType, newArgs)
 		} catch {
 			case e:GraphTacticNotFoundException => throw e
 		}
@@ -153,7 +163,7 @@ class PSGraph() extends ATManager with GTManager {
 
 	/** Method to remove an occurrence from an atomic tactic.
 		*
-		* Does not delete the tactic's data from the modele if it is the last occurrence.
+		* Does not delete the tactic's data from the model if it is the last occurrence.
 		* @param name Gui id of the atomic tactic.
 		* @param node Node id of the occurrence to remove.
 		* @throws AtomicTacticNotFoundException If the atomic tactic was not found.
@@ -190,8 +200,9 @@ class PSGraph() extends ATManager with GTManager {
 		}
 	}
 
-	/** Method to add an occurrence of a graph tactic.
+	/** Method to add an occurrence in a graph tactic.
 		*
+		* Also register the graph as a child of the specified graph tactic.
 		* @param name Gui id of the graph tactic.
 		* @param graph Graph id in which the occurrence is.
 		* @param index Graph index in which the occurrence is.
@@ -340,7 +351,6 @@ class PSGraph() extends ATManager with GTManager {
 		* @throws GraphTacticNotFoundException If the graph tactic was not found.
 		*/
 	def newSubgraph(tactic: String, parents:Option[Array[String]] = None){
-		isMain = false
 		if(tactic == currentTactic.name){
 			currentIndex = currentTactic.getSize
 		}
@@ -354,6 +364,7 @@ class PSGraph() extends ATManager with GTManager {
 					}
 					currentTactic = t
 					currentIndex = t.getSize
+					isMain = false
 				case None =>
 					throw new GraphTacticNotFoundException("Graph tactic "+tactic+" not found")
 			}
@@ -467,7 +478,7 @@ class PSGraph() extends ATManager with GTManager {
 			gtCollection.foreach { case (k, v) =>
 					v.graphs.foreach { case g =>
 						v.graphs -= g
-						Json.parse(g.toString().replace(oldVal,newVal)) match {
+						Json.parse(g.toString().replace("\""+oldVal+"\"","\""+newVal+"\"")) match {
 							case j: JsonObject => v.graphs += j
 							case j: Json =>
 								v.graphs += g
@@ -574,53 +585,24 @@ class PSGraph() extends ATManager with GTManager {
 
 	/** Method to find the children of every graph tactic, including the main graph.
 		*
-		* @throws GraphTacticNotFoundException If one of the children was not found.
 		*/
 	def rebuildHierarchy(){
 		childrenMain = ArrayBuffer()
 		gtCollection.foreach{ case(k,v) =>
 			v.occurrences.foreach{ o => if(o._1 == "main") childrenMain = childrenMain :+ v}
-			//buildPartialHierarchy(v)
 		}
 		childrenMain.foreach{ c => buildPartialHierarchy(c)}
-		/*(mainGraph ? "node_vertices").asObject.foreach {
-			case (k, v) if ((v / "data").asObject / "type").stringValue == "T_Graph" =>
-				val name = ArgumentParser.separateNameFromArgument((v / "data" / "subgraph").stringValue)._1
-				gtCollection get name match {
-					case Some(t:GraphTactic) => childrenMain = childrenMain :+ t
-					case None => throw new GraphTacticNotFoundException("Graph tactic "+name+" not found")
-				}
-			case _ => // do nothing
-		}
-		try{
-			childrenMain.foreach{ c => buildPartialHierarchy(c)}
-		} catch {
-			case e:GraphTacticNotFoundException => throw e
-		}*/
 	}
 
 	/** Method to find the children of a graph tactic, and their children as well.
 		*
 		* @param parent Gui id of the graph tactic.
-		* @throws GraphTacticNotFoundException If one of the children was not found.
 		*/
 	def buildPartialHierarchy(parent:GraphTactic) {
 		if(parent.children.isEmpty){
 			gtCollection.foreach{ case(k,v) =>
 				v.occurrences.foreach{ o => if(o._1 == parent.name) parent.children = parent.children :+ v}
-				//buildPartialHierarchy(v)
 			}
-			/*parent.graphs.foreach {g =>
-				(g ? "node_vertices").asObject.foreach {
-					case (k, v) if ((v / "data").asObject / "type").stringValue == "T_Graph" =>
-						val name = ArgumentParser.separateNameFromArgument((v / "data" / "subgraph").stringValue)._1
-						gtCollection get name match {
-							case Some(t:GraphTactic) => parent.children = parent.children :+ t
-							case None => throw new GraphTacticNotFoundException("Graph tactic "+name+" not found")
-						}
-					case _ => // do nothing
-				}
-			}*/
 			parent.children.foreach{ c => buildPartialHierarchy(c)}
 		}
 	}

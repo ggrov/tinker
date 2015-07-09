@@ -66,7 +66,7 @@ class VertexEditContent(nam: String, typ: String, value: String, enableEdit: Boo
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(delButton)
 		case "T_Atomic" =>
 			val tacticCoreId = try {
-				Service.getATCoreId(ArgumentParser.separateNameFromArgument(value)._1)
+				Service.getATCoreId(ArgumentParser.separateNameArgs(value)._1)
 			} catch {
 				case e:AtomicTacticNotFoundException => "Error : could not find tactic"
 			}
@@ -77,7 +77,7 @@ class VertexEditContent(nam: String, typ: String, value: String, enableEdit: Boo
 				contents += delButton
 			}
 		case "T_Graph" =>
-			val name = ArgumentParser.separateNameFromArgument(value)._1
+			val name = ArgumentParser.separateNameArgs(value)._1
 			val branchType = try {
 				Service.getBranchTypeGT(name)
 			} catch {
