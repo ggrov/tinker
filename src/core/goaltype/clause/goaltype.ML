@@ -126,20 +126,46 @@ struct
     HELPER METHODS
    **********************)
 
+  fun project_env_terms (Prover.E_Trm t) = [t]
+   |  project_env_terms (Prover.E_L xs) = maps project_env_terms xs
+   |  project_env_terms _ = []
+
+  fun project_env_str (Prover.E_Str s) = [s]
+   |  project_env_str (Prover.E_ML s) = [s]
+   |  project_env_str (Prover.E_L xs) = maps project_env_str xs
+   |  project_env_str _ = []
+
   (* projects terms *)
-  fun project_terms _ _ (Name nm) = []
-   |  project_terms env pnode (Var v) = 
+  fun project_terms _ _ (Name _) = []
+   |  project_terms env _ (Var v) = 
         (case StrName.NTab.lookup env v of
            NONE => [] (* or error? *)
-         | SOME (Prover.E_Trm t) =>  [t]
-         | SOME _ => [])
+         | SOME xs => project_env_terms xs)
+   |  project_terms _ pnode (PVar v) = 
+          (case StrName.NTab.lookup (Prover.get_pnode_env pnode) v of
+               NONE => []
+             | SOME xs => project_env_terms xs)
    |  project_terms _ pnode Concl = [Prover.get_pnode_concl pnode]
+   |  project_terms _ _ Ignore = []
    |  project_terms _ pnode Hyps = Prover.get_pnode_hyps pnode
    |  project_terms _ _ (Term t) = [t]
    |  project_terms _ _ (Clause _) = []
 
-  fun project_name _ (Name nm) = nm
-  (* |  project_name env (Var v) = *)
+  fun project_name _ _ (Name nm) = [nm]
+   |  project_name env _ (Var v) = 
+        (case StrName.NTab.lookup env v of
+           NONE => [] (* or error? *)
+         | SOME xs => project_env_str xs)
+   |  project_name _ pnode (PVar v) = 
+          (case StrName.NTab.lookup (Prover.get_pnode_env pnode) v of
+               NONE => []
+             | SOME xs => project_env_str xs)
+   |  project_name _ _ Concl = []
+   |  project_name _ _ Ignore = []
+   |  project_name _ _ Hyps = []
+   |  project_name _ _ (Term _) = []
+   |  project_name _ _ (Clause _) = []
+
 
   (**********************
     EVALUATION

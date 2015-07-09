@@ -18,7 +18,109 @@ begin
     structure C2 : BASIC_GOALTYPE = C;       
   *}
 
+  (* TO DO: generalise to lists: and handle cases with multiple results (e.g. all_symbols) *)
+  ML{*
+    fun LEFT_T (A $ _) = SOME A
+     |  LEFT_T _ = NONE
 
+    fun RIGHT_T (_ $ B) = SOME B
+     |  RIGHT_T _ = NONE
+
+    (* not sure about this *)
+    fun CONST_T (Const (s,_)) = SOME s            
+     |  CONST_T (Var ((s,_),_)) = SOME s
+     |  CONST_T (Free (s,_)) = SOME s
+     |  CONST_T _ = NONE;
+  *}
+
+
+ ML{*
+   (* schema to simplify term to term (partial) functions *)
+  
+   (* FIXME: handle all cases with trms *)
+   (* note assumes existential reading *)
+   fun trm_schema trm_eq f env pnode [r,C.Var v] = 
+     let 
+       val t1 = C.project_terms env pnode r
+       fun app_one t = 
+            (case f t of 
+              NONE => []         
+            | SOME t' => [StrName.NTab.ins (v,C.Prover.E_Trm t') env])
+     in 
+         (case StrName.NTab.lookup env v of
+             NONE => maps app_one t1
+           | SOME _ => []) (* not sure what the semantics here should be: only a single trm? *)
+          end
+    |  trm_schema trm_eq f env pnode [t1,t2] = 
+     let 
+       val t1 = C.project_terms env pnode t1
+       val t2 = C.project_terms env pnode t2
+     in
+       if exists (fn et1 => exists (fn et2 => 
+              case f et1 of NONE => false | SOME res => trm_eq (res,et2)) t2) t1 
+       then [env] else []
+     end
+    |  trm_schema _ _ _ _ [] = []
+    |  trm_schema trm_eq f env pnode (x::xs) =
+        maps (fn r => trm_schema trm_eq f env pnode [x,r]) xs; 
+                 
+   val LEFT = trm_schema (K false) LEFT_T;
+   val RIGHT = trm_schema (K false) RIGHT_T;
+     
+
+ *}
+
+  ML{*
+   (* schema to simplify term to term (partial) functions *)
+  
+   (* FIXME: handle all cases with trms *)
+   (* note assumes existential reading *)
+   fun trm_str_schema f env pnode [r,C.Var v] = 
+     let 
+       val t1 = C.project_terms env pnode r
+       fun app_one t =  
+            (case f t of 
+              NONE => [] 
+            | SOME t' => [StrName.NTab.ins (v,C.Prover.E_Str t') env])
+     in 
+         (case StrName.NTab.lookup env v of
+             NONE => maps app_one t1
+           | SOME _ => []) (* not sure what the semantics here should be: only a single var? *)
+          end
+    |  trm_str_schema f env pnode [t1,t2] = 
+     let 
+       val r1 = C.project_terms env pnode t1
+       val r2 = C.project_name env pnode t2
+     in
+       if exists (fn et1 => exists (fn et2 => 
+              case f et1 of NONE => false | SOME res => res = et2) r2) r1 
+       then [env] else []
+     end
+    |  trm_str_schema _ _ _ [] = []
+    |  trm_str_schema f env pnode (x::xs) =
+        maps (fn r => trm_str_schema f env pnode [x,r]) xs; 
+
+  val CONST = trm_str_schema CONST_T;
+
+  *}
+
+  ML{*
+  val ignore_module = List.last o String.tokens (fn ch => #"." = ch) ;
+
+    fun top_level_str (Const (s,_)) =  SOME (ignore_module s)
+  | top_level_str ((Const ("all",_)) $ f) = top_level_str f
+  | top_level_str ((Const ("prop",_)) $ f) = top_level_str f
+  | top_level_str ((Const ("HOL.Trueprop",_)) $ f) = top_level_str f
+  | top_level_str ((Const ("Trueprop",_)) $ f) = top_level_str f
+  | top_level_str ((Const ("==>",_)) $ _ $ f) = top_level_str f
+  | top_level_str (f $ _) = top_level_str f
+  | top_level_str (Abs (_,_,t)) = top_level_str t
+  | top_level_str _ = NONE;
+
+  val top_level_new = trm_str_schema top_level_str;
+*}
+ 
+  (* to do: update to use above combinators *)
   ML{*
   val ignore_module = List.last o String.tokens (fn ch => #"." = ch) ;
 
@@ -141,6 +243,26 @@ begin
    C.imatch data pnode ("mfilter",[C.Var "Y"]);
  *}
 
+ -- "recursion"
+ ML{*
+   val left_def = "leftmost(X,Y) :- LEFT(X,Z), leftmost(Z,Y).\n"
+              ^ "leftmost(X,Y) :- CONST(X,Y).";
+   val right_def = "rightmost(X,Y) :- RIGHT(X,Z), rightmost(Z,Y).\n"
+              ^ "rightmost(X,Y) :- CONST(X,Y).";
+   val data = data 
+           |> C.add_atomic "LEFT" LEFT  
+           |> C.add_atomic "RIGHT" RIGHT  
+           |> C.add_atomic "CONST" CONST  
+           |> C.add_defs ((scan_def left_def))
+           |> C.add_defs ((scan_def right_def));
+*}
+ML{*
+   C.imatch data pnode ("leftmost",[C.Concl,C.Var "Y"]);
+*}
+
+ML{*
+   C.imatch data pnode ("rightmost",[C.Concl,C.Var "Y"]);
+*}
 
  -- "Parsing"
  ML{*
