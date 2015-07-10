@@ -25,13 +25,13 @@ Then go to the contrib directory:
 
     cd contrib 
 
-and grab the isaplib and quantomatic libraries either over https, for isabelle 2014 or onwards:
+and grab the quantomatic libraries either over https, for isabelle 2014 or onwards:
 
     git clone -b integration https://github.com/Quantomatic/quantomatic
     
 OR over ssh:
 
-    git clone -b ps-graph git://github.com/Quantomatic/quantomatic.git
+    git clone -b integration git://github.com/Quantomatic/quantomatic.git
 
 and for isabelle 2013
 
