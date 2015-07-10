@@ -1,16 +1,21 @@
 structure RodinProver  : PROVER = 
 struct
   exception gterm_exp
-  type typ = string                                            
+
+  (* Third Party Prover *)
+  structure tpp = Rodin
+
   type term = string
+  type typ = string
+
   type thm = string
   type context = string
 
-  type tactic = string
+  type tactic = tpp.tactic
 
-  type pplan = string (* be the latest name of pnode *)
+  type pplan = tpp.pplan (* be the latest name of pnode *)
 
-  type arg_data = string (* A_Const of string | A_Var of string | A_Trm of term *)
+  type arg_data = tpp.arg_data (* A_Const of string | A_Var of string | A_Trm of term *)
   datatype env_data = 
     E_Str of string | 
     E_Trm of term | E_Thm of thm |
@@ -24,9 +29,10 @@ struct
 
   exception env_data_exp
 
-  val default_ctxt = "Rodin ctxt"
+  val this_name=tpp.prover_name;
+  val default_ctxt = this_name^" ctxt"
   val exec_str = eval_text;
-  val this_name="RodinProver";
+
 
   structure EnvTac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = env_tac val struct_name = this_name^".EnvTac_ML_Exec");
   structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = this_name^".Tac_ML_Exec");
@@ -35,63 +41,22 @@ struct
   fun concl_of_thm  thm ="term" (* TODO: thm -> term *)
   fun asms_of_thm  thm = ["term","list"] (*: TODO:  thm -> term list ? *)
 
-  fun toInt str= Option.getOpt (Int.fromString str, 0)
-
-  fun nameAfter i prefix pn =
-    if pn>0 then
-    (Int.toString i, prefix^"G"^(Int.toString pn)) :: nameAfter (i+1) prefix (pn-1) 
-    else []
   
  fun get_open_pnodes pplan = 
  let
-     val cmd= (Rodin.execute  ("GET_ALL_OPEN_NODES",[("PPLAN",pplan)]));
-     val next = case Rodin.getCmdName cmd of
-              "NEED_NAMING" =>  
-                   let val num=toInt(Rodin.getParam cmd "NUM")
-                       val prefix=Rodin.getParam cmd "PARENT";
-                       val reply =(Rodin.execute ("NAME_OPEN_NODES", nameAfter 1 prefix num ))
-                   in
-                    reply
-                   end
-              | "NAMES" => cmd
-              | _ => raise error "Wrong command"
-     val nodes = Rodin.getParamValues next
+     val nodes = tpp.get_all_open_nodes pplan
   in  
       map (fn x=> {pname = x, env = StrName.NTab.empty }) nodes  
   end;
 
   fun apply_tactic args tactic ({pname, env}:pnode, pplan) = 
   let 
-      val reply=Rodin.execute ("APPLY_TACTIC",[("TACTIC",tactic),("NODE",pname)]);
-      val new_nodes = case Rodin.getCmdName reply of 
-                  "NODE_CLOSED" =>[]
-                   (*  let val reply= (Rodin.execute  ("GET_ALL_OPEN_NODES",[("PPLAN",pplan)]));
-                    in
-                      Rodin.getParamValues reply
-                    end  *)
-                 | "NEED_NAMING" => 
-                   let val num=toInt(Rodin.getParam reply "NUM");
-                       val prefix=Rodin.getParam reply "PARENT";
-                       val reply =(Rodin.execute ("NAME_OPEN_NODES", nameAfter 1 prefix num ))
-                   in
-                       Rodin.getParamValues reply
-                   end
-                 | "ERROR" => raise error (String.concat["Cannot Apply this Tactic: ",tactic, " ERROR: ", Rodin.getParam reply "ERROR_INFO"])
-                 | _ => raise error (String.concat["Cannot Apply this Tactic: ",tactic])
+      val new_nodes= tpp.apply_tactic args tactic pname
   in
      Seq.single (map (fn x=> {pname = x, env = env}) new_nodes ,pplan)
   end;
 
   fun apply_env_tactic args env_tac (pnode, pname)= Seq.single ([pnode], pname);
- 
-  fun get_open_pnodes_num _  =
-  let
-      val cmd=(Rodin.execute ("GET_OPEN_DESCENDANTS_NUM",[])) ;
-      val num=Rodin.getParam cmd "NUM"
-  in
-       Option.getOpt (Int.fromString num, 0)
-  end;
-
 
   fun get_pnode_name pnode = #pname pnode;
   fun get_pnode_env ({env, ...} : pnode) = env;
@@ -119,7 +84,7 @@ struct
 
 
 (* TODO :*)
-  fun typ_of term = "any"
+  fun typ_of term =tpp.typ_of term
    (*  let val reply=Rodin.execute ("GET_PNODE_GOAL_TYPE",[("TERM",term)]);
         val typ=Rodin.getParam reply "TYPE";
     in
@@ -127,12 +92,13 @@ struct
     end; *)
 
   fun  init _  _ _=  
-    let val {pname = init_node, env=_} = List.hd (get_open_pnodes "")
+    let val init_node=tpp.initialise()
     in
        ({pname=init_node,env=StrName.NTab.empty}, init_node)
     end;
 
   fun get_goal_thm pplan = raise Fail "TODO"; 
+
   structure Sharing = 
   struct
     type typ = typ
