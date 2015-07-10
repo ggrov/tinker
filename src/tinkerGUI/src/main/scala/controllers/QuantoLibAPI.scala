@@ -115,7 +115,9 @@ object QuantoLibAPI extends Publisher{
 				rearrangeGoals(g,newDelta,factor-1,goals.tail)
 			}
 		}
+		var nodeComputed = Set[VName]()
 		def rec(v:VName, tvarX:Double, tvarY:Double){
+			nodeComputed = nodeComputed + v
 			gr.succVerts(v).foreach { case v1 =>
 				var f = 1
 				var succ = v1
@@ -125,7 +127,7 @@ object QuantoLibAPI extends Publisher{
 					goals = goals + succ
 					succ = gr.succVerts(succ).head
 				}
-				if(succ.s != v.s && !gr.predVerts(v).contains(succ)){
+				if(succ.s != v.s && !nodeComputed.contains(succ)){
 					gr = gr.updateVData(succ) { d => d.withCoord(d.coord._1 + tvarX, d.coord._2 + tvarY)}
 					val delta = rearrange(v,succ,f*1.5)
 					if(f > 1){
@@ -149,6 +151,7 @@ object QuantoLibAPI extends Publisher{
 		//val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
 		// wrap Graph.fromJson .... with layout.layout(...) in next line to activate layout
 		document.graph = tinkerLayout(graphWithCompleteLabels(json))
+		//document.graph = graphWithCompleteLabels(json)
 		document.publish(GraphReplaced(document, clearSelection = true))
 		localUpdate()
 		view.resizeViewToFit()
