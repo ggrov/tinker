@@ -111,6 +111,7 @@ class InspectorController(model: PSGraph) extends Publisher {
 	listenTo(Service.editCtrl)
 	listenTo(Service.evalCtrl)
 	listenTo(Service.documentCtrl)
+	listenTo(Service.libraryTreeCtrl)
 	reactions += {
 		case GraphTacticListEvent() =>
 			gtList = model.gtCollection.keys.toList :+ "main"

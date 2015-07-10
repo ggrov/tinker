@@ -22,11 +22,11 @@ object Service extends Publisher {
 	val editCtrl = new EditController(model)
 	val evalCtrl = new EvalController(model)
 	val documentCtrl = new DocumentController(model)
+	val libraryTreeCtrl = new TinkerLibraryController(model)
 	val hierarchyCtrl = new HierarchyController(model)
 	val inspectorCtrl = new InspectorController(model)
 	val graphNavCtrl = new GraphNavigationController(model)
 	// TODO get rid of unecessary controllers
-	val libraryTreeCtrl = new TinkerLibraryController()
 
 	// getter-setter of the main frame
 	private var mainFrame: Component = new BorderPanel()

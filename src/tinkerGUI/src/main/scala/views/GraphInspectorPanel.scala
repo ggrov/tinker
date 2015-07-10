@@ -53,6 +53,42 @@ class GraphInspectorPanel() extends BorderPanel {
 			}
 			contents += new Button(new Action("") {
 				def apply() {
+					QuantoLibAPI.zoomInSubgraphPreview()
+				}
+			}){
+				icon = new ImageIcon(MainGUI.getClass.getResource("zoom-in.png"), "Zoom in")
+				tooltip = "Zoom in"
+				borderPainted = false
+				margin = new Insets(0,0,0,0)
+				contentAreaFilled = false
+				opaque = false
+				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+				listenTo(controller)
+				reactions += {
+					case DisableNavigationEvent(a:Array[String]) =>
+						enabled = !(a contains "zoomin")
+				}
+			}
+			contents += new Button(new Action("") {
+				def apply() {
+					QuantoLibAPI.zoomOutSubgraphPreview()
+				}
+			}){
+				icon = new ImageIcon(MainGUI.getClass.getResource("zoom-out.png"), "Zoom out")
+				tooltip = "Zoom out"
+				borderPainted = false
+				margin = new Insets(0,0,0,0)
+				contentAreaFilled = false
+				opaque = false
+				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+				listenTo(controller)
+				reactions += {
+					case DisableNavigationEvent(a:Array[String]) =>
+						enabled = !(a contains "zoomout")
+				}
+			}
+			contents += new Button(new Action("") {
+				def apply() {
 					controller.edit()
 				}
 			}){

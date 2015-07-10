@@ -126,6 +126,8 @@ struct
       typ
     end; *)
 
+  fun pretty_env _ _ = Pretty.str "dummy" 
+  fun pretty_env_data _ _ = Pretty.str "dummy"
   fun  init _  _ _=  
     let val {pname = init_node, env=_} = List.hd (get_open_pnodes "")
     in

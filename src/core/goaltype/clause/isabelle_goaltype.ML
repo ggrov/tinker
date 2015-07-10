@@ -6,13 +6,11 @@ struct
 
   (**************** EXAMPLE "ENV" TACTICS ******************)
 
-  (* split(?x) *)
-  fun split env _ [PVar v]  = 
+  (* split(X) *)
+  fun split env _ [Var v]  = 
     case StrName.NTab.lookup env v of
-       SOME (LT_T pt) => map (fn e => StrName.NTab.update (v, ET_T e) StrName.NTab.empty) pt
-      | SOME (LS_T st) => map (fn e => StrName.NTab.update (v, ES_T e) StrName.NTab.empty) st
-      | _ => []
-
+       SOME (Prover.E_L pt) => map (fn e => StrName.NTab.update (v,e) StrName.NTab.empty) pt
+       NONE => [env];
 
   fun top_symbol env pnode (t::var::symbs) = 
     let 

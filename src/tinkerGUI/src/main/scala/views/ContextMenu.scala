@@ -103,13 +103,13 @@ object ContextMenu extends PopupMenu {
 				}
 				contents += new MenuItem(new Action("Inspect tactic") {
 					def apply() = {
-						Service.inspectorCtrl.inspect(ArgumentParser.separateNameFromArgument(eltValue)._1)
+						Service.inspectorCtrl.inspect(ArgumentParser.separateNameArgs(eltValue)._1)
 					}
 				})
 				contents += new MenuItem(new Action("Add a subgraph") {
 					def apply() = {
 						Service.documentCtrl.registerChanges()
-						Service.editCtrl.addSubgraph(ArgumentParser.separateNameFromArgument(eltValue)._1)
+						Service.editCtrl.addSubgraph(ArgumentParser.separateNameArgs(eltValue)._1)
 					}
 				}){
 					this.peer.setEnabled(enableEdit)

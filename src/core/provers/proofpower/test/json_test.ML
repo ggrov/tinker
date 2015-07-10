@@ -1,9 +1,21 @@
+ use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
 
-  val path = "/Users/yuhuilin/Desktop/psgraph/" ;
+
+  val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
+  val path = tinker_path ^ "src/dev/psgraph/";
+  val guiPath = tinker_path ^ "src/tinkerGUI/release/";
+  val sys = "osx_64";
+  
+  set_guiPath guiPath sys;
+  open_gui_single();
+
   val _ = LoggingHandler.active_all_tags ();
+  val _ = LoggingHandler.clear_active_tags();
+  val _ = map LoggingHandler.ins_active_tag ["ENV_DATA"];
   val _ = LoggingHandler.print_active();
 
   val impI_thm = "This is a impI thm !";
+  val conjI_thm =  "This is a conjI thm !";
   fun rule_tac pretty = (LoggingHandler.logging "TACTIC" pretty; step_strip_tac);
   val impI_tac  = step_strip_tac;
   val conjI_tac  = step_strip_tac;
@@ -16,10 +28,19 @@
 
 (* read and load a psgraph created by gui *)
   val ps = PSGraph.read_json_file (path^"demo_new.psgraph");
-  PSGraph.write_json_file (path^"demo1.psgraph") ps; 
+  val ps = PSGraph.read_json_file (path^"demo_env.psgraph");
 
-(* socket testing *)
-  PPIntf.set_psg_goal ([], %<% (A %implies% (A %and% A %and% A)) %>%) ps; 
+  PPIntf.set_psg_goal ([¬B : BOOL®], ¬A ´ (A ± B ± (C ´ C))®) ps;
 
-  PPIntf.set_psg_goal ([], %<% (A %implies% A) %and% (A %implies% B %implies% B) %>%) ps; 
   TextSocket.safe_close();
+
+======
+
+  val ps = PSGraph.read_json_file (path^"nonascii_tac.psgraph");
+  PPIntf.set_psg_goal ([],¬µx· x = x®) ps;
+
+
+
+set_goal 
+a µ_tac;
+open_gui_single (); 

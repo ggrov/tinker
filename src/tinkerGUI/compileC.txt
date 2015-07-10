@@ -1,0 +1,2 @@
+gcc -m32 -dynamiclib -o guiLauncher.so -dy guiLauncher.c 
+gcc -dynamiclib -o guiLauncher.so -dy guiLauncher.c 

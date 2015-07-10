@@ -115,7 +115,9 @@ object QuantoLibAPI extends Publisher{
 				rearrangeGoals(g,newDelta,factor-1,goals.tail)
 			}
 		}
+		var nodeComputed = Set[VName]()
 		def rec(v:VName, tvarX:Double, tvarY:Double){
+			nodeComputed = nodeComputed + v
 			gr.succVerts(v).foreach { case v1 =>
 				var f = 1
 				var succ = v1
@@ -125,7 +127,7 @@ object QuantoLibAPI extends Publisher{
 					goals = goals + succ
 					succ = gr.succVerts(succ).head
 				}
-				if(succ.s != v.s && !gr.predVerts(v).contains(succ)){
+				if(succ.s != v.s && !nodeComputed.contains(succ)){
 					gr = gr.updateVData(succ) { d => d.withCoord(d.coord._1 + tvarX, d.coord._2 + tvarY)}
 					val delta = rearrange(v,succ,f*1.5)
 					if(f > 1){
@@ -149,6 +151,7 @@ object QuantoLibAPI extends Publisher{
 		//val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
 		// wrap Graph.fromJson .... with layout.layout(...) in next line to activate layout
 		document.graph = tinkerLayout(graphWithCompleteLabels(json))
+		//document.graph = graphWithCompleteLabels(json)
 		document.publish(GraphReplaced(document, clearSelection = true))
 		localUpdate()
 		view.resizeViewToFit()
@@ -172,6 +175,20 @@ object QuantoLibAPI extends Publisher{
 	  * @return Subgraph preview.
 	  */
 	def getSubgraphPreview = subgraphPreview
+
+	/** Method to zoom in the subgraph preview.
+		*
+		*/
+	def zoomInSubgraphPreview() {
+		subgraphPreview.subgraphPreviewView.zoom *= 1.5
+	}
+
+	/** Method to zoom out the subgraph preview.
+		*
+		*/
+	def zoomOutSubgraphPreview() {
+		subgraphPreview.subgraphPreviewView.zoom *= 0.5
+	}
 
 	/** Method to update the subgraph preview with a json.
 	  *
@@ -203,9 +220,9 @@ object QuantoLibAPI extends Publisher{
 	  */
 	def getLibraryPreview = libraryPreview
 
-	/** Method to update the library psgraph preview with a json
+	/** Method to update the library psgraph preview with a json.
 	  *
-	  * @param json Json representation of the graph
+	  * @param json Json representation of the graph.
 	  */
 	def updateLibraryPreviewFromJson(json: Json) {
 		libraryPreview.libraryPreviewDoc.clear()
@@ -214,6 +231,20 @@ object QuantoLibAPI extends Publisher{
 		libraryPreview.libraryPreviewDoc.graph = Graph.fromJson(json, theory)
 		libraryPreview.libraryPreviewDoc.publish(GraphReplaced(libraryPreview.libraryPreviewDoc, clearSelection = true))
 		libraryPreview.libraryPreviewView.resizeViewToFit()
+	}
+
+	/** Method to zoom in the library preview.
+		*
+		*/
+	def zoomInLibraryPreview() {
+		libraryPreview.libraryPreviewView.zoom *= 1.5
+	}
+
+	/** Method to zoom out the library preview.
+		*
+		*/
+	def zoomOutLibraryPreview() {
+		libraryPreview.libraryPreviewView.zoom *= 0.5
 	}
 
 	/** Private method to update the local variables.
@@ -235,6 +266,20 @@ object QuantoLibAPI extends Publisher{
 		graph = graphPanel.graphDoc.graph
 		if(!Service.evalCtrl.inEval) Service.model.saveGraph(Graph.toJson(graph, theory))
 		Service.graphNavCtrl.viewedGraphChanged(Service.model.isMain,false)
+	}
+
+	/** Method zooming in the graph view.
+		*
+		*/
+	def zoomInGraph() {
+		view.zoom *= 1.5
+	}
+
+	/** Method zooming out the graph view.
+		*
+		*/
+	def zoomOutGraph() {
+		view.zoom *= 0.5
 	}
 
 	// ------------------------------------------------------------
@@ -349,7 +394,7 @@ object QuantoLibAPI extends Publisher{
 		res
 	}
 
-	/** Method chicking if given node has nested tactics after.
+	/** Method checking if given node has nested tactics after.
 		*
 		* @param n Node id.
 		* @return Boolean telling if there is a nested tactic after or not.
@@ -950,14 +995,14 @@ object QuantoLibAPI extends Publisher{
 				case d:NodeV =>
 					if(d.typ == "T_Graph"){
 						Service.editCtrl.changeTacticOccurrence(v.s,
-							ArgumentParser.separateNameFromArgument(d.label)._1,
-							ArgumentParser.separateNameFromArgument(newData.label)._1,
+							ArgumentParser.separateNameArgs(d.label)._1,
+							ArgumentParser.separateNameArgs(newData.label)._1,
 							0,
 							false)
 					} else if (d.typ == "T_Atomic") {
 						Service.editCtrl.changeTacticOccurrence(v.s,
-							ArgumentParser.separateNameFromArgument(d.label)._1,
-							ArgumentParser.separateNameFromArgument(newData.label)._1,
+							ArgumentParser.separateNameArgs(d.label)._1,
+							ArgumentParser.separateNameArgs(newData.label)._1,
 							0,
 							true)
 					}
@@ -1013,36 +1058,45 @@ object QuantoLibAPI extends Publisher{
 		}
 		// saving json graph
 		val jsonGraph = Graph.toJson(newSubgraph, theory)
-		Service.saveGraphSpecificTactic(ArgumentParser.separateNameFromArgument(newData.label)._1, jsonGraph, 0)
+		Service.saveGraphSpecificTactic(ArgumentParser.separateNameArgs(newData.label)._1, jsonGraph, 0)
 		publish(NothingSelectedEvent())
-		Service.editCtrl.updateTactic(newName.s, ArgumentParser.separateNameFromArgument(newData.label)._1, false)
+		Service.editCtrl.updateTactic(newName.s, ArgumentParser.separateNameArgs(newData.label)._1, false)
 	}
 
 	/** Method to add vertices and edges from specified json into our graph.
 	  *
 	  * @param json Json object to add
 	  */
-	def addFromJson(json: Json) {
+	def addFromJson(json: Json):Map[String,String] = {
 		view.selectedVerts.foreach { v => view.selectedVerts -= v}
-		var newNameMap = Map[String, String]()
+		var newNodeIdMap = Map[String, String]()
+		var nameNodeIdMap = Map[String,String]()
 		(json ? "wire_vertices").mapValue.foreach{ case (k,v) =>
 			val bName = graph.verts.freshWithSuggestion(VName("b0"))
-			newNameMap = newNameMap + ((k, bName.s))
+			newNodeIdMap = newNodeIdMap + (k -> bName.s)
 			changeGraph(graph.addVertex(bName, WireV.fromJson(v, theory)))
 			view.selectedVerts += bName
 		}
 		(json ? "node_vertices").mapValue.foreach{ case (k,v) =>
 			val vName = graph.verts.freshWithSuggestion(VName("v0"))
-			newNameMap = newNameMap + ((k, vName.s))
+			newNodeIdMap = newNodeIdMap + (k -> vName.s)
 			changeGraph(graph.addVertex(vName, NodeV.fromJson(v, theory)))
+			graph.vdata(vName) match {
+				case d:NodeV if d.typ == "T_Atomic" || d.typ == "T_Graph" =>
+					nameNodeIdMap = nameNodeIdMap + (ArgumentParser.separateNameArgs(d.value.stringValue)._1->vName.s)
+				case _ =>  // do nothing
+			}
 			view.selectedVerts += vName
 		}
 		(json ? "dir_edges").mapValue.foreach{ case (k,v) =>
 			val eName = graph.edges.freshWithSuggestion(EName("e0"))
 			val data = v.getOrElse("data", theory.defaultEdgeData).asObject
 			val annotation = (v ? "annotation").asObject
-			changeGraph(graph.addEdge(eName, DirEdge(data, annotation, theory), (newNameMap((v / "src").stringValue), newNameMap((v / "tgt").stringValue))))
+			changeGraph(graph.addEdge(eName, DirEdge(data, annotation, theory), (newNodeIdMap((v / "src").stringValue), newNodeIdMap((v / "tgt").stringValue))))
 		}
+		view.resizeViewToFit()
+		publishSelectedVerts()
+		nameNodeIdMap
 	}
 
 	/** listener to view mouse clicks and moves */
@@ -1073,7 +1127,7 @@ object QuantoLibAPI extends Publisher{
 				view.repaint()
 				publish(NothingSelectedEvent())
 			}
-		case KeyPressed(_, Key.Minus, _, _)  => view.zoom *= 0.6
-		case KeyPressed(_, Key.Equals, _, _) => view.zoom *= 1.6
+		case KeyPressed(_, Key.Minus, _, _)  => zoomInGraph()
+		case KeyPressed(_, Key.Equals, _, _) => zoomOutGraph()
 	}
 }

@@ -21,7 +21,7 @@
 (* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *)
 
 val psgraphDir = OS.FileSys.getDir();
-val psgraphSrc = psgraphDir ^ "/../../../../";
+val psgraphSrc = psgraphDir ^ "/../../../../../";
 
 OS.FileSys.chDir psgraphSrc;
 (* Include quantomatic *)

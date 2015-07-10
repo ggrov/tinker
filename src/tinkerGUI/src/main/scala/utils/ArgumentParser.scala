@@ -14,7 +14,7 @@ object ArgumentParser {
 		* @param s Full name, often entered by the user during graph edition.
 		* @return Pair of strings, one for the tactic name, the other for its arguments.
 		*/
-	def separateNameFromArgument(s: String): (String, String) = {
+	def separateNameArgs(s: String): (String, String) = {
 		if(s.contains("(")){
 			val parts = s.split(Pattern.quote("("))
 			var args = ""
@@ -40,6 +40,39 @@ object ArgumentParser {
 		* @return Arguments in a array of array of string format.
 		*/
 	def stringToArguments(s: String): Array[Array[String]] = {
+
+		var arguments = Array[String]()
+		def parseArguments(fullString:String,temporaryString:String,openBrackets:Int) {
+			var tmpString = temporaryString
+			if(!fullString.isEmpty) {
+				fullString.charAt(0) match {
+					case ',' =>
+						if (openBrackets == 0) {
+							arguments = arguments :+ removeUselessSpace(tmpString)
+							parseArguments(fullString.substring(1), "", 0)
+						} else {
+							tmpString += fullString.charAt(0)
+							parseArguments(fullString.substring(1), tmpString, openBrackets)
+						}
+					case '[' | '{' =>
+						tmpString += fullString.charAt(0)
+						parseArguments(fullString.substring(1), tmpString, openBrackets + 1)
+					case ']' | '}' =>
+						tmpString += fullString.charAt(0)
+						parseArguments(fullString.substring(1), tmpString, openBrackets - 1)
+					case _ =>
+						tmpString += fullString.charAt(0)
+						parseArguments(fullString.substring(1), tmpString, openBrackets)
+				}
+			} else {
+				if(!temporaryString.isEmpty) arguments = arguments :+ removeUselessSpace(temporaryString)
+				// should check openbrackets
+			}
+		}
+		parseArguments(s,"",0)
+		Array(arguments)
+		/*println(arguments.foldLeft(""){case(s,a) => s+" - "+a})
+
 		var res = Array[Array[String]]()
 		if(s.contains(",")){
 			val parts = s.split(",")
@@ -48,7 +81,7 @@ object ArgumentParser {
 			}
 		}
 		else if(!s.isEmpty) { res = res :+ stringToArgument(s) }
-		res
+		res*/
 	}
 
 	/** Method to parse a single argument from a string to a an array of string.
@@ -98,7 +131,7 @@ object ArgumentParser {
 			}
 		}
 		else{ res = res :+ s }
-		return res
+		res
 	}
 
 	/** Method to remove space ahead and at the end of a string.
@@ -112,7 +145,7 @@ object ArgumentParser {
 		var res = s
 		if(res.length > 0 && res.head.equals(' ')) res = removeUselessSpace(res.tail)
 		if(res.length > 0 && res.charAt(res.length-1).equals(' ')) res = removeUselessSpace(res.substring(0, res.length-1))
-		return res
+		res
 	}
 
 	/** Method to parse arguments from an array of array of string to a string.
@@ -128,11 +161,12 @@ object ArgumentParser {
 		var res = ""
 		if(args.size > 0){
 			args.foreach{ a => 
-				res += argumentToString(a)+", "
+				res += a.foldLeft(""){case(s,arg) => s+arg+", "}
+				//res += argumentToString(a)+", "
 			}
 			res = res.substring(0, res.length-2)
 		}
-		return res
+		res
 	}
 
 	/** Method to parse a single argument from an array of string to a string.
@@ -156,7 +190,7 @@ object ArgumentParser {
 			}
 		}
 		if(arg.size > 0) res = res.substring(0, res.length-1)
-		return res
+		res
 	}
 
 }

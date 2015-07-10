@@ -22,7 +22,6 @@ struct
   (*******
     Application of tactic - link with TP systems
   *******)   
-  (* FIXME: raise exception if it fails *)
   fun apply_tactic edata gnode (GData.T_Atomic name) = 
        let 
          val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
@@ -394,6 +393,12 @@ struct
  (* evaluates a single goal node *)
   fun eval_goal_gen gname graph_name0 index0 edata = 
    let
+     val _ = 
+      Util.gnode_of (EData.get_graph edata) gname
+      |> (fn x => EData.get_goal edata (GoalTyp.goal_name x))
+      |> (fn pnode => Prover.pretty_env (Prover.get_pnode_ctxt pnode) (Prover.get_pnode_env pnode))
+      |> (Pretty.string_of )
+      |> logging "ENV_DATA" 
      val graph = 
       if is_some graph_name0 then raise Fail "ERR: NOT Support to switch between subgraph yet" 
       else EData.get_graph edata
