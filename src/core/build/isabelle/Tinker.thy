@@ -7,8 +7,5 @@ begin
   ML_file "../../interface/text_socket.ML"
   ML_file "../../interface/tinker_protocol.ML"
   ML_file "../../interface/gui_launcher.ML"
-ML{*
-  val get = CInterface.get_sym ("/inti/" ^"guiLauncher.so")  "gui";
 
-*}
 end

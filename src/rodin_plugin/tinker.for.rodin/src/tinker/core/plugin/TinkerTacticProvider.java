@@ -49,7 +49,7 @@ public class TinkerTacticProvider extends DefaultTacticProvider {
 				.println("-----------------------------------------------------");
 		
 
-		if (node != null) {
+		if (node != null && node.isOpen()) {
 			final ITacticApplication appli = new TinkerApplication(hyp);
 			return singletonList(appli);
 		}

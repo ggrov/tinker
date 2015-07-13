@@ -1,14 +1,23 @@
 theory TinkeringRodin
-imports       
-  "../../build/isabelle/Tinker"                                                                               
-begin 
 
-(* TODO: move rodin prover here *)
-ML_file "./interface/unicode_helper.ML"
-ML_file "./interface/rodin_socket.ml"
-ML_file "./interface/interface.ML" 
+
+imports   "../../build/isabelle/Tinker"      
+begin  
+
+
+ML_file "../../interface/text_socket.ML"
+
+ML_file "./interface/wsock.sig.ML"
+ML_file "./interface/json_protocol.sig.ML"
+ML_file "./interface/tpp_protocol.sig.ML"
+
+ML_file "./build/unicode_helper.ML"
+ML_file "./build/rodin_socket.struct.ML"
+ML_file "./build/rodin_json_protocol.struct.ML"
+ML_file "./build/rodin_protocol.ML"
+
 ML_file "./rodin_prover.ML"
-ML_file "./interface/rodin_extra.ML"
+
 ML_file "../../goaltype/simple_goaltype.ML"
 
 ML{*
@@ -30,4 +39,3 @@ ML{*
 ML{*  open Env_Tac_Lib  *}
 
 end
-
