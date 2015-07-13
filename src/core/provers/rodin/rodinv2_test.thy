@@ -7,7 +7,7 @@ begin
 ML{*
 LoggingHandler.active_all_tags ();
 LoggingHandler.print_active();
-  val path2= "F:/Library/Documents/git/tinker/src/tinkerGUI/release/tinker_library/";
+  val path2 = "F:/Library/Documents/git/tinker/src/tinkerGUI/release/tinker_library/rodin/";
 *}
 ML{*
 
@@ -55,13 +55,13 @@ ML{*-
 ML{*
   TextSocket.close ;   
 *}
-ML{*-
+ML{*
 SimpleNamer.init();    
  
-Tinker.start_ieval "" ps [] ""  handle exn =>  
+Tinker.start_ieval "" ps [] ""  handle exn =>   
 (finish_with_ex "SOME SOCKET ERROR"; 
-disconn_gui();   
-TextSocket.safe_close();     
+disconn_gui();    
+TextSocket.safe_close();      
 raise exn);           
 val _ = finish();    
 

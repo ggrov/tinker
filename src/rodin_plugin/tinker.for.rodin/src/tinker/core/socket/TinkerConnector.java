@@ -99,6 +99,19 @@ public class TinkerConnector {
 		throw new RodinCancelInteruption(TinkerSession.RP_STATE_CANCELLING_LISTENING);
 	}
 
+	public String blockedRead() throws Exception{
+		while (true){
+			try{
+			String result= input.readLine();
+			if (result!=null){
+				return result;
+			}
+			}catch(SocketTimeoutException ex){
+				continue;
+			}
+		}
+	}
+	
 	public String fromTinker() throws Exception {
 		//Plugin read from Tinker through socket. Rather than letting the socket block the thread,
 		//there is a timeout of 500 ms, creating a chance to check if 
@@ -148,8 +161,8 @@ public class TinkerConnector {
 			}
 		}
 		// if cancelled in Rodin
-		System.out.println("Close.");
-		this.close();
+		System.out.println("Rodin Cancelled while waiting for Tinker Command. \n Rodin Blocked until Tinker Replies");
+		//this.close();
 		throw new RodinCancelInteruption(TinkerSession.RP_STATE_CANCELLING_WAITING_COMMAND);
 	}
 
