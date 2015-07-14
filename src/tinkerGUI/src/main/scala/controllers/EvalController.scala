@@ -97,6 +97,7 @@ class EvalController(model:PSGraph) extends Publisher {
 	def selectEvalOption(o:String){
 		publish(DisableEvalOptionsEvent())
 		publish(EvalOptionSelectedEvent(o, selectedNode))
+		selectedNode = ""
 	}
 
 	listenTo(QuantoLibAPI)
