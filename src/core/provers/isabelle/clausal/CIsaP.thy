@@ -23,7 +23,7 @@ ML{*
   structure EData =  EDataFun( PSGraph);
   structure EVal = EValFun(EData);
   structure IEVal = InteractiveEvalFun (EVal);
-  structure Tinker = TinkerProtocol (IEVal);
+  structure Tinker = TinkerProtocol (structure IEVal = IEVal val gui_socket_port = 1790 val prover_socket_port = 0);
   structure Env_Tac_Lib = EnvTacLibFunc (Theory);
 *}
 
