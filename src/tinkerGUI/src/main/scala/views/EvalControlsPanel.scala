@@ -43,7 +43,7 @@ class EvalControlsPanel() {
 		tooltip = "Finish"
 		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_FINISH") enabled = true
+			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_NEXT") enabled = true
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
@@ -59,7 +59,7 @@ class EvalControlsPanel() {
 		tooltip = "Complete"
 		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_COMPLETE") enabled = true
+			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_NEXT") enabled = true
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
@@ -140,7 +140,7 @@ class EvalControlsPanel() {
 		tooltip = "Until Break"
 		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_UNTIL_BREAK") enabled = true
+			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_NEXT") enabled = true
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
