@@ -34,9 +34,12 @@ sig
  val eval_any : EData.T -> result
  val eval_goal: string -> EData.T -> result (* goal to be eval -> current eval status *)
  val eval_backtrack : EData.T -> result 
- val eval_step_into : V.name option -> EData.T -> result
- val eval_step_over : V.name option -> EData.T -> result
-
+(* val eval_step_into : V.name option -> EData.T -> result*)
+ val eval_step_over : string -> EData.T -> result
+(*
+ val eval_until_breakpoint :  EData.T -> result
+ val eval_ignore_breakpoint : EData.T -> result
+*)
  structure Sharing : IEVAL_SHARING
   sharing type result = Sharing.result
   sharing Sharing.EData = EData.Sharing

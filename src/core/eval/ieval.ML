@@ -78,6 +78,26 @@ struct
        |> update_branches edata
   end;
 
+ fun eval_step_over0 graph_name edata =
+  let val ret = eval_any edata in
+  case ret of Cont e => 
+    if (EData.get_name_current e) = graph_name
+    then ret
+    else eval_step_over0 graph_name e
+ | _ => ret end;
+   
+ fun eval_step_over node_name edata =      
+  let val ret = eval_goal node_name edata val cur_graph_name = EData.get_name_current edata in
+  case ret
+    of Cont edata' => eval_step_over0 cur_graph_name edata'
+    | _  => ret end
+
+(*
+ fun eval_until_breakpoint
+ fun eval_ignore_breakpoint 
+*) 
+ 
+
 
 (************************************************************
   
@@ -137,8 +157,7 @@ struct
  val complete : EData.T -> EData.T  *)
 (* FIXME: to be implmented *)
  fun update_graph x = x
- fun eval_step_into _ _ = Bad
- fun eval_step_over _ _ = Bad
+
 
   end (* end of local open *)
    structure Sharing =

@@ -39,7 +39,7 @@ struct
   val ftab = Symtab.empty
 
   structure JobTable = NameTable(structure Dom = IntName)
-  (* always try save_connect then test connection, if no response then safe_clse then safe_connect *)
+  (* always try save_connect then test connection, if no response then safe_close then safe_connect *)
   
 (****************************************************
   internal data 
@@ -74,25 +74,28 @@ struct
       val (SOME edata0) = get_data();
       val gnode =  hd (tl opts)
       val eval_fn = case gnode of "" => K IEVal.eval_any | _ => IEVal.eval_goal
+      fun make_ret_reuslt edata_result = 
+       case edata_result 
+        of (IEVal.Cont edata1) => 
+             (set_data edata1;
+              IEVal.output_json "CMD_UPDATE_PSGRAPH" 
+               (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
+               edata1 NONE) |> pp_goal edata1
+        | (IEVal.Good edata1) => 
+            (set_data edata1;
+             IEVal.output_json "CMD_UPDATE_PSGRAPH" 
+              (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
+              edata1 NONE) |> pp_goal edata1
+        |(IEVal.Bad) => 
+            (logging "EVAL" "No subsequent eval status: Bad";
+            IEVal.output_json "CMD_UPDATE_PSGRAPH" 
+              (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
+              edata0 NONE) 
     in
       case opt 
-        of "OPT_EVAL_NEXT" =>
-          (case eval_fn gnode edata0
-            of (IEVal.Cont edata1) => 
-                 (set_data edata1;
-                  IEVal.output_json "CMD_UPDATE_PSGRAPH" 
-                   (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
-                   edata1 NONE) |> pp_goal edata1
-            | (IEVal.Good edata1) => 
-                (set_data edata1;
-                 IEVal.output_json "CMD_UPDATE_PSGRAPH" 
-                  (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
-                  edata1 NONE) |> pp_goal edata1
-            |(IEVal.Bad) => 
-                (logging "EVAL" "No subsequent eval status: Bad";
-                IEVal.output_json "CMD_UPDATE_PSGRAPH" 
-                  (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
-                  edata0 NONE) )
+        of "OPT_EVAL_NEXT" => eval_fn gnode edata0 |> make_ret_reuslt
+        | "OPT_EVAL_INTO" => eval_fn gnode edata0 |> make_ret_reuslt
+        | "OPT_EVAL_STEP_OVER" =>  IEVal.eval_step_over gnode edata0 |> make_ret_reuslt
         | "OPT_EVAL_STOP" =>
            (Json.mk_object[("cmd", Json.mk_object[("name", Json.String  "CMD_END_EVAL_SESSION")])])
         | x => raise protocol_exn ("ERR: protocol unkown option: " ^ x)
