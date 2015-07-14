@@ -179,11 +179,27 @@ class EvalControlsPanel() {
 		}
 	}
 
+	val CommitButton = new Button(
+		new Action(""){
+			def apply(){
+				// commit change on model to core
+			}
+		}
+	){
+		enabled = false
+		icon = new ImageIcon(MainGUI.getClass.getResource("eval-backtrack.png"), "Commit")
+		tooltip = "Commit changes"
+		/*listenTo(Service.evalCtrl)
+		reactions += {
+			// check for changes
+		}*/
+	}
+
 	val MainEvalToolBar = new ToolBar{
 		contents += (NextButton, UndoButton, StepInButton, StepOverButton, BacktrackButton, CompleteButton, FinishButton, UntilBreakButton)
 	}
 
 	val SecondaryEvalToolBar = new ToolBar{
-		contents += (ConnectButton, StopButton)
+		contents += (ConnectButton, CommitButton, StopButton)
 	}
 }
