@@ -1,4 +1,4 @@
-functor TinkerProtocol (IEVal : IEVAL)=
+functor TinkerProtocol (structure IEVal : IEVAL val gui_socket_port : int val prover_socket_port: int)=
 struct
   open JsonControllerUtil LoggingHandler
 
@@ -7,6 +7,10 @@ struct
 
   structure IEVal = IEVal
   structure EData = IEVal.EData
+
+(* if 0 then invalid *)
+  val gui_sicket_port = gui_socket_port
+  val prover_socket_port = prover_socket_port
   
   type T = ((Json.json -> Json.json) * string) Symtab.table
 
@@ -150,7 +154,7 @@ struct
      val edata0 = IEVal.EVal.init ps ctxt assms g |> hd (* FIXME: only get the first one *)
      val _ = pp_goal edata0 ();
 (*  in future, it should always maintain a socket connection*)
-     val s = TextSocket.safe_local_client 1790;
+     val s = TextSocket.safe_local_client gui_socket_port;
      val (SOME (ins, outs)) = TextSocket.get_current_stream (); (* should always be something *)
      val init_msg = IEVal.output_string 
           "CMD_INIT_PSGRAPH" 

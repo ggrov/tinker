@@ -10,12 +10,12 @@
                                      structure Data = Data);
   structure Theory_IO = PSGraph_Theory_IOFun(structure PSTheory = Theory);
   structure PSGraph = PSGraphFun(Theory_IO);
-  PSGraph.empty;
   structure PSComb = PSCombFun (structure PSGraph = PSGraph)
   structure EData =  EDataFun( PSGraph);
   structure EVal = EValFun(EData);
   structure IEVal = InteractiveEvalFun (EVal);
-  structure Tinker = TinkerProtocol (IEVal);  
+  structure Tinker = TinkerProtocol (structure IEVal = IEVal val gui_socket_port = 1790 val prover_socket_port = 0);
+  structure Env_Tac_Lib = EnvTacLibFunc (Theory);
 
   use "../pp_intf.ML"; 
 
