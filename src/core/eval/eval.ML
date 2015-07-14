@@ -391,7 +391,7 @@ struct
    end
 
  (* evaluates a single goal node *)
-  fun eval_goal_gen gname graph_name0 index0 edata = 
+  fun eval_goal_gen  gname graph_name0 index0 edata = 
    let
      val _ = 
       Util.gnode_of (EData.get_graph edata) gname
@@ -419,6 +419,7 @@ struct
            (GData.T_Atomic _) => eval_apply_atomic gname tnode edata
          | (GData.T_Identity) => eval_apply_id gname tnode edata
          | (GData.T_Graph _) => enter_hgraph gname nv edata
+         | (GData.G_Break) => eval_apply_id gname tnode edata
          | _ => raise node_exp ("ERR: unexpected node type to apply eval ", gnode, nv)
       end
      )

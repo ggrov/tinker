@@ -96,6 +96,9 @@ struct
         of "OPT_EVAL_NEXT" => eval_fn gnode edata0 |> make_ret_reuslt
         | "OPT_EVAL_INTO" => eval_fn gnode edata0 |> make_ret_reuslt
         | "OPT_EVAL_STEP_OVER" =>  IEVal.eval_step_over gnode edata0 |> make_ret_reuslt
+        | "OPT_EVAL_FINISH" => IEVal.eval_finish edata0 |> make_ret_reuslt
+        | "OPT_EVAL_COMPLETE" => IEVal.eval_complete edata0 |> make_ret_reuslt
+        | "OPT_EVAL_UNTIL_BREAK" => IEVal.eval_until_break edata0 |> make_ret_reuslt
         | "OPT_EVAL_STOP" =>
            (Json.mk_object[("cmd", Json.mk_object[("name", Json.String  "CMD_END_EVAL_SESSION")])])
         | x => raise protocol_exn ("ERR: protocol unkown option: " ^ x)

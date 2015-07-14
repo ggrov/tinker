@@ -78,19 +78,33 @@ struct
        |> update_branches edata
   end;
 
- fun eval_step_over0 graph_name edata =
+ fun eval_complete edata = 
+  let val ret = eval_any edata in
+  case ret 
+  of Cont e => eval_complete e
+   | _ => ret end;
+
+ fun eval_until_graph edata graph_name  =
   let val ret = eval_any edata in
   case ret of Cont e => 
     if (EData.get_name_current e) = graph_name
     then ret
-    else eval_step_over0 graph_name e
+    else eval_until_graph e graph_name 
  | _ => ret end;
    
  fun eval_step_over node_name edata =      
   let val ret = eval_goal node_name edata val cur_graph_name = EData.get_name_current edata in
   case ret
-    of Cont edata' => eval_step_over0 cur_graph_name edata'
+    of Cont edata' => eval_until_graph edata' cur_graph_name 
     | _  => ret end
+
+ fun eval_finish edata = 
+  let val dest_graph_name = EData.get_name_current edata in
+  if dest_graph_name = "main" then eval_complete edata
+  else(
+    StrName.NTab.get (EData.get_parent edata) dest_graph_name |> fst
+    |> eval_until_graph edata)
+end
 
 (*
  fun eval_until_breakpoint
