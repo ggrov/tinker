@@ -31,11 +31,6 @@ object ArgumentParser {
 
 	/** Method to parse arguments from a string to an array of array of string.
 		*
-		* Array of array of string is the format used by the model to store arguments, hence this format.
-		* Typically :
-		*
-		* "X: Y Z, A: B, C" becomes [ [ "X", "Y", "Z" ], [ "A", "B" ], [ "C" ] ]
-		*
 		* @param s Arguments in a string format.
 		* @return Arguments in a array of array of string format.
 		*/

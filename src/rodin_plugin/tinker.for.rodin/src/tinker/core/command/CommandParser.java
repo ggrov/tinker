@@ -12,7 +12,7 @@ public class CommandParser {
 		// TODO Auto-generated constructor stub
 	}
 
-	public Command parseCommand(String commandstr) {
+	public Command parseCommand(String commandstr) throws Exception{
 
 		Command result = new Command();
 		try {
@@ -32,10 +32,7 @@ public class CommandParser {
 			return result;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-			result.setCommand("ERROR");
-			result.setParameters(new HashMap<String,String>());
-			return result;
+			throw e;
 		}
 
 	}

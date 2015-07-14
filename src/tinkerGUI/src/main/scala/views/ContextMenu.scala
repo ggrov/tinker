@@ -49,6 +49,11 @@ object ContextMenu extends PopupMenu {
 				QuantoLibAPI.userDeleteElement(eltName)
 			}
 		}
+		val copyAction = new Action("Copy") {
+			def apply() = {
+				QuantoLibAPI.copy()
+			}
+		}
 		contents.clear()
 		elt match {
 			case "None" =>
@@ -76,9 +81,20 @@ object ContextMenu extends PopupMenu {
 				}){
 					this.peer.setEnabled(enableEdit)
 				}
+				contents += new MenuItem(new Action("Paste") {
+					def apply() = {
+						Service.documentCtrl.registerChanges()
+						QuantoLibAPI.paste()
+					}
+				}){
+					this.peer.setEnabled(enableEdit && QuantoLibAPI.canPaste)
+				}
 			case "Identity" =>
 				contents += new MenuItem(deleteNodeAction){
 					this.peer.setEnabled(enableEdit)
+				}
+				contents += new MenuItem(copyAction){
+					this.peer.setEnabled(enableEdit && QuantoLibAPI.canCopy)
 				}
 			case "Atomic" =>
 				contents += new MenuItem(new Action("Edit node") {
@@ -91,6 +107,9 @@ object ContextMenu extends PopupMenu {
 				}
 				contents += new MenuItem(deleteNodeAction){
 					this.peer.setEnabled(enableEdit)
+				}
+				contents += new MenuItem(copyAction){
+					this.peer.setEnabled(enableEdit && QuantoLibAPI.canCopy)
 				}
 			case "Nested" =>
 				contents += new MenuItem(new Action("Edit node") {
@@ -117,6 +136,9 @@ object ContextMenu extends PopupMenu {
 				contents += new MenuItem(deleteNodeAction){
 					this.peer.setEnabled(enableEdit)
 				}
+				contents += new MenuItem(copyAction){
+					this.peer.setEnabled(enableEdit && QuantoLibAPI.canCopy)
+				}
 			case "Breakpoint" =>
 				contents += new MenuItem(new Action("Remove breakpoint") {
 					def apply() = {
@@ -140,6 +162,9 @@ object ContextMenu extends PopupMenu {
 					}
 				}){
 					this.peer.setEnabled(enableEdit)
+				}
+				contents += new MenuItem(copyAction){
+					this.peer.setEnabled(enableEdit && QuantoLibAPI.canCopy)
 				}
 			case "Edge" =>
 				contents += new MenuItem(new Action("Edit edge") {

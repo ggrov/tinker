@@ -6,9 +6,13 @@ begin
 ML{*-
   val path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/src/core/demo/AdvisoryBoardMeeting2015/" ;
 *}
-ML{*
+ML{*-
   val path = "/home/pierre/Documents/HW/Tinker/tinkerGit/tinker/src/core/demo/AdvisoryBoardMeeting2015/"
 *}
+ML{*
+  val path = "F:/Library/Documents/git/tinker/src/core/demo/AdvisoryBoardMeeting2015/"
+*}
+
 ML{*
 val impI_thm = @{thm impI};
 val conjI_thm = @{thm conjI};

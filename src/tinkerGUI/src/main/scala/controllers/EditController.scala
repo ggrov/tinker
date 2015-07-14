@@ -136,6 +136,30 @@ class EditController(model:PSGraph) extends Publisher {
 		}
 	}
 
+	/** Method to create a tactic with given name and parameters.
+		*
+		* Does not implement any user interaction.
+		* @param nodeId Node id on the graph.
+		* @param name Tactic id.
+		* @param args Tactic arguments.
+		* @param param Tactic parameter (core id for atomic, branchtype for graph).
+		* @param isAtomic Whether it is an atomic tactic or not to be created.
+		*/
+	def createTactic(nodeId:String, name:String, args:String, param:String, isAtomic:Boolean) {
+		try{
+			if(isAtomic){
+				model.createAT(name,param,args)
+				model.addATOccurrence(name,nodeId)
+			} else {
+				model.createGT(name,param,args)
+				model.addGTOccurrence(name,nodeId)
+			}
+		} catch {
+			case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+			case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+		}
+	}
+
 	/** Method to create a tactic in the model.
 		*
 		* If the tactic is already existing, it links the graphical node to it.

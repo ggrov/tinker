@@ -23,7 +23,7 @@ import tinkerGUI.utils.{TinkerDialog, ArgumentParser, SelectionBox}
   */
 object QuantoLibAPI extends Publisher{
 
-	/** Panel object containing the graph. */
+	/** Panel object containing the main graph. */
 	private val graphPanel = new BorderPanel {
 		println("loading theory " + Theory.getClass.getResource("strategy_graph_modified.qtheory"))
 		val theoryFile = new Json.Input(Theory.getClass.getResourceAsStream("strategy_graph_modified.qtheory"))
@@ -34,7 +34,7 @@ object QuantoLibAPI extends Publisher{
 		add(graphScrollPane, BorderPanel.Position.Center)
 	}
 
-	/** shortcuts for variables of graph */
+	/** shortcuts for variables for graph instance. */
 	private var graph = graphPanel.graphDoc.graph
 	private var theory = graphPanel.theory
 	private var view = graphPanel.graphView
@@ -1099,6 +1099,105 @@ object QuantoLibAPI extends Publisher{
 		nameNodeIdMap
 	}
 
+	// --------- COPY / PASTE functions and variables ----------
+
+	/** Map of nodes to paste. */
+	private var toPasteNode:Map[VName,VData] = Map()
+
+	/** Map of edges to paste. */
+	private var toPasteEdge:Map[EName,(VName,VName,EData)] = Map()
+
+	/** Map of atomic tactics to re-create or duplicate. */
+	private var toPasteATactics:Map[String,(String,String)] = Map()
+
+	/** Map of graph tactics to re-create, or duplicate. */
+	private var toPasteGTactics:Map[String,(String,String)] = Map()
+
+	/** Method to know if there are anything to paste. */
+	def canPaste:Boolean = toPasteNode.nonEmpty
+
+	/** Method to know if there are anything to copy. */
+	def canCopy:Boolean = view.selectedVerts.nonEmpty
+
+	/** Method copying the selected nodes. */
+	def copy() {
+		try {
+			toPasteNode = graph.vdata.filter((x) => view.selectedVerts.contains(x._1) && (x._2 match { case d:NodeV if d.typ == "G" => false case _ => true}))
+			toPasteEdge = Map()
+			view.selectedVerts.foreach{ n1 =>
+				view.selectedVerts.foreach { n2 =>
+					toPasteEdge = toPasteEdge ++ graph.edgesBetween(n1, n2).foldLeft(Map[EName,(VName,VName,EData)]()){
+						case (m,e) =>
+							if(graph.source(e)==n1) m + (e -> (n1,n2,graph.edata(e)))
+							else m
+					}
+				}
+			}
+			toPasteATactics = Map()
+			toPasteGTactics = Map()
+			for ((name, node) <- toPasteNode) {
+				node match {
+					case d: NodeV if d.typ == "T_Atomic" =>
+						val (tName, tArgs) = ArgumentParser.separateNameArgs(d.label)
+						toPasteATactics += (tName ->(Service.model.getATCoreId(tName), tArgs))
+					case d: NodeV if d.typ == "T_Graph" =>
+						val (tName, tArgs) = ArgumentParser.separateNameArgs(d.label)
+						toPasteGTactics += (tName ->(Service.model.getGTBranchType(tName), tArgs))
+					case _ => // do nothing
+				}
+			}
+		} catch {
+			case e: AtomicTacticNotFoundException =>
+				TinkerDialog.openErrorDialog(e.msg)
+			case e: GraphTacticNotFoundException =>
+				TinkerDialog.openErrorDialog(e.msg)
+		}
+	}
+
+	/** Method to paste nodes on the graph. */
+	def paste() {
+		var newNodeNames = Map[VName,VName]()
+		for ((node,data) <- toPasteNode) {
+			data match {
+				case d: NodeV =>
+					val vertexName = graph.verts.freshWithSuggestion(VName("v0"))
+					newNodeNames = newNodeNames + (node -> vertexName)
+					addVertex(vertexName, d.withCoord(d.coord._1 + 1, d.coord._2 - 1))
+					if (d.typ == "T_Atomic") {
+						val tName = ArgumentParser.separateNameArgs(d.label)._1
+						val (tTactic, tArgs) = toPasteATactics(tName)
+						Service.editCtrl.createTactic(vertexName.s, tName, tArgs, tTactic, true)
+					}
+					if (d.typ == "T_Graph") {
+						val tName = ArgumentParser.separateNameArgs(d.label)._1
+						val (tBranch, tArgs) = toPasteGTactics(tName)
+						Service.editCtrl.createTactic(vertexName.s, tName, tArgs, tBranch, false)
+					}
+				case d: WireV =>
+					val vertexName = graph.verts.freshWithSuggestion(VName("b0"))
+					newNodeNames = newNodeNames + (node -> vertexName)
+					addVertex(vertexName, d.withCoord(d.coord._1 + 1, d.coord._2 - 1))
+			}
+		}
+		for((edge,data) <- toPasteEdge) {
+			val edgeName = graph.edges.freshWithSuggestion(EName("e0"))
+			addEdge(edgeName,data._3,(newNodeNames(data._1),newNodeNames(data._2)))
+		}
+		newNodeNames.values.foreach{ v =>
+			graph.vdata(v) match {
+				case d:NodeV if d.typ == "G_Break" =>
+					if (graph.inEdges(v).isEmpty || graph.outEdges(v).isEmpty)
+						changeGraph(graph.deleteVertex(v))
+				case d:WireV =>
+					if (graph.inEdges(v).isEmpty && graph.outEdges(v).isEmpty)
+						changeGraph(graph.deleteVertex(v))
+				case _ =>
+			}
+		}
+	}
+
+	// --------------------------------------------------
+
 	/** listener to view mouse clicks and moves */
 	listenTo(view.mouse.clicks, view.mouse.moves)
 	reactions += {
@@ -1107,20 +1206,21 @@ object QuantoLibAPI extends Publisher{
 			if(e.peer.getButton == 1){
 				Service.editCtrl.leftMousePressed(e.point, e.modifiers, e.clicks)
 			}
-			else if(e.peer.getButton == 3){
+		else if(e.peer.getButton == 3){
 				Service.editCtrl.rightMousePressed(e.point, e.modifiers, e.clicks, graphPanel)
 			}
 		case MouseDragged(_, pt, _) =>
 			Service.editCtrl.mouseDragged(pt)
-		case e: MouseReleased if(e.peer.getButton == 1) =>
+		case e: MouseReleased if e.peer.getButton == 1 =>
 			Service.editCtrl.mouseReleased(e.point, e.modifiers)
 	}
+
 
 	/** listener to view keys events */
 	listenTo(view.keys)
 	reactions += {
 		case KeyPressed (_, (Key.Delete | Key.BackSpace), _, _) =>
-			if(!view.selectedVerts.isEmpty || !view.selectedEdges.isEmpty) {
+			if(view.selectedVerts.nonEmpty || view.selectedEdges.nonEmpty) {
 				Service.documentCtrl.registerChanges()
 				view.selectedVerts.foreach { deleteVertex }
 				view.selectedEdges.foreach { deleteEdge }
@@ -1129,5 +1229,14 @@ object QuantoLibAPI extends Publisher{
 			}
 		case KeyPressed(_, Key.Minus, _, _)  => zoomInGraph()
 		case KeyPressed(_, Key.Equals, _, _) => zoomOutGraph()
+		case KeyPressed(source, Key.C, Key.Modifier.Control, _) =>
+			if(source == this.view && canCopy){
+				copy()
+			}
+		case KeyPressed(source, Key.V, Key.Modifier.Control, _) =>
+			if(source == this.view && canPaste) {
+				Service.documentCtrl.registerChanges()
+				paste()
+			}
 	}
 }
