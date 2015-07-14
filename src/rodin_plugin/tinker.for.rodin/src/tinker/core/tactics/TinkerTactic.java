@@ -166,8 +166,14 @@ public class TinkerTactic implements ITactic {
 		 */
 		try {
 
-			tinker.toTinker((new Command("RODIN_CANCELLING")).toString());
-			
+			tinker.toTinker("RODIN_CANCEL");
+
+			String result=tinker.blockedRead();
+			Command cmd=(new CommandParser()).parseCommand(result);
+			if (cmd.getCommand().equals("TINKER_DISCONNECTING")){
+				tinker.close();
+				
+			}
 		} catch (Exception e) {
 
 		}
@@ -194,11 +200,12 @@ public class TinkerTactic implements ITactic {
 			session.getMonitor().setTask("Blocked Until Tinker stops");
 			// Ignore any single command that tinker is sending 
 			String result = tinker.blockedRead();
-			tinker.toTinker((new Command("RODIN_CANCELLING")).toString());
+			tinker.toTinker("RODIN_CANCEL");
 			// Wait for goodbye message
 			result=tinker.blockedRead();
 			Command cmd=(new CommandParser()).parseCommand(result);
 			if (cmd.getCommand().equals("TINKER_DISCONNECTING")){
+				tinker.close();
 				
 			}
 			
