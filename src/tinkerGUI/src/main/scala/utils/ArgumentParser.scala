@@ -16,7 +16,7 @@ object ArgumentParser {
 		*/
 	def separateNameArgs(s: String): (String, String) = {
 		if(s.contains("(")){
-			val parts = s.split(Pattern.quote("("))
+			val parts = s.split(Pattern.quote("("),2)
 			var args = ""
 			if(parts.size > 1){
 				if(parts(1).charAt(parts(1).length-1).equals(')')){
@@ -31,52 +31,84 @@ object ArgumentParser {
 
 	/** Method to parse arguments from a string to an array of array of string.
 		*
+		* Array of string is the format used by the model to store a single argument, hence the format.
+		* Typically :
+		*
+		* "X: Y Z, A: B, C" becomes [ [ "X", "Y", "Z" ], [ "A", "B" ], [ "C" ] ].
+		*
+		* Note that variable X above (for instance) can be of type : "[i,j,..]", "{i,j,..}", "(i,j,..)", " "i,j,.." " or simply " i "
+		*
 		* @param s Arguments in a string format.
 		* @return Arguments in a array of array of string format.
 		*/
 	def stringToArguments(s: String): Array[Array[String]] = {
+		var arguments = Array[Array[String]]()
 
-		var arguments = Array[String]()
-		def parseArguments(fullString:String,temporaryString:String,openBrackets:Int) {
+		var openBrackets:Int = 0
+		var openSquareBrackets:Int = 0
+		var openCurlyBrackets:Int = 0
+		var quotes:Int = 0
+
+		def parseArguments(fullString:String,temporaryString:String) {
 			var tmpString = temporaryString
-			if(!fullString.isEmpty) {
+			if(fullString.nonEmpty) {
 				fullString.charAt(0) match {
 					case ',' =>
-						if (openBrackets == 0) {
-							arguments = arguments :+ removeUselessSpace(tmpString)
-							parseArguments(fullString.substring(1), "", 0)
+						if (openBrackets == 0 && openCurlyBrackets == 0 && openSquareBrackets == 0 && quotes%2 == 0) {
+							arguments = arguments :+ stringToArgument(removeUselessSpace(tmpString))
+							parseArguments(fullString.substring(1), "")
 						} else {
 							tmpString += fullString.charAt(0)
-							parseArguments(fullString.substring(1), tmpString, openBrackets)
+							parseArguments(fullString.substring(1), tmpString)
 						}
-					case '[' | '{' =>
+					case '[' =>
 						tmpString += fullString.charAt(0)
-						parseArguments(fullString.substring(1), tmpString, openBrackets + 1)
-					case ']' | '}' =>
+						openSquareBrackets += 1
+						parseArguments(fullString.substring(1), tmpString)
+					case '{' =>
 						tmpString += fullString.charAt(0)
-						parseArguments(fullString.substring(1), tmpString, openBrackets - 1)
+						openCurlyBrackets += 1
+						parseArguments(fullString.substring(1), tmpString)
+					case '(' =>
+						tmpString += fullString.charAt(0)
+						openBrackets += 1
+						parseArguments(fullString.substring(1), tmpString)
+					case '"' =>
+						tmpString += fullString.charAt(0)
+						quotes += 1
+						parseArguments(fullString.substring(1), tmpString)
+					case ']' =>
+						tmpString += fullString.charAt(0)
+						openSquareBrackets -= 1
+						parseArguments(fullString.substring(1), tmpString)
+					case '}' =>
+						tmpString += fullString.charAt(0)
+						openCurlyBrackets -= 1
+						parseArguments(fullString.substring(1), tmpString)
+					case ')' =>
+						tmpString += fullString.charAt(0)
+						openBrackets -= 1
+						parseArguments(fullString.substring(1), tmpString)
 					case _ =>
 						tmpString += fullString.charAt(0)
-						parseArguments(fullString.substring(1), tmpString, openBrackets)
+						parseArguments(fullString.substring(1), tmpString)
 				}
 			} else {
-				if(!temporaryString.isEmpty) arguments = arguments :+ removeUselessSpace(temporaryString)
+				if(temporaryString.nonEmpty) {
+					arguments = arguments :+ stringToArgument(removeUselessSpace(temporaryString))
+				}
+				if(openBrackets > 0) TinkerDialog.openErrorDialog("Error while parsing arguments, ' ) ' missing.")
+				else if(openBrackets < 0) TinkerDialog.openErrorDialog("Error while parsing arguments, ' ( ' missing.")
+				if(openSquareBrackets > 0) TinkerDialog.openErrorDialog("Error while parsing arguments, ' ] ' missing.")
+				else if(openSquareBrackets < 0) TinkerDialog.openErrorDialog("Error while parsing arguments, ' [ ' missing.")
+				if(openCurlyBrackets > 0) TinkerDialog.openErrorDialog("Error while parsing arguments, ' } ' missing.")
+				else if(openCurlyBrackets > 0) TinkerDialog.openErrorDialog("Error while parsing arguments, ' { ' missing.")
+				if(quotes%2 > 0) TinkerDialog.openErrorDialog("Error while parsing arguments, ' \" ' missing.")
 				// should check openbrackets
 			}
 		}
-		parseArguments(s,"",0)
-		Array(arguments)
-		/*println(arguments.foldLeft(""){case(s,a) => s+" - "+a})
-
-		var res = Array[Array[String]]()
-		if(s.contains(",")){
-			val parts = s.split(",")
-			parts.foreach {p =>
-				res = res :+ stringToArgument(removeUselessSpace(p))
-			}
-		}
-		else if(!s.isEmpty) { res = res :+ stringToArgument(s) }
-		res*/
+		parseArguments(s,"")
+		arguments
 	}
 
 	/** Method to parse a single argument from a string to a an array of string.
@@ -155,11 +187,12 @@ object ArgumentParser {
 	def argumentsToString(args: Array[Array[String]]): String = {
 		var res = ""
 		if(args.size > 0){
-			args.foreach{ a => 
-				res += a.foldLeft(""){case(s,arg) => s+arg+", "}
-				//res += argumentToString(a)+", "
+			res = args.foldLeft(""){case(s,a) => s + argumentToString(a) + ", "}.substring(0, res.length-2)
+			/*args.foreach{ a =>
+				//res += a.foldLeft(""){case(s,arg) => s+arg+", "}
+				res += argumentToString(a)+", "
 			}
-			res = res.substring(0, res.length-2)
+			res = res.substring(0, res.length-2)*/
 		}
 		res
 	}
