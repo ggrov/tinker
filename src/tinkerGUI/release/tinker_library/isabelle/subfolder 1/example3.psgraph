@@ -1,6 +1,7 @@
 {
+  "main" : "example_3",
   "graphs" : [ {
-    "name" : "main",
+    "name" : "example_3",
     "branch_type" : "OR",
     "graphs" : [ {
     "dir_edges" : {
@@ -237,12 +238,12 @@
   } ],
   "occurrences" : {
     "atomic_tactics" : {
-      "simp" : [ [ "main", 0, "v1" ] ],
+      "simp" : [ [ "example3", 0, "v1" ] ],
       "imp" : [ [ "nested", 0, "v0" ] ],
       "ripl" : [ [ "nested", 0, "v1" ] ]
     },
     "graph_tactics" : {
-      "nested" : [ [ "main", 0, "v2" ] ]
+      "nested" : [ [ "example3", 0, "v2" ] ]
     }
   },
   "atomic_tactics" : [ {
@@ -260,6 +261,6 @@
   } ],
   "current_index" : 0,
   "goal_types" : "",
-  "current" : [ "main" ]
+  "current" : [ "example3" ]
 }
 

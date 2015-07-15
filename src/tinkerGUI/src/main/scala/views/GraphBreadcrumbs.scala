@@ -8,7 +8,7 @@ import scala.swing.event._
 import java.awt.Cursor
 
 class GraphBreadcrumbs() extends Publisher{
-	val currentLabel = new Label("main")
+	val currentLabel = new Label(Service.hierarchyCtrl.root)
 	var parentLabels: Array[Label] = Array()
 	val breadcrumbs = new FlowPanel() {
 		contents += currentLabel

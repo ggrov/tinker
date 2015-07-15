@@ -157,20 +157,26 @@ class DocumentController(model:PSGraph) extends Publisher {
 	def newDoc() {
 		model.updateJsonPSGraph()
 		if(DocumentService.promptUnsaved(model.jsonPSGraph)){
-			try{
-				model.reset()
-				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
-				unsavedChanges = false
-				undoStack.empty()
-				redoStack.empty()
-				QuantoLibAPI.loadFromJson(model.getCurrentJson)
-				DocumentService.file = None
-				publish(GraphTacticListEvent())
-				publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
-				publish(DocumentChangedEvent(unsavedChanges))
-			} catch {
-				case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+			def success(values:Map[String,String]) {
+				try{
+					model.reset(values("Proof name"))
+					Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
+					Service.libraryTreeCtrl.modelCreated = true
+					unsavedChanges = false
+					undoStack.empty()
+					redoStack.empty()
+					QuantoLibAPI.loadFromJson(model.getCurrentJson)
+					DocumentService.file = None
+					DocumentService.proofTitle = values("Proof name")
+					publish(GraphTacticListEvent())
+					publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
+					publish(DocumentChangedEvent(unsavedChanges))
+				} catch {
+					case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+				}
 			}
+			def failure() {}
+			TinkerDialog.openEditDialog("New proof", Map("Proof name"->""),success,failure)
 		}
 	}
 }

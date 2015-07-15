@@ -14,19 +14,22 @@ object Service extends Publisher {
 	//val c = CommunicationService // the communication needs to be "instantiates" to actually listen for connections
 	// Models
 	//val hierarchyModel = new HierarchyModel()
-	/** Psgrah model. */
-	val model = new PSGraph()
+	val libraryTreeCtrl = new TinkerLibraryController()
 
+	/** Psgrah model. */
+	var model = new PSGraph("main")
 	// controllers
 	/** Edit controller. */
 	val editCtrl = new EditController(model)
 	val evalCtrl = new EvalController(model)
 	val documentCtrl = new DocumentController(model)
-	val libraryTreeCtrl = new TinkerLibraryController(model)
 	val hierarchyCtrl = new HierarchyController(model)
 	val inspectorCtrl = new InspectorController(model)
 	val graphNavCtrl = new GraphNavigationController(model)
-	// TODO get rid of unecessary controllers
+
+	def createModel(name:String) = {
+		model.reset(name)
+	}
 
 	// getter-setter of the main frame
 	private var mainFrame: Component = new BorderPanel()
@@ -48,7 +51,7 @@ object Service extends Publisher {
 	/** Method to get the current graph tactic size. See [[tinkerGUI.model.PSGraph.currentTactic]]. */
 	def getCurrentSize = model.currentTactic.graphs.size
 	/** Method to get the current graph name (ee [[tinkerGUI.model.PSGraph.currentTactic]]), or "main" if current graph is main (see [[tinkerGUI.model.PSGraph.isMain]]).*/
-	def getCurrent = if(model.isMain) "main" else model.currentTactic.name
+	def getCurrent = model.currentTactic.name
 	/** Method to get the goal types of the psgraph. See [[tinkerGUI.model.PSGraph.goalTypes]].*/
 	def getGoalTypes = model.goalTypes
 	/** Method to get the core id of an atomic tactic. See [[tinkerGUI.model.PSGraph.getATCoreId]].*/

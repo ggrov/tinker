@@ -150,6 +150,11 @@ class TinkerLibraryTree() extends Publisher {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+				listenTo(controller)
+				reactions +={
+					case DisableNavigationEvent(a) =>
+						enabled = !(a contains "addtograph")
+				}
 			}
 		}
 		navigation.visible = false

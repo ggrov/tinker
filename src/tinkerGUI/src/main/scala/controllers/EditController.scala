@@ -257,7 +257,7 @@ class EditController(model:PSGraph) extends Publisher {
 		* @param isAtomicTactic Boolean stating the nature of the node, atomic of nested.
 		*/
 	def createNewTactic(nodeId:String, name:String, isAtomicTactic:Boolean):String = {
-		var n = if(!isAtomicTactic && name=="main") "nested" else name // this should prevent a reserved name exception
+		var n = if(!isAtomicTactic && name==model.mainTactic.name) "nested" else name // this should prevent a reserved name exception
 		var checkedByModel:Boolean =
 			if(isAtomicTactic) model.createAT(n, n, "")
 			else model.createGT(n,"OR","")

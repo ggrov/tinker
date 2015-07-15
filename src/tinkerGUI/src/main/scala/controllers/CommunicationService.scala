@@ -101,6 +101,8 @@ object CommunicationService extends Publisher {
 		}
 	}
 
+	var i = 0
+
 	/** Method getting a complete message from a buffered reader.
 		*
 		* The message is fetched while there are strings in the buffered reader.
@@ -118,7 +120,12 @@ object CommunicationService extends Publisher {
 				b.append(in.readLine)
 			}
 			//try {
-				println("message : "+b.toString)
+			i += 1
+			println("====================")
+			println("Message "+i+" :")
+			println("====================")
+			println(b.toString)
+			println("====================")
 				val j = Json.parse(b.toString())
 				parseAndExecute(j)
 		//	}
@@ -230,6 +237,8 @@ object CommunicationService extends Publisher {
 								case args: Json if args == JsonNull => sendSimpleResponse("RSP_ERROR_ARGS", "arguments not found")
 								// arguments found
 								case args: JsonArray =>
+									println("arguments : ")
+									println(args)
 									// getting first argument, should be list of eval options
 									args.vectorValue.head match {
 										// if nothing found
@@ -332,6 +341,8 @@ object CommunicationService extends Publisher {
 								case args: Json if args == JsonNull => sendSimpleResponse("RSP_ERROR_ARGS", "arguments not found")
 								// arguments found
 								case args: JsonArray =>
+									println("arguments : ")
+									println(args)
 									// getting first argument, should be list of eval options
 									args.vectorValue.head match {
 										// if nothing found
