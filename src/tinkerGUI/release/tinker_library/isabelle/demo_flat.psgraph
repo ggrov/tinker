@@ -1,6 +1,7 @@
 {
+  "main" : "demo_flat",
   "graphs" : [ {
-    "name" : "main",
+    "name" : "demo_flat",
     "branch_type" : "OR",
     "args" : [ ],
     "graphs" : [ {
@@ -104,9 +105,9 @@
   } ],
   "occurrences" : {
     "atomic_tactics" : {
-      "impI" : [ [ "main", 0, "v0" ] ],
-      "conjI" : [ [ "main", 0, "v1" ] ],
-      "assm" : [ [ "main", 0, "v2" ] ]
+      "impI" : [ [ "demo_flat", 0, "v0" ] ],
+      "conjI" : [ [ "demo_flat", 0, "v1" ] ],
+      "assm" : [ [ "demo_flat", 0, "v2" ] ]
     },
     "graph_tactics" : { }
   },
@@ -125,6 +126,6 @@
   } ],
   "current_index" : 0,
   "goal_types" : "",
-  "current" : [ "main" ]
+  "current" : [ "demo_flat" ]
 }
 

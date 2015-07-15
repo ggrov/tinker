@@ -14,7 +14,7 @@ class InspectorController(model: PSGraph) extends Publisher {
 
 	val indexOnTotal = new Label((indexToShow +1) + " / " + tacticTotal)
 
-	var gtList = model.gtCollection.keys.toList :+ "main"
+	var gtList = model.gtCollection.keys.toList :+ model.mainTactic.name
 
 	var enableEdit = true
 	listenTo(Service.evalCtrl)
@@ -31,7 +31,7 @@ class InspectorController(model: PSGraph) extends Publisher {
 			try{
 				tacticToShow = name
 				indexToShow = 0
-				tacticTotal = if(name=="main") 1 else model.getSizeGT(name)
+				tacticTotal = if(name == model.mainTactic.name) 1 else model.getSizeGT(name)
 				indexOnTotal.text = (indexToShow + 1) + " / " + tacticTotal
 				publish(UpdateSelectedTacticToInspectEvent(tacticToShow))
 				showPreview()
@@ -43,7 +43,7 @@ class InspectorController(model: PSGraph) extends Publisher {
 
 	private def showPreview(){
 		try{
-			if(tacticToShow == "main"){
+			if(tacticToShow == model.mainTactic.name){
 				QuantoLibAPI.updateSubgraphPreviewFromJson(model.mainTactic.getSubgraph(0))
 				var arr = Array("next","prev","del","add")
 				if (!enableEdit) arr = arr :+ "edit"
@@ -114,7 +114,7 @@ class InspectorController(model: PSGraph) extends Publisher {
 	listenTo(Service.libraryTreeCtrl)
 	reactions += {
 		case GraphTacticListEvent() =>
-			gtList = model.gtCollection.keys.toList :+ "main"
+			gtList = model.gtCollection.keys.toList :+ model.mainTactic.name
 			publish(UpdateGTListEvent())
 	}
 }

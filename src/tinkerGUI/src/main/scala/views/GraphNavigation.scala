@@ -9,16 +9,15 @@ import java.awt.Cursor
 import java.awt.Insets
 
 class GraphNavigation() extends Publisher {
-	val controller = Service.graphNavCtrl
 
 	val nextAction = new Action("") {
 		def apply() = {
-			controller.showNext()
+			Service.graphNavCtrl.showNext()
 		}
 	}
 	val prevAction = new Action("") {
 		def apply() = {
-			controller.showPrev()
+			Service.graphNavCtrl.showPrev()
 		}
 	}
 	val zoomInAction = new Action(""){
@@ -33,12 +32,12 @@ class GraphNavigation() extends Publisher {
 	}
 	val addNewAction = new Action("") {
 		def apply() = {
-			controller.addNew()
+			Service.graphNavCtrl.addNew()
 		}
 	}
 	val delAction = new Action("") {
 		def apply() = {
-			controller.delete()
+			Service.graphNavCtrl.delete()
 		}
 	}
 
@@ -51,7 +50,7 @@ class GraphNavigation() extends Publisher {
 		opaque = false
 		cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 		enabled = false
-		listenTo(controller)
+		listenTo(Service.graphNavCtrl)
 		reactions += {
 			case DisableNavigationEvent(a) =>
 				enabled = !(a contains "prev")
@@ -66,7 +65,7 @@ class GraphNavigation() extends Publisher {
 		opaque = false
 		cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 		enabled = false
-		listenTo(controller)
+		listenTo(Service.graphNavCtrl)
 		reactions += {
 			case DisableNavigationEvent(a) =>
 				enabled = !(a contains "next")
@@ -80,7 +79,7 @@ class GraphNavigation() extends Publisher {
 		contentAreaFilled = false
 		opaque = false
 		cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-		/*listenTo(controller)
+		/*listenTo(Service.graphNavCtrl)
 		reactions += {
 			case DisableNavigationEvent(a) =>
 				enabled = !(a contains "zoomin")
@@ -94,7 +93,7 @@ class GraphNavigation() extends Publisher {
 		contentAreaFilled = false
 		opaque = false
 		cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-		/*listenTo(controller)
+		/*listenTo(Service.graphNavCtrl)
 		reactions += {
 			case DisableNavigationEvent(a) =>
 				enabled = !(a contains "zoomout")
@@ -109,7 +108,7 @@ class GraphNavigation() extends Publisher {
 		opaque = false
 		cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 		enabled = false
-		listenTo(controller)
+		listenTo(Service.graphNavCtrl)
 		reactions += {
 			case DisableNavigationEvent(a) =>
 				enabled = !(a contains "add")
@@ -124,7 +123,7 @@ class GraphNavigation() extends Publisher {
 		opaque = false
 		cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 		enabled = false
-		listenTo(controller)
+		listenTo(Service.graphNavCtrl)
 		reactions += {
 			case DisableNavigationEvent(a) =>
 				enabled = !(a contains "del")
@@ -133,7 +132,7 @@ class GraphNavigation() extends Publisher {
 
 	val navigation = new FlowPanel(){
 		contents += prevBtn
-		contents += controller.indexOnTotal
+		contents += Service.graphNavCtrl.indexOnTotal
 		contents += nextBtn
 		contents += zoomInBtn
 		contents += zoomOutBtn
