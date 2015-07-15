@@ -8,12 +8,16 @@ import java.awt.Cursor
 import java.awt.Insets
 
 class GraphEditPanel() extends BorderPanel {
+
 	var graphPanel = QuantoLibAPI.getGraph
+	graphPanel.visible = false
+
 	val editControls = new EditControlsPanel()
 	val evalControls = new EvalControlsPanel()
 	val graphBreadcrumbs = new GraphBreadcrumbs()
-	val graphNav = new GraphNavigation
-	add(new BorderPanel(){
+	val graphNav = new GraphNavigation()
+
+	val top = new BorderPanel(){
 		add(new BorderPanel(){
 			add(new BoxPanel(Orientation.Horizontal){
 				val openHierTree = new Action(""){
@@ -42,7 +46,17 @@ class GraphEditPanel() extends BorderPanel {
 			contents += evalControls.SecondaryEvalToolBar
 			contents += evalControls.MainEvalToolBar
 		}, BorderPanel.Position.South)
-	}, BorderPanel.Position.North)
+	}
+	top.visible = false
+
+	add(top,BorderPanel.Position.North)
+
 	add(graphPanel, BorderPanel.Position.Center)
+
 	minimumSize = new Dimension(300, 400)
+
+	def display(visible:Boolean) {
+		top.visible = visible
+		graphPanel.visible = visible
+	}
 }

@@ -178,6 +178,8 @@ class GraphInspectorPanel() extends BorderPanel {
 		add(new FlowPanel(FlowPanel.Alignment.Center)(noSubgraphLabel),BorderPanel.Position.South)
 	}
 
+	header.visible = false
+
 	val subgraphPanel = QuantoLibAPI.getSubgraphPreview
 
 	add(header, BorderPanel.Position.North)
@@ -208,5 +210,9 @@ class GraphInspectorPanel() extends BorderPanel {
 				tacticNavigation.visible = false
 			}
 			this.repaint()
+	}
+
+	def display(visible:Boolean){
+		header.visible = visible
 	}
 }

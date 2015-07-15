@@ -9,14 +9,9 @@ object MainGUI extends SimpleSwingApplication {
 
 	val graphPanel = new GraphEditPanel() {
 		Service.setMainFrame(this)
-		visible = false
 	}
-	val inspectorPanel = new GraphInspectorPanel() {
-		visible = false
-	}
-	val elementPanel = new ElementInfoPanel() {
-		visible = false
-	}
+	val inspectorPanel = new GraphInspectorPanel()
+	val elementPanel = new ElementInfoPanel()
 
 	object FourthSplit extends SplitPane {
 		orientation = Orientation.Horizontal
@@ -55,9 +50,8 @@ object MainGUI extends SimpleSwingApplication {
 		listenTo(Service.documentCtrl)
 		reactions += {
 			case DocumentChangedEvent(_) =>
-				graphPanel.visible = true
-				inspectorPanel.visible = true
-				elementPanel.visible = true
+				graphPanel.display(true)
+				inspectorPanel.display(true)
 				title = "Tinker - " + Service.documentCtrl.title
 		}
     Service.setTopFrame(this)
