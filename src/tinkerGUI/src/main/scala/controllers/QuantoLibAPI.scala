@@ -9,7 +9,7 @@ import quanto.gui.graphview._
 import quanto.layout._
 import quanto.layout.constraint._
 import tinkerGUI.controllers.events.{OneEdgeSelectedEvent, ManyVerticesSelectedEvent, OneVertexSelectedEvent, NothingSelectedEvent}
-import tinkerGUI.model.exceptions.{GraphTacticNotFoundException, AtomicTacticNotFoundException}
+import tinkerGUI.model.exceptions.{PSGraphModelException, GraphTacticNotFoundException, AtomicTacticNotFoundException}
 import scala.swing._
 import scala.swing.event._
 import scala.swing.event.Key.Modifiers
@@ -1147,10 +1147,7 @@ object QuantoLibAPI extends Publisher{
 				}
 			}
 		} catch {
-			case e: AtomicTacticNotFoundException =>
-				TinkerDialog.openErrorDialog(e.msg)
-			case e: GraphTacticNotFoundException =>
-				TinkerDialog.openErrorDialog(e.msg)
+			case e: PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 		}
 	}
 

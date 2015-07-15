@@ -1,6 +1,7 @@
 package tinkerGUI.controllers
 
 import tinkerGUI.controllers.events.{UpdateGTListEvent, DisableNavigationEvent, GraphTacticListEvent, PreviewEvent}
+import tinkerGUI.model.exceptions.PSGraphModelException
 import tinkerGUI.utils.TinkerDialog
 import tinkerGUI.model.PSGraph
 
@@ -39,12 +40,13 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 					fileName = f.getName.substring(0, f.getName.lastIndexOf("."))
 					fileExtn = f.getName.substring(f.getName.lastIndexOf("."))
 					json = j
-					gtList = (json / "graph_tactics").asArray.foldLeft(List[String]()){case (l,gt)=> l:+(gt / "name").stringValue} :+ "main"
-					selectedGt = "main"
+					gtList = (json / "graphs").asArray.foldLeft(List[String]()){case (l,gt)=> l:+(gt / "name").stringValue}
+					previewGTFromJson("main",0)
+					/*selectedGt = "main"
 					QuantoLibAPI.updateLibraryPreviewFromJson(json / "graph")
 					indexOnTotalText = "1 / 1"
 					publish(PreviewEvent(show = true,hasPreview = true))
-					publish(DisableNavigationEvent(Array("next","previous")))
+					publish(DisableNavigationEvent(Array("next","previous")))*/
 					publish(UpdateGTListEvent())
 				case _ => TinkerDialog.openErrorDialog("Error when parsing file "+f.getName+" to json")
 			}
@@ -53,13 +55,7 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 
 	def previewGTFromJson(tactic:String,index:Int) {
 		var show = true
-		if(tactic == "main") {
-			currentIndex = 0
-			QuantoLibAPI.updateLibraryPreviewFromJson(json / "graph")
-			indexOnTotalText = "1 / 1"
-			publish(DisableNavigationEvent(Array("next","previous")))
-		}
-		else (json / "graph_tactics").asArray.foreach{ gt =>
+		(json / "graphs").asArray.foreach{ gt =>
 			if((gt / "name").stringValue == tactic) {
 				if ((gt / "graphs").asArray.nonEmpty) {
 					currentIndex = index
@@ -111,22 +107,28 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 				val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
 				model.createAT(tctName,tctTactic,tctArgs)
 			}
-			(json / "graph_tactics").asArray.foreach{ tct =>
+			(json / "graphs").asArray.foreach{ tct =>
 				val oldName = (tct / "name").stringValue
-				val tctName = appendIndex(fileName+"-"+oldName,0)
-				valuesToReplace = valuesToReplace + (oldName->tctName)
-				val tctBranchType = (tct / "branchType").stringValue
-				val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
-				model.createGT(tctName,tctBranchType,tctArgs)
-			}
-			model.goalTypes = model.goalTypes+"\n\n\n/* From "+fileName+" */\n\n" + (json / "goal_types").stringValue
-			(json / "graph_tactics").asArray.foreach{ tct =>
-				val oldName = (tct / "name").stringValue
-				(tct / "graphs").asArray.foreach{ gr =>
-					model.addSubgraphGT(valuesToReplace(oldName),updateGraphJsonWithNewNames(gr).asObject,-1)
+				if(oldName != "main"){
+					val tctName = appendIndex(fileName+"-"+oldName,0)
+					valuesToReplace = valuesToReplace + (oldName->tctName)
+					val tctBranchType = (tct / "branchType").stringValue
+					val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
+					model.createGT(tctName,tctBranchType,tctArgs)
 				}
 			}
-			val nameNodeIdMap = QuantoLibAPI.addFromJson(updateGraphJsonWithNewNames(json / "graph"))
+			model.goalTypes = model.goalTypes+"\n\n\n/* From "+fileName+" */\n\n" + (json / "goal_types").stringValue
+			var nameNodeIdMap = Map[String,String]()
+			(json / "graphs").asArray.foreach{ tct =>
+				val oldName = (tct / "name").stringValue
+				if(oldName == "main"){
+					nameNodeIdMap = QuantoLibAPI.addFromJson(updateGraphJsonWithNewNames(tct / "graphs" / 0))
+				} else {
+					(tct / "graphs").asArray.foreach{ gr =>
+						model.addSubgraphGT(valuesToReplace(oldName),updateGraphJsonWithNewNames(gr).asObject,-1)
+					}
+				}
+			}
 			(json / "occurrences" / "atomic_tactics").asObject.foreach{ case (k,v) =>
 				v.asArray.foreach{ occ =>
 					occ.asArray.get(0) match {
@@ -150,6 +152,7 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 			publish(GraphTacticListEvent())
 		} catch {
 			case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
+			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 		}
 	}
 }

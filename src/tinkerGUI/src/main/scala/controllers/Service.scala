@@ -55,8 +55,6 @@ object Service extends Publisher {
 	def getATCoreId(name:String) = model.getATCoreId(name)
 	/** Method to get the branch type of a specific graph tactic. See [[tinkerGUI.model.PSGraph.getGTBranchType]].*/
 	def getBranchTypeGT(tactic: String) = model.getGTBranchType(tactic)
-	/** Method to get the children of a graph tactic or the main graph children. See [[tinkerGUI.model.GraphTactic.children]] and [[tinkerGUI.model.PSGraph.childrenMain]].*/
-	def getGTChildren(tactic:String) = if(tactic=="main") model.childrenMain else model.getChildrenGT(tactic)
 
 
 

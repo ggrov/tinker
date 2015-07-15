@@ -1,9 +1,9 @@
 package tinkerGUI.controllers
 
-import quanto.util.json.{Json, JsonObject}
+import quanto.util.json.{JsonAccessException, Json, JsonObject}
 import tinkerGUI.controllers.events._
 import tinkerGUI.model.PSGraph
-import tinkerGUI.model.exceptions.{SubgraphNotFoundException, AtomicTacticNotFoundException, GraphTacticNotFoundException}
+import tinkerGUI.model.exceptions.{PSGraphModelException, SubgraphNotFoundException, AtomicTacticNotFoundException, GraphTacticNotFoundException}
 import tinkerGUI.utils.TinkerDialog
 
 import scala.collection.mutable.ArrayBuffer
@@ -44,14 +44,13 @@ class EvalController(model:PSGraph) extends Publisher {
 		*
 		* @param tactic Id of the current tactic, used to change it in the model.
 		* @param index Index of the current subgraph, used to change it in the model.
-		* @param j Json object of the graph to display.
 		* @param parents List of parents of the graph
 		*/
-	def displayEvalGraph(tactic:String, index:Int, j:JsonObject, parents:Array[String]) {
+	def displayEvalGraph(tactic:String, index:Int, parents:Array[String]) {
 	 try{
 		 model.changeCurrent(tactic,index,Some(parents))
 		 //DocumentService.setUnsavedChanges(true)
-		 QuantoLibAPI.loadFromJson(j)
+		 QuantoLibAPI.loadFromJson(model.getCurrentJson)
 		 Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
 		 publish(CurrentGraphChangedEvent(tactic,Some(parents)))
 	 } catch {
@@ -72,9 +71,8 @@ class EvalController(model:PSGraph) extends Publisher {
 				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
 			} catch {
-				case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
-				case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
-				case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+				case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
+				case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
 			}
 		} else {
 			TinkerDialog.openErrorDialog("<html>Error while loading json from file : object is empty.</html>")

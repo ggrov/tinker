@@ -52,7 +52,7 @@ class GraphTactic(var name: String, var branchType: String) extends HasArguments
 		*/
 	def getSubgraph(index: Int):JsonObject = {
 		if (graphs.isDefinedAt(index)) graphs(index)
-		else throw new SubgraphNotFoundException("No subgraph for graph tactic "+name+" at index "+index)
+		else throw new SubgraphNotFoundException(name,index)
 	}
 
 	/** Method to get the size of the graph tactic, i.e. its number of subgraph.

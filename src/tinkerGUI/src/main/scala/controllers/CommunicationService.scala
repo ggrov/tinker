@@ -155,26 +155,29 @@ object CommunicationService extends Publisher {
 						// if correct state
 						if(state == CommunicationState.WaitingForPsgraph){
 							// get psgraph
-							j ? "psgraph" match {
+							/*j ? "psgraph" match {
 								// if psgraph not found
 								case psgraph: Json if psgraph == JsonNull => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no psgraph field")
 								// if psgraph found
 								case psgraph:Json =>
 									// loading in model
-									Service.evalCtrl.loadJson(psgraph)
+									// Service.evalCtrl.loadJson(psgraph)
 									// preparing current eval graph variables
 									var tactic:String = ""
 									var i:Int = 0
 									var parents:Array[String] = Array()
 									var graph:JsonObject = JsonObject()
-                  println ("end of loading psgraph")
+                  println ("end of loading psgraph")*/
 									// get eval field
 									j ? "eval_psgraph" match {
 										// if eval field not found
 										case eval: Json if eval == JsonNull => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no eval field")
 										// if eval field found
 										case eval: Json =>
-											// get current name
+											// loading in model
+											//println(eval)
+											Service.evalCtrl.loadJson(eval)
+											/*// get current name
 											eval ? "current" match {
 												// error send if name not found
 												case currentTacticName: Json if currentTacticName == JsonNull => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "no current name field in eval")
@@ -206,18 +209,18 @@ object CommunicationService extends Publisher {
 														// error send if not found
 														case _ => sendSimpleResponse("RSP_ERROR_INIT_PSGRAPH", "could not find graph to display in eval")
 													}
-											}
+											}*/
 
 									}
 
 									// display current graph on view
-									Service.evalCtrl.displayEvalGraph(tactic, i, graph, parents)
+									// Service.evalCtrl.displayEvalGraph(tactic, i, parents)
 
 									// change state
 									state = CommunicationState.WaitingForEvalOptions
 									// send respond command
 									sendSimpleResponse("RSP_INIT_PSGRAPH", "WaitingForEvalOptionFromUser")
-							}
+							//}
 						}
 						// check if correct state
 						if(state == CommunicationState.WaitingForEvalOptions){
@@ -267,18 +270,19 @@ object CommunicationService extends Publisher {
 						// check if correct state
 						if(state == CommunicationState.WaitingForPsgraphUpdate){
 							// preparing current eval graph variables
-							var tactic:String = ""
+							/*var tactic:String = ""
 							var i:Int = 0
 							var parents:Array[String] = Array()
-							var graph:JsonObject = JsonObject()
+							var graph:JsonObject = JsonObject()*/
 							// get eval field
 							j ? "eval_psgraph" match {
 								// if eval field not found
 								case eval: Json if eval == JsonNull => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "no eval field")
 								// if eval field found
 								case eval: Json =>
+									Service.evalCtrl.loadJson(eval)
 									// get current name
-									eval ? "current" match {
+									/*eval ? "current" match {
 										// error send if name not found
 										case currentTacticName: Json if currentTacticName == JsonNull => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "no current name field in eval")
 										case currentTacticName: Json =>
@@ -308,12 +312,12 @@ object CommunicationService extends Publisher {
 												// error send if not found
 												case _ => sendSimpleResponse("RSP_ERROR_UPDATE_PSGRAPH", "could not find graph to display in eval")
 											}
-									}
+									}*/
 
 							}
 
 							// display current graph on view
-							Service.evalCtrl.displayEvalGraph(tactic, i, graph, parents)
+							//Service.evalCtrl.displayEvalGraph(tactic, i, graph, parents)
 
 							// change state
 							state = CommunicationState.WaitingForEvalOptions

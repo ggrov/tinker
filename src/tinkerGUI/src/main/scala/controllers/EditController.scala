@@ -2,7 +2,7 @@ package tinkerGUI.controllers
 
 import tinkerGUI.controllers.events.{CurrentGraphChangedEvent, GraphTacticListEvent}
 import tinkerGUI.model.PSGraph
-import tinkerGUI.model.exceptions.{SubgraphNotFoundException, GraphTacticNotFoundException, AtomicTacticNotFoundException}
+import tinkerGUI.model.exceptions.{PSGraphModelException, SubgraphNotFoundException, GraphTacticNotFoundException, AtomicTacticNotFoundException}
 import tinkerGUI.utils._
 import tinkerGUI.views.ContextMenu
 
@@ -155,8 +155,7 @@ class EditController(model:PSGraph) extends Publisher {
 				model.addGTOccurrence(name,nodeId)
 			}
 		} catch {
-			case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
-			case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 		}
 	}
 
@@ -223,8 +222,9 @@ class EditController(model:PSGraph) extends Publisher {
 						confirmDialog = TinkerDialog.openConfirmationDialog(message, Array(newAction,duplicateAction))
 					}
 				} catch {
-					case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
-					case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+					case e:PSGraphModelException =>
+						QuantoLibAPI.userDeleteElement(nodeId)
+						TinkerDialog.openErrorDialog(e.msg)
 				}
 			}
 		}
@@ -257,11 +257,11 @@ class EditController(model:PSGraph) extends Publisher {
 		* @param isAtomicTactic Boolean stating the nature of the node, atomic of nested.
 		*/
 	def createNewTactic(nodeId:String, name:String, isAtomicTactic:Boolean):String = {
+		var n = if(!isAtomicTactic && name=="main") "nested" else name // this should prevent a reserved name exception
 		var checkedByModel:Boolean =
-			if(isAtomicTactic) model.createAT(name, name, "")
-			else model.createGT(name,"OR","")
+			if(isAtomicTactic) model.createAT(n, n, "")
+			else model.createGT(n,"OR","")
 		var i = 0
-		var n = name
 		while(!checkedByModel){
 			i+=1
 			n = name+"-"+i
@@ -270,10 +270,9 @@ class EditController(model:PSGraph) extends Publisher {
 				else model.createGT(n,"OR","")
 		}
 		try{
-			if(isAtomicTactic) model.addATOccurrence(name,nodeId) else {model.addGTOccurrence(name,nodeId); publish(GraphTacticListEvent())}
+			if(isAtomicTactic) model.addATOccurrence(n,nodeId) else {model.addGTOccurrence(n,nodeId); publish(GraphTacticListEvent())}
 		} catch {
-			case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
-			case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 		}
 		n
 	}
@@ -421,8 +420,7 @@ class EditController(model:PSGraph) extends Publisher {
 						}
 					}
 				} catch {
-					case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
-					case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+					case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 				}
 			}
 		}
@@ -465,8 +463,7 @@ class EditController(model:PSGraph) extends Publisher {
 				confirmDialog = TinkerDialog.openConfirmationDialog(message,Array(keepAction,delAction))*/
 			}
 		} catch {
-			case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
-			case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 		}
 	}
 
@@ -490,8 +487,7 @@ class EditController(model:PSGraph) extends Publisher {
 				model.addGTOccurrence(name, newParent, newIndex, nodeId)
 			}
 		} catch {
-			case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
-			case e:AtomicTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 		}
 	}
 

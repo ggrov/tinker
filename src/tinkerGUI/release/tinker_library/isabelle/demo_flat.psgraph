@@ -1,29 +1,9 @@
 {
-  "graph_tactics" : [ ],
-  "occurrences" : {
-    "atomic_tactics" : {
-      "impI" : [ [ "main", 0, "v0" ] ],
-      "conjI" : [ [ "main", 0, "v1" ] ],
-      "assm" : [ [ "main", 0, "v2" ] ]
-    },
-    "graph_tactics" : { }
-  },
-  "atomic_tactics" : [ {
-    "name" : "impI",
-    "tactic" : "impI_tac",
-    "args" : [ ]
-  }, {
-    "name" : "conjI",
-    "tactic" : "conjI_tac",
-    "args" : [ ]
-  }, {
-    "name" : "assm",
-    "tactic" : "assm_tac",
-    "args" : [ ]
-  } ],
-  "current_index" : 0,
-  "goal_types" : "",
-  "graph" : {
+  "graphs" : [ {
+    "name" : "main",
+    "branch_type" : "OR",
+    "args" : [ ],
+    "graphs" : [ {
     "dir_edges" : {
       "e1" : {
         "data" : {
@@ -120,7 +100,31 @@
         }
       }
     }
+    } ]
+  } ],
+  "occurrences" : {
+    "atomic_tactics" : {
+      "impI" : [ [ "main", 0, "v0" ] ],
+      "conjI" : [ [ "main", 0, "v1" ] ],
+      "assm" : [ [ "main", 0, "v2" ] ]
+    },
+    "graph_tactics" : { }
   },
+  "atomic_tactics" : [ {
+    "name" : "impI",
+    "tactic" : "impI_tac",
+    "args" : [ ]
+  }, {
+    "name" : "conjI",
+    "tactic" : "conjI_tac",
+    "args" : [ ]
+  }, {
+    "name" : "assm",
+    "tactic" : "assm_tac",
+    "args" : [ ]
+  } ],
+  "current_index" : 0,
+  "goal_types" : "",
   "current" : [ "main" ]
 }
 

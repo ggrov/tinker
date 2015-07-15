@@ -44,7 +44,7 @@ class InspectorController(model: PSGraph) extends Publisher {
 	private def showPreview(){
 		try{
 			if(tacticToShow == "main"){
-				QuantoLibAPI.updateSubgraphPreviewFromJson((model.mainGraph))
+				QuantoLibAPI.updateSubgraphPreviewFromJson(model.mainTactic.getSubgraph(0))
 				var arr = Array("next","prev","del","add")
 				if (!enableEdit) arr = arr :+ "edit"
 				publish(DisableNavigationEvent(arr))

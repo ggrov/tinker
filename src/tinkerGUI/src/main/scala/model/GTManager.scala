@@ -1,7 +1,7 @@
 package tinkerGUI.model
 
 import quanto.util.json.{JsonObject, JsonArray}
-import tinkerGUI.model.exceptions.{SubgraphNotFoundException, GraphTacticNotFoundException}
+import tinkerGUI.model.exceptions.{ReservedNameException, SubgraphNotFoundException, GraphTacticNotFoundException}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -21,15 +21,19 @@ trait GTManager {
 		* @param branchType Branch type of the graph tactic.
 		* @param args List of arguments for the graph tactic.
 		* @return Boolean notifying of successful creation or not (should be used to handle duplication).
+		* @throws ReservedNameException If id is "main".
 		*/
 	def createGT(id:String,branchType:String,args:Array[Array[String]]): Boolean = {
-		if(gtCollection contains id){
-			false
-		} else {
-			val t: GraphTactic = new GraphTactic(id, branchType)
-			t.replaceArguments(args)
-			gtCollection += id -> t
-			true
+		if(id == "main") throw new ReservedNameException(id)
+		else {
+			if (gtCollection contains id) {
+				false
+			} else {
+				val t: GraphTactic = new GraphTactic(id, branchType)
+				t.replaceArguments(args)
+				gtCollection += id -> t
+				true
+			}
 		}
 	}
 
@@ -39,15 +43,19 @@ trait GTManager {
 		* @param branchType Branch type of the graph tactic.
 		* @param args List of arguments for the graph tactic, in a string format.
 		* @return Boolean notifying of successful creation or not (should be used to handle duplication).
+		* @throws ReservedNameException If id is "main".
 		*/
 	def createGT(id:String,branchType:String,args:String): Boolean = {
-		if(gtCollection contains id){
-			false
-		} else {
-			val t: GraphTactic = new GraphTactic(id, branchType)
-			t.replaceArguments(args)
-			gtCollection += id -> t
-			true
+		if(id == "main") throw new ReservedNameException(id)
+		else {
+			if (gtCollection contains id) {
+				false
+			} else {
+				val t: GraphTactic = new GraphTactic(id, branchType)
+				t.replaceArguments(args)
+				gtCollection += id -> t
+				true
+			}
 		}
 	}
 
@@ -59,24 +67,28 @@ trait GTManager {
 		* @param newArgs New list of arguments.
 		* @return Boolean notifying of successful change or not (should be used to handle duplication).
 		* @throws GraphTacticNotFoundException If the graph tactic is not in the collection.
+		* @throws ReservedNameException If newId is "main".
 		*/
 	def updateGT(id:String, newId:String, newBranchType:String, newArgs:Array[Array[String]]):Boolean = {
-		gtCollection get id match {
-			case Some(t:GraphTactic) =>
-				if(t.occurrences.size < 2){
-					t.name = newId
-					t.branchType = newBranchType
-					t.replaceArguments(newArgs)
-					if(id != newId){
-						gtCollection += (newId -> t)
-						gtCollection -= id
+		if(newId == "main") throw new ReservedNameException(newId)
+		else {
+			gtCollection get id match {
+				case Some(t: GraphTactic) =>
+					if (t.occurrences.size < 2) {
+						t.name = newId
+						t.branchType = newBranchType
+						t.replaceArguments(newArgs)
+						if (id != newId) {
+							gtCollection += (newId -> t)
+							gtCollection -= id
+						}
+						true
+					} else {
+						false
 					}
-					true
-				} else {
-					false
-				}
-			case _ =>
-				throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+				case _ =>
+					throw new GraphTacticNotFoundException(id)
+			}
 		}
 	}
 
@@ -88,24 +100,28 @@ trait GTManager {
 		* @param newArgs New list of arguments, in a string format.
 		* @return Boolean notifying of successful change or not (should be used to handle duplication).
 		* @throws GraphTacticNotFoundException If the graph tactic is not in the collection.
+		* @throws ReservedNameException If newId is "main".
 		*/
 	def updateGT(id:String, newId:String, newBranchType:String, newArgs:String):Boolean = {
-		gtCollection get id match {
-			case Some(t:GraphTactic) =>
-				if(t.occurrences.size < 2){
-					t.name = newId
-					t.branchType = newBranchType
-					t.replaceArguments(newArgs)
-					if(id != newId){
-						gtCollection += (newId -> t)
-						gtCollection -= id
+		if(newId == "main") throw new ReservedNameException(newId)
+		else {
+			gtCollection get id match {
+				case Some(t: GraphTactic) =>
+					if (t.occurrences.size < 2) {
+						t.name = newId
+						t.branchType = newBranchType
+						t.replaceArguments(newArgs)
+						if (id != newId) {
+							gtCollection += (newId -> t)
+							gtCollection -= id
+						}
+						true
+					} else {
+						false
 					}
-					true
-				} else {
-					false
-				}
-			case _ =>
-				throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+				case _ =>
+					throw new GraphTacticNotFoundException(id)
+			}
 		}
 	}
 
@@ -119,20 +135,24 @@ trait GTManager {
 		* @param index Current graph index.
 		* @return List of node id linked with this graph tactic in the current graph (should be used to update the graph view).
 		* @throws GraphTacticNotFoundException If the graph tactic is not in the collection.
+		* @throws ReservedNameException If newId is "main".
 		*/
 	def updateForceGT(id:String, newId:String, newBranchType:String, newArgs:Array[Array[String]], graph:String, index:Int):Array[String] = {
-		gtCollection get id match {
-			case Some(t:GraphTactic) =>
-				t.name = newId
-				t.branchType = newBranchType
-				t.replaceArguments(newArgs)
-				if (id != newId) {
-					gtCollection += (newId -> t)
-					gtCollection -= id
-				}
-				t.getOccurrencesInGraph(graph,index)
-			case _ =>
-				throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+		if(newId == "main") throw new ReservedNameException(newId)
+		else {
+			gtCollection get id match {
+				case Some(t: GraphTactic) =>
+					t.name = newId
+					t.branchType = newBranchType
+					t.replaceArguments(newArgs)
+					if (id != newId) {
+						gtCollection += (newId -> t)
+						gtCollection -= id
+					}
+					t.getOccurrencesInGraph(graph, index)
+				case _ =>
+					throw new GraphTacticNotFoundException(id)
+			}
 		}
 	}
 
@@ -145,21 +165,25 @@ trait GTManager {
 		* @param graph Current graph id.
 		* @param index Current graph index.
 		* @return List of node id linked with this graph tactic in the current graph (should be used to update the graph view).
-		* @throws GraphTacticNotFoundException If the atomic tactic is not in the collection.
+		* @throws GraphTacticNotFoundException If the graph tactic is not in the collection.
+		* @throws ReservedNameException If newId is "main".
 		*/
 	def updateForceGT(id:String, newId:String, newBranchType:String, newArgs:String, graph:String, index:Int):Array[String] = {
-		gtCollection get id match {
-			case Some(t:GraphTactic) =>
-				t.name = newId
-				t.branchType = newBranchType
-				t.replaceArguments(newArgs)
-				if (id != newId) {
-					gtCollection += (newId -> t)
-					gtCollection -= id
-				}
-				t.getOccurrencesInGraph(graph, index)
-			case _ =>
-				throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+		if(newId == "main") throw new ReservedNameException(newId)
+		else {
+			gtCollection get id match {
+				case Some(t: GraphTactic) =>
+					t.name = newId
+					t.branchType = newBranchType
+					t.replaceArguments(newArgs)
+					if (id != newId) {
+						gtCollection += (newId -> t)
+						gtCollection -= id
+					}
+					t.getOccurrencesInGraph(graph, index)
+				case _ =>
+					throw new GraphTacticNotFoundException(id)
+			}
 		}
 	}
 
@@ -182,7 +206,7 @@ trait GTManager {
 			case Some(t:GraphTactic) =>
 				t.name+"("+t.argumentsToString()+")"
 			case None =>
-				throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+				throw new GraphTacticNotFoundException(id)
 		}
 	}
 
@@ -197,7 +221,7 @@ trait GTManager {
 			case Some(t:GraphTactic) =>
 				t.branchType
 			case None =>
-				throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+				throw new GraphTacticNotFoundException(id)
 		}
 	}
 
@@ -234,7 +258,7 @@ trait GTManager {
 			case Some(t:GraphTactic) =>
 				t.addOccurrence(Tuple3(graph,index,node))
 			case None =>
-				throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+				throw new GraphTacticNotFoundException(id)
 		}
 	}
 
@@ -253,7 +277,7 @@ trait GTManager {
 				t.removeOccurrence(Tuple3(graph,index,node))
 				t.occurrences.isEmpty
 			case None =>
-				throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+				throw new GraphTacticNotFoundException(id)
 		}
 	}
 
@@ -268,7 +292,7 @@ trait GTManager {
 			case Some(t:GraphTactic) =>
 				t.occurrences.size
 			case None =>
-				throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+				throw new GraphTacticNotFoundException(id)
 		}
 	}
 
@@ -284,7 +308,7 @@ trait GTManager {
 			case Some(t:GraphTactic) =>
 				t.addSubgraph(j,index)
 			case None =>
-				throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+				throw new GraphTacticNotFoundException(id)
 		}
 	}
 
@@ -299,7 +323,7 @@ trait GTManager {
 			case Some(t:GraphTactic) =>
 				t.delSubgraph(index)
 			case None =>
-				throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+				throw new GraphTacticNotFoundException(id)
 		}
 	}
 
@@ -320,7 +344,7 @@ trait GTManager {
 					case e:SubgraphNotFoundException => throw e
 				}
 			case None =>
-				throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+				throw new GraphTacticNotFoundException(id)
 		}
 	}
 
@@ -335,20 +359,20 @@ trait GTManager {
 			case Some(t:GraphTactic) =>
 				t.getSize
 			case None =>
-				throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+				throw new GraphTacticNotFoundException(id)
 		}
 	}
 
 	/** Method to get the children of a graph tactic.
 		*
 		* @param id Gui id of the graph tactic.
-		* @throws GraphTacticNotFoundException
+		* @throws GraphTacticNotFoundException If the graph tactic was not found in the collection.
 		* @return Array of children graph tactic.
 		*/
 	def getChildrenGT(id:String):ArrayBuffer[GraphTactic]  ={
 		gtCollection get id match {
 			case Some(t:GraphTactic) => t.children
-			case None => throw new GraphTacticNotFoundException("Graph tactic "+id+" not found")
+			case None => throw new GraphTacticNotFoundException(id)
 		}
 	}
 }

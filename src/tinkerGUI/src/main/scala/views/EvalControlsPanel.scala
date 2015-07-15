@@ -187,7 +187,7 @@ class EvalControlsPanel() {
 		}
 	){
 		enabled = false
-		icon = new ImageIcon(MainGUI.getClass.getResource("eval-backtrack.png"), "Commit")
+		icon = new ImageIcon(MainGUI.getClass.getResource("commit.png"), "Commit")
 		tooltip = "Commit changes"
 		/*listenTo(Service.evalCtrl)
 		reactions += {

@@ -1,12 +1,110 @@
 {
-  "graph_tactics" : [ {
+  "graphs" : [ {
+    "name" : "main",
+    "branch_type" : "OR",
+    "graphs" : [ {
+    "dir_edges" : {
+      "e1" : {
+        "data" : {
+          "gtyp" : "any",
+          "type" : "GT",
+          "break" : false
+        },
+        "src" : "v0",
+        "tgt" : "v1"
+      },
+      "e0" : {
+        "data" : {
+          "gtyp" : "any",
+          "type" : "GT",
+          "break" : false
+        },
+        "src" : "b0",
+        "tgt" : "v0"
+      },
+      "e4" : {
+        "data" : {
+          "gtyp" : "any",
+          "type" : "GT",
+          "break" : false
+        },
+        "src" : "v0",
+        "tgt" : "v2"
+      },
+      "e3" : {
+        "data" : {
+          "gtyp" : "any",
+          "type" : "GT",
+          "break" : false
+        },
+        "src" : "v2",
+        "tgt" : "b1"
+      },
+      "e2" : {
+        "data" : {
+          "gtyp" : "any",
+          "type" : "GT",
+          "break" : false
+        },
+        "src" : "v1",
+        "tgt" : "v2"
+      }
+    },
+    "wire_vertices" : {
+      "b1" : {
+        "annotation" : {
+          "boundary" : true,
+          "coord" : [ -1.00, -3.00 ]
+        }
+      },
+      "b0" : {
+        "annotation" : {
+          "boundary" : true,
+          "coord" : [ -1.00, 3.00 ]
+        }
+      }
+    },
+    "node_vertices" : {
+      "v1" : {
+        "data" : {
+          "atm" : "simp",
+          "type" : "T_Atomic",
+          "label" : "simp(x:y, a:b)"
+        },
+        "annotation" : {
+          "coord" : [ 1.00, 0.00 ]
+        }
+      },
+      "v0" : {
+        "data" : {
+          "id_name" : "",
+          "type" : "T_Identity"
+        },
+        "annotation" : {
+          "coord" : [ -1.00, 1.00 ]
+        }
+      },
+      "v2" : {
+        "data" : {
+          "subgraph" : "nested",
+          "type" : "T_Graph",
+          "label" : "nested()"
+        },
+        "annotation" : {
+          "coord" : [ -1.00, -1.00 ]
+        }
+      }
+    }
+  } ],
+    "args" : [ ]
+  },{
     "name" : "toto",
-    "branchType" : "OR",
+    "branch_type" : "OR",
     "graphs" : [ ],
     "args" : [ ]
   },{
     "name" : "nested",
-    "branchType" : "OR",
+    "branch_type" : "OR",
     "graphs" : [ {
       "dir_edges" : {
         "e0" : {
@@ -162,100 +260,6 @@
   } ],
   "current_index" : 0,
   "goal_types" : "",
-  "graph" : {
-    "dir_edges" : {
-      "e1" : {
-        "data" : {
-          "gtyp" : "any",
-          "type" : "GT",
-          "break" : false
-        },
-        "src" : "v0",
-        "tgt" : "v1"
-      },
-      "e0" : {
-        "data" : {
-          "gtyp" : "any",
-          "type" : "GT",
-          "break" : false
-        },
-        "src" : "b0",
-        "tgt" : "v0"
-      },
-      "e4" : {
-        "data" : {
-          "gtyp" : "any",
-          "type" : "GT",
-          "break" : false
-        },
-        "src" : "v0",
-        "tgt" : "v2"
-      },
-      "e3" : {
-        "data" : {
-          "gtyp" : "any",
-          "type" : "GT",
-          "break" : false
-        },
-        "src" : "v2",
-        "tgt" : "b1"
-      },
-      "e2" : {
-        "data" : {
-          "gtyp" : "any",
-          "type" : "GT",
-          "break" : false
-        },
-        "src" : "v1",
-        "tgt" : "v2"
-      }
-    },
-    "wire_vertices" : {
-      "b1" : {
-        "annotation" : {
-          "boundary" : true,
-          "coord" : [ -1.00, -3.00 ]
-        }
-      },
-      "b0" : {
-        "annotation" : {
-          "boundary" : true,
-          "coord" : [ -1.00, 3.00 ]
-        }
-      }
-    },
-    "node_vertices" : {
-      "v1" : {
-        "data" : {
-          "atm" : "simp",
-          "type" : "T_Atomic",
-          "label" : "simp(x:y, a:b)"
-        },
-        "annotation" : {
-          "coord" : [ 1.00, 0.00 ]
-        }
-      },
-      "v0" : {
-        "data" : {
-          "id_name" : "",
-          "type" : "T_Identity"
-        },
-        "annotation" : {
-          "coord" : [ -1.00, 1.00 ]
-        }
-      },
-      "v2" : {
-        "data" : {
-          "subgraph" : "nested",
-          "type" : "T_Graph",
-          "label" : "nested()"
-        },
-        "annotation" : {
-          "coord" : [ -1.00, -1.00 ]
-        }
-      }
-    }
-  },
   "current" : [ "main" ]
 }
 
