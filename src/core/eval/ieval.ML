@@ -118,7 +118,7 @@ struct
        |> EData.PSGraph.output_json*)),
       ("eval_psgraph",
         EData.get_psgraph edata
-        |> (fn e => EData.PSGraph.output_json_as_eval_field 
+        |> (fn e => EData.PSGraph.output_eval_json
                     (EData.get_name_current_hie edata) 
                     (EData.get_index_current edata) 
                     e)

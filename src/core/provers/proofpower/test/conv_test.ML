@@ -1,4 +1,19 @@
-open_theory "combin";
+  use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
+
+
+  val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
+  val path = tinker_path ^ "src/dev/psgraph/";
+  val guiPath = tinker_path ^ "src/tinkerGUI/release/";
+  val sys = "osx_64";
+  
+  set_guiPath guiPath sys;
+  open_gui_single();
+
+  val _ = LoggingHandler.active_all_tags ();
+  val _ = LoggingHandler.clear_active_tags();
+  val _ = map LoggingHandler.ins_active_tag ["ENV_DATA"];
+  val _ = LoggingHandler.print_active();
+
 val _ = push_pc"basic_hol1";
 simple_eq_match_conv thm_no;
 simple_ho_eq_match_conv;
