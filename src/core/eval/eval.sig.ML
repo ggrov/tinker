@@ -7,6 +7,7 @@ sig
   sharing EData.PSGraph.Theory.Data.Sharing.GoalTyp = Theory.GoalTyp.BasicSharing*)
   (*sharing Theory.Sharing = EData.Sharing.PSGraph.Theory*)
 
+  exception Breakpoint of EData.T;
   exception apply_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode
   exception node_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode * EData.PSGraph.Theory.Data.nvdata
   exception partition_exp of

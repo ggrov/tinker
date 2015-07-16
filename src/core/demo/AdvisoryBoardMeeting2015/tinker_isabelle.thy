@@ -9,11 +9,11 @@ ML{*
   val ps = PSGraph.read_json_file (path ^"demo.psgraph");
 *}
 
-ML{*-
+ML{* 
   TextSocket.safe_close();
 *}   
 
-ML{*-
+ML{*   -  
 val thm = Tinker.start_ieval @{context} ps [] @{prop "P  \<longrightarrow>  (P \<and>  P \<and> (Q \<longrightarrow> Q))"} (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
 *}

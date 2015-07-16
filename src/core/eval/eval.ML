@@ -17,6 +17,7 @@ struct
       input :  EData.PSGraph.Theory.Data.GoalTyp.gnode, 
       goaltypes : EData.PSGraph.Theory.Data.GoalTyp.T list } 
   exception Fail = RunCall.Fail
+  exception Breakpoint of EData.T;
 
   local open Theory.Graph_Utils LoggingHandler in
   (*******
@@ -392,7 +393,7 @@ struct
    end
 
  (* evaluates a single goal node *)
-  fun eval_goal_gen gname graph_name0 index0 edata = 
+  fun eval_goal_gen if_debug gname graph_name0 index0 edata = 
    let
      val _ = 
       Util.gnode_of (EData.get_graph edata) gname
@@ -420,21 +421,24 @@ struct
            (GData.T_Atomic _) => eval_apply_atomic gname tnode edata
          | (GData.T_Identity) => eval_apply_id gname tnode edata
          | (GData.T_Graph _) => enter_hgraph gname nv edata
+         | (GData.G_Break) => 
+            if if_debug then raise Breakpoint edata
+            else eval_apply_id gname tnode edata
          | _ => raise node_exp ("ERR: unexpected node type to apply eval ", gnode, nv)
       end
      )
   end
  
-  fun eval_goal_gnodename is_interactive gnode_name edata = eval_goal_gen gnode_name NONE NONE edata
+  fun eval_goal_gnodename is_debug gnode_name edata = eval_goal_gen is_debug gnode_name NONE NONE edata
 
-  fun eval_goal_goalname is_interactive gname edata = 
+  fun eval_goal_goalname is_debug gname edata = 
    let
      val graph = EData.get_graph edata
      val gnode_name = Util.all_gnodes graph
                |> filter (fn gn => gname = GoalTyp.goal_name (Util.gnode_of graph gn))
                |> (fn [x] => x) (* raise exception: log if not singleton list *)
    in
-     eval_goal_gen gnode_name NONE NONE edata
+     eval_goal_gen is_debug gnode_name NONE NONE edata
    end;
   end; (* end of open local graph utils *)
 end (* functor *)

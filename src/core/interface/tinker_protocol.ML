@@ -80,22 +80,25 @@ struct
              (set_data edata1;
               IEVal.output_json "CMD_UPDATE_PSGRAPH" 
                (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
-               edata1 NONE) |> pp_goal edata1
+               edata1) |> pp_goal edata1
         | (IEVal.Good edata1) => 
             (set_data edata1;
              IEVal.output_json "CMD_UPDATE_PSGRAPH" 
               (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
-              edata1 NONE) |> pp_goal edata1
+              edata1) |> pp_goal edata1
         |(IEVal.Bad) => 
             (logging "EVAL" "No subsequent eval status: Bad";
             IEVal.output_json "CMD_UPDATE_PSGRAPH" 
               (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
-              edata0 NONE) 
+              edata0) 
     in
       case opt 
         of "OPT_EVAL_NEXT" => eval_fn gnode edata0 |> make_ret_reuslt
-        | "OPT_EVAL_INTO" => eval_fn gnode edata0 |> make_ret_reuslt
+        | "OPT_EVAL_STEP_INTO" => eval_fn gnode edata0 |> make_ret_reuslt
         | "OPT_EVAL_STEP_OVER" =>  IEVal.eval_step_over gnode edata0 |> make_ret_reuslt
+        | "OPT_EVAL_FINISH" => IEVal.eval_finish edata0 |> make_ret_reuslt
+        | "OPT_EVAL_COMPLETE" => IEVal.eval_complete edata0 |> make_ret_reuslt
+        | "OPT_EVAL_UNTIL_BREAK" => IEVal.eval_until_break edata0 |> make_ret_reuslt
         | "OPT_EVAL_STOP" =>
            (Json.mk_object[("cmd", Json.mk_object[("name", Json.String  "CMD_END_EVAL_SESSION")])])
         | x => raise protocol_exn ("ERR: protocol unkown option: " ^ x)
@@ -163,8 +166,7 @@ struct
           "CMD_INIT_PSGRAPH" 
            (IEVal.mk_cmd_str_arg_json [
               "OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
-           (SOME edata0) 
-           (SOME ps);
+           (SOME edata0);
       val _ = (reset_data (); set_data edata0)
     in
       run_in_textstreams (ins, outs) (SOME init_msg);

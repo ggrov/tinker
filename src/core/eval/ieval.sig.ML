@@ -36,10 +36,10 @@ sig
  val eval_backtrack : EData.T -> result 
 (* val eval_step_into : V.name option -> EData.T -> result*)
  val eval_step_over : string -> EData.T -> result
-(*
- val eval_until_breakpoint :  EData.T -> result
- val eval_ignore_breakpoint : EData.T -> result
-*)
+ val eval_complete : EData.T -> result (* finish whole ps *)
+ val eval_finish : EData.T -> result (* finish current graph *)
+ val eval_until_break :  EData.T -> result
+
  structure Sharing : IEVAL_SHARING
   sharing type result = Sharing.result
   sharing Sharing.EData = EData.Sharing
