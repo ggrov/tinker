@@ -408,7 +408,7 @@ struct
      if (is_some o (try_get_out (EData.get_graph edata))) gname
      (* the goal is terminated in the current graph *)
      then (* either exit or raise an exception if it is in the main *)
-       if EData.get_name_current edata  = "main" then raise Fail "ERR: main has already been terminated "
+       if EData.get_name_current edata  = EData.get_main_current edata then raise Fail "ERR: main has already been terminated "
        else (* exit the current hie *) exit_hgraph gname edata
      else (* not terminated, so either apply atomic or apply hgraph*)
      (

@@ -38,6 +38,7 @@ sig
     -> StrName.NTab.name
     -> Theory.Data.arg_typ
   val get_occurs : T -> occurences
+  val get_main : T -> StrName.NTab.name
   
  (* set methods *)
   val set_top_graph : Theory.Graph.T -> T -> T
