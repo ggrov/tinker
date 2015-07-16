@@ -118,8 +118,6 @@ struct
  fun eval_until_breakpoint
  fun eval_ignore_breakpoint 
 *) 
- 
-
 
 (************************************************************
      JSON output
@@ -148,8 +146,6 @@ struct
            Json.mk_object[
            ("name", Json.String cmd),
            ("args", args_list_json)]),     
-      ("psgraph", Json.Null),
-      (* FIXME: hacky *)
       ("eval_psgraph", Json.Null)      
     ]
 
