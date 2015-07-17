@@ -119,7 +119,7 @@ struct
     |> pp_goal edata1
    end
   
-  val ftab = ftab |> register "CMD_CHANGE_PSGRAH" CMD_CHANGE_PSGRAH
+  val ftab = ftab |> register "CMD_CHANGE_PSGRAPH" CMD_CHANGE_PSGRAH
 
   fun dispatch json_input =
   let

@@ -265,7 +265,7 @@ object CommunicationService extends Publisher {
 														// send option chosen
 														send(JsonObject("cmd" -> JsonObject("name" -> "RSP_EVAL_PSGRAPH", "args" -> JsonArray(Vector(JsonString(opt), JsonString(node))))))
 														// change state
-														state = CommunicationState.WaitingForPsgraphUpdate
+														state = CommunicationState.WaitingForPsgraph
 													}
 											}
 
@@ -405,7 +405,7 @@ object CommunicationService extends Publisher {
 		*/
 	def sendPSGraphChange(psgraph:Json, evalPath:JsonArray): Unit ={
 		if(state == CommunicationState.WaitingForUserChoice){
-			send(JsonObject("cmd" -> JsonObject("name" -> "CMD_CHANGE_PSGRAPH", "args"->JsonArray()), "psgraph" -> psgraph, "eval_path" -> evalPath))
+			send(JsonObject("cmd" -> JsonObject("name" -> "CMD_CHANGE_PSGRAPH", "args"->JsonArray()), "eval_psgraph" -> psgraph, "eval_path" -> evalPath))
 			state = CommunicationState.WaitingForPsgraphUpdate
 		}
 	}

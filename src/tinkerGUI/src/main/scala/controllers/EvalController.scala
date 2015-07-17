@@ -113,6 +113,7 @@ class EvalController(model:PSGraph) extends Publisher {
 				model.updateJsonPSGraph()
 				CommunicationService.sendPSGraphChange(model.jsonPSGraph,JsonArray(evalPath.reverse))
 			case "PULL" =>
+				loadJson(tmpEvalPSGraph)
 			case _ =>
 				publish(EvalOptionSelectedEvent(o, selectedNode))
 		}

@@ -43,7 +43,7 @@ class EvalControlsPanel() {
 		tooltip = "Finish"
 		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_NEXT") enabled = true
+			case EnableEvalOptionsEvent(opt) => enabled = opt contains "OPT_EVAL_NEXT"
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
@@ -59,7 +59,7 @@ class EvalControlsPanel() {
 		tooltip = "Complete"
 		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_NEXT") enabled = true
+			case EnableEvalOptionsEvent(opt) => enabled = opt contains "OPT_EVAL_NEXT"
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
@@ -75,7 +75,7 @@ class EvalControlsPanel() {
 		tooltip = "Undo"
 		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_UNDO") enabled = true
+			case EnableEvalOptionsEvent(opt) => enabled = opt contains "OPT_EVAL_UNDO"
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
@@ -91,7 +91,7 @@ class EvalControlsPanel() {
 		tooltip = "Step into"
 		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_STEP_INTO") enabled = true
+			case EnableEvalOptionsEvent(opt) => enabled = opt contains "OPT_EVAL_STEP_INTO"
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
@@ -107,7 +107,7 @@ class EvalControlsPanel() {
 		tooltip = "Step over"
 		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_STEP_OVER") enabled = true
+			case EnableEvalOptionsEvent(opt) => enabled = opt contains "OPT_EVAL_STEP_OVER"
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
@@ -123,7 +123,7 @@ class EvalControlsPanel() {
 		tooltip = "Stop Evaluation"
 		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_STOP") enabled = true
+			case EnableEvalOptionsEvent(opt) => enabled = opt contains "OPT_EVAL_STOP"
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
@@ -140,7 +140,7 @@ class EvalControlsPanel() {
 		tooltip = "Until Break"
 		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_NEXT") enabled = true
+			case EnableEvalOptionsEvent(opt) => enabled = opt contains "OPT_EVAL_NEXT"
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
@@ -157,7 +157,7 @@ class EvalControlsPanel() {
 		tooltip = "Next"
 		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_NEXT") enabled = true
+			case EnableEvalOptionsEvent(opt) => enabled = opt contains "OPT_EVAL_NEXT"
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
@@ -174,7 +174,7 @@ class EvalControlsPanel() {
 		tooltip = "Backtrack"
 		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) => if(opt contains "OPT_EVAL_BACKTRACK") enabled = true
+			case EnableEvalOptionsEvent(opt) => enabled = opt contains "OPT_EVAL_BACKTRACK"
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
@@ -191,7 +191,7 @@ class EvalControlsPanel() {
 		tooltip = "Send changes"
 		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(opt) => if(opt contains "PUSH") enabled = true
+			case EnableEvalOptionsEvent(opt) => enabled = opt contains "PUSH"
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
@@ -208,7 +208,7 @@ class EvalControlsPanel() {
 		tooltip = "Reload correct graph"
 		listenTo(Service.evalCtrl)
 		reactions += {
-			case EnableEvalOptionsEvent(_) => if(Service.evalCtrl.tmpEvalPSGraph.nonEmpty) enabled = true
+			case EnableEvalOptionsEvent(_) => enabled = Service.evalCtrl.tmpEvalPSGraph.nonEmpty
 			case DisableEvalOptionsEvent() => enabled = false
 		}
 	}
