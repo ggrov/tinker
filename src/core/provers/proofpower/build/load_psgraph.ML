@@ -22,7 +22,7 @@
 (* PSGraph *)
   use "../../../psgraph/psgraph.sig.ML";        
   use "../../../psgraph/psgraph.ML";    
-  use "../../../psgraph/psgraph_comb.ML"; 
+  (* use "../../../psgraph/psgraph_comb.ML"; *) 
   
 (* Evaluation *)
   use "../../../eval/eval_data.sig.ML";                                         
