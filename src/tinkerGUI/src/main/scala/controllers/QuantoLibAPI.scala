@@ -72,17 +72,24 @@ object QuantoLibAPI extends Publisher{
 				v.data.get("label") match {
 					case Some(j:Json) =>
 					case None =>
-						try{
-							gr = gr.updateVData(k) { _ => v.withValue(Service.model.getATFullName(v.label)) }
-						} catch {
-							case e:AtomicTacticNotFoundException =>
+						v.typ match {
+							case "G_Break" =>
+								gr = gr.updateVData(k) { _ => v.withValue("STOP") }
+							case "T_Atomic" =>
+								try{
+									gr = gr.updateVData(k) { _ => v.withValue(Service.model.getATFullName(v.label)) }
+								} catch {
+									case e:AtomicTacticNotFoundException =>
+										gr = gr.updateVData(k) { _ => v.withValue(v.label) }
+								}
+							case "T_Graph" =>
 								try{
 									gr = gr.updateVData(k) { _ => v.withValue(Service.model.getGTFullName(v.label)) }
 								} catch {
 									case e:GraphTacticNotFoundException =>
-										//TinkerDialog.openErrorDialog(e.msg)
 										gr = gr.updateVData(k) { _ => v.withValue(v.label) }
 								}
+							case _ =>
 						}
 				}
 			case _ =>
@@ -264,7 +271,7 @@ object QuantoLibAPI extends Publisher{
 	private def changeGraph(gr: Graph){
 		graphPanel.graphDoc.graph = gr
 		graph = graphPanel.graphDoc.graph
-		if(!Service.evalCtrl.inEval) Service.model.saveGraph(Graph.toJson(graph, theory))
+		Service.model.saveGraph(Graph.toJson(graph, theory))
 		Service.graphNavCtrl.viewedGraphChanged(Service.model.isMain,false)
 	}
 
