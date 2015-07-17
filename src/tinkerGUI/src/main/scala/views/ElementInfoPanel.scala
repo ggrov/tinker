@@ -10,7 +10,7 @@ import scala.swing._
 import javax.swing.ImageIcon
 import java.awt.{Cursor, Font}
 
-class VertexEditContent(nam: String, typ: String, value: String, enableEdit: Boolean) extends BoxPanel(Orientation.Vertical) {
+class VertexEditContent(nam: String, typ: String, value: String) extends BoxPanel(Orientation.Vertical) {
 	val titleFont = new Font("Dialog",Font.BOLD,14)
 	contents += new FlowPanel(FlowPanel.Alignment.Center)(new Label("Node Information"){font = titleFont})
 	
@@ -34,7 +34,6 @@ class VertexEditContent(nam: String, typ: String, value: String, enableEdit: Boo
 		contentAreaFilled = false
 		opaque = false
 		cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-		enabled = enableEdit
 	}
 	val editButton = new Button(
 		new Action(""){
@@ -50,7 +49,6 @@ class VertexEditContent(nam: String, typ: String, value: String, enableEdit: Boo
 		contentAreaFilled = false
 		opaque = false
 		cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-		enabled = enableEdit
 	}
 
 	contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Node : " + nam))
@@ -97,7 +95,6 @@ class VertexEditContent(nam: String, typ: String, value: String, enableEdit: Boo
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-				enabled = enableEdit
 			}
 			val inspectButton = new Button(
 				new Action(""){
@@ -143,7 +140,7 @@ class VertexEditContent(nam: String, typ: String, value: String, enableEdit: Boo
 
 }
 
-class VerticesEditContent(names: Set[String], enableEdit: Boolean) extends BoxPanel(Orientation.Vertical) {
+class VerticesEditContent(names: Set[String]) extends BoxPanel(Orientation.Vertical) {
 	var dialog = new Dialog()
 	val mergeAction = new Action("Yes"){
 		def apply() = {
@@ -162,7 +159,6 @@ class VerticesEditContent(names: Set[String], enableEdit: Boolean) extends BoxPa
 			def apply() = {
 				dialog = TinkerDialog.openConfirmationDialog("<html>You are about to merge these nodes.</br>Do you wish to continue ?</html>", Array(mergeAction, cancelAction))
 			}
-			enabled = enableEdit
 		}
 	)
 	contents += new FlowPanel(FlowPanel.Alignment.Left)(){
@@ -180,7 +176,7 @@ class VerticesEditContent(names: Set[String], enableEdit: Boolean) extends BoxPa
 	}
 }
 
-class EdgeEditContent(nam: String, value: String, src: String, tgt: String, enableEdit: Boolean) extends BoxPanel(Orientation.Vertical) {
+class EdgeEditContent(nam: String, value: String, src: String, tgt: String) extends BoxPanel(Orientation.Vertical) {
 	val titleFont = new Font("Dialog",Font.BOLD,14)
 	contents += new FlowPanel(FlowPanel.Alignment.Center)(new Label("Edge Information"){font = titleFont})
 	val editButton = new Button(
@@ -198,7 +194,6 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, enab
 		contentAreaFilled = false
 		opaque = false
 		cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-		enabled = enableEdit
 	}
 	val breakpointButton =
 		if(QuantoLibAPI.hasBreak(nam)){
@@ -249,7 +244,6 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String, enab
 		contentAreaFilled = false
 		opaque = false
 		cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-		enabled = enableEdit
 	}
 	contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Edge : " + nam))
 	contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Goal types : "+value))
@@ -268,27 +262,20 @@ class ElementInfoPanel() extends BoxPanel(Orientation.Vertical) {
 	minimumSize = new Dimension(200, 200)
 	//preferredSize = new Dimension(250, 250)
 
-	var enableEdit = true
-
-	listenTo(Service.evalCtrl)
-	reactions += {
-		case DisableActionsForEvalEvent(inEval) =>
-			enableEdit = !inEval
-	}
 
 	listenTo(QuantoLibAPI)
 	reactions += {
 		case OneVertexSelectedEvent(nam, typ, value) =>
 			contents.clear()
-			contents += new VertexEditContent(nam, typ, value, enableEdit)
+			contents += new VertexEditContent(nam, typ, value)
 			revalidate()
 		case ManyVerticesSelectedEvent(names) =>
 			contents.clear()
-			contents += new VerticesEditContent(names, enableEdit)
+			contents += new VerticesEditContent(names)
 			revalidate()
 		case OneEdgeSelectedEvent(nam, value, src, tgt) =>
 			contents.clear()
-			contents += new EdgeEditContent(nam, value, src, tgt, enableEdit)
+			contents += new EdgeEditContent(nam, value, src, tgt)
 			revalidate()
 		case NothingSelectedEvent() =>
 			contents.clear()

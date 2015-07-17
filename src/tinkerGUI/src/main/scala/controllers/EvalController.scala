@@ -1,9 +1,9 @@
 package tinkerGUI.controllers
 
-import quanto.util.json.{JsonAccessException, Json, JsonObject}
+import quanto.util.json._
 import tinkerGUI.controllers.events._
 import tinkerGUI.model.PSGraph
-import tinkerGUI.model.exceptions.{PSGraphModelException, SubgraphNotFoundException, AtomicTacticNotFoundException, GraphTacticNotFoundException}
+import tinkerGUI.model.exceptions.{PSGraphModelException, GraphTacticNotFoundException}
 import tinkerGUI.utils.TinkerDialog
 
 import scala.collection.mutable.ArrayBuffer
@@ -24,6 +24,14 @@ class EvalController(model:PSGraph) extends Publisher {
 	/** Node selected by the user during evaluation, should be of type goal or breakpoint.*/
 	var selectedNode : String = ""
 
+	/** Array of tactics representing the current evalPath. */
+	var evalPath = Array[String]()
+
+	/** Temporary eval psgraph, given by the core, used to refresh the model if changes were not approved by the core. */
+	var tmpEvalPSGraph = JsonObject()
+
+	/** Path of current evaluated graph. */
+
 	/** Method to switch evaluation state.
 		*
 		* Notifies if some views should disable some options.
@@ -37,7 +45,11 @@ class EvalController(model:PSGraph) extends Publisher {
 		} else {
 			Service.editCtrl.changeMouseState("select")
 		}
-		publish(DisableActionsForEvalEvent(inEval))
+	}
+
+	/** Method saving the eval path from the model.*/
+	def saveEvalPath() {
+		evalPath = model.currentParents :+ model.getCurrentGTName
 	}
 
 	/** Method displaying an evaluation graph.
@@ -70,6 +82,7 @@ class EvalController(model:PSGraph) extends Publisher {
 				publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(Service.hierarchyCtrl.elementParents(model.getCurrentGTName))))
 				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
+				saveEvalPath()
 			} catch {
 				case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 				case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
@@ -94,8 +107,15 @@ class EvalController(model:PSGraph) extends Publisher {
 		*/
 	def selectEvalOption(o:String){
 		publish(DisableEvalOptionsEvent())
-		publish(EvalOptionSelectedEvent(o, selectedNode))
 		selectedNode = ""
+		o match {
+			case "PUSH" =>
+				model.updateJsonPSGraph()
+				CommunicationService.sendPSGraphChange(model.jsonPSGraph,JsonArray(evalPath.reverse))
+			case "PULL" =>
+			case _ =>
+				publish(EvalOptionSelectedEvent(o, selectedNode))
+		}
 	}
 
 	listenTo(QuantoLibAPI)

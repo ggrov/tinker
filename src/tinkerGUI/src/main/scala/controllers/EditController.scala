@@ -297,6 +297,12 @@ class EditController(model:PSGraph) extends Publisher {
 		} else {
 			fieldMap += ("Branch type"->model.getGTBranchType(tacticOldName))
 		}
+		var confirmDialog = new Dialog()
+		val cancelAction:Action = new Action("Cancel"){
+			def apply() {
+				confirmDialog.close()
+			}
+		}
 		def failureCallback() = {
 			// Nothing
 		}
@@ -321,7 +327,6 @@ class EditController(model:PSGraph) extends Publisher {
 					if(isAtomicTactic) {
 						existingName = model.atCollection contains name
 						if(existingName && name!=tacticOldName){
-							var confirmDialog = new Dialog()
 							val message:String = "The atomic tactic "+name+" already exists, do you wish to link this node with it ?"
 							val reuseInfo = new Action("Link node"){
 								def apply {
@@ -338,13 +343,12 @@ class EditController(model:PSGraph) extends Publisher {
 									confirmDialog.close()
 								}
 							}
-							confirmDialog = TinkerDialog.openConfirmationDialog(message,Array(reuseInfo,redoUpdate))
+							confirmDialog = TinkerDialog.openConfirmationDialog(message,Array(reuseInfo,redoUpdate,cancelAction))
 						} else {
 							isUnique = model.updateAT(tacticOldName,name,tactic,args)
 							if(isUnique){
 								QuantoLibAPI.setVertexValue(nodeId, name+"("+args+")")
 							} else {
-								var confirmDialog = new Dialog()
 								val message:String = "<html>The atomic tactic "+name+" has many occurrences. <br> Do you wish to edit all of them or make a new tactic ?</html>"
 								val newAction:Action = new Action("Make new tactic"){
 									def apply(){
@@ -363,13 +367,12 @@ class EditController(model:PSGraph) extends Publisher {
 										confirmDialog.close()
 									}
 								}
-								confirmDialog = TinkerDialog.openConfirmationDialog(message, Array(newAction,editAllAction))
+								confirmDialog = TinkerDialog.openConfirmationDialog(message, Array(newAction,editAllAction,cancelAction))
 							}
 						}
 					} else {
 						existingName = model.gtCollection contains name
 						if(existingName && name!=tacticOldName){
-							var confirmDialog = new Dialog()
 							val message:String = "The graph tactic "+name+" already exists, do you wish to link this node with it ?"
 							val reuseInfo = new Action("Link node"){
 								def apply {
@@ -387,15 +390,25 @@ class EditController(model:PSGraph) extends Publisher {
 									confirmDialog.close()
 								}
 							}
-							confirmDialog = TinkerDialog.openConfirmationDialog(message,Array(reuseInfo,redoUpdate))
+							if(!(Service.evalCtrl.inEval
+								&& Service.evalCtrl.evalPath.contains(tacticOldName)
+								&& Service.evalCtrl.evalPath.contains(model.getCurrentGTName))) {
+								confirmDialog = TinkerDialog.openConfirmationDialog(message,Array(reuseInfo,redoUpdate,cancelAction))
+							} else {
+								confirmDialog = TinkerDialog.openInformationDialog("Tactic "+tacticOldName+" cannot be renamed "+name)
+							}
 						} else {
 							isUnique = model.updateGT(tacticOldName,name,branchType,args)
 							if(isUnique){
 								QuantoLibAPI.setVertexValue(nodeId, name+"("+args+")")
+								if(Service.evalCtrl.evalPath.contains(tacticOldName)){
+									val index = Service.evalCtrl.evalPath.indexOf(tacticOldName)
+									Service.evalCtrl.evalPath(index) = name
+								}
 								publish(GraphTacticListEvent())
 							} else {
-								var confirmDialog = new Dialog()
 								val message:String = "<html>The graph tactic "+name+" has many occurrences. <br> Do you wish to edit all of them or make a new tactic ?</html>"
+								val messageBis:String = "<html>The graph tactic "+name+" has many occurrences. <br> All of those should be updated. </html>"
 								val newAction:Action = new Action("Make new tactic"){
 									def apply(){
 										createTactic(nodeId,isAtomicTactic,values)
@@ -407,6 +420,10 @@ class EditController(model:PSGraph) extends Publisher {
 								val editAllAction:Action = new Action("Edit all"){
 									def apply(){
 										val nodesToChange: Array[String] = model.updateForceGT(tacticOldName, name, branchType, args)
+										if(Service.evalCtrl.evalPath.contains(tacticOldName)){
+											val index = Service.evalCtrl.evalPath.indexOf(tacticOldName)
+											Service.evalCtrl.evalPath(index) = name
+										}
 										publish(GraphTacticListEvent())
 										val fullName = model.getGTFullName(name)
 										nodesToChange.foreach{ n =>
@@ -415,7 +432,13 @@ class EditController(model:PSGraph) extends Publisher {
 										confirmDialog.close()
 									}
 								}
-								confirmDialog = TinkerDialog.openConfirmationDialog(message, Array(newAction,editAllAction))
+								if(!(Service.evalCtrl.inEval
+									&& Service.evalCtrl.evalPath.contains(tacticOldName)
+									&& Service.evalCtrl.evalPath.contains(model.getCurrentGTName))) {
+									confirmDialog = TinkerDialog.openConfirmationDialog(message, Array(newAction,editAllAction,cancelAction))
+								} else {
+									confirmDialog = TinkerDialog.openConfirmationDialog(messageBis, Array(editAllAction,cancelAction))
+								}
 							}
 						}
 					}
@@ -432,38 +455,46 @@ class EditController(model:PSGraph) extends Publisher {
 		* @param nodeName Name of tactic associated with the node.
 		* @param nodeId Id of the node deleted.
 		* @param isAtomicTactic Boolean stating the nature of the node, atomic or nested.
+		* @return Boolean notifying if it is ok to delete a tactic node
 		*/
-	def deleteTactic(nodeName:String, nodeId:String, isAtomicTactic:Boolean) {
+	def deleteTactic(nodeName:String, nodeId:String, isAtomicTactic:Boolean):Boolean = {
 		try {
 
 			val tacticName = ArgumentParser.separateNameArgs(nodeName)._1
-			val lastOcc:Boolean = if(isAtomicTactic) model.removeATOccurrence(tacticName, nodeId) else model.removeGTOccurrence(tacticName,nodeId)
-			publish(GraphTacticListEvent())
-			if(lastOcc){
-				val message =
-					if(isAtomicTactic) "This was the only occurrence of this atomic tactic, its data have been deleted."
-					else "This was the only occurrence of this graph tactic, its data and child tactic's data have been deleted."
-				TinkerDialog.openInformationDialog(message)
-				// the following was opening a dialog to ask the user if they want to keep the data
-				// note that it induced complication when removing a graph tactic having children tactic appearing once as well
-				/*var confirmDialog = new Dialog()
-				val message:String = "This is the last occurrence of this tactic. Do you wish to keep its data ?"
-				val keepAction:Action = new Action("Keep data") {
-					def apply() {
-						// do nothing
-						confirmDialog.close()
+			if(!(Service.evalCtrl.inEval && Service.evalCtrl.evalPath.contains(tacticName) && Service.evalCtrl.evalPath.contains(model.getCurrentGTName))){
+				val lastOcc:Boolean = if(isAtomicTactic) model.removeATOccurrence(tacticName, nodeId) else model.removeGTOccurrence(tacticName,nodeId)
+				publish(GraphTacticListEvent())
+				if(lastOcc){
+					val message =
+						if(isAtomicTactic) "This was the only occurrence of this atomic tactic, its data have been deleted."
+						else "This was the only occurrence of this graph tactic, its data and child tactic's data have been deleted."
+					TinkerDialog.openInformationDialog(message)
+					// the following was opening a dialog to ask the user if they want to keep the data
+					// note that it induced complication when removing a graph tactic having children tactic appearing once as well
+					/*var confirmDialog = new Dialog()
+					val message:String = "This is the last occurrence of this tactic. Do you wish to keep its data ?"
+					val keepAction:Action = new Action("Keep data") {
+						def apply() {
+							// do nothing
+							confirmDialog.close()
+						}
 					}
-				}
-				val delAction:Action = new Action("Delete data") {
-					def apply() {
-						if(isAtomicTactic) model.deleteAT(tacticName) else model.deleteGT(tacticName)
-						confirmDialog.close()
+					val delAction:Action = new Action("Delete data") {
+						def apply() {
+							if(isAtomicTactic) model.deleteAT(tacticName) else model.deleteGT(tacticName)
+							confirmDialog.close()
+						}
 					}
+					confirmDialog = TinkerDialog.openConfirmationDialog(message,Array(keepAction,delAction))*/
 				}
-				confirmDialog = TinkerDialog.openConfirmationDialog(message,Array(keepAction,delAction))*/
+				true
+			} else {
+				false
 			}
 		} catch {
-			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
+			case e:PSGraphModelException =>
+				TinkerDialog.openErrorDialog(e.msg)
+				false
 		}
 	}
 
@@ -540,6 +571,7 @@ class EditController(model:PSGraph) extends Publisher {
 		*/
 	def editSubgraph(tactic:String, index:Int, parents:Option[Array[String]] = None) {
 		try {
+			Service.documentCtrl.registerChanges()
 			model.changeCurrent(tactic, index, parents)
 			Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
 			QuantoLibAPI.loadFromJson(model.getCurrentJson)
@@ -574,7 +606,9 @@ class EditController(model:PSGraph) extends Publisher {
 		* @param index Index of the subgraph in the tactic.
 		*/
 	def deleteSubgraph(tactic:String,index:Int) {
-		Service.documentCtrl.registerChanges()
-		model.delSubgraphGT(tactic,index)
+		if(!(Service.evalCtrl.inEval && Service.evalCtrl.evalPath.contains(tactic))){
+			Service.documentCtrl.registerChanges()
+			model.delSubgraphGT(tactic,index)
+		}
 	}
 }
