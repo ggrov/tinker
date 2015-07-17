@@ -305,16 +305,19 @@ object QuantoLibAPI extends Publisher{
 			case data:NodeV if data.typ == "G_Break" =>
 				removeBreakpoint(v.s)
 			case _ =>
-				graph.adjacentEdges(v).foreach {deleteEdge}
+				var canDeleteElements = true
 				if(graph.vdata.contains(v)){
 					d match {
 						case n: NodeV =>
-							if (n.typ == "T_Graph") Service.editCtrl.deleteTactic(n.label, v.s, false)
-							else if (n.typ == "T_Atomic") Service.editCtrl.deleteTactic(n.label, v.s, true)
+							if (n.typ == "T_Graph") canDeleteElements = Service.editCtrl.deleteTactic(n.label, v.s, false)
+							else if (n.typ == "T_Atomic") canDeleteElements = Service.editCtrl.deleteTactic(n.label, v.s, true)
 						case _ =>
 					}
-					view.invalidateVertex(v)
-					changeGraph(graph.deleteVertex(v))
+					if(canDeleteElements){
+						graph.adjacentEdges(v).foreach {deleteEdge}
+						view.invalidateVertex(v)
+						changeGraph(graph.deleteVertex(v))
+					}
 				}
 		}
 	}

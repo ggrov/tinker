@@ -16,14 +16,6 @@ class InspectorController(model: PSGraph) extends Publisher {
 
 	var gtList = model.gtCollection.keys.toList :+ model.mainTactic.name
 
-	var enableEdit = true
-	listenTo(Service.evalCtrl)
-	reactions += {
-		case DisableActionsForEvalEvent(inEval) =>
-			enableEdit = !inEval
-			if(inEval) publish(DisableNavigationEvent(Array("add","edit","del")))
-	}
-
 	def inspect(name:String){
 		if(name == "Select a tactic"){
 			publish(PreviewEvent(false,false))
@@ -45,13 +37,10 @@ class InspectorController(model: PSGraph) extends Publisher {
 		try{
 			if(tacticToShow == model.mainTactic.name){
 				QuantoLibAPI.updateSubgraphPreviewFromJson(model.mainTactic.getSubgraph(0))
-				var arr = Array("next","prev","del","add")
-				if (!enableEdit) arr = arr :+ "edit"
-				publish(DisableNavigationEvent(arr))
+				publish(DisableNavigationEvent(Array("next","prev","del","add")))
 			} else{
 				QuantoLibAPI.updateSubgraphPreviewFromJson(model.getSubgraphGT(tacticToShow, indexToShow))
 				var arr = Array[String]()
-				if(!enableEdit) arr = arr :+ "edit" :+ "add" :+ "del"
 				if(indexToShow <= 0) arr = arr :+ "prev"
 				if(indexToShow >= tacticTotal-1) arr = arr :+ "next"
 				publish(DisableNavigationEvent(arr))
@@ -62,7 +51,6 @@ class InspectorController(model: PSGraph) extends Publisher {
 			case e:SubgraphNotFoundException =>
 				indexOnTotal.text = indexToShow + " / " + tacticTotal
 				var arr = Array("next","prev","del","edit")
-				if(!enableEdit) arr = arr :+ "add"
 				publish(DisableNavigationEvent(arr))
 				publish(PreviewEvent(true,false))
 		}

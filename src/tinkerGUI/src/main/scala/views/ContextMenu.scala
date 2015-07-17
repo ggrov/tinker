@@ -14,13 +14,6 @@ object ContextMenu extends PopupMenu {
 	var edgeSource = ""
 	var edgeTarget = ""
 	var eltNames = Set[String]()
-	var enableEdit = !Service.evalCtrl.inEval
-
-	listenTo(Service.evalCtrl)
-	reactions += {
-		case DisableActionsForEvalEvent(inEval) =>
-			enableEdit = !inEval
-	}
 
 	listenTo(QuantoLibAPI)
 	reactions += {
@@ -62,39 +55,31 @@ object ContextMenu extends PopupMenu {
 						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.userAddVertex(new java.awt.Point(x, y), "T_Identity")
 					}
-				}){
-					this.peer.setEnabled(enableEdit)
-				}
+				})
 				contents += new MenuItem(new Action("Add an atomic tactic node") {
 					def apply() = {
 						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.userAddVertex(new java.awt.Point(x, y), "T_Atomic")
 					}
-				}){
-					this.peer.setEnabled(enableEdit)
-				}
+				})
 				contents += new MenuItem(new Action("Add a nested tactic node") {
 					def apply() = {
 						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.userAddVertex(new java.awt.Point(x, y), "T_Graph")
 					}
-				}){
-					this.peer.setEnabled(enableEdit)
-				}
+				})
 				contents += new MenuItem(new Action("Paste") {
 					def apply() = {
 						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.paste()
 					}
 				}){
-					this.peer.setEnabled(enableEdit && QuantoLibAPI.canPaste)
+					this.peer.setEnabled(QuantoLibAPI.canPaste)
 				}
 			case "Identity" =>
-				contents += new MenuItem(deleteNodeAction){
-					this.peer.setEnabled(enableEdit)
-				}
+				contents += new MenuItem(deleteNodeAction)
 				contents += new MenuItem(copyAction){
-					this.peer.setEnabled(enableEdit && QuantoLibAPI.canCopy)
+					this.peer.setEnabled(QuantoLibAPI.canCopy)
 				}
 			case "Atomic" =>
 				contents += new MenuItem(new Action("Edit node") {
@@ -102,14 +87,10 @@ object ContextMenu extends PopupMenu {
 						Service.documentCtrl.registerChanges()
 						Service.editCtrl.updateTactic(eltName,eltValue,isAtomicTactic = true)
 					}
-				}){
-					this.peer.setEnabled(enableEdit)
-				}
-				contents += new MenuItem(deleteNodeAction){
-					this.peer.setEnabled(enableEdit)
-				}
+				})
+				contents += new MenuItem(deleteNodeAction)
 				contents += new MenuItem(copyAction){
-					this.peer.setEnabled(enableEdit && QuantoLibAPI.canCopy)
+					this.peer.setEnabled(QuantoLibAPI.canCopy)
 				}
 			case "Nested" =>
 				contents += new MenuItem(new Action("Edit node") {
@@ -117,9 +98,7 @@ object ContextMenu extends PopupMenu {
 						Service.documentCtrl.registerChanges()
 						Service.editCtrl.updateTactic(eltName,eltValue,isAtomicTactic = false)
 					}
-				}){
-					this.peer.setEnabled(enableEdit)
-				}
+				})
 				contents += new MenuItem(new Action("Inspect tactic") {
 					def apply() = {
 						Service.inspectorCtrl.inspect(ArgumentParser.separateNameArgs(eltValue)._1)
@@ -130,14 +109,10 @@ object ContextMenu extends PopupMenu {
 						Service.documentCtrl.registerChanges()
 						Service.editCtrl.addSubgraph(ArgumentParser.separateNameArgs(eltValue)._1)
 					}
-				}){
-					this.peer.setEnabled(enableEdit)
-				}
-				contents += new MenuItem(deleteNodeAction){
-					this.peer.setEnabled(enableEdit)
-				}
+				})
+				contents += new MenuItem(deleteNodeAction)
 				contents += new MenuItem(copyAction){
-					this.peer.setEnabled(enableEdit && QuantoLibAPI.canCopy)
+					this.peer.setEnabled(QuantoLibAPI.canCopy)
 				}
 			case "Breakpoint" =>
 				contents += new MenuItem(new Action("Remove breakpoint") {
@@ -152,19 +127,15 @@ object ContextMenu extends PopupMenu {
 						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.mergeSelectedVertices()
 					}
-				}){
-					this.peer.setEnabled(enableEdit)
-				}
+				})
 				contents += new MenuItem(new Action("Delete nodes") {
 					def apply() = {
 						Service.documentCtrl.registerChanges()
 						eltNames.foreach{n => QuantoLibAPI.userDeleteElement(n)}
 					}
-				}){
-					this.peer.setEnabled(enableEdit)
-				}
+				})
 				contents += new MenuItem(copyAction){
-					this.peer.setEnabled(enableEdit && QuantoLibAPI.canCopy)
+					this.peer.setEnabled(QuantoLibAPI.canCopy)
 				}
 			case "Edge" =>
 				contents += new MenuItem(new Action("Edit edge") {
@@ -172,9 +143,7 @@ object ContextMenu extends PopupMenu {
 						Service.documentCtrl.registerChanges()
 						Service.editCtrl.editEdge(eltName,edgeSource,edgeTarget,eltValue)
 					}
-				}){
-					this.peer.setEnabled(enableEdit)
-				}
+				})
 				if(QuantoLibAPI.hasBreak(eltName)){
 					contents += new MenuItem(new Action("Remove breakpoint") {
 						def apply() = {
@@ -196,9 +165,7 @@ object ContextMenu extends PopupMenu {
 						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.userDeleteElement(eltName)
 					}
-				}){
-					this.peer.setEnabled(enableEdit)
-				}
+				})
 			case "Goal" => // do nothing
 		}
 		super.show(invoker, x, y)

@@ -179,20 +179,38 @@ class EvalControlsPanel() {
 		}
 	}
 
-	val CommitButton = new Button(
+	val PushButton = new Button(
 		new Action(""){
 			def apply(){
-				// commit change on model to core
+				Service.evalCtrl.selectEvalOption("PUSH")
 			}
 		}
 	){
 		enabled = false
-		icon = new ImageIcon(MainGUI.getClass.getResource("commit.png"), "Commit")
-		tooltip = "Commit changes"
-		/*listenTo(Service.evalCtrl)
+		icon = new ImageIcon(MainGUI.getClass.getResource("push.png"), "Push")
+		tooltip = "Send changes"
+		listenTo(Service.evalCtrl)
 		reactions += {
-			// check for changes
-		}*/
+			case EnableEvalOptionsEvent(opt) => if(opt contains "PUSH") enabled = true
+			case DisableEvalOptionsEvent() => enabled = false
+		}
+	}
+
+	val PullButton = new Button(
+		new Action(""){
+			def apply(){
+				Service.evalCtrl.selectEvalOption("PULL")
+			}
+		}
+	){
+		enabled = false
+		icon = new ImageIcon(MainGUI.getClass.getResource("pull.png"), "Push")
+		tooltip = "Reload correct graph"
+		listenTo(Service.evalCtrl)
+		reactions += {
+			case EnableEvalOptionsEvent(_) => if(Service.evalCtrl.tmpEvalPSGraph.nonEmpty) enabled = true
+			case DisableEvalOptionsEvent() => enabled = false
+		}
 	}
 
 	val MainEvalToolBar = new ToolBar{
@@ -200,6 +218,6 @@ class EvalControlsPanel() {
 	}
 
 	val SecondaryEvalToolBar = new ToolBar{
-		contents += (ConnectButton, CommitButton, StopButton)
+		contents += (ConnectButton, PushButton, PullButton, StopButton)
 	}
 }

@@ -46,11 +46,6 @@ case class OneEdgeSelectedEvent(name: String, value: String, source: String, tar
 case class ManyVerticesSelectedEvent(vnames : Set[String]) extends Event
 
 //Launched by EvalController
-/** Event notifying of changes in the evaluation state.
-	*
-	* @param inEval Evaluation state.
-	*/
-case class DisableActionsForEvalEvent(inEval:Boolean) extends Event
 
 /** Event notifying of new available evaluation options.
 	*
