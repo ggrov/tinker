@@ -20,7 +20,7 @@ ML{*-
   val guiPath = "/u1/staff/gg112/tinker/src/tinkerGUI/release/";
 *}
 
-ML{*-
+ML{*
   val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
   val path = tinker_path ^ "src/dev/psgraph/";
   val guiPath = tinker_path ^ "src/tinkerGUI/release/";
@@ -73,7 +73,7 @@ fun test_true1 _ _ _ = true
 *}
 (* read and load a psgraph created by gui *)
 ML{*
-  val ps = PSGraph.read_json_file (path^"demo_env.psgraph");
+  val ps = PSGraph.read_json_file (path^"demo_gn.psgraph");
   PSGraph.write_json_file (path^"demo1.psgraph") ps; 
 *}
 
