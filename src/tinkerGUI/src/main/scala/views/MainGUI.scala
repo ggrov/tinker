@@ -7,11 +7,18 @@ import scala.swing._
 
 object MainGUI extends SimpleSwingApplication {
 
+	val graphPanel = new GraphEditPanel() {
+		Service.setMainFrame(this)
+	}
+	val inspectorPanel = new GraphInspectorPanel()
+	val elementPanel = new ElementInfoPanel()
+
 	object FourthSplit extends SplitPane {
 		orientation = Orientation.Horizontal
 		//minimumSize = new Dimension (300,800)
 		//preferredSize = new Dimension (300,800)
-		contents_=(new GraphInspectorPanel(), new ElementInfoPanel())
+		//contents_=(new GraphInspectorPanel(), new ElementInfoPanel())
+		contents_=(inspectorPanel, elementPanel)
 	}
 
 	object ThirdSplit extends SplitPane {
@@ -26,7 +33,8 @@ object MainGUI extends SimpleSwingApplication {
 		orientation = Orientation.Vertical
 		//minimumSize = new Dimension (1100,800)
 		//preferredSize = new Dimension (1100,800)
-		contents_=(new GraphEditPanel(){Service.setMainFrame(this)}, FourthSplit)
+		//contents_=(new GraphEditPanel(){Service.setMainFrame(this)}, FourthSplit)
+		contents_=(graphPanel, FourthSplit)
 	}
 
 	object MainSplit extends SplitPane {
@@ -42,6 +50,8 @@ object MainGUI extends SimpleSwingApplication {
 		listenTo(Service.documentCtrl)
 		reactions += {
 			case DocumentChangedEvent(_) =>
+				graphPanel.display(true)
+				inspectorPanel.display(true)
 				title = "Tinker - " + Service.documentCtrl.title
 		}
     Service.setTopFrame(this)

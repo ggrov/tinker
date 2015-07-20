@@ -74,7 +74,7 @@ trait ATManager {
 					false
 				}
 			case _ =>
-				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
+				throw new AtomicTacticNotFoundException(id)
 		}
 	}
 
@@ -103,7 +103,7 @@ trait ATManager {
 					false
 				}
 			case _ =>
-				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
+				throw new AtomicTacticNotFoundException(id)
 		}
 	}
 
@@ -130,7 +130,7 @@ trait ATManager {
 				}
 				t.getOccurrencesInGraph(graph, index)
 			case _ =>
-				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
+				throw new AtomicTacticNotFoundException(id)
 		}
 	}
 
@@ -157,7 +157,7 @@ trait ATManager {
 				}
 				t.getOccurrencesInGraph(graph, index)
 			case _ =>
-				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
+				throw new AtomicTacticNotFoundException(id)
 		}
 	}
 
@@ -180,7 +180,7 @@ trait ATManager {
 			case Some(t:AtomicTactic) =>
 				t.name+"("+t.argumentsToString()+")"
 			case None =>
-				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
+				throw new AtomicTacticNotFoundException(id)
 		}
 	}
 
@@ -195,7 +195,7 @@ trait ATManager {
 			case Some(t:AtomicTactic) =>
 				t.tactic
 			case _ =>
-				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
+				throw new AtomicTacticNotFoundException(id)
 		}
 	}
 
@@ -232,7 +232,7 @@ trait ATManager {
 			case Some(t:AtomicTactic) =>
 				t.addOccurrence(Tuple3(graph,index,node))
 			case None =>
-				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
+				throw new AtomicTacticNotFoundException(id)
 		}
 	}
 
@@ -251,7 +251,7 @@ trait ATManager {
 				t.removeOccurrence(Tuple3(graph,index,node))
 				t.occurrences.isEmpty
 			case None =>
-				throw new AtomicTacticNotFoundException("Atomic tactic "+id+" not found")
+				throw new AtomicTacticNotFoundException(id)
 		}
 	}
 
@@ -266,7 +266,7 @@ trait ATManager {
 			case Some(t: AtomicTactic) =>
 				t.occurrences.size
 			case None =>
-				throw new AtomicTacticNotFoundException("Atomic tactic " + id + " not found")
+				throw new AtomicTacticNotFoundException(id)
 		}
 	}
 }

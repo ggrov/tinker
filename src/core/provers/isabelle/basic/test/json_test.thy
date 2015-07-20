@@ -28,8 +28,8 @@ ML{*-
 *}
 
 ML{*-
-  val path = "/home/pierre/Documents/HW/Tinker/tinkerGit/tinker/src/core/demo/AdvisoryBoardMeeting2015/"
   val tinker_path ="/home/pierre/Documents/HW/Tinker/tinkerGit/tinker/" 
+  val path = tinker_path ^ "src/dev/psgraph/";
   val guiPath = tinker_path ^ "src/tinkerGUI/release/";
   val sys = "linux"
 *}
@@ -73,7 +73,7 @@ fun test_true1 _ _ _ = true
 *}
 (* read and load a psgraph created by gui *)
 ML{*
-  val ps = PSGraph.read_json_file (path^"demo_env.psgraph");
+  val ps = PSGraph.read_json_file (path^"demo_gn.psgraph");
   PSGraph.write_json_file (path^"demo1.psgraph") ps; 
 *}
 
@@ -89,7 +89,7 @@ IEVal.output_string
 ML{*-
   TextSocket.safe_close();
 *}
-ML{* -
+ML{*- 
 Tinker.start_ieval @{context} ps [] @{prop "(A)  \<longrightarrow>  ((B \<longrightarrow>A) \<and>  (B \<longrightarrow>A) \<and> (B \<longrightarrow>A))"};
 *}
 

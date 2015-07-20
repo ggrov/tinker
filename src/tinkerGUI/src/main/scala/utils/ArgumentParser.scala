@@ -187,7 +187,8 @@ object ArgumentParser {
 	def argumentsToString(args: Array[Array[String]]): String = {
 		var res = ""
 		if(args.size > 0){
-			res = args.foldLeft(""){case(s,a) => s + argumentToString(a) + ", "}.substring(0, res.length-2)
+			res = args.foldLeft(""){case(s,a) => s + argumentToString(a) + ", "}
+			res = res.substring(0, res.length-2)
 			/*args.foreach{ a =>
 				//res += a.foldLeft(""){case(s,arg) => s+arg+", "}
 				res += argumentToString(a)+", "

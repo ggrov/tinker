@@ -9,7 +9,7 @@ import quanto.gui.graphview._
 import quanto.layout._
 import quanto.layout.constraint._
 import tinkerGUI.controllers.events.{OneEdgeSelectedEvent, ManyVerticesSelectedEvent, OneVertexSelectedEvent, NothingSelectedEvent}
-import tinkerGUI.model.exceptions.{GraphTacticNotFoundException, AtomicTacticNotFoundException}
+import tinkerGUI.model.exceptions.{PSGraphModelException, GraphTacticNotFoundException, AtomicTacticNotFoundException}
 import scala.swing._
 import scala.swing.event._
 import scala.swing.event.Key.Modifiers
@@ -72,17 +72,24 @@ object QuantoLibAPI extends Publisher{
 				v.data.get("label") match {
 					case Some(j:Json) =>
 					case None =>
-						try{
-							gr = gr.updateVData(k) { _ => v.withValue(Service.model.getATFullName(v.label)) }
-						} catch {
-							case e:AtomicTacticNotFoundException =>
+						v.typ match {
+							case "G_Break" =>
+								gr = gr.updateVData(k) { _ => v.withValue("STOP") }
+							case "T_Atomic" =>
+								try{
+									gr = gr.updateVData(k) { _ => v.withValue(Service.model.getATFullName(v.label)) }
+								} catch {
+									case e:AtomicTacticNotFoundException =>
+										gr = gr.updateVData(k) { _ => v.withValue(v.label) }
+								}
+							case "T_Graph" =>
 								try{
 									gr = gr.updateVData(k) { _ => v.withValue(Service.model.getGTFullName(v.label)) }
 								} catch {
 									case e:GraphTacticNotFoundException =>
-										//TinkerDialog.openErrorDialog(e.msg)
 										gr = gr.updateVData(k) { _ => v.withValue(v.label) }
 								}
+							case _ =>
 						}
 				}
 			case _ =>
@@ -264,7 +271,7 @@ object QuantoLibAPI extends Publisher{
 	private def changeGraph(gr: Graph){
 		graphPanel.graphDoc.graph = gr
 		graph = graphPanel.graphDoc.graph
-		if(!Service.evalCtrl.inEval) Service.model.saveGraph(Graph.toJson(graph, theory))
+		Service.model.saveGraph(Graph.toJson(graph, theory))
 		Service.graphNavCtrl.viewedGraphChanged(Service.model.isMain,false)
 	}
 
@@ -305,16 +312,19 @@ object QuantoLibAPI extends Publisher{
 			case data:NodeV if data.typ == "G_Break" =>
 				removeBreakpoint(v.s)
 			case _ =>
-				graph.adjacentEdges(v).foreach {deleteEdge}
+				var canDeleteElements = true
 				if(graph.vdata.contains(v)){
 					d match {
 						case n: NodeV =>
-							if (n.typ == "T_Graph") Service.editCtrl.deleteTactic(n.label, v.s, false)
-							else if (n.typ == "T_Atomic") Service.editCtrl.deleteTactic(n.label, v.s, true)
+							if (n.typ == "T_Graph") canDeleteElements = Service.editCtrl.deleteTactic(n.label, v.s, false)
+							else if (n.typ == "T_Atomic") canDeleteElements = Service.editCtrl.deleteTactic(n.label, v.s, true)
 						case _ =>
 					}
-					view.invalidateVertex(v)
-					changeGraph(graph.deleteVertex(v))
+					if(canDeleteElements){
+						graph.adjacentEdges(v).foreach {deleteEdge}
+						view.invalidateVertex(v)
+						changeGraph(graph.deleteVertex(v))
+					}
 				}
 		}
 	}
@@ -1147,10 +1157,7 @@ object QuantoLibAPI extends Publisher{
 				}
 			}
 		} catch {
-			case e: AtomicTacticNotFoundException =>
-				TinkerDialog.openErrorDialog(e.msg)
-			case e: GraphTacticNotFoundException =>
-				TinkerDialog.openErrorDialog(e.msg)
+			case e: PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 		}
 	}
 

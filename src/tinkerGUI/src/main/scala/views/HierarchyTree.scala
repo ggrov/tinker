@@ -18,7 +18,7 @@ class TreeGraph() extends Panel{
 	def drawTree(g:Graphics2D): Unit ={
 		elementCoordinates = Array()
 		try{
-			drawElement(g, "main", 100, 30, 1, Array())
+			drawElement(g, Service.hierarchyCtrl.root, 100, 30, 1, Array())
 		} catch {
 			case e:InfiniteTreeException => TinkerDialog.openErrorDialog("<html>The hierarchy tree could not be drawn as <br>"+e.msg+"</html>")
 		}

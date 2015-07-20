@@ -39,7 +39,7 @@ struct
   val ftab = Symtab.empty
 
   structure JobTable = NameTable(structure Dom = IntName)
-  (* always try save_connect then test connection, if no response then safe_clse then safe_connect *)
+  (* always try save_connect then test connection, if no response then safe_close then safe_connect *)
   
 (****************************************************
   internal data 
@@ -74,31 +74,52 @@ struct
       val (SOME edata0) = get_data();
       val gnode =  hd (tl opts)
       val eval_fn = case gnode of "" => K IEVal.eval_any | _ => IEVal.eval_goal
+      fun make_ret_reuslt edata_result = 
+       case edata_result 
+        of (IEVal.Cont edata1) => 
+             (set_data edata1;
+              IEVal.output_json "CMD_UPDATE_PSGRAPH" 
+               (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
+               edata1) |> pp_goal edata1
+        | (IEVal.Good edata1) => 
+            (set_data edata1;
+             IEVal.output_json "CMD_UPDATE_PSGRAPH" 
+              (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
+              edata1) |> pp_goal edata1
+        |(IEVal.Bad) => 
+            (logging "EVAL" "No subsequent eval status: Bad";
+            IEVal.output_json "CMD_UPDATE_PSGRAPH" 
+              (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
+              edata0) 
     in
       case opt 
-        of "OPT_EVAL_NEXT" =>
-          (case eval_fn gnode edata0
-            of (IEVal.Cont edata1) => 
-                 (set_data edata1;
-                  IEVal.output_json "CMD_UPDATE_PSGRAPH" 
-                   (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
-                   edata1 NONE) |> pp_goal edata1
-            | (IEVal.Good edata1) => 
-                (set_data edata1;
-                 IEVal.output_json "CMD_UPDATE_PSGRAPH" 
-                  (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
-                  edata1 NONE) |> pp_goal edata1
-            |(IEVal.Bad) => 
-                (logging "EVAL" "No subsequent eval status: Bad";
-                IEVal.output_json "CMD_UPDATE_PSGRAPH" 
-                  (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
-                  edata0 NONE) )
+        of "OPT_EVAL_NEXT" => eval_fn gnode edata0 |> make_ret_reuslt
+        | "OPT_EVAL_STEP_INTO" => eval_fn gnode edata0 |> make_ret_reuslt
+        | "OPT_EVAL_STEP_OVER" =>  IEVal.eval_step_over gnode edata0 |> make_ret_reuslt
+        | "OPT_EVAL_FINISH" => IEVal.eval_finish edata0 |> make_ret_reuslt
+        | "OPT_EVAL_COMPLETE" => IEVal.eval_complete edata0 |> make_ret_reuslt
+        | "OPT_EVAL_UNTIL_BREAK" => IEVal.eval_until_break edata0 |> make_ret_reuslt
         | "OPT_EVAL_STOP" =>
            (Json.mk_object[("cmd", Json.mk_object[("name", Json.String  "CMD_END_EVAL_SESSION")])])
         | x => raise protocol_exn ("ERR: protocol unkown option: " ^ x)
     end
   val ftab = ftab |> register "RSP_EVAL_PSGRAPH" RSP_EVAL_PSGRAPH
 
+(* assume that the graph structure of psgraph has not been changed *)
+  fun CMD_CHANGE_PSGRAH (json as (Json.Object obj))  = 
+   let 
+    val new_eval_json = JsonInputUtils.get obj "eval_psgraph" 
+    val new_psgraph = IEVal.EVal.EData.PSGraph.input_json new_eval_json
+    val (SOME edata) = get_data()
+    val edata1 = IEVal.EVal.EData.set_psgraph new_psgraph edata
+   in
+    (set_data edata1;
+     IEVal.output_json "CMD_UPDATE_PSGRAPH" 
+     (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) edata1) 
+    |> pp_goal edata1
+   end
+  
+  val ftab = ftab |> register "CMD_CHANGE_PSGRAPH" CMD_CHANGE_PSGRAH
 
   fun dispatch json_input =
   let
@@ -111,7 +132,7 @@ struct
   protocol executer 
 ****************************************************)
 
-  val version_string = Json.String "1.0"  
+  val version_string = Json.String "0.3"  
 
   fun run_in_textstreams (instream, outstream) init_msg =
   let
@@ -160,8 +181,7 @@ struct
           "CMD_INIT_PSGRAPH" 
            (IEVal.mk_cmd_str_arg_json [
               "OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
-           (SOME edata0) 
-           (SOME ps);
+           (SOME edata0);
       val _ = (reset_data (); set_data edata0)
     in
       run_in_textstreams (ins, outs) (SOME init_msg);

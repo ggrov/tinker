@@ -52,7 +52,7 @@ class GraphTactic(var name: String, var branchType: String) extends HasArguments
 		*/
 	def getSubgraph(index: Int):JsonObject = {
 		if (graphs.isDefinedAt(index)) graphs(index)
-		else throw new SubgraphNotFoundException("No subgraph for graph tactic "+name+" at index "+index)
+		else throw new SubgraphNotFoundException(name,index)
 	}
 
 	/** Method to get the size of the graph tactic, i.e. its number of subgraph.
@@ -68,7 +68,7 @@ class GraphTactic(var name: String, var branchType: String) extends HasArguments
 		* @return Json object of the graph tactic.
 		*/
 	def toJson : JsonObject = {
-		JsonObject("name" -> name, "branchType" -> branchType, "graphs" -> JsonArray(graphs), "args" -> argumentsToJson)
+		JsonObject("name" -> name, "branch_type" -> branchType, "graphs" -> JsonArray(graphs), "args" -> argumentsToJson)
 	}
 
 	/** Method to add a child to the graph tactic.

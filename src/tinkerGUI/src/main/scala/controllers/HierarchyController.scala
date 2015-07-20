@@ -11,6 +11,8 @@ import scala.swing.Publisher
 	*/
 class HierarchyController(model:PSGraph) extends Publisher {
 
+	var root = model.mainTactic.name
+
 	/** Map of the graph tactics' parents. Only the shortest path is stored.*/
 	var elementParents : Map[String,Array[String]] = updateElementParents()
 
@@ -24,13 +26,14 @@ class HierarchyController(model:PSGraph) extends Publisher {
 			var m = map
 			if(!m.contains(t)) m += (t->p)
 			else if(m(t).size > p.size) m = m.updated(t, p)
-			val children = if(t=="main") model.childrenMain else model.getChildrenGT(t)
+			val children = if(t==model.mainTactic.name) model.mainTactic.children else model.getChildrenGT(t)
 			children.foreach{ c =>
 				m = rec(c.name,p:+t, m)
 			}
 			m
 		}
-		rec("main",Array(),Map())
+		root = model.mainTactic.name
+		rec(model.mainTactic.name,Array(),Map())
 	}
 
 	/** Getter for the list of children of a tactic.
@@ -38,7 +41,7 @@ class HierarchyController(model:PSGraph) extends Publisher {
 		* @param t Tactic id.
 		* @return Children of the tactic.
 		*/
-	def getGTChildren(t:String) = if(t=="main") model.childrenMain else model.getChildrenGT(t)
+	def getGTChildren(t:String) = if(t==model.mainTactic.name) model.mainTactic.children else model.getChildrenGT(t)
 
 	listenTo(Service.editCtrl)
 	listenTo(Service.documentCtrl)

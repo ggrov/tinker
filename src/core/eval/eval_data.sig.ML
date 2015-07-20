@@ -39,6 +39,7 @@ sig
   val get_name_current_hie: T -> StrName.NTab.name list
   val get_name_current: T -> StrName.NTab.name
   val get_index_current : T -> int 
+  val get_main_current : T -> StrName.NTab.name
 
   (* more get methods *)
   val lookup_goal : T -> string -> PSGraph.Theory.Data.GoalTyp.Prover.pnode option

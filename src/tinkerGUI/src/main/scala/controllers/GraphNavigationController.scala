@@ -1,6 +1,6 @@
 package tinkerGUI.controllers
 
-import tinkerGUI.controllers.events.{DisableNavigationEvent, DisableActionsForEvalEvent}
+import tinkerGUI.controllers.events.DisableNavigationEvent
 import tinkerGUI.model.PSGraph
 
 import scala.swing._
@@ -10,28 +10,20 @@ class GraphNavigationController(model:PSGraph) extends Publisher {
 	var currentTotal = 0
 	val indexOnTotal = new Label("1 / 1")
 
-	var enableEdit = true
-	listenTo(Service.evalCtrl)
-	reactions += {
-		case DisableActionsForEvalEvent(inEval) =>
-			enableEdit = !inEval
-			if(inEval) publish(DisableNavigationEvent(Array("add","del","next","prev")))
-	}
-
 	def viewedGraphChanged(isMain: Boolean, isNew: Boolean){
 		currentTotal = if(isMain) 1 else model.getSizeGT(model.getCurrentGTName)
 		currentIndex = model.currentIndex
 		if(isNew) {
 			indexOnTotal.text = (currentIndex+1) + " / " + (currentTotal+1)
 			var arr = Array("next","add")
-			if(!enableEdit || isMain) arr = arr :+ "prev" :+ "del"
+			if(isMain) arr = arr :+ "prev" :+ "del"
 			else if(currentIndex==0) arr = arr :+ "prev"
 			publish(DisableNavigationEvent(arr))
 		}
 		else {
 			indexOnTotal.text = (currentIndex+1) + " / " + currentTotal
 			var arr = Array[String]()
-			if(!enableEdit || isMain) arr = arr :+ "prev" :+ "next" :+ "add" :+ "del"
+			if(isMain) arr = arr :+ "prev" :+ "next" :+ "add" :+ "del"
 			else {
 				if(currentIndex <= 0) arr = arr :+ "prev"
 				if(currentIndex >= currentTotal-1) arr = arr :+ "next"
@@ -42,14 +34,12 @@ class GraphNavigationController(model:PSGraph) extends Publisher {
 
 	def showPrev() {
 		if(currentIndex > 0){
-			Service.documentCtrl.registerChanges()
 			Service.editCtrl.editSubgraph(model.getCurrentGTName, currentIndex-1)
 		}
 	}
 
 	def showNext() {
 		if(currentIndex < currentTotal-1){
-			Service.documentCtrl.registerChanges()
 			Service.editCtrl.editSubgraph(model.getCurrentGTName, currentIndex+1)
 		}
 	}

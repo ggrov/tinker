@@ -1,6 +1,7 @@
 package tinkerGUI.controllers
 
 import tinkerGUI.controllers.events.{UpdateGTListEvent, DisableNavigationEvent, GraphTacticListEvent, PreviewEvent}
+import tinkerGUI.model.exceptions.PSGraphModelException
 import tinkerGUI.utils.TinkerDialog
 import tinkerGUI.model.PSGraph
 
@@ -9,21 +10,31 @@ import quanto.util.json._
 import scala.swing._
 import java.io.File
 
-class TinkerLibraryController(model:PSGraph) extends Publisher {
+class TinkerLibraryController() extends Publisher {
 
 	/** Json model of the psgraph to be loaded.*/
 	var json = new JsonObject()
+
 	/** Graph tactics' list of the currently selected json model.*/
 	var gtList:List[String] = List()
+
+	/** Currently selected tactic. */
 	var selectedGt:String = ""
+
 	/** Currently selected file name.*/
 	var fileName = ""
+
 	/** Currently selected file extension.*/
 	var fileExtn = ""
+
 	/** Currently viewed subgraph index on total of subgraphs.*/
 	var indexOnTotalText = ""
+
 	/** Currently viewed subgraph index.*/
 	var currentIndex = 0
+
+	/** Model to work on. */
+	var modelCreated = false
 
 	/** Method to get the preview from QuantoLibAPI.*/
 	def getLibraryView = QuantoLibAPI.getLibraryPreview
@@ -39,12 +50,13 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 					fileName = f.getName.substring(0, f.getName.lastIndexOf("."))
 					fileExtn = f.getName.substring(f.getName.lastIndexOf("."))
 					json = j
-					gtList = (json / "graph_tactics").asArray.foldLeft(List[String]()){case (l,gt)=> l:+(gt / "name").stringValue} :+ "main"
-					selectedGt = "main"
+					gtList = (json / "graphs").asArray.foldLeft(List[String]()){case (l,gt)=> l:+(gt / "name").stringValue}
+					previewGTFromJson((json / "main").stringValue,0)
+					/*selectedGt = "main"
 					QuantoLibAPI.updateLibraryPreviewFromJson(json / "graph")
 					indexOnTotalText = "1 / 1"
 					publish(PreviewEvent(show = true,hasPreview = true))
-					publish(DisableNavigationEvent(Array("next","previous")))
+					publish(DisableNavigationEvent(Array("next","previous")))*/
 					publish(UpdateGTListEvent())
 				case _ => TinkerDialog.openErrorDialog("Error when parsing file "+f.getName+" to json")
 			}
@@ -53,13 +65,7 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 
 	def previewGTFromJson(tactic:String,index:Int) {
 		var show = true
-		if(tactic == "main") {
-			currentIndex = 0
-			QuantoLibAPI.updateLibraryPreviewFromJson(json / "graph")
-			indexOnTotalText = "1 / 1"
-			publish(DisableNavigationEvent(Array("next","previous")))
-		}
-		else (json / "graph_tactics").asArray.foreach{ gt =>
+		(json / "graphs").asArray.foreach{ gt =>
 			if((gt / "name").stringValue == tactic) {
 				if ((gt / "graphs").asArray.nonEmpty) {
 					currentIndex = index
@@ -69,12 +75,13 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 					var arr = Array[String]()
 					if(index==0) arr = arr :+ "previous"
 					if(index == tacSize-1) arr = arr :+ "next"
+					if(!modelCreated) arr = arr :+ "addtograph"
 					publish(DisableNavigationEvent(arr))
 				} else {
 					//QuantoLibAPI.updateLibraryPreviewFromJson(json / "graph")
 					currentIndex = 0
 					indexOnTotalText = "0 / 0"
-					publish(DisableNavigationEvent(Array("next","previous","zoomin","zoomout")))
+					publish(DisableNavigationEvent(Array("next","previous","zoomin","zoomout","addtograph")))
 					show = false
 				}
 			}
@@ -97,42 +104,49 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 			newJson
 		}
 		def appendIndex(name:String, index:Int): String = {
-			if(index == 0 && !model.atCollection.contains(name) && !model.gtCollection.contains(name)) name
-			else if (index > 0 && !model.atCollection.contains(name+"-"+index) && !model.gtCollection.contains(name+"-"+index)) name+"-"+index
+			if(index == 0 && !Service.model.atCollection.contains(name) && !Service.model.gtCollection.contains(name)) name
+			else if (index > 0 && !Service.model.atCollection.contains(name+"-"+index) && !Service.model.gtCollection.contains(name+"-"+index)) name+"-"+index
 			else appendIndex(name, index+1)
 		}
 		try{
 			Service.documentCtrl.registerChanges()
+			val main = (json / "main").stringValue
 			(json / "atomic_tactics").asArray.foreach{ tct =>
 				val oldName = (tct / "name").stringValue
 				val tctName = appendIndex(fileName+"-"+oldName,0)
 				valuesToReplace = valuesToReplace + (oldName->tctName)
 				val tctTactic = (tct / "tactic").stringValue
 				val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
-				model.createAT(tctName,tctTactic,tctArgs)
+				Service.model.createAT(tctName,tctTactic,tctArgs)
 			}
-			(json / "graph_tactics").asArray.foreach{ tct =>
+			(json / "graphs").asArray.foreach{ tct =>
 				val oldName = (tct / "name").stringValue
-				val tctName = appendIndex(fileName+"-"+oldName,0)
-				valuesToReplace = valuesToReplace + (oldName->tctName)
-				val tctBranchType = (tct / "branchType").stringValue
-				val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
-				model.createGT(tctName,tctBranchType,tctArgs)
-			}
-			model.goalTypes = model.goalTypes+"\n\n\n/* From "+fileName+" */\n\n" + (json / "goal_types").stringValue
-			(json / "graph_tactics").asArray.foreach{ tct =>
-				val oldName = (tct / "name").stringValue
-				(tct / "graphs").asArray.foreach{ gr =>
-					model.addSubgraphGT(valuesToReplace(oldName),updateGraphJsonWithNewNames(gr).asObject,-1)
+				if(oldName != main){
+					val tctName = appendIndex(fileName+"-"+oldName,0)
+					valuesToReplace = valuesToReplace + (oldName->tctName)
+					val tctBranchType = (tct / "branch_type").stringValue
+					val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
+					Service.model.createGT(tctName,tctBranchType,tctArgs)
 				}
 			}
-			val nameNodeIdMap = QuantoLibAPI.addFromJson(updateGraphJsonWithNewNames(json / "graph"))
+			Service.model.goalTypes = Service.model.goalTypes+"\n\n\n/* From "+fileName+" */\n\n" + (json / "goal_types").stringValue
+			var nameNodeIdMap = Map[String,String]()
+			(json / "graphs").asArray.foreach{ tct =>
+				val oldName = (tct / "name").stringValue
+				if(oldName == main){
+					nameNodeIdMap = QuantoLibAPI.addFromJson(updateGraphJsonWithNewNames(tct / "graphs" / 0))
+				} else {
+					(tct / "graphs").asArray.foreach{ gr =>
+						Service.model.addSubgraphGT(valuesToReplace(oldName),updateGraphJsonWithNewNames(gr).asObject,-1)
+					}
+				}
+			}
 			(json / "occurrences" / "atomic_tactics").asObject.foreach{ case (k,v) =>
 				v.asArray.foreach{ occ =>
 					occ.asArray.get(0) match {
 						case Some(g:JsonString) =>
-							if(g.stringValue == "main") model.addATOccurrence(valuesToReplace(k),model.getCurrentGTName, model.currentIndex, nameNodeIdMap(valuesToReplace(k)))
-							else model.addATOccurrence(valuesToReplace(k),valuesToReplace(g.stringValue),occ.asArray.get(1).intValue,occ.asArray.get(2).stringValue)
+							if(g.stringValue == main) Service.model.addATOccurrence(valuesToReplace(k),Service.model.getCurrentGTName, Service.model.currentIndex, nameNodeIdMap(valuesToReplace(k)))
+							else Service.model.addATOccurrence(valuesToReplace(k),valuesToReplace(g.stringValue),occ.asArray.get(1).intValue,occ.asArray.get(2).stringValue)
 						case _ => throw new JsonAccessException("Json string type expected",json)
 					}
 				}
@@ -141,8 +155,8 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 				v.asArray.foreach{ occ =>
 					occ.asArray.get(0) match {
 						case Some(g:JsonString) =>
-							if(g.stringValue == "main") model.addGTOccurrence(valuesToReplace(k),model.getCurrentGTName, model.currentIndex, nameNodeIdMap(valuesToReplace(k)))
-							else model.addGTOccurrence(valuesToReplace(k),valuesToReplace(g.stringValue),occ.asArray.get(1).intValue,occ.asArray.get(2).stringValue)
+							if(g.stringValue == main) Service.model.addGTOccurrence(valuesToReplace(k),Service.model.getCurrentGTName, Service.model.currentIndex, nameNodeIdMap(valuesToReplace(k)))
+							else Service.model.addGTOccurrence(valuesToReplace(k),valuesToReplace(g.stringValue),occ.asArray.get(1).intValue,occ.asArray.get(2).stringValue)
 						case _ => throw new JsonAccessException("Json string type expected",json)
 					}
 				}
@@ -150,6 +164,7 @@ class TinkerLibraryController(model:PSGraph) extends Publisher {
 			publish(GraphTacticListEvent())
 		} catch {
 			case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
+			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 		}
 	}
 }

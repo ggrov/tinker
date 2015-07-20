@@ -55,6 +55,7 @@ local open LoggingHandler in
   val get_parent = get_aparent o get_active;
   val get_name_current = get_aname_current o get_active;
   val get_name_current_hie = get_aname_current_hie o get_active;
+  val get_main_current = PSGraph.get_main o get_bpsgraph o get_current;
   val get_index_current = get_aindex_current o get_active;
   val get_gnodes = get_agnodes o get_active;
   val get_searchf = get_asearchf o get_active;
@@ -184,13 +185,13 @@ local open LoggingHandler in
   val update_bindex_current = update_bactive o update_aindex_current;
   val set_bindex_current = update_bindex_current o K
 
-  fun init_active graph vs =
+  fun init_active  vs main =
      Active {gnodes = vs, searchf = "depth_first", 
-     name_current_hie = ["main"], index_current = 0,
+     name_current_hie = [main], index_current = 0,
      evalf = "depth_first", parent = StrName.NTab.empty}
 
   fun init_branch prf psgraph goals vs  =
-    Branch {active = init_active (PSGraph.get_graph psgraph) vs, pplan = prf, goals = goals, psgraph = psgraph};
+    Branch {active = init_active  vs (PSGraph.get_main psgraph), pplan = prf, goals = goals, psgraph = psgraph};
 
   fun init psgraph prf goals vs  =
     EData {current = init_branch prf psgraph goals vs, branches = []};

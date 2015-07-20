@@ -11,12 +11,11 @@ import java.awt.{Font, Cursor, Insets}
 
 
 class GraphInspectorPanel() extends BorderPanel {
-	val controller = Service.inspectorCtrl
 	val tacticNavigation = new BoxPanel(Orientation.Vertical){
 		contents += new FlowPanel(FlowPanel.Alignment.Right)(){
 			contents += new Button(new Action("") {
 				def apply() {
-					controller.showPrev()
+					Service.inspectorCtrl.showPrev()
 				}
 			}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("previous.png"), "Prev")
@@ -26,16 +25,16 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-				listenTo(controller)
+				listenTo(Service.inspectorCtrl)
 				reactions += {
 					case DisableNavigationEvent(a:Array[String]) =>
 						enabled = !(a contains "prev")
 				}
 			}
-			contents += controller.indexOnTotal
+			contents += Service.inspectorCtrl.indexOnTotal
 			contents += new Button(new Action("") {
 				def apply() {
-					controller.showNext()
+					Service.inspectorCtrl.showNext()
 				}
 			}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("next.png"), "Next")
@@ -45,7 +44,7 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-				listenTo(controller)
+				listenTo(Service.inspectorCtrl)
 				reactions += {
 					case DisableNavigationEvent(a:Array[String]) =>
 						enabled = !(a contains "next")
@@ -63,7 +62,7 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-				listenTo(controller)
+				listenTo(Service.inspectorCtrl)
 				reactions += {
 					case DisableNavigationEvent(a:Array[String]) =>
 						enabled = !(a contains "zoomin")
@@ -81,7 +80,7 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-				listenTo(controller)
+				listenTo(Service.inspectorCtrl)
 				reactions += {
 					case DisableNavigationEvent(a:Array[String]) =>
 						enabled = !(a contains "zoomout")
@@ -89,7 +88,7 @@ class GraphInspectorPanel() extends BorderPanel {
 			}
 			contents += new Button(new Action("") {
 				def apply() {
-					controller.edit()
+					Service.inspectorCtrl.edit()
 				}
 			}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("edit-pen.png"), "Edit")
@@ -99,7 +98,7 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-				listenTo(controller)
+				listenTo(Service.inspectorCtrl)
 				reactions += {
 					case DisableNavigationEvent(a:Array[String]) =>
 						enabled = !(a contains "edit")
@@ -107,7 +106,7 @@ class GraphInspectorPanel() extends BorderPanel {
 			}
 			contents += new Button(new Action(""){
 				def apply() {
-					controller.add()
+					Service.inspectorCtrl.add()
 				}
 			}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("add.png"), "Add")
@@ -117,7 +116,7 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-				listenTo(controller)
+				listenTo(Service.inspectorCtrl)
 				reactions += {
 					case DisableNavigationEvent(a:Array[String]) =>
 						enabled = !(a contains "add")
@@ -125,7 +124,7 @@ class GraphInspectorPanel() extends BorderPanel {
 			}
 			contents += new Button(new Action("") {
 				def apply() {
-					controller.delete()
+					Service.inspectorCtrl.delete()
 				}
 			}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("delete.png"), "Delete")
@@ -135,7 +134,7 @@ class GraphInspectorPanel() extends BorderPanel {
 				contentAreaFilled = false
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
-				listenTo(controller)
+				listenTo(Service.inspectorCtrl)
 				reactions += {
 					case DisableNavigationEvent(a:Array[String]) =>
 						enabled = !(a contains "del")
@@ -152,16 +151,16 @@ class GraphInspectorPanel() extends BorderPanel {
 		add(new FlowPanel(FlowPanel.Alignment.Center)(new Label("Tactic inspector"){font = titleFont}),BorderPanel.Position.North)
 
 		add(new FlowPanel(FlowPanel.Alignment.Left)(){
-			var list = controller.gtList
+			var list = Service.inspectorCtrl.gtList
 			list = list :+ "Select a tactic"
 			val cb = new MutableComboBox[String]
 			cb.items = list
 			cb.item = "Select a tactic"
-			listenTo(controller)
+			listenTo(Service.inspectorCtrl)
 			reactions += {
 				case UpdateGTListEvent() =>
 					val selected = cb.item
-					var list = controller.gtList
+					var list = Service.inspectorCtrl.gtList
 					list = list :+ "Select a tactic"
 					cb.items = list
 					cb.item = if(list contains selected) selected else "Select a tactic"
@@ -171,13 +170,15 @@ class GraphInspectorPanel() extends BorderPanel {
 			contents += cb
 			listenTo(cb)
 			reactions += {
-				case SelectionChanged(`cb`) => controller.inspect(cb.item)
+				case SelectionChanged(`cb`) => Service.inspectorCtrl.inspect(cb.item)
 			}
 		},BorderPanel.Position.West)
 
 		add(new FlowPanel(FlowPanel.Alignment.Right)(tacticNavigation),BorderPanel.Position.East)
 		add(new FlowPanel(FlowPanel.Alignment.Center)(noSubgraphLabel),BorderPanel.Position.South)
 	}
+
+	header.visible = false
 
 	val subgraphPanel = QuantoLibAPI.getSubgraphPreview
 
@@ -191,7 +192,7 @@ class GraphInspectorPanel() extends BorderPanel {
 	noSubgraphLabel.visible = false
 	tacticNavigation.visible = false
 
-	listenTo(controller)
+	listenTo(Service.inspectorCtrl)
 	reactions += {
 		case PreviewEvent(show,hasSubgraph) =>
 			if(show){
@@ -209,5 +210,9 @@ class GraphInspectorPanel() extends BorderPanel {
 				tacticNavigation.visible = false
 			}
 			this.repaint()
+	}
+
+	def display(visible:Boolean){
+		header.visible = visible
 	}
 }

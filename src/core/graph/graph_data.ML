@@ -209,7 +209,7 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
             | "T_Graph" =>  T_Graph (JsonInputUtils.get_string jobj "subgraph")
             | "T_Identity"=> T_Identity
             | "G_Break" => G_Break
-            | "G" => G (GoalTyp.gnode_from_json (Json.Object jobj) )
+            | "G" => G (GoalTyp.gnode_from_json (Json.get jobj "gn") )
             | "T_Var" => T_Var (JsonInputUtils.get_string jobj "t_var")
             | "G_Var" => T_Var (JsonInputUtils.get_string jobj "g_var")
             | _ => raise gdata_json_exp ("unexpected node type in JSON encoding", Json.Object jobj)

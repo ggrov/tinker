@@ -15,7 +15,9 @@ import javax.swing.filechooser.FileNameExtensionFilter
 object DocumentService extends Publisher {
 	var file : Option[File] = None
 
-	def title = file.map(f => f.getName).getOrElse("untitled")
+	var proofTitle = "untitled"
+
+	def title = file.map(f => f.getName).getOrElse(proofTitle)
 
 	def previousDir: File = {
 		val prefs = Preferences.userRoot().node(this.getClass.getName)
@@ -51,6 +53,7 @@ object DocumentService extends Publisher {
 			case Some(d) => new File(d)
 			case None => previousDir
 		})
+		chooser.peer.setSelectedFile(new File(proofTitle+".psgraph"))
 		chooser.fileFilter = new FileNameExtensionFilter("Tinker Proof Strategy Graph File (*.psgraph)", "psgraph")
 		chooser.showSaveDialog(Service.getMainFrame) match {
 			case FileChooser.Result.Approve =>

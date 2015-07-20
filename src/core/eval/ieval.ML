@@ -1,5 +1,5 @@
 
-functor InteractiveEvalFun (EVal : EVAL) =
+functor InteractiveEvalFun (EVal : EVAL) : IEVAL =
 struct
   local open LoggingHandler in
   structure EVal= EVal
@@ -30,7 +30,7 @@ struct
                 |> EData.set_branches xs)
    end
 
-  fun eval_goal node_name edata = 
+  fun eval_goal0 if_debug node_name edata = 
    let 
     val graph = (EData.get_graph edata) 
     val g = EVal.EData.PSGraph.Theory.Graph_Utils.gnode_of graph (V.mk node_name) 
@@ -39,20 +39,22 @@ struct
      if EVal.has_psgraph_terminated edata then Good edata
      else
      (* todo: hierichecal one *)
-       EVal.eval_goal_goalname true g edata
+       EVal.eval_goal_goalname if_debug  g edata
        |> Seq.list_of (* get a list of eval results *)
        (*|> map fst  map out branches *)
        |> update_branches edata
    end
-
- fun eval_backtrack edata = 
+  
+  val eval_goal = eval_goal0 false;
+(* need to restore pom depends on provers *)
+  fun eval_backtrack edata = 
    case EData.get_branches edata  
    of [] => Bad
     | branch  => 
         Cont( EData.set_current (hd branch) edata 
               |> EData.set_branches (tl branch)) 
 
-  fun eval_any edata = 
+  fun eval_any0 if_debug edata = 
    let 
     val graph = (EData.get_graph edata) 
     val cur_gnodenames = EVal.EData.PSGraph.Theory.Graph_Utils.all_gnodes graph
@@ -60,7 +62,7 @@ struct
     if EVal.has_psgraph_terminated edata then Good edata
     else
     if EVal.has_current_graph_terminated edata andalso (List.null cur_gnodenames)
-    then EVal.exit_hgraph_no_goal_node edata |> Seq.list_of |>update_branches edata
+    then EVal.exit_hgraph_no_goal_node edata |> Seq.list_of |> update_branches edata
     else
    (* todo: hierichecal one *)
      cur_gnodenames
@@ -72,33 +74,63 @@ struct
               |> Pretty.str_of |> logging "EVAL");
             x))
        |> hd(* pick the first one *)
-       |> (fn g => EVal.eval_goal_goalname true g edata
+       |> (fn g => EVal.eval_goal_goalname if_debug g edata
                        |> Seq.list_of
                        (*|> map fst*))
        |> update_branches edata
   end;
+ 
+  val eval_any = eval_any0 false;
 
+  fun eval_complete0 if_debug edata = 
+   let val ret = eval_any0 if_debug edata in
+   case ret 
+   of Cont e => eval_complete0 if_debug e
+    | _ => ret end;
+
+  val eval_complete = eval_complete0 false;
+
+  fun eval_until_graph edata graph_name  =
+   let val ret = eval_any0 false edata in
+   case ret of Cont e => 
+    if (EData.get_name_current e) = graph_name
+    then ret
+    else eval_until_graph e graph_name  | _ => ret end;
+   
+  fun eval_step_over node_name edata =      
+  let val ret = eval_goal0 false node_name edata val cur_graph_name = EData.get_name_current edata in
+  case ret
+    of Cont edata' => eval_until_graph edata' cur_graph_name 
+    | _  => ret end
+
+ fun eval_finish edata = 
+  let val dest_graph_name = EData.get_name_current edata in
+  if dest_graph_name = EData.get_main_current edata then eval_complete edata
+  else(
+    StrName.NTab.get (EData.get_parent edata) dest_graph_name |> fst
+    |> eval_until_graph edata)
+  end
+
+ fun eval_until_break edata = eval_complete0 true edata
+ handle EVal.Breakpoint e => Cont e;
+
+(*
+ fun eval_until_breakpoint
+ fun eval_ignore_breakpoint 
+*) 
 
 (************************************************************
-  
      JSON output
-
 *************************************************************)
-  fun output_json cmd args_list_json edata ps = 
+  fun output_json cmd args_list_json edata = 
     Json.mk_object[
       ("cmd", 
         Json.mk_object[
            ("name", Json.String cmd),
            ("args", args_list_json)]),
-      ("psgraph", 
-       (* FIXME: very hacky, do not get psgrapph from edata, as this one contains the goal node *)
-       (case ps of (SOME ps0) => EData.PSGraph.output_json ps0
-       | NONE => Json.Null)
-       (*EData.get_psgraph edata 
-       |> EData.PSGraph.output_json*)),
       ("eval_psgraph",
         EData.get_psgraph edata
-        |> (fn e => EData.PSGraph.output_json_as_eval_field 
+        |> (fn e => EData.PSGraph.output_eval_json
                     (EData.get_name_current_hie edata) 
                     (EData.get_index_current edata) 
                     e)
@@ -114,31 +146,23 @@ struct
            Json.mk_object[
            ("name", Json.String cmd),
            ("args", args_list_json)]),     
-      ("psgraph", Json.Null),
-      (* FIXME: hacky *)
       ("eval_psgraph", Json.Null)      
     ]
 
-  fun output_string cmd args_list_json edata ps = 
+  fun output_string cmd args_list_json edata = 
    if (Option.isSome edata)
    then 
-    output_json cmd args_list_json (Option.valOf edata) ps
+    output_json cmd args_list_json (Option.valOf edata) 
     |> Json.encode
    else
     output_cmd_only_json cmd args_list_json
     |> Json.encode
 
-(* Theory.Graph.normalise *)
 
-(*
- val step_into : V.name option -> EData.T -> EData.T
- val step_over : V.name option -> EData.T -> EData.T
- val backtrack : EData.T -> EData.T 
- val complete : EData.T -> EData.T  *)
-(* FIXME: to be implmented *)
- fun update_graph x = x
- fun eval_step_into _ _ = Bad
- fun eval_step_over _ _ = Bad
+(* FIXME: need to check that all the goal nodes are available in the open goal,
+ also this only works for the current branch *)
+ fun update_psgraph x = x
+
 
   end (* end of local open *)
    structure Sharing =

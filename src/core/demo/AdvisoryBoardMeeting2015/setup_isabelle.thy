@@ -3,13 +3,13 @@ imports
   "../../provers/isabelle/basic/build/BIsaP"    
 begin
 
-ML{*-
+ML{*
   val path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/src/core/demo/AdvisoryBoardMeeting2015/" ;
 *}
 ML{*-
   val path = "/home/pierre/Documents/HW/Tinker/tinkerGit/tinker/src/core/demo/AdvisoryBoardMeeting2015/"
 *}
-ML{*
+ML{*-
   val path = "F:/Library/Documents/git/tinker/src/core/demo/AdvisoryBoardMeeting2015/"
 *}
 
@@ -26,10 +26,8 @@ ML{*
   LoggingHandler.clear_active_tags ();
   LoggingHandler.print_active();
   LoggingHandler.print_all_tags();
-  map LoggingHandler.ins_active_tag ["EVAL", "GRAPH", "HIERARCHY", "SOCKET", "TACTIC"];
+  map LoggingHandler.ins_active_tag ["JSON_GUI"];
   LoggingHandler.print_active();
-  LoggingHandler.clear_active_tags ();
-
 *}
 
 end

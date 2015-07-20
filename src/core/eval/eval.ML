@@ -17,6 +17,7 @@ struct
       input :  EData.PSGraph.Theory.Data.GoalTyp.gnode, 
       goaltypes : EData.PSGraph.Theory.Data.GoalTyp.T list } 
   exception Fail = RunCall.Fail
+  exception Breakpoint of EData.T;
 
   local open Theory.Graph_Utils LoggingHandler in
   (*******
@@ -161,9 +162,10 @@ struct
  (* fixme: may loose goals! *)
  fun init_goal pnode edata  = 
    let
-     val gt_data = edata 
+     val gt_data = GoalTyp.default_data
+                (* edata 
                  |> EData.get_psgraph  
-                 |> EData.PSGraph.get_goaltype_data
+                 |> EData.PSGraph.get_goaltype_data*)
      val graph = EData.get_graph edata
      fun to_gt e = [(e,Util.goaltype_of graph e)] handle _ => []
      val in_edges = Util.input_boundary graph
@@ -218,9 +220,9 @@ struct
   (* fixme: make this into branch instead *)
   fun apply_atomic edata gnode tac goal_typs = 
    let 
-     val gt_data = edata 
+     val gt_data = GoalTyp.default_data (*edata 
                   |> EData.get_psgraph  
-                  |> EData.PSGraph.get_goaltype_data
+                  |> EData.PSGraph.get_goaltype_data*)
      fun apply_one (pnds,pplan) =
        Seq.single (EData.get_current edata
          |> EData.set_bpplan pplan
@@ -277,10 +279,10 @@ struct
     val hgraph_name = 
       case hgraph_nv of (GData.T_Graph name) => name 
       | _ => raise GData.node_exp ("expect hgraph, but some other type of nvnode",hgraph_nv);
-    val hgraph_args = EData.PSGraph.get_hgraph_args (EData.get_psgraph edata) hgraph_name
+    val graph_tacs_args = EData.PSGraph.get_graph_tacs_args (EData.get_psgraph edata) hgraph_name
     val cur_name = EData.get_name_current edata
     val cur_idx =  EData.get_index_current edata
-    val gt_data =  EData.get_psgraph edata |> EData.PSGraph.get_goaltype_data
+    val gt_data = GoalTyp.default_data (*EData.get_psgraph edata |> EData.PSGraph.get_goaltype_data*)
     val graph' = Util.del_gnode gnode_name graph
     fun set_hgraph_idx 0 b = [EData.set_bindex_current 0 b]
     | set_hgraph_idx i b = (EData.set_bindex_current i b) :: (set_hgraph_idx (i-1) b)
@@ -333,7 +335,7 @@ struct
   let 
     val graph = EData.get_graph edata
     val graph' = Util.del_gnode gnode_name graph
-    val gt_data = edata |> EData.get_psgraph |> EData.PSGraph.get_goaltype_data
+    val gt_data = GoalTyp.default_data (*edata |> EData.get_psgraph |> EData.PSGraph.get_goaltype_data*)
     val goal = Util.gnode_of graph gnode_name
     val pnode = EData.get_goal edata (GoalTyp.goal_name goal)
     val cur_b = EData.get_current edata
@@ -367,7 +369,7 @@ struct
 
  fun eval_apply_id gnode_name id_node edata =
    let
-    val gt_data = edata |> EData.get_psgraph |> EData.PSGraph.get_goaltype_data
+    val gt_data = GoalTyp.default_data (*edata |> EData.get_psgraph |> EData.PSGraph.get_goaltype_data*)
     val graph = EData.get_graph edata
     val goal = Util.gnode_of graph gnode_name
     val pnode = EData.get_goal edata (GoalTyp.goal_name goal)
@@ -391,7 +393,7 @@ struct
    end
 
  (* evaluates a single goal node *)
-  fun eval_goal_gen gname graph_name0 index0 edata = 
+  fun eval_goal_gen if_debug gname graph_name0 index0 edata = 
    let
      val _ = 
       Util.gnode_of (EData.get_graph edata) gname
@@ -407,7 +409,7 @@ struct
      if (is_some o (try_get_out (EData.get_graph edata))) gname
      (* the goal is terminated in the current graph *)
      then (* either exit or raise an exception if it is in the main *)
-       if EData.get_name_current edata  = "main" then raise Fail "ERR: main has already been terminated "
+       if EData.get_name_current edata  = EData.get_main_current edata then raise Fail "ERR: main has already been terminated "
        else (* exit the current hie *) exit_hgraph gname edata
      else (* not terminated, so either apply atomic or apply hgraph*)
      (
@@ -419,21 +421,24 @@ struct
            (GData.T_Atomic _) => eval_apply_atomic gname tnode edata
          | (GData.T_Identity) => eval_apply_id gname tnode edata
          | (GData.T_Graph _) => enter_hgraph gname nv edata
+         | (GData.G_Break) => 
+            if if_debug then raise Breakpoint edata
+            else eval_apply_id gname tnode edata
          | _ => raise node_exp ("ERR: unexpected node type to apply eval ", gnode, nv)
       end
      )
   end
  
-  fun eval_goal_gnodename is_interactive gnode_name edata = eval_goal_gen gnode_name NONE NONE edata
+  fun eval_goal_gnodename is_debug gnode_name edata = eval_goal_gen is_debug gnode_name NONE NONE edata
 
-  fun eval_goal_goalname is_interactive gname edata = 
+  fun eval_goal_goalname is_debug gname edata = 
    let
      val graph = EData.get_graph edata
      val gnode_name = Util.all_gnodes graph
                |> filter (fn gn => gname = GoalTyp.goal_name (Util.gnode_of graph gn))
                |> (fn [x] => x) (* raise exception: log if not singleton list *)
    in
-     eval_goal_gen gnode_name NONE NONE edata
+     eval_goal_gen is_debug gnode_name NONE NONE edata
    end;
   end; (* end of open local graph utils *)
 end (* functor *)
