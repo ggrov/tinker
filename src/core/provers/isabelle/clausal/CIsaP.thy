@@ -19,7 +19,7 @@ ML{*
                                      structure Data = Data);
   structure Theory_IO = PSGraph_Theory_IOFun(structure PSTheory = Theory)
   structure PSGraph = PSGraphFun(structure Theory_IO = Theory_IO);
-  structure PSComb = PSCombFun (structure PSGraph = PSGraph)
+  (*structure PSComb = PSCombFun (structure PSGraph = PSGraph)*)
   structure EData =  EDataFun( PSGraph);
   structure EVal = EValFun(EData);
   structure IEVal = InteractiveEvalFun (EVal);

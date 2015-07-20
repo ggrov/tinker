@@ -106,11 +106,11 @@ struct
   val ftab = ftab |> register "RSP_EVAL_PSGRAPH" RSP_EVAL_PSGRAPH
 
 (* assume that the graph structure of psgraph has not been changed *)
-  fun CMD_CHANGE_PSGRAH (json as (Json.Object obj))  = 
+  fun CMD_CHANGE_PSGRAH (Json.Object obj)  = 
    let 
     val new_eval_json = JsonInputUtils.get obj "eval_psgraph" 
     val new_psgraph = IEVal.EVal.EData.PSGraph.input_json new_eval_json
-    val (SOME edata) = get_data()
+    val (SOME edata) = get_data() 
     val edata1 = IEVal.EVal.EData.set_psgraph new_psgraph edata
    in
     (set_data edata1;
@@ -118,6 +118,7 @@ struct
      (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) edata1) 
     |> pp_goal edata1
    end
+   | CMD_CHANGE_PSGRAH _  = raise protocol_exn "dummy, this won't happen in CMD_CHANGE_PSGRAH"
   
   val ftab = ftab |> register "CMD_CHANGE_PSGRAPH" CMD_CHANGE_PSGRAH
 
