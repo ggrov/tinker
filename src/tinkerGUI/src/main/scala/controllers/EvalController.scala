@@ -14,10 +14,6 @@ import scala.swing.Publisher
 class EvalLogController extends Publisher {
 	val stack = mutable.ArrayStack[(String,String)]()
 
-	stack.push(("BASIC_INFO","BASIC_INFO : hello world"))
-	stack.push(("GOALTYPE","GOALTYPE : goal type message "))
-	stack.push(("BASIC_INFO","BASIC_INFO : hello world"))
-
 	var filter = ArrayBuffer[String]()
 
 	def addToFilter(s:String) {
@@ -166,7 +162,7 @@ class EvalController(model:PSGraph) extends Publisher {
 
 	listenTo(QuantoLibAPI)
 	reactions+={
-		case OneVertexSelectedEvent(name, typ, _) =>
+		case OneVertexSelectedEvent(name, typ, _, _) =>
 			if(inEval){
 				var options = evalOptions
 				selectedNode = ""

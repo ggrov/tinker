@@ -28,7 +28,7 @@ case class NothingSelectedEvent() extends Event
 	* @param typ Node type.
 	* @param value Node value/label.
 	*/
-case class OneVertexSelectedEvent(name : String, typ: String, value: String) extends Event
+case class OneVertexSelectedEvent(name : String, typ: String, label: String, value:String) extends Event
 
 /** Event notifying of a selection containing one edge.
 	*

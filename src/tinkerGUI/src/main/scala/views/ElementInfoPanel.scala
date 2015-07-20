@@ -10,7 +10,7 @@ import scala.swing._
 import javax.swing.ImageIcon
 import java.awt.{Cursor, Font}
 
-class VertexEditContent(nam: String, typ: String, value: String) extends BoxPanel(Orientation.Vertical) {
+class VertexEditContent(nam: String, typ: String, label: String, value:String) extends BoxPanel(Orientation.Vertical) {
 	val titleFont = new Font("Dialog",Font.BOLD,14)
 	contents += new FlowPanel(FlowPanel.Alignment.Center)(new Label("Node Information"){font = titleFont})
 	
@@ -39,7 +39,7 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 		new Action(""){
 			def apply(){
 				Service.documentCtrl.registerChanges()
-				Service.editCtrl.updateTactic(nam,value,typ=="T_Atomic")
+				Service.editCtrl.updateTactic(nam,label,typ=="T_Atomic")
 			}
 		}){
 		icon = new ImageIcon(MainGUI.getClass.getResource("edit-pen.png"), "Edit")
@@ -64,20 +64,20 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(delButton)
 		case "T_Atomic" =>
 			val tacticCoreId = try {
-				Service.getATCoreId(ArgumentParser.separateNameArgs(value)._1)
+				Service.getATCoreId(value)
 			} catch {
 				case e:AtomicTacticNotFoundException => "Error : could not find tactic"
 			}
-			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+value))
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+label))
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Tactic : "+tacticCoreId))
 			contents += new FlowPanel(FlowPanel.Alignment.Left)() {
 				contents += editButton
 				contents += delButton
 			}
 		case "T_Graph" =>
-			val name = ArgumentParser.separateNameArgs(value)._1
+			//val name = ArgumentParser.separateNameArgs(label)._1
 			val branchType = try {
-				Service.getBranchTypeGT(name)
+				Service.getBranchTypeGT(value)
 			} catch {
 				case e:GraphTacticNotFoundException => "Error : could not find tactic"
 			}
@@ -85,7 +85,7 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 				new Action(""){
 					def apply(){
 						//Service.documentCtrl.registerChanges()
-						Service.editCtrl.addSubgraph(name)
+						Service.editCtrl.addSubgraph(value)
 					}
 				}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("add.png"), "Add subgraph")
@@ -99,7 +99,7 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 			val inspectButton = new Button(
 				new Action(""){
 					def apply(){
-						Service.inspectorCtrl.inspect(name)
+						Service.inspectorCtrl.inspect(value)
 					}
 				}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("inspect.png"), "Inspect tactic")
@@ -110,7 +110,7 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 				opaque = false
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 			}
-			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+value))
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+label))
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Branch type : "+branchType))
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(){
 				contents += addSubButton
@@ -135,7 +135,9 @@ class VertexEditContent(nam: String, typ: String, value: String) extends BoxPane
 				cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
 			}
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(removeBreak)
-		case "G" => // do nothing
+		case "G" =>
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+label))
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Goal : "+value))
 	}
 
 }
@@ -265,9 +267,9 @@ class ElementInfoPanel() extends BoxPanel(Orientation.Vertical) {
 
 	listenTo(QuantoLibAPI)
 	reactions += {
-		case OneVertexSelectedEvent(nam, typ, value) =>
+		case OneVertexSelectedEvent(nam, typ, label, value) =>
 			contents.clear()
-			contents += new VertexEditContent(nam, typ, value)
+			contents += new VertexEditContent(nam, typ, label, value)
 			revalidate()
 		case ManyVerticesSelectedEvent(names) =>
 			contents.clear()

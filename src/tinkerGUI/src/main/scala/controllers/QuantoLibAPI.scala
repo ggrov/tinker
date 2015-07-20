@@ -785,7 +785,7 @@ object QuantoLibAPI extends Publisher{
 	private def publishSelectedVerts(){
 		if(view.selectedVerts.size == 1 && view.selectedEdges.size == 0 && !(graph.vdata(view.selectedVerts.head).isBoundary)){
 			(view.selectedVerts.head, graph.vdata(view.selectedVerts.head)) match {
-				case (v: VName, data: NodeV) => publish(OneVertexSelectedEvent(v.s, data.typ, data.label))
+				case (v: VName, data: NodeV) => publish(OneVertexSelectedEvent(v.s, data.typ, data.label, data.getValue))
 			}
 		}
 		else if(view.selectedVerts.size > 1 && view.selectedEdges.size == 0){

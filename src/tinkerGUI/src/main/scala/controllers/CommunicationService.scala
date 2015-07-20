@@ -118,11 +118,13 @@ object CommunicationService extends Publisher {
 			}
 			try {
 				val j = Json.parse(b.toString())
+				println(b.toString())
 				parseAndExecute(j)
 			} catch {
 				case e:JsonParseException =>
 					sendErrorResponse("RSP_MESSAGE_ERROR", "bad json")
 					println(e.getMessage)
+					println(b.toString())
 			}
 			listen()
 		}

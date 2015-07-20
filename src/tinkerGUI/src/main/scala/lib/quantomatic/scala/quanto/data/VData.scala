@@ -67,10 +67,33 @@ case class NodeV(
     case obj : JsonObject => obj.getOrElse("pretty", JsonString(""))
     case _ => (data.getPath(theory.vertexTypes(typ).value.path)) match {
       case str : JsonString => str
-      case obj : JsonObject => obj.getOrElse("pretty", JsonString(""))
+      case obj : JsonObject =>
+        if(typ=="G") {
+          obj / "name" match{
+            case str : JsonString => str
+            case _ => JsonString("")
+          }
+        }
+        else obj.getOrElse("pretty", JsonString(""))
       case _ => JsonString("")
     }
   }
+
+	// Added by plebras : mostly to get a goal node value
+	def getValue:String = {
+		data.getPath(theory.vertexTypes(typ).value.path) match {
+			case str : JsonString => str.stringValue
+			case obj : JsonObject =>
+				if(typ=="G"){
+					obj / "goal" match {
+						case str : JsonString => str.stringValue
+						case _ => ""
+					}
+				}
+				else ""
+			case _ => ""
+		}
+	}
 
   def label = data.getOrElse("label",value).stringValue
  // def value = data ? "value"
