@@ -189,7 +189,7 @@ struct
           handle _ =>  warning ("can't close passive socket")));
 
   fun close s_data = 
-    run_in_atomic (close0 s_data)
+    run_in_atomic (close0 s_data)  
 
   val current_sock : (T option) Synchronized.var = Synchronized.var "current socket" NONE;
 

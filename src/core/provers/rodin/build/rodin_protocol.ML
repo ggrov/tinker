@@ -1,3 +1,17 @@
+structure RodinHelper =
+struct
+  open RodinSock RJP
+  fun toInt str= Option.getOpt (Int.fromString str, 0)
+
+  fun execute command = 
+    let val jstr= toJson command
+        val reply= send jstr |> receive
+    in
+      RJP.fromJson reply
+    end
+  
+end
+
 structure SimpleNamer = 
 struct
   val name_count : (int Unsynchronized.ref) = Unsynchronized.ref 0
@@ -15,13 +29,14 @@ end
 
 structure Rodin : TPP_PROTOCOL=
 struct
-  open RJP RodinSock SimpleNamer
+  open RJP RodinSock RodinHelper SimpleNamer
 
   type thm = string
   type term = string
   type arg = string
   type arg_data = string
 
+  type context= string
   type pplan = string
   type typ = string
   type tactic = string
@@ -38,19 +53,19 @@ struct
   
   val prover_name = "Rodin"
 
-  fun toInt str= Option.getOpt (Int.fromString str, 0)
-
-  fun execute command = 
-    let val jstr= toJson command
-        val reply= send jstr |> receive
-    in
-      RJP.fromJson reply
-    end
-  
   fun typ_of _ = "any"
   
  
     
+  fun match context (term1, term2) = 
+  let val reply = execute ("MATCH_TERMS",[("TERM1",term1),("TERM2",term2),("CONTEXT",context)])
+      val result= getParam reply "RESULT"
+  in
+    case result of "true" => true
+                | "false"=> false
+                | other => raise error ("Matching term error: "^other)
+  end
+
 
   fun get_all_open_nodes pplan  = 
    let

@@ -12,8 +12,18 @@ import tinker.core.command.CommandParser;
 import tinker.core.command.TinkerSession;
 import tinker.core.socket.TinkerConnector;
 import tinker.core.socket.TinkerConnector.RodinCancelInteruption;
+import tinker.core.socket.TinkerConnector.TinkerSessionEnd;
+import tinker.core.states.PluginStates;
+import tinker.core.states.SocketStates;
+import tinker.core.states.TacticStates;
 
 public class TinkerTactic implements ITactic {
+
+	private TinkerSession session;
+
+	public TinkerTactic() {
+
+	}
 
 	private IWorkbenchWindow getThisWorkBench() {
 		// It is assumed that there is only one Rodin Instance
@@ -25,214 +35,136 @@ public class TinkerTactic implements ITactic {
 
 	@Override
 	public Object apply(IProofTreeNode ptNode, IProofMonitor pm) {
-
-		TinkerSession session = new TinkerSession(getThisWorkBench(), pm);
-		session.setRodinState(TinkerSession.RODIN_STATE_APPLYING);
-
+		this.session = new TinkerSession(this.getThisWorkBench(), pm);
 		pm.setTask("Wait for Tinker..");
 
 		TinkerConnector tinker = new TinkerConnector(pm, session);
 		String reply_command = null;
 		String exception_info = null;
-
+		
 		try {
+			// Plugin Listening
+			if (session.getPluginSate() == PluginStates.READY) {
+				session.setPluginSate(PluginStates.CONNECTING);
+				session.setSocketState(SocketStates.LISTENING);
 
-			tinker.listen();
-			session.setRodinPluginSate(TinkerSession.RP_STATE_WAITING_COMMAND);
-		} catch (RodinCancelInteruption e1) {
-			session.setRodinPluginSate(e1.GetState());
-		} catch (Exception e) {
-			e.printStackTrace();
-			session.setRodinPluginSate(TinkerSession.RP_STATE_EXCEPTION);
-		}
-
-		while (session.getRodinPluginSate() == TinkerSession.RP_STATE_WAITING_COMMAND) {
-			String read;
-			System.out.println("Waiting for command");
-			/*
-			 * if (read.equals("TINKER_DISCONNECT")) break; else if
-			 * (read.equals("COMMAND_END")) continue; else if
-			 * (read.equals(TinkerConnector.UNCONNECTED)) break;
-			 */
-			try {
+				System.out.println("Waiting for Tinker to connect");
+				tinker.listen();
+			}
+			// Plugin Applying
+			session.setPluginSate(PluginStates.WAITING);
+			while (session.getTacticState() == TacticStates.APPLYING) {
+				String read;
+				System.out.println("Waiting for command");
 				// Read socket, if cancelled, tinker connector will throw an
-				// RodinCancelInteruption
+				// RodinCancelInteruption. If tinker requested a stop, then it
+				// throws an TinkerSessionEnd
 				read = tinker.fromTinker();
-				session.setRodinPluginSate(TinkerSession.RP_STATE_EXECUTING);
+				session.setPluginSate(PluginStates.APPLYING);
 				Command cmd = (new CommandParser()).parseCommand(read);
 
-				if (cmd.getCommand().equals("DISCONNECT_NORMALLY")) {
-					session.setRodinPluginSate(TinkerSession.RP_STATE_DISCONNECTING_FROM_TINKER);
-					break;
-				} else if (cmd.getCommand().equals("DISSCONNECT_WITH_ERROR")) {
-					session.setRodinPluginSate(TinkerSession.RP_STATE_DISCONNECTING_WITH_ERROR);
-					exception_info = cmd.getParameter("ERROR");
-					break;
+				if (cmd.getCommand().equals("SESSION_END")) {
+					throw new TinkerSessionEnd();
+
 				}
 				// Set state to RP_STATE_EXECUTING so the command executor can
 				// execute
-				session.setRodinPluginSate(TinkerSession.RP_STATE_EXECUTING);
 				// Execute the command from tinker
 				reply_command = CommandExecutor.execute(cmd, ptNode, pm, tinker, session);
 
 				// after execution, check if user has clicked Cancel. If so then
 				// throw exception
 				if (pm == null || pm.isCanceled()) {
-					throw new RodinCancelInteruption(TinkerSession.RP_STATE_CANCELLING_EXECUTING);
+
+					throw new RodinCancelInteruption(PluginStates.CANCELLATION_IN_PROGRESS);
+
 				}
 
-				if (session.getRodinPluginSate() == TinkerSession.RP_STATE_EXECUTING) {
+				if (session.getTacticState() == TacticStates.APPLYING) {
+					session.setSocketState(SocketStates.SENDING_CMD);
 					tinker.toTinker(reply_command);
+
 				} else {
 					throw new Exception("Executing while not in EXECUTION STATE");
 				}
 
 				// After sending command to Tinker, Rodin Plugin state is set
-				// back to RP_STATE_WAITING_COMMAND
-				session.setRodinPluginSate(TinkerSession.RP_STATE_WAITING_COMMAND);
-			} catch (RodinCancelInteruption e1) {
-				session.setRodinPluginSate(e1.GetState());
-				break;
-			} catch (Exception e) {
-				e.printStackTrace();
-				session.setRodinPluginSate(TinkerSession.RP_STATE_EXCEPTION);
-				break;
+				// back to WAITING
+				// session.setPluginSate(PluginStates.WAITING);
+
+			}
+		} catch (TinkerSessionEnd e1) {
+			// Tinker stops the session
+			if (session.getPluginSate() == PluginStates.WAITING) {
+				// Tinker send SESSION_END while Rodin plugin is reading
+				session.setTacticState(TacticStates.CANCELLING);
+			} else if (session.getPluginSate() == PluginStates.CANCELLATION_ORDERED) {
+
+			}
+			session.setPluginSate(PluginStates.DISCONNECTING);
+		} catch (RodinCancelInteruption e1) {
+			// When Cancel Button is clicked
+			if (session.getSocketState() == SocketStates.LISTENING && session.getPluginSate()==PluginStates.CONNECTING) {
+				session.setTacticState(TacticStates.DONE);
+			} else {
+				session.setTacticState(TacticStates.CANCELLING);
+			}
+			System.out.println("Clicked Cancel in Rodin. Set Plugin State="+e1.GetState());
+			session.setPluginSate(e1.GetState());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			exception_info = e.getMessage();
+
+		}
+
+		try {
+			if (session.getPluginSate() == PluginStates.CANCELLATION_ORDERED) {
+				// Being cancelled while waiting command will result plugin
+				// getting into CANCELLATION_ORDERED STATE
+				// This means we expect Tinker to send at least one command
+				// before we can tell Tinker to disconnect
+
+				// Receive and ignore
+				
+				String dummy = tinker.fromTinker();
+
+				session.setSocketState(SocketStates.SENDING_CANCELLATION);
+				session.setPluginSate(PluginStates.CANCELLATION_IN_PROGRESS);
 			}
 
+			if (session.getPluginSate() == PluginStates.CANCELLATION_IN_PROGRESS) {
+				if (session.getTacticState() == TacticStates.CANCELLING) {
+
+					// Tell tinker to disconnect
+					tinker.toTinker("RODIN_CANCEL");
+					session.setPluginSate(PluginStates.DISCONNECTING);
+				} else
+					throw new Exception("Tactic CANCELLING state expected. But current Tactic state is : "
+							+ session.getTacticState());
+
+			}
+
+			if (session.getPluginSate() == PluginStates.DISCONNECTING) {
+				tinker.close();
+				session.setTacticState(TacticStates.DONE);
+				session.setPluginSate(PluginStates.READY);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			exception_info = e.getMessage();
 		}
 
-		// handle cancellation and exception
-		if (session.getRodinPluginSate() == TinkerSession.RP_STATE_CANCELLING_EXECUTING) {
-			cancel_Executing(tinker, session);
-		} else if (session.getRodinPluginSate() == TinkerSession.RP_STATE_CANCELLING_WAITING_COMMAND) {
-			cancel_Waiting(tinker, session);
-		} else if (session.getRodinPluginSate() == TinkerSession.RP_STATE_CANCELLING_LISTENING) {
-			cancel_Listening(tinker, session);
-		} else if (session.getRodinPluginSate() == TinkerSession.RP_STATE_EXCEPTION) {
-			handle_Exception(tinker, session);
-		}
-
-		// close socket after cancellation/exception handling
-		tinker.close();
-		// handle finishing after possible cancellation
-		if (session.getRodinPluginSate() == TinkerSession.RP_STATE_DISCONNECTING_FROM_TINKER) {
-			application_finish(session);
-		} else if (session.getRodinPluginSate() == TinkerSession.RP_STATE_DISCONNECTING_WITH_ERROR) {
-			application_finish_with_error(session);
-			exception_info = "Disconnected with Error";
-		} else if (session.getRodinPluginSate() == TinkerSession.RP_STATE_CANCELLED) {
-			application_finish_with_cancellation(session);
-			exception_info = "Canceled";
+		if (session.getTacticState() == TacticStates.DONE) {
+			// handle finishing after possible cancellation
+			System.out.println("Disconnected. Tinker Tactics complete.");
+			// pm.setCanceled(true);
+			return null;
 		} else {
-			exception_info += "Unexpted state";
+			exception_info = "Tactic finished with error state";
 		}
-
-		System.out.println("Disconnected. Tinker Tactics complete.");
-		// pm.setCanceled(true);
 		return exception_info;
 	}
 
-	private void application_finish(TinkerSession session) {
-		// Method name matches the action in Petri Net
-		// Only change the state of session. Does nothing else
-
-		session.setRodinPluginSate(TinkerSession.RP_STATE_READY);
-		session.setRodinState(TinkerSession.RODIN_STATE_APPLICATION_DONE);
-	}
-
-	private void application_finish_with_error(TinkerSession session) {
-		// Method name matches the action in Petri Net
-		// Only change the state of session. Does nothing else
-
-		session.setRodinPluginSate(TinkerSession.RP_STATE_READY);
-		session.setRodinState(TinkerSession.RODIN_STATE_APPLICATION_DONE);
-	}
-
-	private void application_finish_with_cancellation(TinkerSession session) {
-
-		// Method name matches the action in Petri Net
-		// Only change the state of session. Does nothing else
-		session.setRodinPluginSate(TinkerSession.RP_STATE_READY);
-		session.setRodinState(TinkerSession.RODIN_STATE_APPLICATION_DONE);
-	}
-
-	private void cancel_Executing(TinkerConnector tinker, TinkerSession session) {
-
-		// Method name matches the action in Petri Net
-		/*
-		 * This method will send an RODIN_CANCEL message to Tinker that will be
-		 * waiting anexecution result. Tinker will raise an exception with this
-		 * message and changeits state
-		 */
-		try {
-
-			tinker.toTinker("RODIN_CANCEL");
-
-			String result=tinker.blockedRead();
-			Command cmd=(new CommandParser()).parseCommand(result);
-			if (cmd.getCommand().equals("TINKER_DISCONNECTING")){
-				tinker.close();
-				
-			}
-		} catch (Exception e) {
-
-		}
-		session.setSocketState(TinkerSession.SOCKET_STATE_DISCONNECTED);
-		session.setRodinPluginSate(TinkerSession.RP_STATE_CANCELLED);
-	}
-
-	private void cancel_Waiting(TinkerConnector tinker, TinkerSession session) {
-
-		// Method name matches the action in Petri Net
-		/*
-		 * User clicked cancel button in Rodin while Tinker is tasking. This
-		 * will result in blocked Rodin thread because thereis no way Rodin
-		 * could synchronise the state with Tinker if Tinker is not readingto
-		 * the socket. In order for both side being consistent, Rodin is blocked
-		 * until Tinker Response(Tinker will only listen after whatever the task
-		 * is done andnew command is sent.
-		 * 
-		 * Tinker will raise an exception and handle the exception. This
-		 * operation shouldbe avoided by user. User should always try to
-		 * disconnect from Tinker/TinkerGUI firstafter the connection is made.
-		 */
-		try {
-			session.getMonitor().setTask("Blocked Until Tinker stops");
-			// Ignore any single command that tinker is sending 
-			String result = tinker.blockedRead();
-			tinker.toTinker("RODIN_CANCEL");
-			// Wait for goodbye message
-			result=tinker.blockedRead();
-			Command cmd=(new CommandParser()).parseCommand(result);
-			if (cmd.getCommand().equals("TINKER_DISCONNECTING")){
-				tinker.close();
-				
-			}
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-
-		}
-
-		session.setSocketState(TinkerSession.SOCKET_STATE_DISCONNECTED);
-		session.setRodinPluginSate(TinkerSession.RP_STATE_CANCELLED);
-	}
-
-	private void cancel_Listening(TinkerConnector tinker, TinkerSession session) {
-		// Method name matches the action in Petri Net
-		/*
-		 * This method will be called if user clicked cancel button before
-		 * connecting to Tinker.The application should end immediately without
-		 * affecting any state in Tinker
-		 */
-
-		session.setSocketState(TinkerSession.SOCKET_STATE_DISCONNECTED);
-		session.setRodinPluginSate(TinkerSession.RP_STATE_CANCELLED);
-	}
-
-	private void handle_Exception(TinkerConnector tinker, TinkerSession session) {
-		session.setSocketState(TinkerSession.SOCKET_STATE_DISCONNECTED);
-		session.setRodinPluginSate(TinkerSession.RP_STATE_CANCELLED);
-	}
 }

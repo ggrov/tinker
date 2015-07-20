@@ -6,6 +6,8 @@ import static java.util.Collections.singletonList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eventb.core.ast.Formula;
 import org.eventb.core.ast.IPosition;
 import org.eventb.core.ast.Predicate;
@@ -20,10 +22,11 @@ import tinker.core.socket.TinkerConnector;
 import tinker.core.tactics.TinkerTactic;
 
 public class TinkerTacticProvider extends DefaultTacticProvider {
-	public static class TinkerApplication extends
-			DefaultPositionApplication {
+	public static class TinkerApplication extends DefaultPositionApplication {
 
 		private static final String TACTIC_ID = "org.eventb.ui.tinker";
+
+
 
 		public TinkerApplication(Predicate hyp) {
 			super(hyp, IPosition.ROOT);
@@ -41,14 +44,11 @@ public class TinkerTacticProvider extends DefaultTacticProvider {
 
 	}
 
-
 	@Override
-	public List<ITacticApplication> getPossibleApplications(
-			IProofTreeNode node, Predicate hyp, String globalInput) {
-		System.out
-				.println("-----------------------------------------------------");
+	public List<ITacticApplication> getPossibleApplications(IProofTreeNode node, Predicate hyp, String globalInput) {
+		System.out.println("-----------------------------------------------------");
+		System.out.println(node.getSequent().goal().getSyntaxTree());
 		
-
 		if (node != null && node.isOpen()) {
 			final ITacticApplication appli = new TinkerApplication(hyp);
 			return singletonList(appli);

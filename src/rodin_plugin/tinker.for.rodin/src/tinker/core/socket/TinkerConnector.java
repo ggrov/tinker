@@ -7,6 +7,8 @@ import java.io.ObjectInputStream.GetField;
 import org.eventb.core.seqprover.IProofMonitor;
 
 import tinker.core.command.TinkerSession;
+import tinker.core.states.PluginStates;
+import tinker.core.states.SocketStates;
 
 public class TinkerConnector {
 
@@ -37,6 +39,15 @@ public class TinkerConnector {
 		}
 	}
 
+	public static class TinkerSessionEnd extends Exception {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -4894990671097140908L;
+
+	}
+
 	IProofMonitor monitor;
 	int timeout = 500;
 	int port = 1991;
@@ -53,16 +64,19 @@ public class TinkerConnector {
 	}
 
 	public void listen() throws Exception {
-		
-		//Rodin plugin creates a server socket listening for client socket connection
-		//Rather than let the server socket block the thread, there is an timeout for the 
-		//listening, offering a chance to check if the operation is cancelled.
-		//The timeout exception is caught and new server socket is created immediately.
+
+		// Rodin plugin creates a server socket listening for client socket
+		// connection
+		// Rather than let the server socket block the thread, there is an
+		// timeout for the
+		// listening, offering a chance to check if the operation is cancelled.
+		// The timeout exception is caught and new server socket is created
+		// immediately.
 		System.out.println("WAIT TINKER COMMAND..");
-		session.setSocketState(TinkerSession.SOCKET_STATE_LISTENING);
-		while (session.getSocketState() == TinkerSession.SOCKET_STATE_LISTENING) {
+		session.setSocketState(SocketStates.LISTENING);
+		while (session.getSocketState() == SocketStates.LISTENING) {
 			if (monitor == null || monitor.isCanceled() == true) {
-				session.setSocketState(TinkerSession.SOCKET_STATE_DISCONNECTED);
+
 				break;
 			}
 
@@ -75,11 +89,12 @@ public class TinkerConnector {
 				input = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
 				output = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream(), "UTF-8"));
 
-				session.setSocketState(TinkerSession.SOCKET_STATE_CONNECTED);
+				session.setSocketState(SocketStates.CONNECTED);
 				// System.out.println("INCOMING CMD");
 				return;
 
 			} catch (SocketTimeoutException ex) {
+				// ignore timeout and re listen
 				try {
 					serverSocket.close();
 					connection.close();
@@ -88,41 +103,43 @@ public class TinkerConnector {
 				continue;
 
 			} catch (SocketException ex) {
-				session.setSocketState(TinkerSession.SOCKET_STATE_DISCONNECTED);
+				// Throw any socket exception and other exception that is not
+				// expected
 				throw ex;
 			} catch (Exception ex) {
+
 				ex.printStackTrace();
-				throw ex; 
+				throw ex;
 			}
 		}
-		session.setSocketState(TinkerSession.SOCKET_STATE_DISCONNECTED);
-		throw new RodinCancelInteruption(TinkerSession.RP_STATE_CANCELLING_LISTENING);
+		session.setSocketState(SocketStates.DISCONNECTED);
+		throw new RodinCancelInteruption(PluginStates.READY);
 	}
 
-	public String blockedRead() throws Exception{
-		while (true){
-			try{
-			String result= input.readLine();
-			if (result!=null){
-				return result;
-			}
-			}catch(SocketTimeoutException ex){
+	public String blockedRead() throws Exception {
+		while (true) {
+			try {
+				String result = input.readLine();
+				if (result != null) {
+					return result;
+				}
+			} catch (SocketTimeoutException ex) {
 				continue;
 			}
 		}
 	}
-	
-	public String fromTinker() throws Exception {
-		//Plugin read from Tinker through socket. Rather than letting the socket block the thread,
-		//there is a timeout of 500 ms, creating a chance to check if 
-		//the operation is cancelled in Rodin.The exception of timeout is caught and ignored
-		
-		while (session.getSocketState()==TinkerSession.SOCKET_STATE_CONNECTED) {
-			if (monitor == null || monitor.isCanceled() == true) {
 
-				session.setSocketState(TinkerSession.SOCKET_STATE_DISCONNECTED);
-				// session.setRodinPluginSate(TinkerSession.RP_STATE_CANCELLING_WAITING_COMMAND);
-				break;
+	public String fromTinker() throws Exception {
+		// Plugin read from Tinker through socket. Rather than letting the
+		// socket block the thread,
+		// there is a timeout of 500 ms, creating a chance to check if
+		// the operation is cancelled in Rodin.The exception of timeout is
+		// caught and ignored
+
+		while (session.getSocketState() == SocketStates.CONNECTED) {
+			if (monitor == null || monitor.isCanceled() == true) {
+				if (session.getPluginSate() != PluginStates.CANCELLATION_ORDERED)
+					break;
 			}
 
 			try {
@@ -130,10 +147,8 @@ public class TinkerConnector {
 				String result = (input.readLine());
 
 				if (result != null) {
-					/*
-					 * if (result.equals("SESSION_END")) {
-					 * setState(STATE_TERMINATED); return UNCONNECTED; }
-					 */
+
+					System.out.println("RECEIVE:\t" + result);
 					/*
 					 * if (result.equals("COMMAND_END")){ this.close(); return
 					 * result; }
@@ -142,7 +157,6 @@ public class TinkerConnector {
 					 * if (result.equals("TINKER_HAND_SHAKE")) {
 					 * setState(STATE_CONNECTED); return receive(); }
 					 */
-					System.out.println("RECEIVE:\t" + result);
 					return result;
 				} else {
 					continue;
@@ -151,26 +165,27 @@ public class TinkerConnector {
 				if (e instanceof SocketTimeoutException) {
 					continue;
 				} else if (e instanceof SocketException) {
-					
+
 				}
 				e.printStackTrace();
-				// Anything exception other than timeout will disconnect the socket and end the operation
-				session.setSocketState(TinkerSession.SOCKET_STATE_DISCONNECTED);
-				this.close();
 				throw e;
 			}
 		}
 		// if cancelled in Rodin
 		System.out.println("Rodin Cancelled while waiting for Tinker Command. \n Rodin Blocked until Tinker Replies");
-		//this.close();
-		throw new RodinCancelInteruption(TinkerSession.RP_STATE_CANCELLING_WAITING_COMMAND);
+
+		throw new RodinCancelInteruption(PluginStates.CANCELLATION_ORDERED);
 	}
 
 	public void toTinker(String str) throws Exception {
-		//According to the socket model,
-		//We assume that whenever there is a socket message to Tinker
-		//Tinker will be always listening. This toTinker method will block the thread.
+		// According to the socket model,
+		// We assume that whenever there is a socket message to Tinker
+		// Tinker will be always listening. This toTinker method will block the
+		// thread.
+		if (session.getSocketState() == SocketStates.SENDING_CANCELLATION
+				|| session.getSocketState() == SocketStates.SENDING_CMD)
 			try {
+				session.setSocketState(SocketStates.CONNECTED);
 				output.write(str);
 				output.flush();
 				System.out.println("SENT   :\t" + str);
@@ -179,11 +194,8 @@ public class TinkerConnector {
 				e.printStackTrace();
 				throw e;
 			}
-		
-	}
-
-	public void reset() {
-		this.close();
+		else
+			throw new Exception("Unexpected attempt using this method \"toTinker\"");
 	}
 
 	public void close() {
@@ -207,6 +219,6 @@ public class TinkerConnector {
 		} catch (Exception e) {
 
 		}
-
+		session.setSocketState(SocketStates.DISCONNECTED);
 	}
 }

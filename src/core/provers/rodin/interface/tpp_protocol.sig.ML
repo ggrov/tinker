@@ -17,6 +17,9 @@ sig
 
   (* Type that describe a tactic, for third party prover, it is usually string*)
   type tactic
+  
+  (* Type that specify the context of a term *)
+  type context
 
   (* Type of the arguments when applying tactic*)
   type arg
@@ -27,6 +30,9 @@ sig
   (* In use for Rodin only: the pplan is the first node to start, as the open node
    * user selected in Rodin *)
   val prover_name : string   
+
+  (* Match two terms given context information *)
+  val match :  context -> string * string -> bool
 
   val initialise : unit -> pplan
   

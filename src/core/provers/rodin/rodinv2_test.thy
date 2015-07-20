@@ -37,31 +37,27 @@ let open Json;
 end
 
 fun finish () =
-  (RodinSock.send (toJson ("DISCONNECT_NORMALLY",[]));
+  (RodinSock.send (toJson ("SESSION_END",[]));
    RodinSock.disconnect ());   
  
-fun finish_with_ex e = 
-  (RodinSock.send (toJson ("DISSCONNECT_WITH_ERROR",[("ERROR",e)]));
-   RodinSock.disconnect ());     
-       
 *}
 ML{*-
    RodinSock.disconnect ();
 *}
 ML{*-
-  TextSocket.safe_close();   
+  TextSocket.safe_close();    
 *}
-
-ML{*
-  TextSocket.close ;   
-*}
-ML{*
-SimpleNamer.init();    
  
-Tinker.start_ieval "" ps [] ""  handle exn =>   
-(finish_with_ex "SOME SOCKET ERROR"; 
-disconn_gui();    
-TextSocket.safe_close();      
+ML{*-
+  TextSocket.close ;
+*}
+ML{*
+SimpleNamer.init();     
+ 
+Tinker.start_ieval "" ps [] ""  
+ handle exn =>   
+( finish();  
+TextSocket.safe_close();    
 raise exn);           
 val _ = finish();    
 

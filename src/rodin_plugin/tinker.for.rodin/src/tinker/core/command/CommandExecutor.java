@@ -14,10 +14,16 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.handlers.WizardHandler.New;
+import org.eventb.core.ast.Formula;
+import org.eventb.core.ast.FormulaFactory;
+import org.eventb.core.ast.ITypeEnvironment;
+import org.eventb.core.ast.Predicate;
 import org.eventb.core.pm.IUserSupport;
 import org.eventb.core.seqprover.IProofMonitor;
 import org.eventb.core.seqprover.IProofTreeNode;
 import org.eventb.core.seqprover.ITactic;
+import org.eventb.core.seqprover.eventbExtensions.DLib;
+import org.eventb.core.seqprover.eventbExtensions.Lib;
 import org.eventb.core.seqprover.eventbExtensions.Tactics;
 import org.eventb.internal.ui.prooftreeui.ProofTreeUI;
 import org.eventb.internal.ui.prooftreeui.ProofTreeUIPage;
@@ -26,6 +32,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import tinker.core.socket.TinkerConnector;
+import tinker.core.states.PluginStates;
 
 public class CommandExecutor {
 	private static CommandExecutor instance = null;
@@ -50,6 +57,48 @@ public class CommandExecutor {
 	 * update proof tree immediately when Tinker has instructed an application
 	 * of tactic.
 	 */
+	private static Predicate parseStr(String str, ITypeEnvironment typeEnv) {
+		final FormulaFactory ff = typeEnv.getFormulaFactory();
+		Predicate predicate = DLib.parsePredicate(ff, str);
+		if (predicate == null) {
+			// error = "Parse error for predicate: "+ predString;
+			return null;
+		}
+		if (!Lib.typeCheckClosed(predicate, typeEnv)) {
+			// error = "Type check failed for Predicate: "+predicate;
+			predicate = null;
+			return null;
+		}
+		return predicate;
+	}
+
+	public static class PredicateParseException extends Exception {
+		private String info;
+
+		PredicateParseException(String info) {
+			this.info = info;
+		}
+
+		public String getInfo() {
+			return info;
+		}
+	}
+
+	private static boolean matchTerm(String term1, String term2, String context, TinkerSession session)
+			throws Exception {
+		IProofTreeNode contextNode = session.nameToNodeMap.get(context);
+		Predicate p1 = parseStr(term1, contextNode.getSequent().typeEnvironment());
+		Predicate p2 = parseStr(term2, contextNode.getSequent().typeEnvironment());
+		if (p1 == null) {
+			throw new PredicateParseException(term1);
+		}
+		if (p2 == null) {
+			throw new PredicateParseException(term2);
+		}
+		// For current work, we only match 2 identical term
+		return p1.equals(p2);
+	}
+
 	@SuppressWarnings("restriction")
 	private static ProofTreeUI getProofTreeUI(IWorkbenchWindow ww) {
 		System.out.println("work bench=" + ww);
@@ -199,11 +248,66 @@ public class CommandExecutor {
 		return result;
 	}
 
+	private static String handle_MATCH_TERMS(Command command, IProofTreeNode pt, IProofMonitor pm,
+			TinkerConnector tinker, TinkerSession session) throws Exception {
+
+		String ctx = command.getParameter("CONTEXT");
+		String t1 = command.getParameter("TERM1");
+		String t2 = command.getParameter("TERM2");
+		boolean match;
+		String result;
+		try {
+			match = matchTerm(t1, t2, ctx, session);
+			result = String.valueOf(match);
+		} catch (PredicateParseException e) {
+			result = "FAILED TO PARSE TERM:" + e.getInfo();
+		}
+		Command resultCmd = new Command("MATCH_RESULT").addParamter("RESULT", result);
+
+		return resultCmd.toString();
+	}
+
+	private static boolean handle_TOP_SYMBOL(String symbol, String pnode, TinkerSession session) {
+		IProofTreeNode pt = session.nameToNodeMap.get(pnode);
+		int tag = pt.getSequent().goal().getTag();
+		switch (symbol) {
+		case "AND":
+			return tag == Formula.LAND;
+		case "OR":
+			return tag == Formula.LOR;
+		case "NOT":
+			return tag == Formula.NOT;
+		case "FORALL":
+			return tag == Formula.FORALL;
+		case "EXISTS":
+			return tag == Formula.EXISTS;
+
+		default:
+			return false;
+		}
+
+	}
+
+	private static String handle_GET_PNODE_GOAL_TYPE(Command command, IProofTreeNode pt, IProofMonitor pm,
+			TinkerConnector tinker, TinkerSession session) throws Exception {
+		String goaltyp = command.getParameter("GOAL_TYPE");
+		String pnode = command.getParameter("CONTEXT");
+		String result;
+		if (goaltyp == "TOP_SYMBOL") {
+			String symbol = command.getParameter("SYMBOL");
+			result = String.valueOf(handle_TOP_SYMBOL(symbol, pnode, session));
+		} else {
+			result = "false";
+		}
+
+		return result;
+	}
+
 	@SuppressWarnings("unchecked")
 	public static String execute(Command command, IProofTreeNode pt, IProofMonitor pm, TinkerConnector tinker,
 			TinkerSession session) throws Exception {
 
-		if (session.getRodinPluginSate() == TinkerSession.RP_STATE_EXECUTING) {
+		if (session.getPluginSate() == PluginStates.APPLYING) {
 			System.out.println("EXECUTE:\t" + command.getCommand());
 
 			String result = null;
@@ -225,9 +329,13 @@ public class CommandExecutor {
 				result = handle_GET_PNODE_GOAL_TAG(command, pt, pm, tinker, session);
 				break;
 			case "GET_PNODE_GOAL_TYPE":
+				result = handle_GET_PNODE_GOAL_TYPE(command, pt, pm, tinker, session);
 				break;
 			case "APPLY_TACTIC":
 				result = handle_APPLY_TACTIC(command, pt, pm, tinker, session);
+				break;
+			case "MATCH_TERMS":
+				result = handle_MATCH_TERMS(command, pt, pm, tinker, session);
 				break;
 			default:
 				break;

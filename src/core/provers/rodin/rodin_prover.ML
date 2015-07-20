@@ -37,7 +37,7 @@ struct
   structure EnvTac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = env_tac val struct_name = this_name^".EnvTac_ML_Exec");
   structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = this_name^".Tac_ML_Exec");
 
-  fun match context  (ta ,tb) = true    (*TODO : context -> (term * term) -> bool *)
+  fun match context  (ta ,tb) = (tpp.match context (ta,tb))    (*TODO : context -> (term * term) -> bool *)
   fun concl_of_thm  thm ="term" (* TODO: thm -> term *)
   fun asms_of_thm  thm = ["term","list"] (*: TODO:  thm -> term list ? *)
 

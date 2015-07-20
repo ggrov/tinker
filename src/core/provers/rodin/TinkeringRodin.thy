@@ -20,6 +20,8 @@ ML_file "./rodin_prover.ML"
 
 ML_file "../../goaltype/simple_goaltype.ML"
 
+ML_file "simpleGT_lib.ML"
+
 ML{*
   structure SimpleGoalType : BASIC_GOALTYPE = SimpleGoalType_Fun(structure Prover = RodinProver val struct_name = "SimpleGoalType");
   structure Data = PSGraphDataFun(SimpleGoalType);
@@ -36,6 +38,6 @@ ML{*
   structure Env_Tac_Lib = EnvTacLibFunc (Theory);
 *}
 
-ML{*  open Env_Tac_Lib  *}
+ML{*  open Env_Tac_Lib SimpleGT_Lib *}
 
 end
