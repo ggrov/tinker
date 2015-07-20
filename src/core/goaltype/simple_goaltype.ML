@@ -25,7 +25,7 @@ struct
   fun gnode_to_json g = 
    Json.mk_object[
     ("name", Json.String (goal_name g)),
-    ("goal", Json.String (Pretty.string_of (goal_pretty g)))];
+    ("goal", Json.String (*Pretty.string_of (goal_pretty g)*) "goal")];
 
   fun gnode_from_json (Json.Object obj) = 
     G {name = JsonInputUtils.get_string obj "name", 
