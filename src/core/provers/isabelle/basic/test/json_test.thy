@@ -66,7 +66,8 @@ ML{*
 *}
 
 ML{* 
-  val edata0 = EVal.init ps @{context} [] @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"} |> hd; 
+  val edata0 = EVal.init ps @{context} [] @{prop "(A)  \<longrightarrow>  ((B \<longrightarrow>A) \<and>  (B \<longrightarrow>A) \<and> (B \<longrightarrow>A))"} |> hd; 
+
 IEVal.output_string 
           "CMD_INIT_PSGRAPH" 
            (IEVal.mk_cmd_str_arg_json [
@@ -77,7 +78,7 @@ IEVal.output_string
 ML{*-
   TextSocket.safe_close();
 *}
-ML{*- 
+ML{* -
 Tinker.start_ieval @{context} ps [] @{prop "(A)  \<longrightarrow>  ((B \<longrightarrow>A) \<and>  (B \<longrightarrow>A) \<and> (B \<longrightarrow>A))"};
 *}
 
