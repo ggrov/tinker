@@ -124,10 +124,8 @@ struct
 *************************************************************)
   fun output_json cmd args_list_json edata = 
     Json.mk_object[
-      ("cmd", 
-        Json.mk_object[
-           ("name", Json.String cmd),
-           ("args", args_list_json)]),
+      ("cmd", Json.String cmd),
+      ("eval_options", args_list_json),
       ("eval_psgraph",
         EData.get_psgraph edata
         |> (fn e => EData.PSGraph.output_eval_json
@@ -142,11 +140,9 @@ struct
 
   fun output_cmd_only_json cmd args_list_json = 
     Json.mk_object[
-     ("cmd", 
-           Json.mk_object[
-           ("name", Json.String cmd),
-           ("args", args_list_json)]),     
-      ("eval_psgraph", Json.Null)      
+     ("cmd",  Json.String cmd),
+     ("eval_options", args_list_json),     
+     ("eval_psgraph", Json.Null)      
     ]
 
   fun output_string cmd args_list_json edata = 
