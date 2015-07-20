@@ -1,28 +1,35 @@
 functor SimpleGoalType_Fun(structure Prover : PROVER  
-                    val struct_name : string) (* BASIC_GOALTYPE *)=
+                    val struct_name : string) : BASIC_GOALTYPE =
 struct
   local open LoggingHandler in
 
   structure Prover = Prover;
   type T = string
-  type gnode = string (* or with term? *)
+  datatype gnode = G of {name: string, pretty: Pretty.T} (* or with term? *)
   type data  = unit;
 
   exception gt_exp of string
   val default = "any";
-  val default_gnode = "?";
+  val default_gnode = G {name = "?", pretty = Pretty.str "?"};
   val default_data = ();
 
   val ord = String.compare;
   fun eq (t1,t2) = case ord(t1,t2) of EQUAL => true | _ => false;
 
-  val gnode_ord = String.compare;
+  fun goal_name (G {name, ...}) = name;
+  fun goal_pretty (G {pretty, ...}) = pretty
+
+  fun gnode_ord (g1, g2) = String.compare (goal_name g1, goal_name g2);
   fun gnode_eq (g1,g2) = case gnode_ord(g1,g2) of EQUAL => true | _ => false;
 
-  val goal_name = I;
+  fun gnode_to_json g = 
+   Json.mk_object[
+    ("name", Json.String (goal_name g)),
+    ("goal", Json.String (Pretty.string_of (goal_pretty g)))];
 
-  val gnode_to_json = Json.String;
-  fun gnode_from_json (Json.String str) = str
+  fun gnode_from_json (Json.Object obj) = 
+    G {name = JsonInputUtils.get_string obj "name", 
+       pretty = Pretty.str (JsonInputUtils.get_string obj "goal")}
   | gnode_from_json _ = raise gt_exp "gnode_from_json: ill-formed json structure"
 
   fun data_to_json _ = Json.String "";
@@ -38,7 +45,7 @@ struct
   | from_json _ = raise gt_exp "from_json: ill-formed json structure"
 
   fun pretty_data _ = Pretty.str "";
-  val pretty_gnode = Pretty.str;
+  val pretty_gnode = Pretty.str o goal_name;
   val pretty = Pretty.str;
 
 (**************************************************************
@@ -97,7 +104,7 @@ struct
      [] => false
     | _ => true;
 
-  fun lift pn = (Prover.get_pnode_name pn)
+  fun lift pn = G {name = (Prover.get_pnode_name pn), pretty = Prover.pretty_pnode pn}
 
   structure BasicSharing =
   struct

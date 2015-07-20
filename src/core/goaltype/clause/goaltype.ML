@@ -1,5 +1,5 @@
 functor ClauseGTFun(structure Prover : PROVER  
-                    val struct_name : string)  =
+                    val struct_name : string)  : BASIC_GOALTYPE =
 struct
 
   structure Prover = Prover;
@@ -41,21 +41,24 @@ struct
                                             type ret = gtyp 
                                             val struct_name =  struct_name ^".GoalTyp_ML_Exec");
   
-  type gnode = string;
+  datatype gnode = G of {name: string, pretty: Pretty.T}
                                                             
   datatype data = P of {imports : clause list, 
                         defs : clause list,
                         atomics : (*Prover.*)gtyp StrName.NTab.T}  
   type T = string * (arg list);
-  val goal_name = I;
+
+  fun goal_name (G {name, ...}) = name;
+  fun goal_pretty (G {pretty, ...}) = pretty
 
   val default = ("any",[]); (* fixme: does not evaluate *)
-  val default_gnode = "?" (* GN {name = "?", env = StrName.NTab.empty}; *)
+  val default_gnode = G {name = "?", pretty = Pretty.str "?"};
   val default_data = P {imports = [], defs = [], atomics = StrName.NTab.empty};
 
   (* required? *)
   fun eq (t1,t2) = true;
-  fun gnode_eq (g1,g2) = (g1 = g2);
+  fun gnode_ord (g1, g2) = String.compare (goal_name g1, goal_name g2);
+  fun gnode_eq (g1,g2) = case gnode_ord(g1,g2) of EQUAL => true | _ => false;
 
   (**********************
      PRETTY PRINTING
@@ -93,7 +96,7 @@ struct
          [Pretty.str s, 
           Pretty.enclose "(" ")" (Pretty.separate "," (map pretty_arg args))];
       
-  fun pretty_gnode name = Pretty.str name;
+  val pretty_gnode = Pretty.str o goal_name;
 
   val pretty_env = StrName.NTab.pretty (Prover.pretty_env_data Prover.default_ctxt);
 
@@ -281,7 +284,7 @@ struct
   (* 
     Goaltype evaluation / goaltype checking
   *)
-  val lift = Prover.get_pnode_name
+  fun lift pn = G {name = (Prover.get_pnode_name pn), pretty = Prover.pretty_pnode pn}
 
   (* note that this is when atomic on edge *)
   fun match_atomic (data as (P {atomics,...}))  pnode (t as (f,args):T) gtenv = 
@@ -398,15 +401,15 @@ struct
   | from_json _ = raise gt_exp "from_json: ill-formed json structure"
 
   (* JSON on goal nodes *)
+  fun gnode_to_json g = 
+   Json.mk_object[
+    ("name", Json.String (goal_name g)),
+    ("goal", Json.String (Pretty.string_of (goal_pretty g)))];
 
-  fun gnode_to_json gn = 
-     Json.mk_object [("type", Json.String "G"), 
-                     ("goalnode", Json.String (Pretty.str_of (pretty_gnode gn)))];
-
-  fun gnode_from_json (Json.Object jobj) = 
-        Json.get jobj "goalnode" 
-        |> (fn Json.String x => x)
-  | gnode_from_json _ = raise gt_exp "from_json: ill-formed json structure"
+  fun gnode_from_json (Json.Object obj) = 
+    G {name = JsonInputUtils.get_string obj "name", 
+       pretty = Pretty.str (JsonInputUtils.get_string obj "goal")}
+  | gnode_from_json _ = raise gt_exp "gnode_from_json: ill-formed json structure"
 
  (* JSON for data (definitions *)
 
