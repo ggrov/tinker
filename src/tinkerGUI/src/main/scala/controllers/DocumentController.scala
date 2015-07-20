@@ -1,6 +1,6 @@
 package tinkerGUI.controllers
 
-import quanto.util.json.{JsonAccessException, Json}
+import quanto.util.json.{JsonObject, JsonAccessException, Json}
 import tinkerGUI.controllers.events.{GraphTacticListEvent, CurrentGraphChangedEvent, DocumentChangedEvent}
 import tinkerGUI.model.PSGraph
 import tinkerGUI.model.exceptions.{PSGraphModelException, AtomicTacticNotFoundException, GraphTacticNotFoundException, SubgraphNotFoundException}
@@ -16,10 +16,10 @@ import scala.swing.Publisher
 class DocumentController(model:PSGraph) extends Publisher {
 
 	/** Stack keeping track of PSGraph json object, in case we want to redo things.*/
-	val redoStack:FixedStack[Json] = new FixedStack[Json](20)
+	val redoStack:FixedStack[JsonObject] = new FixedStack[JsonObject](20)
 
 	/** Stack keeping track of PSGraph json object, in case we want to undo things.*/
-	val undoStack:FixedStack[Json] = new FixedStack[Json](20)
+	val undoStack:FixedStack[JsonObject] = new FixedStack[JsonObject](20)
 
 	/** Boolean to know if there are any unsaved changes.*/
 	var unsavedChanges:Boolean = false
@@ -29,7 +29,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 		*/
 	def undo() {
 		undoStack.pop() match {
-			case Some(j:Json) =>
+			case Some(j:JsonObject) =>
 				try{
 					model.updateJsonPSGraph()
 					redoStack.push(model.jsonPSGraph)
@@ -51,7 +51,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 		*/
 	def redo() {
 		redoStack.pop() match {
-			case Some(j:Json) =>
+			case Some(j:JsonObject) =>
 				try{
 					model.updateJsonPSGraph()
 					undoStack.push(model.jsonPSGraph)
@@ -97,8 +97,8 @@ class DocumentController(model:PSGraph) extends Publisher {
 	def openJson() {
 		model.updateJsonPSGraph()
 		DocumentService.showOpenDialog(None) match {
-			case Some(j:Json) =>
-				if(!j.isEmpty){
+			case Some(j:JsonObject) =>
+				if(j.nonEmpty){
 					try{
 						model.loadJsonGraph(j)
 						undoStack.empty()
@@ -116,7 +116,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 				} else {
 					TinkerDialog.openErrorDialog("<html>Error while loading json from file : object is empty.</html>")
 				}
-			case None => // do nothing
+			case _ => TinkerDialog.openErrorDialog("<html>Error while loading json from file : not a json object.</html>")
 		}
 	}
 

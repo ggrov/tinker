@@ -6,8 +6,52 @@ import tinkerGUI.model.PSGraph
 import tinkerGUI.model.exceptions.{PSGraphModelException, GraphTacticNotFoundException}
 import tinkerGUI.utils.TinkerDialog
 
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable
+import scala.collection.mutable.{ArrayBuffer}
 import scala.swing.Publisher
+
+
+class EvalLogController extends Publisher {
+	val stack = mutable.ArrayStack[(String,String)]()
+
+	stack.push(("BASIC_INFO","BASIC_INFO : hello world"))
+	stack.push(("GOALTYPE","GOALTYPE : goal type message "))
+	stack.push(("BASIC_INFO","BASIC_INFO : hello world"))
+
+	var filter = ArrayBuffer[String]()
+
+	def addToFilter(s:String) {
+		if(!filter.contains(s)) filter += s
+		publish(EvalLogEvent())
+	}
+
+	def removeFromFilter(s:String) {
+		if(filter.contains(s)) filter -= s
+		publish(EvalLogEvent())
+	}
+
+	def getLog:String = {
+		stack.foldLeft(""){
+			case (s,p) =>
+				if(filter contains p._1) s + " > " + p._2 + "\n"
+				else s
+		}
+	}
+
+	def addToLog(j:JsonObject) {
+		j.foreach{
+			case(k,v:JsonArray) =>
+				v.vectorValue.foreach{
+					case s:JsonString =>
+						stack.push((k,s.stringValue))
+					case _ =>
+				}
+			case _ =>
+		}
+		publish(EvalLogEvent())
+	}
+}
+
 
 /** Controller managing the evaluation process of a psgraph.
 	*
@@ -30,7 +74,8 @@ class EvalController(model:PSGraph) extends Publisher {
 	/** Temporary eval psgraph, given by the core, used to refresh the model if changes were not approved by the core. */
 	var tmpEvalPSGraph = JsonObject()
 
-	/** Path of current evaluated graph. */
+	/** Eval log controller. */
+	val evalLogCtrl = new EvalLogController
 
 	/** Method to switch evaluation state.
 		*
@@ -74,7 +119,7 @@ class EvalController(model:PSGraph) extends Publisher {
 		*
 		* @param j Json object of the new model.
 		*/
-	def loadJson(j:Json) {
+	def loadJson(j:JsonObject) {
 		if(!j.isEmpty){
 			try{
 				model.loadJsonGraph(j)

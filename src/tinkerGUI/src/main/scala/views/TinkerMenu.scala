@@ -95,7 +95,13 @@ class TinkerMenu() extends MenuBar{
 	}
 
 	// for test purpose
-	val debug = new Menu("debug"){ menu =>
+	val Debug = new Menu("debug"){ menu =>
+		val openLog = new Action("Open log window"){
+			menu.contents += new MenuItem(this)
+			def apply(){
+				EvalLogWindow.open()
+			}
+		}
 		val printJson = new Action("Print JSON in Console") {
 			menu.contents += new MenuItem(this)
 			def apply(){
@@ -104,5 +110,5 @@ class TinkerMenu() extends MenuBar{
 		}
 	}
 
-	contents += (FileMenu, EditMenu, debug)
+	contents += (FileMenu, EditMenu, Debug)
 }

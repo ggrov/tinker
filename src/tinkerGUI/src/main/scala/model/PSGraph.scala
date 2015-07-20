@@ -563,7 +563,7 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		* @throws AtomicTacticNotFoundException If a atomic tactic is not found after importing the data.
 		* @throws JsonAccessException If the json structure was not correct.
 		*/
-	def loadJsonGraph(j: Json) {
+	def loadJsonGraph(j: JsonObject) {
 		atCollection = Map()
 		gtCollection = Map()
 		val current = (j / "current").asArray.head.stringValue

@@ -47,6 +47,11 @@ case class ManyVerticesSelectedEvent(vnames : Set[String]) extends Event
 
 //Launched by EvalController
 
+/** Event notifying of a change in the logs.
+	*
+	*/
+case class EvalLogEvent() extends Event
+
 /** Event notifying of new available evaluation options.
 	*
 	* @param a List of available options.
