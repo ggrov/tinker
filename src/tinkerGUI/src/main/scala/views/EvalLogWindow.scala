@@ -19,24 +19,40 @@ class EvalLog extends TextArea {
 	}
 }
 
-class EvalLogMenu extends MenuBar {
+object EvalLogMenu extends MenuBar {
 	val evalLogCtrl = Service.evalCtrl.evalLogCtrl
 	val filter = new Menu("Filters"){
 		var filters = Array[String]()
+		evalLogCtrl.stack.foreach{ case (s,_) =>
+			if(!filters.contains(s)){
+				filters = filters :+ s
+				contents += new CheckMenuItem(s) {
+					selected = false
+					action = new Action(s) {
+						def apply() {
+							if (selected) evalLogCtrl.addToFilter(s) else evalLogCtrl.removeFromFilter(s)
+						}
+					}
+				}
+			}
+		}
 		listenTo(evalLogCtrl)
 		reactions += {
 			case EvalLogEvent() =>
 				evalLogCtrl.stack.foreach{ case (s,_) =>
-					if(!filters.contains(s)) filters = filters :+ s
-					contents += new CheckMenuItem(s) {
-						selected = false
-						action = new Action(s) {
-							def apply() {
-								if (selected) evalLogCtrl.addToFilter(s) else evalLogCtrl.removeFromFilter(s)
+					if(!filters.contains(s)){
+						filters = filters :+ s
+						contents += new CheckMenuItem(s) {
+							selected = false
+							action = new Action(s) {
+								def apply() {
+									if (selected) evalLogCtrl.addToFilter(s) else evalLogCtrl.removeFromFilter(s)
+								}
 							}
 						}
 					}
 				}
+				this.repaint()
 		}
 	}
 	contents += filter
@@ -45,7 +61,7 @@ class EvalLogMenu extends MenuBar {
 object EvalLogWindow extends Frame{
 	minimumSize  = new Dimension(250,250)
 	title = "Tinker - " + Service.documentCtrl.title + " - eval log"
-	menuBar = new EvalLogMenu()
+	menuBar = EvalLogMenu
 	listenTo(Service.documentCtrl)
 	reactions += {
 		case DocumentChangedEvent(_) =>
