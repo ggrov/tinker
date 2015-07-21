@@ -100,9 +100,9 @@ struct
            raise tinker_fail))
       tac_args
      val _ = logging "TACTIC" (
-               "tac_code [" ^ tac_code ^ "] \t" ^ 
+               "tac_code [" ^ tac_code ^ "] " ^ 
                "tac_args_env_var [" ^ 
-               ((Pretty.chunks (map Pretty.str (List.concat tac_args_env_var))) |> Pretty.string_of) ^ 
+               ((String.concat (List.concat tac_args_env_var))) ^ 
                "]")
   in
     (tac_code, tac_args_env_var)

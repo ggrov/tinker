@@ -20,25 +20,25 @@ struct
     E_Trm of term | E_Thm of thm |
     E_ML of string | 
     E_L of env_data list
-  fun pretty_env_data _ (E_Str str) = Pretty.block [Pretty.str "E_Str(", Pretty.str str, Pretty.str ")"]
-  |   pretty_env_data _ (E_Trm trm) = Pretty.block [Pretty.str "E_Trm(", pretty_trm default_ctxt trm, Pretty.str ")"]
-  |   pretty_env_data _ (E_Thm thm) = Pretty.block [Pretty.str "E_Thm(", concl thm |> pretty_trm default_ctxt, Pretty.str ")"]
-  |   pretty_env_data _ (E_ML str) = Pretty.block [Pretty.str "E_ML(", Pretty.str str, Pretty.str ")"]
-  |   pretty_env_data _ (E_L l) =  
-        Pretty.block [Pretty.str "E_L(\n",
-                      Pretty.chunks (map (pretty_env_data default_ctxt) l 
-                         |> map (fn p => Pretty.block [Pretty.str "\t\t", p])), 
-                      Pretty.str ")"];
 
-  type env = env_data StrName.NTab.T 
+  fun pretty_env_data _ (E_Str str) =  [ "E_Str(", str, ")"] |> String.concat |> Pretty.str
+  |   pretty_env_data ctxt (E_Trm trm) = [ "E_Trm(", string_of_trm ctxt trm,  ")"] |> String.concat |> Pretty.str
+  |   pretty_env_data ctxt (E_Thm thm) =  [ "E_Thm(", Thm.prop_of thm |> string_of_trm ctxt,  ")"] |> String.concat |> Pretty.str
+  |   pretty_env_data _ (E_ML str) =  [ "E_ML(",  str,  ")"]|> String.concat |> Pretty.str
+  |   pretty_env_data ctxt (E_L l) =  
+        Pretty.str (String.concat [ "E_L(",
+                      str_chunks (map (Pretty.string_of o pretty_env_data ctxt) l),
+                       ")"]);
+
+  type env = env_data StrName.NTab.T
   
   fun pretty_env ctxt env = 
     let fun pretty_pair (n, env_data) = Pretty.block [Pretty.str n, Pretty.str ": ", pretty_env_data ctxt env_data] in
     StrName.NTab.list_of env
     |> map pretty_pair
-    |> (fn xs => Pretty.chunks ((Pretty.str "ENV_DATA: [" :: (map (fn x => (Pretty.block[Pretty.str "\t", x]))xs)) @ [Pretty.str "]"]) )
+    |> (fn xs => str_chunks (( "ENV_DATA: [" :: (map Pretty.string_of xs)) @ [ "]"]) )
+    |> Pretty.str
     end
-    
     
   type env_tac =  env -> env
   
