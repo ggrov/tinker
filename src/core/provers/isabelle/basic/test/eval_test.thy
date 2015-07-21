@@ -3,6 +3,11 @@ theory eval_test
 imports        
   "../build/BIsaP"    
 begin
+
+ML{*
+val j = Json.mk_object [("line 1", Json.String "hello"), ("line 2", Json.String "world")];
+Json.
+*}
 ML{*-
   val path = "/u1/staff/gg112/";
 *}

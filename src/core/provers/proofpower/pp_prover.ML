@@ -12,7 +12,7 @@ struct
 
     
   fun pretty_trm _ trm = Pretty.block (map Pretty.str (PrettyPrinter.format_term true trm))
-    
+
   type arg_data = string (* A_Const of string | A_Var of string | A_Trm of term *)
   
   datatype env_data = 
@@ -194,6 +194,9 @@ struct
     Pretty.str " : ",
     pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode),
     Pretty.str " ]"];
+
+  fun pretty_goal = pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode)
+
   
 
   fun apply_tactic args (tac_code : string) (pnode,pplan) = 

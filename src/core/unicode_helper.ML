@@ -177,9 +177,7 @@ fun filterf ((SOME i, size, s)::xs)=(SOME i,size, s) |
 fun findUC str =filterf  ( map ( index str) unilist)
 fun findEUC str=filterf  ( map ( index str) codlist) 
 
-
-
-fun replaceUC str = let
+fun encode str = let
   val k = findUC str;
   val (start, len, uc) = case k of (NONE, _,_ ) => (0, 0, "")
                       |  (SOME i, j, unichar) => (i, j, unichar);
@@ -190,14 +188,12 @@ fun replaceUC str = let
   val hasmore = case findUC result of (NONE,_,_) => false | _ => true
 in
   if hasmore then
-   replaceUC result
+   encode result
   else
    result
 end;
 
-
-
-fun replaceEUC str = let
+fun decode str = let
   val k = findEUC str;
   val (start, len, uc) = case k of (NONE, _,_ ) => (0, 0, "")
                       |  (SOME i, j, unichar) => (i, j, unichar);
@@ -209,16 +205,18 @@ fun replaceEUC str = let
 in
   if hasmore then
    (* replaceEUC result *)
-   replaceEUC result
+   decode result
   else
    (* result *)
    result
 end;
 
 end
+(*
+val a = "a \\u2227 b \\u2227 c \\u21D2 c \\u2227 b \\u2227 a"
 
-val a= "a \\u2227 b \\u2227 c \\u21D2 c \\u2227 b \\u2227 a"
-
-val b=UnicodeHelper.replaceEUC a;
+val b = UnicodeHelper.decode a;
+val c = UnicodeHelper.encode b;
 
 val cb=UnicodeHelper.findEUC a;
+*)
