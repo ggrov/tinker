@@ -1,9 +1,8 @@
 package tinkerGUI.model
 
+import tinkerGUI.controllers.QuantoLibAPI
 import tinkerGUI.model.exceptions._
-import tinkerGUI.utils.ArgumentParser
 import quanto.util.json._
-import scala.collection.mutable.ArrayBuffer
 
 /** Model of a proof-strategy graph.
 	*
@@ -47,11 +46,8 @@ class PSGraph(name:String) extends ATManager with GTManager {
 				case None => throw new AtomicTacticNotFoundException(name)
 			}
 			val nodeIds = updateForceAT(name,newName,newTactic,newArgs,currentTactic.name,currentIndex)
-			if(name != newName) {
-				updateValueInJsonGraphs(name, newName)
-				if(oldArgs != newArgs) updateValueInJsonGraphs(name+"("+oldArgs+")", newName+"("+newArgs+")")
-			} else if(oldArgs != newArgs){
-				updateValueInJsonGraphs(name+"("+oldArgs+")", name+"("+newArgs+")")
+			if(name != newName || oldArgs != newArgs) {
+				updateValueInJsonGraphs(name+"("+oldArgs+")", newName+"("+newArgs+")")
 			}
 			nodeIds
 		} catch {
@@ -220,12 +216,11 @@ class PSGraph(name:String) extends ATManager with GTManager {
 			}
 			val nodeIds = updateForceGT(name,newName,newBranchType,newArgs,currentTactic.name,currentIndex)
 			if(name != newName) {
-				updateValueInJsonGraphs(name, newName)
 				for((k,v)<-gtCollection) v.changeOccurrences(name, newName)
 				for((k,v)<-atCollection) v.changeOccurrences(name, newName)
-				if(oldArgs != newArgs) updateValueInJsonGraphs(name+"("+oldArgs+")", newName+"("+newArgs+")")
-			} else if(oldArgs != newArgs){
-				updateValueInJsonGraphs(newName+"("+oldArgs+")", newName+"("+newArgs+")")
+			}
+			if(name != newName || oldArgs != newArgs){
+				updateValueInJsonGraphs(name+"("+oldArgs+")", newName+"("+newArgs+")")
 			}
 			nodeIds
 		} catch {
@@ -398,6 +393,14 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		atCollection = Map()
 	}
 
+	/** Method renaming the model, i.e. renames the main tactic.
+		*
+		* @param name New name.
+		*/
+	def rename(name:String) {
+		mainTactic.name = name
+	}
+
 	/** Method to register a new subgraph and set it as current.
 		*
 		* @param tactic Gui id of the graph tactic from which to add the new subgraph.
@@ -520,34 +523,40 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		*/
 	def updateValueInJsonGraphs(oldVal: String, newVal: String) {
 		if(isMain){
-			gtCollection.foreach { case (k, v) =>
-					v.graphs.foreach { case g =>
-						v.graphs -= g
+			gtCollection.foreach { case (k,v) =>
+					v.graphs.zipWithIndex.foreach { case (g,i) =>
+						QuantoLibAPI.updateValues(g,Array((oldVal,newVal))) match {
+							case j : JsonObject => v.graphs(i) = j
+							case j:Json => throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
+						}
+						/*v.graphs -= g
 						Json.parse(g.toString().replace("\""+oldVal+"\"","\""+newVal+"\"")) match {
 							case j: JsonObject => v.graphs += j
 							case j: Json =>
 								v.graphs += g
 								throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
-						}
+						}*/
 					}
 			}
 		} else {
-			Json.parse(mainTactic.getSubgraph(0).toString().replace(oldVal, newVal)) match {
-				case j: JsonObject => //j
-					mainTactic.addSubgraph(j,0)
-				case j: Json =>
-					throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
+			QuantoLibAPI.updateValues(mainTactic.getSubgraph(0),Array((oldVal,newVal))) match {
+				case j : JsonObject => mainTactic.graphs(0) = j
+				case j:Json => throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
 			}
 			gtCollection.foreach { case(k,v) =>
-				v.graphs.foreach { case g =>
-					if(k != currentTactic.name && v.graphs.indexOf(g) != currentIndex) {
-						v.graphs -= g
+				v.graphs.zipWithIndex.foreach { case (g,i)=>
+					if(k != currentTactic.name && i != currentIndex) {
+						QuantoLibAPI.updateValues(g,Array((oldVal,newVal))) match {
+							case j : JsonObject => v.graphs(i) = j
+							case j:Json => throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
+						}
+						/*v.graphs -= g
 						Json.parse(g.toString().replace(oldVal,newVal)) match {
 							case j: JsonObject => v.graphs += j
 							case j: Json =>
 								v.graphs += g
 								throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
-						}
+						}*/
 					}
 				}
 			}
