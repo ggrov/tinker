@@ -1,18 +1,33 @@
-(* simple test of proof representation *)
-theory CIsaP                                             
-imports       
-  "../../../build/isabelle/Tinker"                                                                               
-begin     
+theory TinkeringRodinClause
+
+
+imports   "../../build/isabelle/Tinker"      
+begin  
+
  -- "the goaltype"
- ML_file "../../../goaltype/clause/goaltype.ML"                                                                                                                        
+ML_file "../../../goaltype/clause/goaltype.ML"   
 
- -- "the prover"  
- ML_file "../basic/isa_prover.ML"                                
+ML_file "../../interface/text_socket.ML"
 
- -- "setting up PSGraph"
+ML_file "./interface/wsock.sig.ML"
+ML_file "./interface/json_protocol.sig.ML"
+ML_file "./interface/tpp_protocol.sig.ML"
+
+ML_file "./build/unicode_helper.ML"
+ML_file "./build/predicate_tag.ML"
+ML_file "./build/rodin_socket.struct.ML"
+ML_file "./build/rodin_json_protocol.struct.ML"
+ML_file "./build/rodin_protocol.ML"
+
+ML_file "./rodin_prover.ML"
+
+ML_file "../../goaltype/simple_goaltype.ML"
+
+ML_file "simpleGT_lib.ML"
+
 
 ML{*
-  structure Clause_GT : BASIC_GOALTYPE = ClauseGTFun(structure Prover = IsaProver val struct_name = "Clause_GT");
+  structure Clause_GT : BASIC_GOALTYPE = ClauseGTFun(structure Prover = Rodin val struct_name = "Clause_GT");
   structure Data = PSGraphDataFun(Clause_GT);
   structure PSDataIO = PSGraphIOFun(structure Data = Data);
   structure Theory = PSGraph_TheoryFun(structure GoalTyp = Clause_GT  
@@ -26,10 +41,6 @@ ML{*
   structure Tinker = TinkerProtocol (structure IEVal = IEVal val gui_socket_port = 1790 val prover_socket_port = 0);
   structure Env_Tac_Lib = EnvTacLibFunc (Theory);
 *}
-
-ML{*  open Env_Tac_Lib  *}
+ML{*  open Env_Tac_Lib SimpleGT_Lib *}
 
 end
-
-
-

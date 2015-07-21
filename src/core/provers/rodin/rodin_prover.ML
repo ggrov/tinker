@@ -48,7 +48,7 @@ struct
   in  
       map (fn x=> {pname = x, env = StrName.NTab.empty }) nodes  
   end;
-
+  (* tactic : args->fun -> tpp.tactic  *)
   fun apply_tactic args tactic ({pname, env}:pnode, pplan) = 
   let 
       val new_nodes= tpp.apply_tactic args tactic pname

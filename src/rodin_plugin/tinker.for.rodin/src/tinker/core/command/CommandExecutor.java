@@ -1,7 +1,9 @@
 package tinker.core.command;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -22,6 +24,7 @@ import org.eventb.core.pm.IUserSupport;
 import org.eventb.core.seqprover.IProofMonitor;
 import org.eventb.core.seqprover.IProofTreeNode;
 import org.eventb.core.seqprover.ITactic;
+import org.eventb.core.seqprover.eventbExtensions.AutoTactics;
 import org.eventb.core.seqprover.eventbExtensions.DLib;
 import org.eventb.core.seqprover.eventbExtensions.Lib;
 import org.eventb.core.seqprover.eventbExtensions.Tactics;
@@ -148,6 +151,33 @@ public class CommandExecutor {
 		return result;
 	}
 
+	private static String handle_GET_GOAL_CONCLUSION(Command command, IProofTreeNode pt, IProofMonitor pm,
+			TinkerConnector tinker, TinkerSession session) throws Exception {
+
+		String node = command.getParameter("PNODE");
+		IProofTreeNode pnode = session.nameToNodeMap.get(node);
+		String goalstr = pnode.getSequent().goal().toString();
+
+		Command cmd = (new Command("GET_GOAL_CONCLUSION_RESULT")).addParamter("GOAL", goalstr);
+
+		return cmd.toString();
+	}
+
+	private static String handle_GET_HYPS(Command command, IProofTreeNode pt, IProofMonitor pm, TinkerConnector tinker,
+			TinkerSession session) throws Exception {
+
+		String node = command.getParameter("PNODE");
+		IProofTreeNode pnode = session.nameToNodeMap.get(node);
+
+		int c = 0;
+		Command cmd = (new Command("GET_GOAL_RESULT"));
+		for (Iterator<Predicate> i = pnode.getSequent().hypIterable().iterator(); i.hasNext();) {
+			cmd = cmd.addParamter(String.valueOf(c), i.next().toString());
+			c++;
+		}
+		return cmd.toString();
+	}
+
 	private static String handle_GET_ALL_OPEN_NODES(Command command, IProofTreeNode pt, IProofMonitor pm,
 			TinkerConnector tinker, TinkerSession session) throws Exception {
 		String result;
@@ -267,7 +297,7 @@ public class CommandExecutor {
 		return resultCmd.toString();
 	}
 
-	private static boolean handle_TOP_SYMBOL(String symbol, String pnode, TinkerSession session) {
+	private static boolean check_top_symbol(String symbol, String pnode, TinkerSession session) {
 		IProofTreeNode pt = session.nameToNodeMap.get(pnode);
 		int tag = pt.getSequent().goal().getTag();
 		switch (symbol) {
@@ -288,17 +318,51 @@ public class CommandExecutor {
 
 	}
 
-	private static String handle_GET_PNODE_GOAL_TYPE(Command command, IProofTreeNode pt, IProofMonitor pm,
+	private static String handle_TOP_SYMBOL_IS(Command command, IProofTreeNode pt, IProofMonitor pm,
 			TinkerConnector tinker, TinkerSession session) throws Exception {
-		String goaltyp = command.getParameter("GOAL_TYPE");
 		String pnode = command.getParameter("CONTEXT");
-		String result;
-		if (goaltyp == "TOP_SYMBOL") {
-			String symbol = command.getParameter("SYMBOL");
-			result = String.valueOf(handle_TOP_SYMBOL(symbol, pnode, session));
-		} else {
-			result = "false";
+		String symbol = command.getParameter("SYMBOL");
+		Command cmd = new Command("TOP_SYMBOL_CHECK_RESULT").addParamter("RESULT",
+				String.valueOf(check_top_symbol(symbol, pnode, session)));
+
+		return cmd.toString();
+	}
+
+	private static List<Predicate> getChilds(Predicate p) {
+		List<Predicate> predicates = new ArrayList<>();
+		int i = p.getChildCount();
+		predicates.add(p);
+		for (int k = 0; k < i; k++) {
+			predicates.addAll(getChilds((Predicate) p.getChild(k)));
 		}
+		return predicates;
+
+	}
+
+	private static String handle_SUB_TERMS(Command command, IProofTreeNode pt, IProofMonitor pm,
+			TinkerConnector tinker, TinkerSession session) throws Exception {
+		String result;
+		String termstr = command.getParameter("TERM");
+		String node = command.getParameter("NODE");
+		IProofTreeNode pnode = session.nameToNodeMap.get(node);
+		Predicate term = parseStr(termstr, pnode.getSequent().typeEnvironment());
+		List<Predicate> subterms = getChilds(term);
+		Command cmd = (new Command("SUB_TERMS"));
+		for (int i = 0; i < subterms.size(); i++) {
+			cmd = cmd.addParamter(String.valueOf(i), subterms.get(i).toString());
+		}
+
+		result = cmd.toString();
+		return result;
+	}
+
+	private static String handle_GET_TOP_SYMBOL(Command command, IProofTreeNode pt, IProofMonitor pm,
+			TinkerConnector tinker, TinkerSession session) throws Exception {
+		String result = "";
+		String node = command.getParameter("NODE");
+		IProofTreeNode pnode = session.nameToNodeMap.get(node);
+		String termstr = command.getParameter("TERM");
+		Predicate term = parseStr(termstr, pnode.getSequent().typeEnvironment());
 
 		return result;
 	}
@@ -328,14 +392,31 @@ public class CommandExecutor {
 			case "GET_PNODE_GOAL_TAG":
 				result = handle_GET_PNODE_GOAL_TAG(command, pt, pm, tinker, session);
 				break;
-			case "GET_PNODE_GOAL_TYPE":
-				result = handle_GET_PNODE_GOAL_TYPE(command, pt, pm, tinker, session);
-				break;
+
 			case "APPLY_TACTIC":
 				result = handle_APPLY_TACTIC(command, pt, pm, tinker, session);
 				break;
 			case "MATCH_TERMS":
 				result = handle_MATCH_TERMS(command, pt, pm, tinker, session);
+				break;
+
+			case "GET_HYPS":
+				result = handle_GET_HYPS(command, pt, pm, tinker, session);
+				break;
+			case "GET_GOAL_CONCLUSION":
+				result = handle_GET_GOAL_CONCLUSION(command, pt, pm, tinker, session);
+				break;
+			case "SUB_TERMS":
+				result = handle_SUB_TERMS(command, pt, pm, tinker, session);
+				break;
+			case "GET_TOP_SYMBOL":
+				result = handle_GET_TOP_SYMBOL(command, pt, pm, tinker, session);
+				break;
+			case "TOP_SYMBOL_IS":
+				result = handle_TOP_SYMBOL_IS(command, pt, pm, tinker, session);
+				break;
+			case "ALL_SYMBOL":
+
 				break;
 			default:
 				break;
@@ -361,6 +442,8 @@ public class CommandExecutor {
 			return Tactics.allI();
 		case "hyp":
 			return Tactics.hyp();
+		case "EqHypTac":
+			return new AutoTactics.EqHypTac();
 		default:
 			return Tactics.autoRewrite();
 		}

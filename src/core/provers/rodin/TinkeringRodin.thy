@@ -12,6 +12,7 @@ ML_file "./interface/json_protocol.sig.ML"
 ML_file "./interface/tpp_protocol.sig.ML"
 
 ML_file "./build/unicode_helper.ML"
+ML_file "./build/predicate_tag.ML"
 ML_file "./build/rodin_socket.struct.ML"
 ML_file "./build/rodin_json_protocol.struct.ML"
 ML_file "./build/rodin_protocol.ML"
@@ -29,8 +30,8 @@ ML{*
   structure Theory = PSGraph_TheoryFun(structure GoalTyp = SimpleGoalType  
                                      structure Data = Data);
   structure Theory_IO = PSGraph_Theory_IOFun(structure PSTheory = Theory)
-  structure PSGraph = PSGraphFun(structure Theory_IO = Theory_IO);
-  structure PSComb = PSCombFun (structure PSGraph = PSGraph)
+  structure PSGraph = PSGraphFun(structure Theory_IO = Theory_IO);(* 
+  structure PSComb = PSCombFun (structure PSGraph = PSGraph) *)
   structure EData =  EDataFun( PSGraph);
   structure EVal = EValFun(EData);
   structure IEVal = InteractiveEvalFun (EVal);

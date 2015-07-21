@@ -26,8 +26,6 @@ public class TinkerTacticProvider extends DefaultTacticProvider {
 
 		private static final String TACTIC_ID = "org.eventb.ui.tinker";
 
-
-
 		public TinkerApplication(Predicate hyp) {
 			super(hyp, IPosition.ROOT);
 		}
@@ -48,7 +46,12 @@ public class TinkerTacticProvider extends DefaultTacticProvider {
 	public List<ITacticApplication> getPossibleApplications(IProofTreeNode node, Predicate hyp, String globalInput) {
 		System.out.println("-----------------------------------------------------");
 		System.out.println(node.getSequent().goal().getSyntaxTree());
-		
+
+		for (Iterator<Predicate> i = node.getSequent().hypIterable().iterator(); i.hasNext();) {
+
+			System.out.println("-------------------------------");
+			System.out.println(i.next().getSyntaxTree());
+		}
 		if (node != null && node.isOpen()) {
 			final ITacticApplication appli = new TinkerApplication(hyp);
 			return singletonList(appli);

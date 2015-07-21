@@ -9,7 +9,13 @@ struct
     in
       RJP.fromJson reply
     end
-  
+
+  fun isExternalTac tactic = case tactic of 
+  "SELECT_HYP_AND_INSTAN" => true
+  | _ => false
+
+  fun externalTac args tactic pnode = (["args"], "tactic", pnode)
+
 end
 
 structure SimpleNamer = 
@@ -96,7 +102,7 @@ struct
     end;
 
 
-  fun apply_tactic args tactic pnode = 
+  fun apply args tactic pnode = 
   let 
       val reply=execute ("APPLY_TACTIC",[("TACTIC",tactic),("NODE",pnode)]);
       val new_nodes = case getInstruction reply of 
@@ -115,13 +121,21 @@ struct
                     (RodinSock.send (toJson ("DISSCONNECT_WITH_ERROR",[("ERROR", getParam reply "ERROR_INFO")]));  
                      RodinSock.disconnect();
                       raise error (String.concat["Cannot Apply this Tactic: ",tactic, " ERROR: ", getParam reply "ERROR_INFO"]))
-                 | str => raise 
+                 | str =>  
                     (RodinSock.send (toJson ("DISSCONNECT_WITH_ERROR",[("ERROR",str)]));  
                      RodinSock.disconnect();
-                     error (String.concat["Cannot Apply this Tactic: ",tactic," with instruction:", str]))
+                    raise error (String.concat["Cannot Apply this Tactic: ",tactic," with instruction:", str]))
   in
       new_nodes 
   end;
 
+  fun apply_tactic args tactic pnode = 
+    if isExternalTac(tactic) then
+      let val (new_args, tac, pnode)=(externalTac args tactic pnode) 
+      in 
+       apply new_args tac pnode 
+      end
+    else
+      apply args tactic pnode 
   
 end
