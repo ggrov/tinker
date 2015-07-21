@@ -97,11 +97,12 @@ class TinkerLibraryController() extends Publisher {
 	def addFileToGraph() {
 		var valuesToReplace:Map[String,String] = Map()
 		def updateGraphJsonWithNewNames(json: Json): Json = {
-			var newJson = json
+			QuantoLibAPI.updateValues(json,valuesToReplace.toArray)
+			/*var newJson = json
 			valuesToReplace.foreach{ case (oldVal, newVal) =>
 				newJson = Json.parse(newJson.toString.replace("\""+oldVal+"\"", "\""+newVal+"\"").replace("\""+oldVal+"(", "\""+newVal+"("))
 			}
-			newJson
+			newJson*/
 		}
 		def appendIndex(name:String, index:Int): String = {
 			if(index == 0 && !Service.model.atCollection.contains(name) && !Service.model.gtCollection.contains(name)) name
@@ -134,10 +135,10 @@ class TinkerLibraryController() extends Publisher {
 			(json / "graphs").asArray.foreach{ tct =>
 				val oldName = (tct / "name").stringValue
 				if(oldName == main){
-					nameNodeIdMap = QuantoLibAPI.addFromJson(updateGraphJsonWithNewNames(tct / "graphs" / 0))
+					nameNodeIdMap = QuantoLibAPI.addFromJson(QuantoLibAPI.updateValues(tct / "graphs" / 0,valuesToReplace.toArray))
 				} else {
 					(tct / "graphs").asArray.foreach{ gr =>
-						Service.model.addSubgraphGT(valuesToReplace(oldName),updateGraphJsonWithNewNames(gr).asObject,-1)
+						Service.model.addSubgraphGT(valuesToReplace(oldName),QuantoLibAPI.updateValues(gr,valuesToReplace.toArray).asObject,-1)
 					}
 				}
 			}

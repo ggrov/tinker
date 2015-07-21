@@ -27,9 +27,9 @@ class EvalLogController extends Publisher {
 	}
 
 	def getLog:String = {
-		stack.foldLeft(""){
-			case (s,p) =>
-				if(filter contains p._1) s + " > " + p._2 + "\n"
+		stack.foldRight(""){
+			case (p,s) =>
+				if(filter contains p._1) s + " > " + p._1 + " : " + p._2 + "\n"
 				else s
 		}
 	}
@@ -44,6 +44,7 @@ class EvalLogController extends Publisher {
 				}
 			case _ =>
 		}
+		println(stack.foldLeft(""){ case (s,p) => s + p._1 + " - " + p._2 + "\n"})
 		publish(EvalLogEvent())
 	}
 }

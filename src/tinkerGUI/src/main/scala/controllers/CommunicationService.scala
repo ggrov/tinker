@@ -145,14 +145,22 @@ object CommunicationService extends Publisher {
 				case "CMD_HIDE_GUI" =>
 					Service.showTinkerGUI(false)
 				case "CMD_INIT_PSGRAPH" =>
+					println("init psgraph")
 					Service.evalCtrl.setInEval(true)
+					println("eval psgraph")
 					getEvalPSGraph(j ? "eval_psgraph")
+					println("eval options")
 					getEvalOptions(j ? "eval_options")
+					println("log info")
 					getEvalLog(j ? "log_info")
 				case "CMD_UPDATE_PSGRAPH" =>
+					println("update psgraph")
 					Service.evalCtrl.setInEval(true)
+					println("eval psgraph")
 					getEvalPSGraph(j ? "eval_psgraph")
+					println("eval options")
 					getEvalOptions(j ? "eval_options")
+					println("log info")
 					getEvalLog(j ? "log_info")
 				case "RSP_ERROR_CHANGE_PSGRAPH" =>
 					if (state == CommunicationState.WaitingForPsgraph) {
