@@ -6,7 +6,6 @@ import tinkerGUI.controllers.Service
 import tinkerGUI.controllers.events.{EvalLogEvent, DocumentChangedEvent}
 
 import scala.swing._
-import scala.swing.event.MouseClicked
 
 class EvalLog extends TextArea {
 	val evalLogCtrl = Service.evalCtrl.evalLogCtrl
@@ -23,19 +22,24 @@ class EvalLog extends TextArea {
 class EvalLogMenu extends MenuBar {
 	val evalLogCtrl = Service.evalCtrl.evalLogCtrl
 	val filter = new Menu("Filters"){
-		val filters = Array[String]("BASIC_INFO","GOALTYPE","TACTIC","ENV_DATA","ARG_DATA","SOCKET","GRAPH","HIERARCHY","JSON_GUI","JSON_CORE","EVAL","GUI_LAUNCHER")
-		filters.foreach { case s =>
-			contents += new CheckMenuItem(s) {
-				selected = false
-				action = new Action(s) {
-					def apply() {
-						if (selected) evalLogCtrl.addToFilter(s) else evalLogCtrl.removeFromFilter(s)
+		var filters = Array[String]()
+		listenTo(evalLogCtrl)
+		reactions += {
+			case EvalLogEvent() =>
+				evalLogCtrl.stack.foreach{ case (s,_) =>
+					if(!filters.contains(s)) filters = filters :+ s
+					contents += new CheckMenuItem(s) {
+						selected = false
+						action = new Action(s) {
+							def apply() {
+								if (selected) evalLogCtrl.addToFilter(s) else evalLogCtrl.removeFromFilter(s)
+							}
+						}
 					}
 				}
-			}
 		}
 	}
-	contents += (filter)
+	contents += filter
 }
 
 object EvalLogWindow extends Frame{
