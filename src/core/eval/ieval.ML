@@ -132,17 +132,16 @@ struct
                     (EData.get_name_current_hie edata) 
                     (EData.get_index_current edata) 
                     e)
-           )      
+           ),
+      ("log_info", buffer_to_json ())
     ]
 
   fun mk_cmd_str_arg_json args_str_list = 
      Json.Array (map (fn x => Json.String x) args_str_list)
 
-  fun output_cmd_only_json cmd args_list_json = 
+  fun output_cmd_only_json cmd  = 
     Json.mk_object[
-     ("cmd",  Json.String cmd),
-     ("eval_options", args_list_json),     
-     ("eval_psgraph", Json.Null)      
+     ("cmd",  Json.String cmd)
     ]
 
   fun output_string cmd args_list_json edata = 
@@ -151,7 +150,7 @@ struct
     output_json cmd args_list_json (Option.valOf edata) 
     |> Json.encode
    else
-    output_cmd_only_json cmd args_list_json
+    output_cmd_only_json cmd 
     |> Json.encode
 
 

@@ -97,6 +97,7 @@ sig
   (* pretty printing *)
   val pretty_pplan : pplan -> Pretty.T
   val pretty_pnode : pnode -> Pretty.T
+  val pretty_goal : pnode -> Pretty.T
 
   (* for display spec symbol in gui *)
   val encode_prover_to_gui : string -> string

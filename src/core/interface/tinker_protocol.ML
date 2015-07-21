@@ -23,12 +23,12 @@ struct
   fun get_print_only_msg (Json.Object obj) =
     JsonInputUtils.get_string obj "print_only" 
   | get_print_only_msg _ = raise user_exn "wrong json type in get_print_only_msg"
-
+(*
   fun get_str_cmd_args_list (Json.Object obj) =
     JsonInputUtils.get_array obj "eval_options" 
     |> map (fn (Json.String str) => str)
   | get_str_cmd_args_list _ = raise user_exn "wrong json type in get_str_cmd_args_list"
- 
+ *)
   fun register (cmd : string) f = Symtab.update_new (cmd, f)
 
   val ftab = Symtab.empty
@@ -51,19 +51,19 @@ struct
     ("cmd", Json.String  "PRINT_ONLY_RSP"),
     ("print_only", Json.String "init graph in tinker")]
   val ftab = ftab |> register "RSP_INIT_PSGRAPH" RSP_INIT_PSGRAPH
-
+(*
   fun RSP_UPDATE_PSGRAPH _ = 
    Json.mk_object[
      ("cmd", Json.String  "PRINT_ONLY_RSP"),
      ("print_only", Json.String "update graph in tinker")]
   val ftab = ftab |> register "RSP_UPDATE_PSGRAPH" RSP_UPDATE_PSGRAPH
-
-  fun RSP_EVAL_PSGRAPH json = 
+*)
+  fun RSP_UPDATE_PSGRAPH (json as (Json.Object obj))= 
     let
-      val opts = get_str_cmd_args_list json (* args option from users *)
-      val opt = hd opts
+      (*val opts = get_str_cmd_args_list json (* args option from users *)*)
+      val opt = JsonInputUtils.get_string obj "option"
       val (SOME edata0) = get_data();
-      val gnode =  hd (tl opts)
+      val gnode = JsonInputUtils.get_string obj "node"
       val eval_fn = case gnode of "" => K IEVal.eval_any | _ => IEVal.eval_goal
       fun make_ret_reuslt edata_result = 
        case edata_result 
@@ -91,10 +91,12 @@ struct
         | "OPT_EVAL_COMPLETE" => IEVal.eval_complete edata0 |> make_ret_reuslt
         | "OPT_EVAL_UNTIL_BREAK" => IEVal.eval_until_break edata0 |> make_ret_reuslt
         | "OPT_EVAL_STOP" =>
-           (Json.mk_object[("cmd", Json.String  "CMD_END_EVAL_SESSION")])
+           (Json.mk_object[("cmd", Json.String  "CMD_END_EVAL_SESSION"), ("log_info", buffer_to_json ())])
         | x => raise protocol_exn ("ERR: protocol unkown option: " ^ x)
     end
-  val ftab = ftab |> register "RSP_EVAL_PSGRAPH" RSP_EVAL_PSGRAPH
+    | RSP_UPDATE_PSGRAPH _ = raise user_exn "wrong json type in RSP_UPDATE_PSGRAPH"
+
+  val ftab = ftab |> register "RSP_UPDATE_PSGRAPH" RSP_UPDATE_PSGRAPH
 
 (* assume that the graph structure of psgraph has not been changed *)
   fun CMD_CHANGE_PSGRAH (Json.Object obj)  = 
@@ -139,9 +141,9 @@ struct
       val (json_list, src') = RawSource.get src
       val json = case json_list of [x] => x | _ =>
         raise protocol_exn "Expected: exactly one JSON object"
-      val _ = (logging "JSON_GUI" ("JSON IN: " ^ (Json.encode json)))
+     (* val _ = (logging "JSON_GUI" ("JSON IN: " ^ (Json.encode json)))*)
       val json_output = dispatch json (* this output is always a json object *)
-      val _ = (logging "JSON_GUI" ("JSON OUT: " ^ ( Json.encode json_output)))
+     (* val _ =  logging "JSON_GUI" ("JSON OUT: " ^ ( Json.encode json_output))*)
     in 
       (case get_cmd_name json_output
           of "CMD_CLOSE_CONNECT" => () (* do nothing and exit: need to be consider what to do *)
@@ -149,7 +151,7 @@ struct
           | "Dummy_RSP" => ((); protocol_loop src')
           | "PRINT_ONLY_RSP" => 
             ((get_print_only_msg  json_output
-            |> ( fn x => logging "JSON_GUI" ("PRINT_RSP: " ^ x)));
+            (*|> (fn x => logging "JSON_GUI" ("PRINT_RSP: " ^ x))*));
              protocol_loop src')
           | _ =>
              (send_msg (Json.encode json_output);
@@ -174,6 +176,7 @@ struct
            (IEVal.mk_cmd_str_arg_json [
               "OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
            (SOME edata0);
+      (*val _ = logging "JSON_GUI" ("JSON OUT: " ^ (init_msg))*)
       val _ = (reset_data (); set_data edata0)
     in
       run_in_textstreams (ins, outs) (SOME init_msg);

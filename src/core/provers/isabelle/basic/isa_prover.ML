@@ -7,8 +7,12 @@ struct
   type thm = Thm.thm
   type context = Proof.context
 
+  fun term_to_string ctxt t =
+   let
+    val ctxt' = Config.put show_markup false ctxt;
+   in Print_Mode.setmp [] (Syntax.string_of_term ctxt') t end;
   val trm_of_string = Syntax.parse_term;
-  val string_of_trm = Syntax.string_of_term;
+  val string_of_trm = (*Syntax.string_of_term*) term_to_string;
   val pretty_trm = Syntax.pretty_term;
 
 
@@ -166,6 +170,7 @@ struct
   fun get_pnode_concl (pnode:pnode) = #ptrm pnode |> Logic.strip_imp_concl;
   fun get_pnode_hyps (pnode:pnode) = #ptrm pnode |> Logic.strip_imp_prems;
 
+  fun pretty_goal pnode = string_of_trm (get_pnode_ctxt pnode)  (get_pnode_concl pnode) |> Pretty.str
   fun pretty_pnode pnode = 
     Pretty.block
      [Pretty.str "[ Goal ",
@@ -238,10 +243,7 @@ struct
     type pplan = pplan
     type pnode = pnode
   end
-
-
 end (* struct *)
-
 
 (* OLD STUFF
 

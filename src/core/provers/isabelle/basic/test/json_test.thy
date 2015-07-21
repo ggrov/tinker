@@ -78,7 +78,7 @@ IEVal.output_string
 ML{*-
   TextSocket.safe_close();
 *}
-ML{* -
+ML{*-
 Tinker.start_ieval @{context} ps [] @{prop "(A)  \<longrightarrow>  ((B \<longrightarrow>A) \<and>  (B \<longrightarrow>A) \<and> (B \<longrightarrow>A))"};
 *}
 

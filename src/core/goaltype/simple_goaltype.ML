@@ -25,11 +25,11 @@ struct
   fun gnode_to_json g = 
    Json.mk_object[
     ("name", Json.String (goal_name g)),
-    ("goal", Json.String (*Pretty.string_of (goal_pretty g)*) "goal")];
+    ("goal", Json.String (Pretty.string_of (goal_pretty g) (*|> UnicodeHelper.encode*)))];
 
   fun gnode_from_json (Json.Object obj) = 
     G {name = JsonInputUtils.get_string obj "name", 
-       pretty = Pretty.str (JsonInputUtils.get_string obj "goal")}
+       pretty = Pretty.str (JsonInputUtils.get_string obj "goal" |> UnicodeHelper.decode)}
   | gnode_from_json _ = raise gt_exp "gnode_from_json: ill-formed json structure"
 
   fun data_to_json _ = Json.String "";
@@ -104,7 +104,7 @@ struct
      [] => false
     | _ => true;
 
-  fun lift pn = G {name = (Prover.get_pnode_name pn), pretty = Prover.pretty_pnode pn}
+  fun lift pn = G {name = (Prover.get_pnode_name pn), pretty = Prover.pretty_goal pn}
 
   structure BasicSharing =
   struct
