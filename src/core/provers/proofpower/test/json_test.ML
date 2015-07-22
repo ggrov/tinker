@@ -1,4 +1,4 @@
- use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
+  use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
 
 
   val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"

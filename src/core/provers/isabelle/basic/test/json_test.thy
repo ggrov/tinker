@@ -1,26 +1,14 @@
 theory json_test                                           
 imports       
-  "../build/BIsaP"   
+  "../build/BIsaP"  
 begin
 
-ML{*
-
-
-
-val env = StrName.NTab.of_list [("x", E_Str "is E_Str"), ("y", E_Trm @{term "a + b"}), ("thm", E_Thm @{thm impI}),
-("ml", E_ML "ml code"), ("el",  E_L [E_Str "is E_Str",  E_Trm @{term "a + b"}])]; 
-
-pretty_env @{context} env |> Pretty.writeln ;
-    E_Trm of term | E_Thm of thm |
-    E_ML of string | 
-    E_L of env_data list
-*}
 ML{*- 
   val path = "/u1/staff/gg112/";
   val guiPath = "/u1/staff/gg112/tinker/src/tinkerGUI/release/";
 *}
 
-ML{*-
+ML{*
   val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
   val path = tinker_path ^ "src/dev/psgraph/";
   val guiPath = tinker_path ^ "src/tinkerGUI/release/";
@@ -73,12 +61,17 @@ fun test_true1 _ _ _ = true
 *}
 (* read and load a psgraph created by gui *)
 ML{*
-  val ps = PSGraph.read_json_file (path^"demo_gn.psgraph");
+  val ps = PSGraph.read_json_file (path^"demo.psgraph");
   PSGraph.write_json_file (path^"demo1.psgraph") ps; 
 *}
 
+ML{*
+LoggingHandler.active_all_tags ();
+
+*}
 ML{* 
-  val edata0 = EVal.init ps @{context} [] @{prop "(B \<longrightarrow> B)  \<and> (B\<longrightarrow> A \<longrightarrow> A)"} |> hd; 
+  val edata0 = EVal.init ps @{context} [] @{prop "(A)  \<longrightarrow>  ((B \<longrightarrow>A) \<and>  (B \<longrightarrow>A) \<and> (B \<longrightarrow>A))"} |> hd; 
+
 IEVal.output_string 
           "CMD_INIT_PSGRAPH" 
            (IEVal.mk_cmd_str_arg_json [
@@ -86,10 +79,11 @@ IEVal.output_string
 
 *} 
 
+
 ML{*-
   TextSocket.safe_close();
 *}
-ML{*- 
+ML{* 
 Tinker.start_ieval @{context} ps [] @{prop "(A)  \<longrightarrow>  ((B \<longrightarrow>A) \<and>  (B \<longrightarrow>A) \<and> (B \<longrightarrow>A))"};
 *}
 

@@ -18,7 +18,7 @@ struct
       case top_level_str g of
          NONE => false
        | SOME v => 
-          (let val _ = logging "GOALTYPE" (v ^ " " ^  (ignore_module symbol)) in 
+          (let val _ = logging "GOALTYPE" ("top level is: " ^ v ^ " by checking" ^  (ignore_module symbol)) in 
            v = (ignore_module symbol) end);
     
     fun top_level symbol_list g = map (fn symbol => top_level' symbol g) symbol_list;
@@ -39,10 +39,10 @@ struct
     fun GT_hyp_embeds ctxt hyps goal =
       let 
          val hyps' = map fix_alls_in_term hyps
-         val _ = Pretty.chunks ([Pretty.str "hyps in hyp_embed: "] @ (map (Syntax.pretty_term ctxt) hyps')) 
-                 |> Pretty.string_of |> logging "GOALTYPE"
-         val _ = Pretty.chunks ([Pretty.str "goal in hyp_embed: "] @ [((Syntax.pretty_term ctxt goal))]) 
-                 |> Pretty.string_of |> logging "GOALTYPE"
+         val _ = str_chunks ([ "hyps in hyp_embed: "] @ (map (IsaProver.string_of_trm ctxt) hyps')) 
+                 |> logging "GOALTYPE"
+         val _ = str_chunks ([ "goal in hyp_embed: "] @ [((IsaProver.string_of_trm ctxt goal))]) 
+                 |> logging "GOALTYPE"
       in 
         exists (fn hyp => ctxt_embeds ctxt hyp goal) hyps'
         |> (fn x => if x then (logging "GOALTYPE" "find embeddings !"; x) 
@@ -117,12 +117,12 @@ struct
         val embedd_hyp =
           filter (fn hyp => ctxt_embeds ctxt hyp goal) hyps'
           |> hd (* only get the first embedding *)
-        val _ = Pretty.chunks ([Pretty.str "unif goal: "] @ 
-                               [((Syntax.pretty_term ctxt goal))] @ 
-                               [Pretty.str "with embeds: "] @
-                               [((Syntax.pretty_term ctxt embedd_hyp))]
+        val _ = str_chunks ([ "unif goal: "] @ 
+                               [((IsaProver.string_of_trm ctxt goal))] @ 
+                               [ "with embeds: "] @
+                               [((IsaProver.string_of_trm ctxt embedd_hyp))]
                                ) 
-        |> Pretty.string_of |> logging "GOALTYPE"
+        |> logging "GOALTYPE"
       in
         is_subterm thy goal embedd_hyp
       end

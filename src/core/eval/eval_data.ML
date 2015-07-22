@@ -214,10 +214,10 @@ local open LoggingHandler in
      | (x::xs) => SOME (get_current edata,edata |> set_current x |> set_branches xs);
 
   fun pretty_goals edata = 
-    Pretty.chunks
-      ([Pretty.str "Open goals in the current psgraph :{"] @
-      (get_pplan edata |> Prover.get_open_pnodes |> map Prover.pretty_pnode) @
-      [Pretty.str "}"])         
+    str_chunks
+      ([ "Open goals in the current psgraph :{"] @
+      ((get_pplan edata |> Prover.get_open_pnodes |> map Prover.pretty_pnode) |> map Pretty.string_of) @
+      [ "}"]) |> Pretty.str        
 
    structure Sharing =
    struct

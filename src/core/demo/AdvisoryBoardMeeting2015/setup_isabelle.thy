@@ -23,11 +23,9 @@ fun assm_tac  _ i = atac i;
 
 (* choose which logging info do we want *)
 ML{*
-  LoggingHandler.clear_active_tags ();
+ LoggingHandler.active_all_tags ();
   LoggingHandler.print_active();
   LoggingHandler.print_all_tags();
-  map LoggingHandler.ins_active_tag ["JSON_GUI"];
-  LoggingHandler.print_active();
 *}
 
 end

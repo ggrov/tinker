@@ -81,7 +81,7 @@ struct
   val pretty_pplan = Pretty.str;
   val pretty_pnode = Pretty.str o get_pnode_name;
   val pretty_trm = K Pretty.str
-
+  cal pretty_goal = pretty_pnode
 
 (* TODO :*)
   fun typ_of term =tpp.typ_of term

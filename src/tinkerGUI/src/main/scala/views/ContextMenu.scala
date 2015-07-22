@@ -10,7 +10,7 @@ object ContextMenu extends PopupMenu {
 
 	var elt = "None"
 	var eltName = ""
-	var eltValue = ""
+	var eltLabel = ""
 	var edgeSource = ""
 	var edgeTarget = ""
 	var eltNames = Set[String]()
@@ -19,8 +19,8 @@ object ContextMenu extends PopupMenu {
 	reactions += {
 		case NothingSelectedEvent() =>
 			elt = "None"
-		case OneVertexSelectedEvent(name, typ, value) =>
-			eltValue = value
+		case OneVertexSelectedEvent(name, typ, label, value) =>
+			eltLabel = label
 			eltName = name
 			typ match {
 				case "T_Identity" => elt = "Identity"
@@ -30,7 +30,7 @@ object ContextMenu extends PopupMenu {
 				case "G" => elt = "Goal"
 			}
 		case OneEdgeSelectedEvent(name, value, source, target) =>
-			elt = "Edge"; eltName = name; eltValue = value; edgeSource = source; edgeTarget = target
+			elt = "Edge"; eltName = name; eltLabel = value; edgeSource = source; edgeTarget = target
 		case ManyVerticesSelectedEvent(names) =>
 			elt = "Many"; eltNames = names
 	}
@@ -85,7 +85,7 @@ object ContextMenu extends PopupMenu {
 				contents += new MenuItem(new Action("Edit node") {
 					def apply() = {
 						Service.documentCtrl.registerChanges()
-						Service.editCtrl.updateTactic(eltName,eltValue,isAtomicTactic = true)
+						Service.editCtrl.updateTactic(eltName,eltLabel,isAtomicTactic = true)
 					}
 				})
 				contents += new MenuItem(deleteNodeAction)
@@ -96,18 +96,18 @@ object ContextMenu extends PopupMenu {
 				contents += new MenuItem(new Action("Edit node") {
 					def apply() = {
 						Service.documentCtrl.registerChanges()
-						Service.editCtrl.updateTactic(eltName,eltValue,isAtomicTactic = false)
+						Service.editCtrl.updateTactic(eltName,eltLabel,isAtomicTactic = false)
 					}
 				})
 				contents += new MenuItem(new Action("Inspect tactic") {
 					def apply() = {
-						Service.inspectorCtrl.inspect(ArgumentParser.separateNameArgs(eltValue)._1)
+						Service.inspectorCtrl.inspect(ArgumentParser.separateNameArgs(eltLabel)._1)
 					}
 				})
 				contents += new MenuItem(new Action("Add a subgraph") {
 					def apply() = {
 						Service.documentCtrl.registerChanges()
-						Service.editCtrl.addSubgraph(ArgumentParser.separateNameArgs(eltValue)._1)
+						Service.editCtrl.addSubgraph(ArgumentParser.separateNameArgs(eltLabel)._1)
 					}
 				})
 				contents += new MenuItem(deleteNodeAction)
@@ -141,7 +141,7 @@ object ContextMenu extends PopupMenu {
 				contents += new MenuItem(new Action("Edit edge") {
 					def apply() = {
 						Service.documentCtrl.registerChanges()
-						Service.editCtrl.editEdge(eltName,edgeSource,edgeTarget,eltValue)
+						Service.editCtrl.editEdge(eltName,edgeSource,edgeTarget,eltLabel)
 					}
 				})
 				if(QuantoLibAPI.hasBreak(eltName)){

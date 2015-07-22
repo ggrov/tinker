@@ -28,7 +28,7 @@ case class NothingSelectedEvent() extends Event
 	* @param typ Node type.
 	* @param value Node value/label.
 	*/
-case class OneVertexSelectedEvent(name : String, typ: String, value: String) extends Event
+case class OneVertexSelectedEvent(name : String, typ: String, label: String, value:String) extends Event
 
 /** Event notifying of a selection containing one edge.
 	*
@@ -46,6 +46,11 @@ case class OneEdgeSelectedEvent(name: String, value: String, source: String, tar
 case class ManyVerticesSelectedEvent(vnames : Set[String]) extends Event
 
 //Launched by EvalController
+
+/** Event notifying of a change in the logs.
+	*
+	*/
+case class EvalLogEvent() extends Event
 
 /** Event notifying of new available evaluation options.
 	*

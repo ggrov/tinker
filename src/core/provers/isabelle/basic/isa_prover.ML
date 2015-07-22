@@ -7,8 +7,12 @@ struct
   type thm = Thm.thm
   type context = Proof.context
 
+  fun term_to_string ctxt t =
+   let
+    val ctxt' = Config.put show_markup false ctxt;
+   in Print_Mode.setmp [] (Syntax.string_of_term ctxt') t end;
   val trm_of_string = Syntax.parse_term;
-  val string_of_trm = Syntax.string_of_term;
+  val string_of_trm = (*Syntax.string_of_term*) term_to_string;
   val pretty_trm = Syntax.pretty_term;
 
 
@@ -19,23 +23,24 @@ struct
     E_ML of string | 
     E_L of env_data list
 
-  fun pretty_env_data _ (E_Str str) = Pretty.block [Pretty.str "E_Str(", Pretty.str str, Pretty.str ")"]
-  |   pretty_env_data ctxt (E_Trm trm) = Pretty.block [Pretty.str "E_Trm(", pretty_trm ctxt trm, Pretty.str ")"]
-  |   pretty_env_data ctxt (E_Thm thm) = Pretty.block [Pretty.str "E_Thm(", Thm.prop_of thm |> pretty_trm ctxt, Pretty.str ")"]
-  |   pretty_env_data _ (E_ML str) = Pretty.block [Pretty.str "E_ML(", Pretty.str str, Pretty.str ")"]
+  fun pretty_env_data _ (E_Str str) =  [ "E_Str(", str, ")"] |> String.concat |> Pretty.str
+  |   pretty_env_data ctxt (E_Trm trm) = [ "E_Trm(", string_of_trm ctxt trm,  ")"] |> String.concat |> Pretty.str
+  |   pretty_env_data ctxt (E_Thm thm) =  [ "E_Thm(", Thm.prop_of thm |> string_of_trm ctxt,  ")"] |> String.concat |> Pretty.str
+  |   pretty_env_data _ (E_ML str) =  [ "E_ML(",  str,  ")"]|> String.concat |> Pretty.str
   |   pretty_env_data ctxt (E_L l) =  
-        Pretty.block [Pretty.str "E_L(\n",
-                      Pretty.chunks (map (pretty_env_data ctxt) l 
-                         |> map (fn p => Pretty.block [Pretty.str "\t\t", p])), 
-                      Pretty.str ")"];
+        Pretty.str (String.concat [ "E_L(",
+                      str_chunks (map (Pretty.string_of o pretty_env_data ctxt) l),
+                       ")"]);
 
   type env = env_data StrName.NTab.T
   
   fun pretty_env ctxt env = 
-    let fun pretty_pair (n, env_data) = Pretty.block [Pretty.str n, Pretty.str ": ", pretty_env_data ctxt env_data] in
+    let fun pretty_pair (n, env_data) = 
+     String.concat [n, ": ", pretty_env_data ctxt env_data |> Pretty.string_of] in
     StrName.NTab.list_of env
     |> map pretty_pair
-    |> (fn xs => Pretty.chunks ((Pretty.str "ENV_DATA: [" :: (map (fn x => (Pretty.block[Pretty.str "\t", x]))xs)) @ [Pretty.str "]"]) )
+    |> (fn xs => str_chunks (( "ENV_DATA: [" :: xs) @ [ "]"]) )
+    |> Pretty.str
     end
 
   type env_tac =  env -> env 
@@ -166,13 +171,14 @@ struct
   fun get_pnode_concl (pnode:pnode) = #ptrm pnode |> Logic.strip_imp_concl;
   fun get_pnode_hyps (pnode:pnode) = #ptrm pnode |> Logic.strip_imp_prems;
 
+  fun pretty_goal pnode = string_of_trm (get_pnode_ctxt pnode)  (get_pnode_concl pnode) |> Pretty.str
   fun pretty_pnode pnode = 
-    Pretty.block
-     [Pretty.str "[ Goal ",
-     Pretty.str (get_pnode_name pnode),
-     Pretty.str " : ",
-     Syntax.pretty_term (get_pnode_ctxt pnode) (get_pnode_concl pnode),
-     Pretty.str " ]"]
+    String.concat
+     [ "[ Goal ",
+     (get_pnode_name pnode),
+      " : ",
+     pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode) |> Pretty.string_of,
+     " ]"] |> Pretty.str
 
   fun pretty_pplan _ = Pretty.str "Pretty PPLAN TOTO";
    
@@ -238,10 +244,7 @@ struct
     type pplan = pplan
     type pnode = pnode
   end
-
-
 end (* struct *)
-
 
 (* OLD STUFF
 

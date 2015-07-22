@@ -28,7 +28,7 @@ sig
 
  val output_string : string -> Json.json -> EData.T option  -> string
  val output_json : string -> Json.json -> EData.T  -> Json.json
- val output_cmd_only_json : string -> Json.json -> Json.json 
+ val output_cmd_only_json : string -> Json.json 
  val mk_cmd_str_arg_json : string list -> Json.json
  
  val eval_any : EData.T -> result

@@ -659,7 +659,7 @@ object QuantoLibAPI extends Publisher{
 					case _ =>
 						graph.vdata(tgt) match {
 							case d:NodeV if d.typ == "G_Break" || d.typ == "G" => // do nothing
-							case d:WireV if graph.adjacentEdges(tgt).size >= 1 => // do nothing
+							case d:WireV if graph.adjacentEdges(tgt).nonEmpty => // do nothing
 							case _ => moveEdge(src, tgt, edge, false)
 						}
 				}
@@ -670,7 +670,7 @@ object QuantoLibAPI extends Publisher{
 					case _ =>
 						graph.vdata(src) match {
 							case d:NodeV if d.typ == "G_Break" || d.typ == "G" => // do nothing
-							case d:WireV if graph.adjacentEdges(src).size >= 1 => // do nothing
+							case d:WireV if graph.adjacentEdges(src).nonEmpty => // do nothing
 							case _ => moveEdge(tgt, src, edge, true)
 						}
 				}
@@ -767,6 +767,35 @@ object QuantoLibAPI extends Publisher{
 	// End methods manipulating edges
 	// ------------------------------------------------------------
 
+	// ------------------------------------------------------------
+	// Methods manipulating graphs (generic, i.e. those method
+	// will take a json graph as parameter and return a json graph)
+	// ------------------------------------------------------------
+
+	/** Method updating tactics' values.
+		*
+ 		* @param graph Json to update.
+		* @param tacticsToUpdate Array of the tactics' values to update.
+		* @return Updated json.
+		*/
+	def updateValues(graph:Json, tacticsToUpdate:Array[(String,String)]):Json = {
+		var gr = Graph.fromJson(graph,theory)
+		gr.vdata.foreach{ case (name,data) =>
+			data match {
+				case d:NodeV if d.typ == "T_Graph" || d.typ == "T_Atomic" =>
+					tacticsToUpdate.foreach{ case (o,n) =>
+						if(d.getValue == o) gr = gr.updateVData(name){_ => d.withValue(n)}
+					}
+				case _ =>
+			}
+		}
+		Graph.toJson(gr,theory)
+	}
+
+	// ------------------------------------------------------------
+	// End methods manipulating graphs
+	// ------------------------------------------------------------
+
 	/** Method to layout the graph.
 		*
 		* Uses Quantomatic's layout algorithm.
@@ -785,7 +814,7 @@ object QuantoLibAPI extends Publisher{
 	private def publishSelectedVerts(){
 		if(view.selectedVerts.size == 1 && view.selectedEdges.size == 0 && !(graph.vdata(view.selectedVerts.head).isBoundary)){
 			(view.selectedVerts.head, graph.vdata(view.selectedVerts.head)) match {
-				case (v: VName, data: NodeV) => publish(OneVertexSelectedEvent(v.s, data.typ, data.label))
+				case (v: VName, data: NodeV) => publish(OneVertexSelectedEvent(v.s, data.typ, data.label, data.getValue))
 			}
 		}
 		else if(view.selectedVerts.size > 1 && view.selectedEdges.size == 0){

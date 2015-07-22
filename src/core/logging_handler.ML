@@ -4,7 +4,7 @@ struct
   exception logging_exp of string
 
   val logging_tags = [ 
-    "BASIC_INFO", (* will be printed if debug level is not set to NO_INFO*)
+    "BASIC_INFO",
     "GOALTYPE",
     "TACTIC",
     "ENV_DATA",
@@ -12,24 +12,27 @@ struct
     "SOCKET",
     "GRAPH",
     "HIERARCHY",
-    "JSON_GUI",
+    (*"JSON_GUI",*)
     "JSON_CORE",
     "EVAL",
-    "GUI_LAUNCHER"
+    "GUI_LAUNCHER",
+    "WARNING"
   ] |> StrName.NSet.of_list;
 
   val active_tags = Unsynchronized.ref StrName.NSet.empty;
   fun get_active_tags _ = !active_tags;
   val set_active_tags = fn x => active_tags := x;
 
-  val logging_handler = 
-    Unsynchronized.ref 
-     (fn tag => (fn msg =>  
+  val logging_handler_print = 
+   (fn tag => (fn msg =>  
       Pretty.writeln (
          Pretty.block [Pretty.str "[ LOGGING - ", 
                        Pretty.str (tag ^ ": "),
                        Pretty.str msg,
-                       Pretty.str " ]"]))); (* the func to handle the loogin info *)
+                       Pretty.str " ]"]))); 
+  val logging_handler = 
+    Unsynchronized.ref logging_handler_print;
+
 
   fun get_logging_handler _ = !logging_handler;
   val set_logging_handler = fn x => logging_handler := x;
@@ -62,5 +65,38 @@ struct
     if StrName.NSet.contains (get_active_tags ()) tag then (get_logging_handler ()) tag x
     else ()
 
+
+  val defaul_buffer = StrName.NTab.of_list 
+  [ ("BASIC_INFO", []), ("GOALTYPE", []), ("TACTIC", []),
+    ("ENV_DATA", []), ("ARG_DATA", []), ("SOCKET", []),
+    ("GRAPH", []), ("HIERARCHY", []), ("JSON_GUI", []),
+    ("JSON_CORE", []), ("EVAL", []), ("GUI_LAUNCHER", []),
+    ("WARNING", [])];
+  val logging_buffer : string list  StrName.NTab.T  Unsynchronized.ref = 
+    Unsynchronized.ref defaul_buffer;
+  val get_logging_buffer = fn _ => !logging_buffer;
+  val set_logging_buffer = fn x => logging_buffer := x;
+  val clear_logging_buffer = fn _ => set_logging_buffer defaul_buffer
+
+  fun insert_buffer_msg tag msg = 
+   StrName.NTab.get (get_logging_buffer ()) tag
+   |> (fn l => l @  [msg])
+   |> (fn x => StrName.NTab.update (tag, x) (get_logging_buffer ()))
+   |> set_logging_buffer
+
+  val logging_handler_gui = insert_buffer_msg
+
+  fun buffer_to_json _ = 
+   StrName.NTab.list_of (get_logging_buffer ())
+   |> List.filter (fn (_,list) => not (list = []))
+   |> map (fn (name, list) => (name, Json.Array (map Json.String list)))
+   |> Json.mk_object
+   |> (fn x => (clear_logging_buffer (); x))
+
+(*fun buffer_to_json _ = Json.mk_object [];*)
   
 end
+
+val _ = LoggingHandler.set_logging_handler 
+  (fn tag => fn msg => (LoggingHandler.logging_handler_print tag msg; LoggingHandler.logging_handler_gui tag msg));
+
