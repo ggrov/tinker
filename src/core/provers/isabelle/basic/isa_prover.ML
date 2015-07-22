@@ -35,10 +35,11 @@ struct
   type env = env_data StrName.NTab.T
   
   fun pretty_env ctxt env = 
-    let fun pretty_pair (n, env_data) = Pretty.block [Pretty.str n, Pretty.str ": ", pretty_env_data ctxt env_data] in
+    let fun pretty_pair (n, env_data) = 
+     String.concat [n, ": ", pretty_env_data ctxt env_data |> Pretty.string_of] in
     StrName.NTab.list_of env
     |> map pretty_pair
-    |> (fn xs => str_chunks (( "ENV_DATA: [" :: (map Pretty.string_of xs)) @ [ "]"]) )
+    |> (fn xs => str_chunks (( "ENV_DATA: [" :: xs) @ [ "]"]) )
     |> Pretty.str
     end
 
@@ -172,12 +173,12 @@ struct
 
   fun pretty_goal pnode = string_of_trm (get_pnode_ctxt pnode)  (get_pnode_concl pnode) |> Pretty.str
   fun pretty_pnode pnode = 
-    Pretty.block
-     [Pretty.str "[ Goal ",
-     Pretty.str (get_pnode_name pnode),
-     Pretty.str " : ",
-     Syntax.pretty_term (get_pnode_ctxt pnode) (get_pnode_concl pnode),
-     Pretty.str " ]"]
+    String.concat
+     [ "[ Goal ",
+     (get_pnode_name pnode),
+      " : ",
+     pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode) |> Pretty.string_of,
+     " ]"] |> Pretty.str
 
   fun pretty_pplan _ = Pretty.str "Pretty PPLAN TOTO";
    

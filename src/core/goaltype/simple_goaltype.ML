@@ -29,7 +29,7 @@ struct
 
   fun gnode_from_json (Json.Object obj) = 
     G {name = JsonInputUtils.get_string obj "name", 
-       pretty = Pretty.str (JsonInputUtils.get_string obj "goal" |> UnicodeHelper.decode)}
+       pretty = Pretty.str (JsonInputUtils.get_string obj "goal" (*|> UnicodeHelper.decode*))}
   | gnode_from_json _ = raise gt_exp "gnode_from_json: ill-formed json structure"
 
   fun data_to_json _ = Json.String "";
