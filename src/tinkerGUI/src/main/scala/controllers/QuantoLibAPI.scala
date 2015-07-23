@@ -311,21 +311,11 @@ object QuantoLibAPI extends Publisher{
 		d match { 
 			case data:NodeV if data.typ == "G_Break" =>
 				removeBreakpoint(v.s)
+			case data:NodeV if data.typ == "G" =>
 			case _ =>
-				var canDeleteElements = true
-				if(graph.vdata.contains(v)){
-					d match {
-						case n: NodeV =>
-							if (n.typ == "T_Graph") canDeleteElements = Service.editCtrl.deleteTactic(n.label, v.s, false)
-							else if (n.typ == "T_Atomic") canDeleteElements = Service.editCtrl.deleteTactic(n.label, v.s, true)
-						case _ =>
-					}
-					if(canDeleteElements){
-						graph.adjacentEdges(v).foreach {deleteEdge}
-						view.invalidateVertex(v)
-						changeGraph(graph.deleteVertex(v))
-					}
-				}
+				graph.adjacentEdges(v).foreach {deleteEdge}
+				view.invalidateVertex(v)
+				changeGraph(graph.deleteVertex(v))
 		}
 	}
 
@@ -358,17 +348,19 @@ object QuantoLibAPI extends Publisher{
 	  *
 	  * @param pt Point where to add the vertex.
 	  * @param typ String representation of the type of node.
+		* @return Id of the new node
 	  */
-	def userAddVertex(pt: java.awt.Point, typ: String){
+	def userAddVertex(pt: java.awt.Point, typ: String, label:String):String = {
 		val coord = view.trans fromScreen (pt.getX, pt.getY)
 		val vertexData = NodeV(data = theory.vertexTypes(typ).defaultData, theory = theory).withCoord(coord)
 		val vertexName = graph.verts.freshWithSuggestion(VName("v0"))
-		addVertex(vertexName, vertexData.withCoord(coord))
-		graph.vdata(vertexName) match {
+		addVertex(vertexName, vertexData.withCoord(coord).withValue(label))
+		/*graph.vdata(vertexName) match {
 			case data: NodeV =>
 				if(typ == "T_Graph") Service.editCtrl.createTactic(vertexName.s,false)
 				else if (typ == "T_Atomic") Service.editCtrl.createTactic(vertexName.s, true)
-		}
+		}*/
+		vertexName.s
 	}
 
 	/** Method to update the value of a vertex.
@@ -964,11 +956,11 @@ object QuantoLibAPI extends Publisher{
 
 		vertexHit.map{ v => (v, graph.vdata(v)) } match {
 			case Some((v, data: NodeV)) =>
-				if(data.typ == "T_Atomic") Service.editCtrl.updateTactic(v.s,data.label,true)
-				else if(data.typ == "T_Graph") Service.editCtrl.updateTactic(v.s,data.label,false)
+				if(data.typ == "T_Atomic") Service.editCtrl.updateTactic(v.s,data.label,data.getValue,true)
+				else if(data.typ == "T_Graph") Service.editCtrl.updateTactic(v.s,data.label,data.getValue,false)
 			case _ =>
 				val edgeHit = view.edgeDisplay find { _._2.pointHit(pt) } map { _._1 }
-				edgeHit.map { e =>
+				edgeHit.foreach { e =>
 					val data = graph.edata(e)
 					Service.editCtrl.editEdge(e.s, graph.source(e).s, graph.target(e).s, data.value)
 				}
@@ -1258,7 +1250,13 @@ object QuantoLibAPI extends Publisher{
 		case KeyPressed (_, (Key.Delete | Key.BackSpace), _, _) =>
 			if(view.selectedVerts.nonEmpty || view.selectedEdges.nonEmpty) {
 				Service.documentCtrl.registerChanges()
-				view.selectedVerts.foreach { deleteVertex }
+				view.selectedVerts.map { v => (v, graph.vdata(v)) } match {
+					case (v:VName, data:NodeV) if data.typ != "G" =>
+						Service.editCtrl.deleteNode(data.typ,v.s,data.getValue)
+					case (v:VName, d:WireV) =>
+						deleteVertex(v)
+					case _ =>
+				}
 				view.selectedEdges.foreach { deleteEdge }
 				view.repaint()
 				publish(NothingSelectedEvent())

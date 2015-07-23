@@ -68,7 +68,6 @@ class EditController(model:PSGraph) extends Publisher {
 		mouseState match {
 			case SelectTool() =>
 				if(clicks == 2) {
-					Service.documentCtrl.registerChanges()
 					QuantoLibAPI.editGraphElement(point)
 				}
 				else QuantoLibAPI.selectElement(point,modifiers,changeMouseState)
@@ -130,9 +129,116 @@ class EditController(model:PSGraph) extends Publisher {
 				Service.documentCtrl.registerChanges()
 				QuantoLibAPI.endAddEdge(startV, point, changeMouseState)
 			case AddVertexTool(typ) =>
-				Service.documentCtrl.registerChanges()
-				QuantoLibAPI.userAddVertex(point, typ)
+				//Service.documentCtrl.registerChanges()
+				createNode(typ,point)
+				//QuantoLibAPI.userAddVertex(point, typ)
 			case _ => // do nothing
+		}
+	}
+
+	/** Method creating a node and if necessary a tactic.
+		*
+		* @param typ Type of node, should be "T_Identity", "T_Atomic" or "T_Graph", the latter two will create a tactic in the model.
+		* @param pt Coordinates of the node.
+		*/
+	def createNode(typ:String,pt:java.awt.Point) {
+		try{
+			Service.documentCtrl.registerChanges()
+			typ match {
+				case "T_Identity" =>
+					QuantoLibAPI.userAddVertex(pt,typ,"")
+				case "T_Atomic" =>
+					def successCallback(values:Map[String,String]) {
+						val name = ArgumentParser.separateNameArgs(values("Name"))._1
+						val args = ArgumentParser.separateNameArgs(values("Name"))._2
+						val tactic = values("Tactic")
+						if(name.isEmpty || tactic.isEmpty){
+							TinkerDialog.openEditDialog("Create atomic tactic",values,successCallback,()=>Unit)
+						} else {
+							if(model.createAT(name,tactic,args)){
+								model.addATOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,model.getATFullName(name)))
+							} else {
+								var confirmDialog = new Dialog()
+								val newAction = new Action("Create new"){
+									def apply() = {
+										confirmDialog.close()
+										TinkerDialog.openEditDialog("Create atomic tactic",values,successCallback,()=>Unit)
+									}
+								}
+								val duplicateAction = new Action("Duplicate tactic"){
+									def apply() = {
+										confirmDialog.close()
+										model.addATOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,model.getATFullName(name)))
+									}
+								}
+								confirmDialog = TinkerDialog.openConfirmationDialog("The atomic tactic name "+name+" is already taken.",Array(newAction,duplicateAction))
+							}
+						}
+					}
+					TinkerDialog.openEditDialog("Create atomic tactic", Map("Name"->"","Tactic"->""),successCallback,()=>Unit)
+				case "T_Graph" =>
+					def successCallback(values:Map[String,String]) {
+						val name = ArgumentParser.separateNameArgs(values("Name"))._1
+						val args = ArgumentParser.separateNameArgs(values("Name"))._2
+						val branchType = values("Branch type")
+						if(name.isEmpty){
+							TinkerDialog.openEditDialog("Create graph tactic",values,successCallback,()=>Unit)
+						} else {
+							if(model.createGT(name,branchType,args)){
+								model.addGTOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,model.getGTFullName(name)))
+								publish(GraphTacticListEvent())
+							} else {
+								var confirmDialog = new Dialog()
+								val newAction = new Action("Create new"){
+									def apply() = {
+										confirmDialog.close()
+										TinkerDialog.openEditDialog("Create graph tactic",values,successCallback,()=>Unit)
+									}
+								}
+								val duplicateAction = new Action("Duplicate tactic"){
+									def apply() = {
+										confirmDialog.close()
+										model.addGTOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,model.getGTFullName(name)))
+										publish(GraphTacticListEvent())
+									}
+								}
+								confirmDialog = TinkerDialog.openConfirmationDialog("The graph tactic name "+name+" is already taken.",Array(newAction,duplicateAction))
+							}
+						}
+					}
+					TinkerDialog.openEditDialog("Create graph tactic", Map("Name"->"","Branch type"->"OR"),successCallback,()=>Unit)
+			}
+		} catch {
+			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
+		}
+	}
+
+	/** Method deleting a node and removing its occurrence in the model if necessary.
+		*
+		* @param typ Type of node, should be "T_Identity", "T_Atomic" or "T_Graph", the latter two will remove the occurrence in the model.
+		* @param nodeId Id tof the node to delete.
+		* @param nodeValue Value associated with the node, i.e. the tactic name if any.
+		*/
+	def deleteNode(typ:String,nodeId:String,nodeValue:String): Unit ={
+		try{
+			Service.documentCtrl.registerChanges()
+			typ match {
+				case "G_Break" => QuantoLibAPI.removeBreakpoint(nodeId)
+				case "T_Identity" => QuantoLibAPI.userDeleteElement(nodeId)
+				case "T_Atomic" =>
+					model.removeATOccurrence(nodeValue,nodeId)
+					QuantoLibAPI.userDeleteElement(nodeId)
+				case "T_Graph" =>
+					if(!(Service.evalCtrl.inEval
+						&& Service.evalCtrl.evalPath.contains(model.getCurrentGTName)
+						&& Service.evalCtrl.evalPath.contains(nodeValue))){
+						model.removeGTOccurrence(nodeValue,nodeId)
+						QuantoLibAPI.userDeleteElement(nodeId)
+						publish(GraphTacticListEvent())
+					}
+			}
+		} catch {
+			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 		}
 	}
 
@@ -159,94 +265,6 @@ class EditController(model:PSGraph) extends Publisher {
 		}
 	}
 
-	/** Method to create a tactic in the model.
-		*
-		* If the tactic is already existing, it links the graphical node to it.
-		* Launched after user created a node (atomic or nested) on the graph.
-		* Launches dialogs to interact with user to get more information on tactic.
-		*
-		* @param nodeId Id of the node the user is creating.
-		* @param isAtomicTactic Boolean stating the nature of the node, atomic of nested.
-		* @param fieldMap Map of the value to specify for the creation of a tactic.
-		*/
-	def createTactic(nodeId:String, isAtomicTactic:Boolean, fieldMap:Map[String,String]) {
-		var dialog:Dialog = new Dialog()
-		var name:String = ""
-		var args:String = ""
-		var tactic:String = ""
-		var branchType:String = ""
-		var checkedByModel:Boolean = false
-		def failureCallback() = {
-			QuantoLibAPI.userDeleteElement(nodeId)
-		}
-		def successCallback(values:Map[String,String]){
-			values.foreach{case (k,v) =>
-				k match {
-					case "Name" =>
-						name = ArgumentParser.separateNameArgs(v)._1
-						args = ArgumentParser.separateNameArgs(v)._2
-					case "Tactic" =>
-						tactic = v
-					case "Branch type" =>
-						branchType = v
-					case _ => // do nothing
-				}
-			}
-			if(name=="" || (isAtomicTactic && tactic=="")){
-				TinkerDialog.openEditDialog("Create node", fieldMap, successCallback, failureCallback)
-			} else {
-				try{
-					//DocumentService.setUnsavedChanges(true)
-					checkedByModel = if(isAtomicTactic) model.createAT(name,tactic,args) else model.createGT(name,branchType,args)
-					if(checkedByModel){
-						if(isAtomicTactic) model.addATOccurrence(name,nodeId) else {model.addGTOccurrence(name,nodeId); publish(GraphTacticListEvent())}
-						QuantoLibAPI.setVertexValue(nodeId, name+"("+args+")")
-					} else {
-						var confirmDialog = new Dialog()
-						val message:String = if(isAtomicTactic) "<html>The name "+name+" is already used by another atomic tactic <br> do you wish to use the same tactic informations or create a new tactic ?"
-						else "<html>The name "+name+" is already used by another graph tactic <br> do you wish to use the same tactic informations or create a new tactic ?"
-						val newAction:Action = new Action("Create new tactic"){
-							def apply(){
-								dialog = TinkerDialog.openEditDialog("Create node", fieldMap, successCallback, failureCallback)
-								confirmDialog.close()
-							}
-						}
-						val duplicateAction:Action = new Action("Use same informations"){
-							def apply(){
-								if(isAtomicTactic) model.addATOccurrence(name,nodeId) else {model.addGTOccurrence(name,nodeId); publish(GraphTacticListEvent())}
-								val fullName = if(isAtomicTactic) model.getATFullName(name) else model.getGTFullName(name)
-								QuantoLibAPI.setVertexValue(nodeId, fullName)
-								confirmDialog.close()
-							}
-						}
-						confirmDialog = TinkerDialog.openConfirmationDialog(message, Array(newAction,duplicateAction))
-					}
-				} catch {
-					case e:PSGraphModelException =>
-						QuantoLibAPI.userDeleteElement(nodeId)
-						TinkerDialog.openErrorDialog(e.msg)
-				}
-			}
-		}
-		dialog = TinkerDialog.openEditDialog("Create node", fieldMap, successCallback, failureCallback)
-	}
-
-	/** Method to create a tactic.
-		*
-		* Invokes the other createTactic method after generating a default fieldmap.
-		*
-		* @param nodeId Id of the node the user is creating.
-		* @param isAtomicTactic Boolean stating the nature of the node, atomic or nested.
-		*/
-	def createTactic(nodeId:String, isAtomicTactic:Boolean) {
-		var fieldMap = Map("Name"->"")
-		if(isAtomicTactic){
-			fieldMap += ("Tactic"->"")
-		} else {
-			fieldMap += ("Branch type"->"OR")
-		}
-		createTactic(nodeId, isAtomicTactic, fieldMap)
-	}
 
 	/** Method to force the creation of a new default tactic, i.e. does not allow duplication.
 		*
@@ -282,219 +300,142 @@ class EditController(model:PSGraph) extends Publisher {
 		* Launched after the user selected the edit option.
 		* Launches dialogs to interact with user to get more information on tactic.
 		*/
-	def updateTactic(nodeId:String, nodeName:String, isAtomicTactic:Boolean){
-		var dialog:Dialog = new Dialog()
-		var name:String = ""
-		var args:String = ""
-		var tactic:String = ""
-		var branchType:String = ""
-		var isUnique:Boolean = false
-		var existingName:Boolean = false
-		val tacticOldName = ArgumentParser.separateNameArgs(nodeName)._1
-		var fieldMap = Map("Name"->nodeName)
-		if(isAtomicTactic){
-			fieldMap += ("Tactic"->model.getATCoreId(tacticOldName))
-		} else {
-			fieldMap += ("Branch type"->model.getGTBranchType(tacticOldName))
-		}
-		var confirmDialog = new Dialog()
-		val cancelAction:Action = new Action("Cancel"){
-			def apply() {
-				confirmDialog.close()
-			}
-		}
-		def failureCallback() = {
-			// Nothing
-		}
-		def successCallback(values:Map[String,String]){
-			values.foreach{case (k,v) =>
-				k match {
-					case "Name" =>
-						name = ArgumentParser.separateNameArgs(v)._1
-						args = ArgumentParser.separateNameArgs(v)._2
-					case "Tactic" =>
-						tactic = v
-					case "Branch type" =>
-						branchType = v
-					case _ => // do nothing
-				}
-			}
-			if(name=="" || (isAtomicTactic && tactic=="")){
-				dialog = TinkerDialog.openEditDialog("Update node", fieldMap, successCallback, failureCallback)
-			} else {
-				try{
-					//DocumentService.setUnsavedChanges(true)
-					if(isAtomicTactic) {
-						existingName = model.atCollection contains name
-						if(existingName && name!=tacticOldName){
-							val message:String = "The atomic tactic "+name+" already exists, do you wish to link this node with it ?"
-							val reuseInfo = new Action("Link node"){
-								def apply {
-									// TODO : consider linking all occurrences
-									deleteTactic(tacticOldName,nodeId,true)
+	def updateTactic(nodeId:String, nodeLabel:String, tacticValue:String, isAtomicTactic:Boolean){
+		try{
+			Service.documentCtrl.registerChanges()
+			if(isAtomicTactic){
+				def successCallback(values:Map[String,String]) {
+					val name = ArgumentParser.separateNameArgs(values("Name"))._1
+					val args = ArgumentParser.separateNameArgs(values("Name"))._2
+					val tactic = values("Tactic")
+					if(name.isEmpty || tactic.isEmpty){
+						TinkerDialog.openEditDialog("Edit atomic tactic",values,successCallback,()=>Unit)
+					} else {
+						if(model.atCollection.contains(name) && name != tacticValue){
+							var confirmDialog = new Dialog()
+							val duplicateAction = new Action("Link node to "+name){
+								def apply() = {
+									confirmDialog.close()
+									if(model.removeATOccurrence(tacticValue,nodeId)) model.deleteAT(tacticValue)
 									model.addATOccurrence(name,nodeId)
-									QuantoLibAPI.setVertexValue(nodeId, model.getATFullName(name))
-									confirmDialog.close()
+									QuantoLibAPI.setVertexValue(nodeId,model.getATFullName(name))
 								}
 							}
-							val redoUpdate = new Action("Choose another name"){
-								def apply {
-									dialog = TinkerDialog.openEditDialog("Update node", fieldMap, successCallback, failureCallback)
+							val redoAction = new Action("Choose another name"){
+								def apply() = {
 									confirmDialog.close()
+									TinkerDialog.openEditDialog("Edit atomic tactic",values,successCallback,()=>Unit)
 								}
 							}
-							confirmDialog = TinkerDialog.openConfirmationDialog(message,Array(reuseInfo,redoUpdate,cancelAction))
+							val cancelAction = new Action("Cancel"){def apply() = { confirmDialog.close() }}
+							confirmDialog = TinkerDialog.openConfirmationDialog("The atomic tactic name "+name+" is already taken.",Array(duplicateAction,redoAction,cancelAction))
 						} else {
-							isUnique = model.updateAT(tacticOldName,name,tactic,args)
-							if(isUnique){
-								QuantoLibAPI.setVertexValue(nodeId, name+"("+args+")")
+							if(model.updateAT(tacticValue,name,tactic,args)){
+								QuantoLibAPI.setVertexValue(nodeId,values("Name"))
 							} else {
-								val message:String = "<html>The atomic tactic "+name+" has many occurrences. <br> Do you wish to edit all of them or make a new tactic ?</html>"
-								val newAction:Action = new Action("Make new tactic"){
-									def apply(){
-										createTactic(nodeId,isAtomicTactic,values)
-										model.removeATOccurrence(tacticOldName, nodeId)
+								var confirmDialog = new Dialog()
+								val createAction = new Action("Create new"){
+									def apply() = {
 										confirmDialog.close()
+										model.removeATOccurrence(tacticValue,nodeId)
+										model.createAT(name,tactic,args)
+										model.addATOccurrence(name,nodeId)
+										QuantoLibAPI.setVertexValue(nodeId,model.getATFullName(name))
 									}
 								}
-								val editAllAction:Action = new Action("Edit all"){
-									def apply(){
-										val nodesToChange:Array[String] = model.updateForceAT(tacticOldName, name,tactic,args)
-										val fullName = model.getATFullName(name)
-										nodesToChange.foreach{ n =>
-											QuantoLibAPI.setVertexValue(n, fullName)
-										}
+								val updateAction = new Action("Update all"){
+									def apply() = {
 										confirmDialog.close()
+										model.updateForceAT(tacticValue,name,tactic,args).foreach(QuantoLibAPI.setVertexValue(_,model.getATFullName(name)))
 									}
 								}
-								confirmDialog = TinkerDialog.openConfirmationDialog(message, Array(newAction,editAllAction,cancelAction))
+								val cancelAction = new Action("Cancel"){def apply() = { confirmDialog.close() }}
+								confirmDialog = TinkerDialog.openConfirmationDialog("The atomic tactic "+name+" has many occurrences.",Array(createAction,updateAction,cancelAction))
 							}
 						}
+					}
+				}
+				TinkerDialog.openEditDialog("Edit atomic tactic",Map("Name"->nodeLabel,"Tactic"->model.getATCoreId(tacticValue)),successCallback,()=>Unit)
+			} else {
+				def successCallback(values:Map[String,String]) {
+					val name = ArgumentParser.separateNameArgs(values("Name"))._1
+					val args = ArgumentParser.separateNameArgs(values("Name"))._2
+					val branchType = values("Branch type")
+					if(name.isEmpty){
+						TinkerDialog.openEditDialog("Edit graph tactic",values,successCallback,()=>Unit)
 					} else {
-						existingName = model.gtCollection contains name
-						if(existingName && name!=tacticOldName){
-							val message:String = "The graph tactic "+name+" already exists, do you wish to link this node with it ?"
-							val reuseInfo = new Action("Link node"){
-								def apply {
-									// TODO : consider linking all occurrences
-									deleteTactic(tacticOldName,nodeId,false)
+						if(model.gtCollection.contains(name) && name != tacticValue){
+							var confirmDialog = new Dialog()
+							val duplicateAction = new Action("Link node to "+name){
+								def apply() = {
+									confirmDialog.close()
+									if(model.removeGTOccurrence(tacticValue,nodeId)) model.deleteGT(tacticValue)
 									model.addGTOccurrence(name,nodeId)
+									QuantoLibAPI.setVertexValue(nodeId,model.getGTFullName(name))
 									publish(GraphTacticListEvent())
-									QuantoLibAPI.setVertexValue(nodeId, model.getGTFullName(name))
-									confirmDialog.close()
 								}
 							}
-							val redoUpdate = new Action("Choose another name"){
-								def apply {
-									dialog = TinkerDialog.openEditDialog("Update node", fieldMap, successCallback, failureCallback)
+							val redoAction = new Action("Choose another name"){
+								def apply() = {
 									confirmDialog.close()
+									TinkerDialog.openEditDialog("Edit graph tactic",values,successCallback,()=>Unit)
 								}
 							}
-							if(!(Service.evalCtrl.inEval
-								&& Service.evalCtrl.evalPath.contains(tacticOldName)
-								&& Service.evalCtrl.evalPath.contains(model.getCurrentGTName))) {
-								confirmDialog = TinkerDialog.openConfirmationDialog(message,Array(reuseInfo,redoUpdate,cancelAction))
-							} else {
-								confirmDialog = TinkerDialog.openInformationDialog("Tactic "+tacticOldName+" cannot be renamed "+name)
-							}
+							val cancelAction = new Action("Cancel"){def apply() = { confirmDialog.close() }}
+							// the following will not give the option to link a nested node to another graph tactic
+							// if the user is evaluating and the is editing the evaluation path
+							val actionArray:Array[Action] =
+								if(Service.evalCtrl.inEval
+									&& Service.evalCtrl.evalPath.contains(model.getCurrentGTName)
+									&& Service.evalCtrl.evalPath.contains(tacticValue)){
+									Array(redoAction,cancelAction)
+								} else {
+									Array(duplicateAction,redoAction,cancelAction)
+								}
+							confirmDialog = TinkerDialog.openConfirmationDialog("The graph tactic name "+name+" is already taken.",actionArray)
 						} else {
-							isUnique = model.updateGT(tacticOldName,name,branchType,args)
-							if(isUnique){
-								QuantoLibAPI.setVertexValue(nodeId, name+"("+args+")")
-								if(Service.evalCtrl.evalPath.contains(tacticOldName)){
-									val index = Service.evalCtrl.evalPath.indexOf(tacticOldName)
-									Service.evalCtrl.evalPath(index) = name
-								}
+							if(model.updateGT(tacticValue,name,branchType,args)){
+								QuantoLibAPI.setVertexValue(nodeId,values("Name"))
 								publish(GraphTacticListEvent())
 							} else {
-								val message:String = "<html>The graph tactic "+name+" has many occurrences. <br> Do you wish to edit all of them or make a new tactic ?</html>"
-								val messageBis:String = "<html>The graph tactic "+name+" has many occurrences. <br> All of those should be updated. </html>"
-								val newAction:Action = new Action("Make new tactic"){
-									def apply(){
-										createTactic(nodeId,isAtomicTactic,values)
-										model.removeGTOccurrence(tacticOldName, nodeId)
-										publish(GraphTacticListEvent())
+								var confirmDialog = new Dialog()
+								val createAction = new Action("Create new"){
+									def apply() = {
 										confirmDialog.close()
+										model.removeGTOccurrence(tacticValue,nodeId)
+										model.createGT(name,branchType,args)
+										model.addATOccurrence(name,nodeId)
+										QuantoLibAPI.setVertexValue(nodeId,model.getGTFullName(name))
+										publish(GraphTacticListEvent())
 									}
 								}
-								val editAllAction:Action = new Action("Edit all"){
-									def apply(){
-										val nodesToChange: Array[String] = model.updateForceGT(tacticOldName, name, branchType, args)
-										if(Service.evalCtrl.evalPath.contains(tacticOldName)){
-											val index = Service.evalCtrl.evalPath.indexOf(tacticOldName)
-											Service.evalCtrl.evalPath(index) = name
-										}
-										publish(GraphTacticListEvent())
-										val fullName = model.getGTFullName(name)
-										nodesToChange.foreach{ n =>
-											QuantoLibAPI.setVertexValue(n, fullName)
-										}
+								val updateAction = new Action("Update all"){
+									def apply() = {
 										confirmDialog.close()
+										model.updateForceGT(tacticValue,name,branchType,args).foreach(QuantoLibAPI.setVertexValue(_,model.getGTFullName(name)))
+										publish(GraphTacticListEvent())
 									}
 								}
-								if(!(Service.evalCtrl.inEval
-									&& Service.evalCtrl.evalPath.contains(tacticOldName)
-									&& Service.evalCtrl.evalPath.contains(model.getCurrentGTName))) {
-									confirmDialog = TinkerDialog.openConfirmationDialog(message, Array(newAction,editAllAction,cancelAction))
-								} else {
-									confirmDialog = TinkerDialog.openConfirmationDialog(messageBis, Array(editAllAction,cancelAction))
-								}
+								val cancelAction = new Action("Cancel"){def apply() = { confirmDialog.close() }}
+								// the following will not give the option to create a new graph tactic
+								// if the user is evaluating and the is editing the evaluation path
+								val actionArray:Array[Action] =
+									if(Service.evalCtrl.inEval
+										&& Service.evalCtrl.evalPath.contains(model.getCurrentGTName)
+										&& Service.evalCtrl.evalPath.contains(tacticValue)){
+										Array(updateAction,cancelAction)
+									} else {
+										Array(createAction,updateAction,cancelAction)
+									}
+								confirmDialog = TinkerDialog.openConfirmationDialog("The graph tactic "+name+" has many occurrences.",actionArray)
 							}
 						}
 					}
-				} catch {
-					case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 				}
-			}
-		}
-		dialog = TinkerDialog.openEditDialog("Update node "+nodeId, fieldMap, successCallback, failureCallback)
-	}
-
-	/** Method to delete a tactic
-		*
-		* @param nodeName Name of tactic associated with the node.
-		* @param nodeId Id of the node deleted.
-		* @param isAtomicTactic Boolean stating the nature of the node, atomic or nested.
-		* @return Boolean notifying if it is ok to delete a tactic node
-		*/
-	def deleteTactic(nodeName:String, nodeId:String, isAtomicTactic:Boolean):Boolean = {
-		try {
-
-			val tacticName = ArgumentParser.separateNameArgs(nodeName)._1
-			if(!(Service.evalCtrl.inEval && Service.evalCtrl.evalPath.contains(tacticName) && Service.evalCtrl.evalPath.contains(model.getCurrentGTName))){
-				val lastOcc:Boolean = if(isAtomicTactic) model.removeATOccurrence(tacticName, nodeId) else model.removeGTOccurrence(tacticName,nodeId)
-				publish(GraphTacticListEvent())
-				if(lastOcc){
-					val message =
-						if(isAtomicTactic) "This was the only occurrence of this atomic tactic, its data have been deleted."
-						else "This was the only occurrence of this graph tactic, its data and child tactic's data have been deleted."
-					TinkerDialog.openInformationDialog(message)
-					// the following was opening a dialog to ask the user if they want to keep the data
-					// note that it induced complication when removing a graph tactic having children tactic appearing once as well
-					/*var confirmDialog = new Dialog()
-					val message:String = "This is the last occurrence of this tactic. Do you wish to keep its data ?"
-					val keepAction:Action = new Action("Keep data") {
-						def apply() {
-							// do nothing
-							confirmDialog.close()
-						}
-					}
-					val delAction:Action = new Action("Delete data") {
-						def apply() {
-							if(isAtomicTactic) model.deleteAT(tacticName) else model.deleteGT(tacticName)
-							confirmDialog.close()
-						}
-					}
-					confirmDialog = TinkerDialog.openConfirmationDialog(message,Array(keepAction,delAction))*/
-				}
-				true
-			} else {
-				false
+				TinkerDialog.openEditDialog("Edit graph tactic",Map("Name"->nodeLabel,"Branch type"->model.getGTBranchType(tacticValue)),successCallback,()=>Unit)
 			}
 		} catch {
-			case e:PSGraphModelException =>
-				TinkerDialog.openErrorDialog(e.msg)
-				false
+			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 		}
 	}
 

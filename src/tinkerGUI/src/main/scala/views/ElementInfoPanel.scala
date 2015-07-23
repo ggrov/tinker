@@ -17,8 +17,7 @@ class VertexEditContent(nam: String, typ: String, label: String, value:String) e
 	val delButton = new Button(
 		new Action(""){
 			def apply(){
-				Service.documentCtrl.registerChanges()
-				QuantoLibAPI.userDeleteElement(nam)
+				Service.editCtrl.deleteNode(typ,name,value)
 			}
 		}){
 		icon = if(typ=="T_Atomic") {
@@ -38,8 +37,8 @@ class VertexEditContent(nam: String, typ: String, label: String, value:String) e
 	val editButton = new Button(
 		new Action(""){
 			def apply(){
-				Service.documentCtrl.registerChanges()
-				Service.editCtrl.updateTactic(nam,label,typ=="T_Atomic")
+				//Service.documentCtrl.registerChanges()
+				Service.editCtrl.updateTactic(nam,label,value,typ=="T_Atomic")
 			}
 		}){
 		icon = new ImageIcon(MainGUI.getClass.getResource("edit-pen.png"), "Edit")
@@ -151,6 +150,13 @@ class VerticesEditContent(names: Set[String]) extends BoxPanel(Orientation.Verti
 			dialog.close()
 		}
 	}
+	val deleteAction = new Action("Yes"){
+		def apply() = {
+			Service.documentCtrl.registerChanges()
+			names.foreach(QuantoLibAPI.userDeleteElement)
+			dialog.close()
+		}
+	}
 	val cancelAction = new Action("Cancel"){
 		def apply() = {
 			dialog.close()
@@ -160,6 +166,13 @@ class VerticesEditContent(names: Set[String]) extends BoxPanel(Orientation.Verti
 		new Action("Merge nodes"){
 			def apply() = {
 				dialog = TinkerDialog.openConfirmationDialog("<html>You are about to merge these nodes.</br>Do you wish to continue ?</html>", Array(mergeAction, cancelAction))
+			}
+		}
+	)
+	val deleteButton = new Button(
+		new Action("Delete nodes"){
+			def apply() = {
+				dialog = TinkerDialog.openConfirmationDialog("<html>You are about to delete these nodes.</br>Do you wish to continue ?</html>", Array(deleteAction, cancelAction))
 			}
 		}
 	)
@@ -175,6 +188,7 @@ class VerticesEditContent(names: Set[String]) extends BoxPanel(Orientation.Verti
 	}
 	contents += new FlowPanel(FlowPanel.Alignment.Left)(){
 		contents += mergeButton
+		contents += deleteButton
 	}
 }
 
