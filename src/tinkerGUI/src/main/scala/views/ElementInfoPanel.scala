@@ -17,7 +17,7 @@ class VertexEditContent(nam: String, typ: String, label: String, value:String) e
 	val delButton = new Button(
 		new Action(""){
 			def apply(){
-				Service.editCtrl.deleteNode(typ,name,value)
+				Service.editCtrl.deleteNode(typ,nam,value)
 			}
 		}){
 		icon = if(typ=="T_Atomic") {
@@ -121,8 +121,7 @@ class VertexEditContent(nam: String, typ: String, label: String, value:String) e
 			val removeBreak = new Button(
 				new Action("") {
 					def apply() {
-						Service.documentCtrl.registerChanges()
-						QuantoLibAPI.removeBreakpoint(nam)
+						Service.editCtrl.deleteNode(typ,nam,value)
 					}
 				}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("remove-break.png"), "Remove breakpoint")
@@ -145,16 +144,14 @@ class VerticesEditContent(names: Set[String]) extends BoxPanel(Orientation.Verti
 	var dialog = new Dialog()
 	val mergeAction = new Action("Yes"){
 		def apply() = {
-			Service.documentCtrl.registerChanges()
-			QuantoLibAPI.mergeSelectedVertices()
 			dialog.close()
+			Service.editCtrl.mergeSelectedNodes()
 		}
 	}
 	val deleteAction = new Action("Yes"){
 		def apply() = {
-			Service.documentCtrl.registerChanges()
-			names.foreach(QuantoLibAPI.userDeleteElement)
 			dialog.close()
+			Service.editCtrl.deleteNodes(names)
 		}
 	}
 	val cancelAction = new Action("Cancel"){
@@ -165,14 +162,16 @@ class VerticesEditContent(names: Set[String]) extends BoxPanel(Orientation.Verti
 	val mergeButton = new Button(
 		new Action("Merge nodes"){
 			def apply() = {
-				dialog = TinkerDialog.openConfirmationDialog("<html>You are about to merge these nodes.</br>Do you wish to continue ?</html>", Array(mergeAction, cancelAction))
+				//dialog = TinkerDialog.openConfirmationDialog("<html>You are about to merge these nodes.</br>Do you wish to continue ?</html>", Array(mergeAction, cancelAction))
+				Service.editCtrl.mergeSelectedNodes()
 			}
 		}
 	)
 	val deleteButton = new Button(
 		new Action("Delete nodes"){
 			def apply() = {
-				dialog = TinkerDialog.openConfirmationDialog("<html>You are about to delete these nodes.</br>Do you wish to continue ?</html>", Array(deleteAction, cancelAction))
+				//dialog = TinkerDialog.openConfirmationDialog("<html>You are about to delete these nodes.</br>Do you wish to continue ?</html>", Array(deleteAction, cancelAction))
+				Service.editCtrl.deleteNodes(names)
 			}
 		}
 	)
@@ -198,7 +197,6 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String) exte
 	val editButton = new Button(
 		new Action("") {
 			def apply() = {
-				Service.documentCtrl.registerChanges()
 				Service.editCtrl.editEdge(nam,src,tgt,value)
 			}
 		}
@@ -216,8 +214,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String) exte
 			new Button(
 				new Action("") {
 				def apply() = {
-					Service.documentCtrl.registerChanges()
-					QuantoLibAPI.removeBreakpointFromEdge(nam)
+					Service.editCtrl.removeBreakFromEdge(nam)
 				}
 			}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("remove-break.png"), "Remove breakpoint")
@@ -233,8 +230,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String) exte
 			new Button(
 				new Action("") {
 					def apply() = {
-						Service.documentCtrl.registerChanges()
-						QuantoLibAPI.addBreakpointOnEdge(nam)
+						Service.editCtrl.addBreakOnEdge(nam)
 					}
 				}){
 				icon = new ImageIcon(MainGUI.getClass.getResource("add-break.png"), "Add breakpoint")
@@ -249,8 +245,7 @@ class EdgeEditContent(nam: String, value: String, src: String, tgt: String) exte
 	val delButton = new Button(
 		new Action(""){
 			def apply() = {
-				Service.documentCtrl.registerChanges()
-				QuantoLibAPI.userDeleteElement(nam)
+				Service.editCtrl.deleteEdge(nam)
 			}
 		}){
 		icon = new ImageIcon(MainGUI.getClass.getResource("delete-edge.png"), "Delete")

@@ -68,8 +68,7 @@ object ContextMenu extends PopupMenu {
 				})
 				contents += new MenuItem(new Action("Paste") {
 					def apply() = {
-						Service.documentCtrl.registerChanges()
-						QuantoLibAPI.paste()
+						Service.editCtrl.paste
 					}
 				}){
 					this.peer.setEnabled(QuantoLibAPI.canPaste)
@@ -120,14 +119,12 @@ object ContextMenu extends PopupMenu {
 			case "Many" =>
 				contents += new MenuItem(new Action("Merge into nested tactic") {
 					def apply() = {
-						Service.documentCtrl.registerChanges()
-						QuantoLibAPI.mergeSelectedVertices()
+						Service.editCtrl.mergeSelectedNodes()
 					}
 				})
 				contents += new MenuItem(new Action("Delete nodes") {
 					def apply() = {
-						Service.documentCtrl.registerChanges()
-						eltNames.foreach(QuantoLibAPI.userDeleteElement)
+						Service.editCtrl.deleteNodes(eltNames)
 					}
 				})
 				contents += new MenuItem(copyAction){
@@ -136,30 +133,26 @@ object ContextMenu extends PopupMenu {
 			case "Edge" =>
 				contents += new MenuItem(new Action("Edit edge") {
 					def apply() = {
-						Service.documentCtrl.registerChanges()
 						Service.editCtrl.editEdge(eltName,edgeSource,edgeTarget,eltLabel)
 					}
 				})
 				if(QuantoLibAPI.hasBreak(eltName)){
 					contents += new MenuItem(new Action("Remove breakpoint") {
 						def apply() = {
-							Service.documentCtrl.registerChanges()
-							QuantoLibAPI.removeBreakpointFromEdge(eltName)
+							Service.editCtrl.removeBreakFromEdge(eltName)
 						}
 					})
 				}
 				else {
 					contents += new MenuItem(new Action("Add breakpoint") {
 						def apply() = {
-							Service.documentCtrl.registerChanges()
-							QuantoLibAPI.addBreakpointOnEdge(eltName)
+							Service.editCtrl.addBreakOnEdge(eltName)
 						}
 					})
 				}
 				contents += new MenuItem(new Action("Delete edge") {
 					def apply() = {
-						Service.documentCtrl.registerChanges()
-						QuantoLibAPI.userDeleteElement(eltName)
+						Service.editCtrl.deleteEdge(eltName)
 					}
 				})
 			case "G" => // do nothing
