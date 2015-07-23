@@ -11,7 +11,7 @@ struct
   val default_ctxt = get_current_pc (); (* used in those place need context in general *)
 
     
-  fun pretty_trm _ trm = Pretty.block (map Pretty.str (PrettyPrinter.format_term true trm))
+  fun pretty_trm _ trm = String.concat (PrettyPrinter.format_term true trm) |> Pretty.str
 
   type arg_data = string (* A_Const of string | A_Var of string | A_Trm of term *)
   
@@ -22,9 +22,9 @@ struct
     E_L of env_data list
 
   fun pretty_env_data _ (E_Str str) =  [ "E_Str(", str, ")"] |> String.concat |> Pretty.str
-  |   pretty_env_data ctxt (E_Trm trm) = [ "E_Trm(", string_of_trm ctxt trm,  ")"] |> String.concat |> Pretty.str
-  |   pretty_env_data ctxt (E_Thm thm) =  [ "E_Thm(", Thm.prop_of thm |> string_of_trm ctxt,  ")"] |> String.concat |> Pretty.str
-  |   pretty_env_data _ (E_ML str) =  [ "E_ML(",  str,  ")"]|> String.concat |> Pretty.str
+  |   pretty_env_data ctxt (E_Trm trm) = [ "E_Trm(", pretty_trm ctxt trm |> Pretty.string_of,  ")"] |> String.concat |> Pretty.str
+  |   pretty_env_data ctxt (E_Thm thm) =  [ "E_Thm(", concl thm |> pretty_trm ctxt |> Pretty.string_of,  ")"] |> String.concat |> Pretty.str
+  |   pretty_env_data _ (E_ML str) =  [ "E_ML(",  str,  ")"] |> String.concat |> Pretty.str
   |   pretty_env_data ctxt (E_L l) =  
         Pretty.str (String.concat [ "E_L(",
                       str_chunks (map (Pretty.string_of o pretty_env_data ctxt) l),
@@ -32,11 +32,12 @@ struct
 
   type env = env_data StrName.NTab.T
   
+  
   fun pretty_env ctxt env = 
-    let fun pretty_pair (n, env_data) = Pretty.block [Pretty.str n, Pretty.str ": ", pretty_env_data ctxt env_data] in
+    let fun pretty_pair (n, env_data) = String.concat [n, ": ", pretty_env_data ctxt env_data |> Pretty.string_of] in
     StrName.NTab.list_of env
     |> map pretty_pair
-    |> (fn xs => str_chunks (( "ENV_DATA: [" :: (map Pretty.string_of xs)) @ [ "]"]) )
+    |> (fn xs => str_chunks (( "ENV_DATA: [" :: xs) @ [ "]"]) )
     |> Pretty.str
     end
     
@@ -188,16 +189,14 @@ struct
      end
 
   fun pretty_pnode pnode = 
-    Pretty.block
-    [Pretty.str "[ Goal ", 
-    Pretty.str (get_pnode_name pnode),
-    Pretty.str " : ",
-    pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode),
-    Pretty.str " ]"];
+    String.concat
+    ["[ Goal ", 
+    (get_pnode_name pnode),
+    " : ",
+    pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode) |> Pretty.string_of,
+    " ]"] |> Pretty.str;
 
-  fun pretty_goal = pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode)
-
-  
+  fun pretty_goal pnode = pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode)
 
   fun apply_tactic args (tac_code : string) (pnode,pplan) = 
     let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in
