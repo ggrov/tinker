@@ -98,5 +98,5 @@ struct
 end
 
 val _ = LoggingHandler.set_logging_handler 
-  (fn tag => fn msg => (LoggingHandler.logging_handler_print tag msg; LoggingHandler.logging_handler_gui tag msg));
+  (fn tag => fn msg => ((*LoggingHandler.logging_handler_print tag msg;*) LoggingHandler.logging_handler_gui tag msg));
 
