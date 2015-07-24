@@ -28,6 +28,6 @@
 
  fun str_chunks l = 
   let fun c (a,b) = a ^ "\n" ^ b; in 
-  List.foldl c (hd l) (tl l) end;
+  List.foldr c (hd l) (tl l) end;
 
 

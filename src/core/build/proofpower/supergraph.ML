@@ -11,6 +11,8 @@
   use_file (supergraph_path ^ "supergraph.ML"); 
   use_file (supergraph_path ^ "simpleGT_supergraph.ML"); 
 
+  OS.FileSys.chDir root_path;
+
 (* enable the subgoal package printing 
   set_flags [
   ("subgoal_package_quiet", false), (* enable xpp output *)
