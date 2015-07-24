@@ -96,10 +96,16 @@ class TinkerMenu() extends MenuBar{
 
 	// for test purpose
 	val Debug = new Menu("debug"){ menu =>
-		val openLog = new Action("Open log window"){
+		new Action("Open eval log window"){
 			menu.contents += new MenuItem(this)
 			def apply(){
-				EvalLogWindow.open()
+				Service.evalCtrl.logStack.openFrame("Tinker - eval log")
+			}
+		}
+		new Action("Open edit log window"){
+			menu.contents += new MenuItem(this)
+			def apply(){
+				Service.editCtrl.logStack.openFrame("Tinker - edit log")
 			}
 		}
 		val printJson = new Action("Print JSON in Console") {

@@ -22,6 +22,8 @@ class EditController(model:PSGraph) extends Publisher {
 		*/
 	private var mouseState: MouseState = SelectTool()
 
+	val logStack = new FilteredLogStack
+
 	/** Method to update the mouse state.
 		*
 		* @param state State id.
@@ -213,7 +215,8 @@ class EditController(model:PSGraph) extends Publisher {
 					TinkerDialog.openEditDialog("Create graph tactic", Map("Name"->"","Branch type"->"OR"),successCallback,()=>Unit)
 			}
 		} catch {
-			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg) // todo log
+			case e:PSGraphModelException =>
+				logStack.addToLog("Model error",e.msg)
 		}
 	}
 
@@ -245,15 +248,15 @@ class EditController(model:PSGraph) extends Publisher {
 						QuantoLibAPI.userDeleteElement(nodeId)
 						publish(GraphTacticListEvent())
 					} else {
-						// todo log
+						logStack.addToLog("Edit forbidden","this tactic is being evaluated by the core, you cannot delete it")
 					}
 				case "Boundary" =>
 					Service.documentCtrl.registerChanges()
 					QuantoLibAPI.userDeleteElement(nodeId)
-				case "G" => // todo log
+				case "G" => logStack.addToLog("Edit forbidden","you cannot delete a goal")
 			}
 		} catch {
-			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg) // todo log
+			case e:PSGraphModelException => logStack.addToLog("Model error",e.msg)
 		}
 	}
 
@@ -267,7 +270,7 @@ class EditController(model:PSGraph) extends Publisher {
 			Service.documentCtrl.registerChanges()
 			QuantoLibAPI.userDeleteElement(edgeId)
 		} else {
-			// todo log
+			logStack.addToLog("Edit forbidden","you can not delete an edge with a goal on it.")
 		}
 	}
 
@@ -290,11 +293,9 @@ class EditController(model:PSGraph) extends Publisher {
 				model.addGTOccurrence(name,nodeId)
 			}
 		} catch {
-			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg) // todo log
+			case e:PSGraphModelException => logStack.addToLog("Model error",e.msg)
 		}
 	}
-
-	// todo : move register changes inside successful callbacks
 
 	/** Method to update a tactic's details.
 		*
@@ -439,7 +440,7 @@ class EditController(model:PSGraph) extends Publisher {
 				TinkerDialog.openEditDialog("Edit graph tactic",Map("Name"->nodeLabel,"Branch type"->model.getGTBranchType(tacticValue)),successCallback,()=>Unit)
 			}
 		} catch {
-			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg) // todo log
+			case e:PSGraphModelException => logStack.addToLog("Model error",e.msg)
 		}
 	}
 
@@ -463,7 +464,7 @@ class EditController(model:PSGraph) extends Publisher {
 				model.addGTOccurrence(name, newParent, newIndex, nodeId)
 			}
 		} catch {
-			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg) // todo log
+			case e:PSGraphModelException => logStack.addToLog("Model error",e.msg)
 		}
 	}
 
@@ -518,7 +519,7 @@ class EditController(model:PSGraph) extends Publisher {
 			QuantoLibAPI.loadFromJson(model.getCurrentJson)
 			publish(CurrentGraphChangedEvent(tactic,parents))
 		} catch {
-			case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg) // todo log
+			case e:GraphTacticNotFoundException => logStack.addToLog("Model error",e.msg)
 			case e:SubgraphNotFoundException =>
 				addSubgraph(tactic,parents)
 		}
@@ -537,7 +538,7 @@ class EditController(model:PSGraph) extends Publisher {
 			Service.graphNavCtrl.viewedGraphChanged(model.isMain,true)
 			publish(CurrentGraphChangedEvent(tactic,parents))
 		} catch {
-			case e:GraphTacticNotFoundException => TinkerDialog.openErrorDialog(e.msg) // todo log
+			case e:GraphTacticNotFoundException => logStack.addToLog("Model error",e.msg)
 		}
 	}
 
@@ -551,7 +552,7 @@ class EditController(model:PSGraph) extends Publisher {
 			Service.documentCtrl.registerChanges()
 			model.delSubgraphGT(tactic,index)
 		} else {
-			// todo log
+			logStack.addToLog("Edit forbidden","this tactic is being evaluated by the core, you cannot delete one of its subgraph")
 		}
 	}
 
@@ -571,6 +572,7 @@ class EditController(model:PSGraph) extends Publisher {
 					Service.documentCtrl.registerChanges()
 					model.createGT(name,values("Branch type"),args)
 					model.addGTOccurrence(name,QuantoLibAPI.mergeSelectedVertices(values("Name")))
+					// todo : insert new tactic in eval path if necessary
 					publish(GraphTacticListEvent())
 				}
 			}
@@ -578,7 +580,7 @@ class EditController(model:PSGraph) extends Publisher {
 		if(Service.evalCtrl.inEval
 			&& !QuantoLibAPI.selectedContainTactics(Service.evalCtrl.evalPath.toSet)
 			&& QuantoLibAPI.selectedContainGoals){
-			// todo : log impossible actions
+			logStack.addToLog("Edit forbidden","merging these nodes will break the evaluation")
 		} else {
 			TinkerDialog.openEditDialog("Merge nodes into a graph tactic",Map("Name"->"","Branch type"->"OR"),successCallback,()=>Unit)
 		}
@@ -593,7 +595,7 @@ class EditController(model:PSGraph) extends Publisher {
 		names.foreach{ n =>
 			QuantoLibAPI.getNodeTypeAndValue(n) match {
 				case ("G_Break",_) => QuantoLibAPI.removeBreakpoint(n)
-				case ("G",_) => // do nothing : todo log not possible
+				case ("G",_) => logStack.addToLog("Edit forbidden","you cannot delete a goal")
 				case ("Boundary",_) => QuantoLibAPI.userDeleteElement(n)
 				case ("T_Identity",_) => QuantoLibAPI.userDeleteElement(n)
 				case ("T_Atomic",v:String) =>
@@ -607,7 +609,7 @@ class EditController(model:PSGraph) extends Publisher {
 						QuantoLibAPI.userDeleteElement(n)
 						publish(GraphTacticListEvent())
 					} else {
-						// todo log
+						logStack.addToLog("Edit forbidden","this tactic is being evaluated by the core, you cannot delete it")
 					}
 			}
 		}

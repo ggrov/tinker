@@ -248,7 +248,13 @@ object CommunicationService extends Publisher {
 		j match {
 			case logs: Json if logs == JsonNull => sendErrorResponse("RSP_ERROR_UPDATE_PSGRAPH", "no log info")
 			case logs: JsonObject =>
-				Service.evalCtrl.evalLogCtrl.addToLog(logs)
+				Service.evalCtrl.logStack.addToLog(logs.mapValue.map{
+					case (k,v) =>
+						k -> v.asArray.map {
+							case (s: JsonString) => s.stringValue
+							case _ => "<< Message parse error, wrong type >>"
+						}
+				})
 			case _ => sendErrorResponse("RSP_ERROR_UPDATE_PSGRAPH", "bad log info format")
 		}
 	}
