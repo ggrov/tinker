@@ -798,7 +798,7 @@ object QuantoLibAPI extends Publisher{
 		* @param tacticsToUpdate Array of the tactics' values to update.
 		* @return Updated json.
 		*/
-	def updateValues(graph:Json, tacticsToUpdate:Array[(String,String)]):Json = {
+	def updateValuesInGraph(graph:Json, tacticsToUpdate:Array[(String,String)]):Json = {
 		var gr = Graph.fromJson(graph,theory)
 		gr.vdata.foreach{ case (name,data) =>
 			data match {
@@ -806,6 +806,26 @@ object QuantoLibAPI extends Publisher{
 					tacticsToUpdate.foreach{ case (o,n) =>
 						if(d.getValue == o) gr = gr.updateVData(name){_ => d.withValue(n)}
 					}
+				case _ =>
+			}
+		}
+		Graph.toJson(gr,theory)
+	}
+
+	/** Method removing all goals from one graph.
+		*
+		* @param graph Json graph to modify.
+		* @return Updated json with no goals.
+		*/
+	def graphWithNoGoals(graph:Json):Json = {
+		var gr = Graph.fromJson(graph,theory)
+		gr.vdata.foreach { case(name,data) =>
+			data match {
+				case d:NodeV if d.typ == "G" =>
+					val prevNode = gr.source(gr.inEdges(name).head)
+					val nextNode = gr.target(gr.outEdges(name).head)
+					val edgeData = gr.edata(gr.inEdges(name).head)
+					gr = gr.deleteVertex(name).newEdge(edgeData,(prevNode,nextNode))
 				case _ =>
 			}
 		}

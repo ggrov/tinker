@@ -393,6 +393,18 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		atCollection = Map()
 	}
 
+	/** Method removing all goals from graphs.
+		*
+		*/
+	def removeGoals {
+		mainTactic.addSubgraph(QuantoLibAPI.graphWithNoGoals(mainTactic.getSubgraph(0)).asObject,0)
+		gtCollection.foreach{ case (name,gt) =>
+			gt.graphs.zipWithIndex.foreach { case (gr,i) =>
+				gt.addSubgraph(QuantoLibAPI.graphWithNoGoals(gr).asObject,i)
+			}
+		}
+	}
+
 	/** Method renaming the model, i.e. renames the main tactic.
 		*
 		* @param name New name.
@@ -525,7 +537,7 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		if(isMain){
 			gtCollection.foreach { case (k,v) =>
 					v.graphs.zipWithIndex.foreach { case (g,i) =>
-						QuantoLibAPI.updateValues(g,Array((oldVal,newVal))) match {
+						QuantoLibAPI.updateValuesInGraph(g,Array((oldVal,newVal))) match {
 							case j : JsonObject => v.graphs(i) = j
 							case j:Json => throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
 						}
@@ -539,14 +551,14 @@ class PSGraph(name:String) extends ATManager with GTManager {
 					}
 			}
 		} else {
-			QuantoLibAPI.updateValues(mainTactic.getSubgraph(0),Array((oldVal,newVal))) match {
+			QuantoLibAPI.updateValuesInGraph(mainTactic.getSubgraph(0),Array((oldVal,newVal))) match {
 				case j : JsonObject => mainTactic.graphs(0) = j
 				case j:Json => throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
 			}
 			gtCollection.foreach { case(k,v) =>
 				v.graphs.zipWithIndex.foreach { case (g,i)=>
 					if(k != currentTactic.name && i != currentIndex) {
-						QuantoLibAPI.updateValues(g,Array((oldVal,newVal))) match {
+						QuantoLibAPI.updateValuesInGraph(g,Array((oldVal,newVal))) match {
 							case j : JsonObject => v.graphs(i) = j
 							case j:Json => throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
 						}
