@@ -1,5 +1,7 @@
 package tinkerGUI.controllers
 
+import java.io.{IOException, FileNotFoundException, File}
+
 import tinkerGUI.controllers.events.GraphTacticListEvent
 import tinkerGUI.model.exceptions.{SubgraphNotFoundException, GraphTacticNotFoundException, AtomicTacticNotFoundException}
 
@@ -59,6 +61,44 @@ object Service extends Publisher {
 	/** Method to get the branch type of a specific graph tactic. See [[tinkerGUI.model.PSGraph.getGTBranchType]].*/
 	def getBranchTypeGT(tactic: String) = model.getGTBranchType(tactic)
 
+
+	def initApp() {
+		try {
+			DocumentService.load(new File((Json.parse(new File(".tinkerConfig"))/"file").stringValue)) match {
+				case Some(j:JsonObject) => documentCtrl.openJson(j)
+				case _ =>
+			}
+
+		} catch {
+			case e: JsonAccessException =>
+				TinkerDialog.openErrorDialog("loading : mal-formed JSON: " + e.getMessage)
+
+			case e: JsonParseException =>
+				TinkerDialog.openErrorDialog("loading : mal-formed JSON: " + e.getMessage)
+
+			case e: FileNotFoundException =>
+				TinkerDialog.openErrorDialog("loading : file not found")
+
+			case e: IOException =>
+				TinkerDialog.openErrorDialog("loading : file unreadable")
+
+			case e: Exception =>
+				TinkerDialog.openErrorDialog("loading : unexpected error")
+				e.printStackTrace()
+
+		}
+	}
+
+	def closeApp() {
+		println("closing")
+		if(documentCtrl.closeDoc()){
+			DocumentService.file match {
+				case Some(f:File) => JsonObject("file"->JsonString(f.toString)).writeTo(new File(".tinkerConfig"))
+				case _ =>
+			}
+			sys.exit(0)
+		}
+	}
 
 
 	def saveGraphSpecificTactic(tactic: String, graph: Json, index: Int) = {

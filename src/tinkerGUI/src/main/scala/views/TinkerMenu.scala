@@ -50,7 +50,7 @@ class TinkerMenu() extends MenuBar{
 			menu.contents += new MenuItem(this) { mnemonic = Key.Q }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_Q, CommandMask))
 			def apply() {
-				if(Service.documentCtrl.closeDoc()) sys.exit(0)
+				Service.closeApp()
 			}
 		}
 	}

@@ -98,25 +98,33 @@ class DocumentController(model:PSGraph) extends Publisher {
 		model.updateJsonPSGraph()
 		DocumentService.showOpenDialog(None) match {
 			case Some(j:JsonObject) =>
-				if(j.nonEmpty){
-					try{
-						model.loadJsonGraph(j)
-						undoStack.empty()
-						redoStack.empty()
-						publish(GraphTacticListEvent())
-						publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(model.currentParents)))
-						QuantoLibAPI.loadFromJson(model.getCurrentJson)
-						Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
-						unsavedChanges = false
-						publish(DocumentChangedEvent(unsavedChanges))
-					} catch {
-						case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
-						case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
-					}
-				} else {
-					TinkerDialog.openErrorDialog("<html>Error while loading json from file : object is empty.</html>")
-				}
+				openJson(j)
 			case _ => TinkerDialog.openErrorDialog("<html>Error while loading json from file : not a json object.</html>")
+		}
+	}
+
+	/** Method to open a Json object and set it as the model.
+		*
+		* @param j Json to open.
+		*/
+	def openJson(j:JsonObject) {
+		if(j.nonEmpty){
+			try{
+				model.loadJsonGraph(j)
+				undoStack.empty()
+				redoStack.empty()
+				publish(GraphTacticListEvent())
+				publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(model.currentParents)))
+				QuantoLibAPI.loadFromJson(model.getCurrentJson)
+				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
+				unsavedChanges = false
+				publish(DocumentChangedEvent(unsavedChanges))
+			} catch {
+				case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
+				case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
+			}
+		} else {
+			TinkerDialog.openErrorDialog("<html>Error while loading json from file : object is empty.</html>")
 		}
 	}
 

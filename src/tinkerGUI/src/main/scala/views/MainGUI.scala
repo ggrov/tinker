@@ -55,6 +55,9 @@ object MainGUI extends SimpleSwingApplication {
 				title = "Tinker - " + Service.documentCtrl.title
 		}
     Service.setTopFrame(this)
+		Service.initApp()
+
+		override def closeOperation() { Service.closeApp() }
 	}
 
 
