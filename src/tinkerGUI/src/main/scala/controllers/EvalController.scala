@@ -113,7 +113,6 @@ class EvalController(model:PSGraph) extends Publisher {
 		*/
 	def selectEvalOption(o:String){
 		publish(DisableEvalOptionsEvent())
-		selectedNode = ""
 		o match {
 			case "PUSH" =>
 				model.updateJsonPSGraph()
@@ -123,6 +122,7 @@ class EvalController(model:PSGraph) extends Publisher {
 			case _ =>
 				publish(EvalOptionSelectedEvent(o, selectedNode))
 		}
+		selectedNode = ""
 	}
 
 	listenTo(QuantoLibAPI)
