@@ -137,7 +137,7 @@ object TinkerDialog {
 						val t = new TextField(v, 5)
 						contents += t
 						textfieldMap += (k -> t)
-					} else if(k=="Name"){
+					} else if(k=="Name"||k=="Proof name"){
 						val t = new TextField(v, 15)
 						contents += t
 						textfieldMap += (k -> t)

@@ -162,7 +162,8 @@ object CommunicationService extends Publisher {
 					getEvalOptions(j ? "eval_options")
 					println("log info")
 					getEvalLog(j ? "log_info")
-				case "RSP_ERROR_CHANGE_PSGRAPH" =>
+				case "RSP_EXCEPTION" =>
+					getEvalLog(j ? "log_info")
 					if (state == CommunicationState.WaitingForPsgraph) {
 						j ? "eval_psgraph" match {
 							case eval: Json if eval == JsonNull => // send back error

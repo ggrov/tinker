@@ -130,6 +130,25 @@ class FilteredLogStack {
 			font = new Font(Font.MONOSPACED,Font.BOLD,14)
 			text = getLog
 		}
+		val filters = new BoxPanel(Orientation.Vertical){
+			contents += new Label("Filters :")
+			var f = Array[String]()
+			def updateFilters {
+				stack.foreach{ case (s,_) =>
+					if(!f.contains(s)){
+						f = f :+ s
+						filtered += s
+						this.contents += new CheckBox(s){
+							selected = true
+							action = new Action(s){
+								def apply = if(selected) addToFilter(s) else removeFromFilter(s)
+							}
+						}
+					}
+				}
+			}
+			updateFilters
+		}
 		val mBar = new MenuBar(){
 			val options = new Menu("Options"){ menu =>
 				new Action("Clear"){
@@ -137,7 +156,7 @@ class FilteredLogStack {
 					def apply() = clearStack
 				}
 			}
-			var f = Array[String]()
+			/*var f = Array[String]()
 			val filters = new Menu("Filters")
 			def updateFilters {
 				stack.foreach{ case (s,_) =>
@@ -153,16 +172,18 @@ class FilteredLogStack {
 					}
 				}
 			}
-			updateFilters
-			contents += (options, filters)
+			updateFilters*/
+			contents += (options)
 		}
 		def updateText = {
-			mBar.updateFilters
+			filters.updateFilters
 			messages.text = getLog
 		}
 		menuBar = mBar
 		minimumSize = new Dimension(250,250)
-		contents = new ScrollPane(messages)
+		contents = new SplitPane(Orientation.Vertical){
+			contents_=(new ScrollPane(messages),filters)
+		}
 	}
 
 	/** Method to get the logs in a single string.*/

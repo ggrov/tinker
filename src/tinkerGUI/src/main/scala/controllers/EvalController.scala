@@ -86,6 +86,8 @@ class EvalController(model:PSGraph) extends Publisher {
 				publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(Service.hierarchyCtrl.elementParents(model.getCurrentGTName))))
 				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
+				DocumentService.proofTitle = model.mainTactic.name
+				Service.documentCtrl.publish(DocumentChangedEvent(true))
 				saveEvalPath()
 			} catch {
 				case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)

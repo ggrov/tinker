@@ -62,30 +62,18 @@ object Service extends Publisher {
 	def getBranchTypeGT(tactic: String) = model.getGTBranchType(tactic)
 
 
-	def initApp() {
+	def initApp():Boolean = {
 		try {
 			DocumentService.load(new File((Json.parse(new File(".tinkerConfig"))/"file").stringValue)) match {
-				case Some(j:JsonObject) => documentCtrl.openJson(j)
+				case Some(j:JsonObject) =>
+					documentCtrl.openJson(j)
+					true
 				case _ =>
+					false
 			}
-
 		} catch {
-			case e: JsonAccessException =>
-				TinkerDialog.openErrorDialog("loading : mal-formed JSON: " + e.getMessage)
-
-			case e: JsonParseException =>
-				TinkerDialog.openErrorDialog("loading : mal-formed JSON: " + e.getMessage)
-
-			case e: FileNotFoundException =>
-				TinkerDialog.openErrorDialog("loading : file not found")
-
-			case e: IOException =>
-				TinkerDialog.openErrorDialog("loading : file unreadable")
-
 			case e: Exception =>
-				TinkerDialog.openErrorDialog("loading : unexpected error")
-				e.printStackTrace()
-
+				false
 		}
 	}
 
