@@ -86,7 +86,7 @@ class EvalController(model:PSGraph) extends Publisher {
 				publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(Service.hierarchyCtrl.elementParents(model.getCurrentGTName))))
 				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
-				// to be enhanced one undo is handled by core
+				// to be enhanced once undo is handled by core
 				DocumentService.proofTitle = model.mainTactic.name
 				Service.documentCtrl.undoStack.empty()
 				Service.documentCtrl.redoStack.empty()

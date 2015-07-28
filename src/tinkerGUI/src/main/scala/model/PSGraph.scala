@@ -397,11 +397,15 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		*
 		*/
 	def removeGoals {
-		mainTactic.addSubgraph(QuantoLibAPI.graphWithNoGoals(mainTactic.getSubgraph(0)).asObject,0)
-		gtCollection.foreach{ case (name,gt) =>
-			gt.graphs.zipWithIndex.foreach { case (gr,i) =>
-				gt.addSubgraph(QuantoLibAPI.graphWithNoGoals(gr).asObject,i)
+		try{
+			mainTactic.addSubgraph(QuantoLibAPI.graphWithNoGoals(mainTactic.getSubgraph(0)).asObject,0)
+			gtCollection.foreach{ case (name,gt) =>
+				gt.graphs.zipWithIndex.foreach { case (gr,i) =>
+					gt.addSubgraph(QuantoLibAPI.graphWithNoGoals(gr).asObject,i)
+				}
 			}
+		} catch {
+			case e:SubgraphNotFoundException =>
 		}
 	}
 

@@ -1,11 +1,12 @@
 package tinkerGUI.controllers
 
-import tinkerGUI.controllers.events.{CurrentGraphChangedEvent, GraphTacticListEvent}
+import tinkerGUI.controllers.events.{CurrentGraphChangedEvent, GraphTacticListEvent, MouseStateChangedEvent}
 import tinkerGUI.model.PSGraph
-import tinkerGUI.model.exceptions.{PSGraphModelException, SubgraphNotFoundException, GraphTacticNotFoundException, AtomicTacticNotFoundException}
+import tinkerGUI.model.exceptions.{PSGraphModelException, SubgraphNotFoundException, GraphTacticNotFoundException}
 import tinkerGUI.utils._
 import tinkerGUI.views.ContextMenu
 
+import scala.swing.event.Key
 import scala.swing.event.Key.Modifiers
 import scala.swing.{Component, Publisher, Action, Dialog}
 
@@ -36,6 +37,7 @@ class EditController(model:PSGraph) extends Publisher {
 			case "addNSTVertex" => mouseState = AddVertexTool("T_Graph")
 			case "addEdge" => mouseState = AddEdgeTool()
 		}
+		publish(MouseStateChangedEvent(state))
 	}
 
 	/** Method to update the mouse state.
@@ -237,15 +239,15 @@ class EditController(model:PSGraph) extends Publisher {
 					QuantoLibAPI.userDeleteElement(nodeId)
 				case "T_Atomic" =>
 					Service.documentCtrl.registerChanges()
-					model.removeATOccurrence(nodeValue,nodeId)
 					QuantoLibAPI.userDeleteElement(nodeId)
+					model.removeATOccurrence(nodeValue,nodeId)
 				case "T_Graph" =>
 					if(!(Service.evalCtrl.inEval
 						&& Service.evalCtrl.evalPath.contains(model.getCurrentGTName)
 						&& Service.evalCtrl.evalPath.contains(nodeValue))){
 						Service.documentCtrl.registerChanges()
-						model.removeGTOccurrence(nodeValue,nodeId)
 						QuantoLibAPI.userDeleteElement(nodeId)
+						model.removeGTOccurrence(nodeValue,nodeId)
 						publish(GraphTacticListEvent())
 					} else {
 						logStack.addToLog("Edit forbidden","this tactic is being evaluated by the core, you cannot delete it")

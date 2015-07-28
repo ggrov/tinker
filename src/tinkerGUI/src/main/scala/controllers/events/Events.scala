@@ -108,3 +108,9 @@ case class UpdateGTListEvent() extends Event
 	* @param a List of option to disable.
 	*/
 case class DisableNavigationEvent(a:Array[String]) extends Event
+
+// launched by edit controller
+/** Event notifying of a change of mouse state.
+	*
+	*/
+case class MouseStateChangedEvent(state:String) extends Event

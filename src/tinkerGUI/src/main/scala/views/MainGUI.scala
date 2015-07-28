@@ -4,6 +4,7 @@ import tinkerGUI.controllers.events.DocumentChangedEvent
 import tinkerGUI.controllers.{CommunicationService, Service}
 
 import scala.swing._
+import scala.swing.event.{Key, KeyReleased}
 
 object MainGUI extends SimpleSwingApplication {
 
@@ -99,7 +100,5 @@ object MainGUI extends SimpleSwingApplication {
 		centerOnScreen()
 		override def closeOperation() { Service.closeApp() }
 	}
-
-
 
 }

@@ -1314,7 +1314,6 @@ object QuantoLibAPI extends Publisher{
 			Service.editCtrl.mouseReleased(e.point, e.modifiers)
 	}
 
-
 	/** listener to view keys events */
 	listenTo(view.keys)
 	reactions += {
@@ -1335,5 +1334,16 @@ object QuantoLibAPI extends Publisher{
 			if(source == this.view) {
 				Service.editCtrl.paste
 			}
+		case KeyReleased(_,Key.S,_,_) =>
+			Service.editCtrl.changeMouseState("select")
+		case KeyReleased(_,Key.I,_,_) =>
+			Service.editCtrl.changeMouseState("addIDVertex")
+		case KeyReleased(_,Key.A,_,_) =>
+			Service.editCtrl.changeMouseState("addATMVertex")
+		case KeyReleased(_,Key.N,_,_) =>
+			Service.editCtrl.changeMouseState("addNSTVertex")
+		case KeyReleased(_,Key.E,_,_) =>
+			Service.editCtrl.changeMouseState("addEdge")
+
 	}
 }

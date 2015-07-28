@@ -1,11 +1,13 @@
 package tinkerGUI.views
 
-import tinkerGUI.controllers.QuantoLibAPI
+import tinkerGUI.controllers.{Service, QuantoLibAPI}
 
 import scala.swing._
 import javax.swing.ImageIcon
 import java.awt.Cursor
 import java.awt.Insets
+
+import scala.swing.event.{Key, KeyReleased}
 
 class GraphEditPanel() extends BorderPanel {
 
@@ -59,4 +61,5 @@ class GraphEditPanel() extends BorderPanel {
 		top.visible = visible
 		graphPanel.visible = visible
 	}
+
 }

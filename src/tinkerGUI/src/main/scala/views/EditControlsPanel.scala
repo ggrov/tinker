@@ -1,6 +1,6 @@
 package tinkerGUI.views
 
-import tinkerGUI.controllers.events.DocumentChangedEvent
+import tinkerGUI.controllers.events.{MouseStateChangedEvent, DocumentChangedEvent}
 import tinkerGUI.controllers.Service
 import tinkerGUI.utils.ToolBar
 
@@ -42,26 +42,46 @@ class EditControlsPanel() extends Publisher {
 		icon = new ImageIcon(MainGUI.getClass.getResource("select-rectangular.png"), "Select")
 		tooltip = "Select"
 		selected = true
+		listenTo(Service.editCtrl)
+		reactions += {
+			case MouseStateChangedEvent(state) => selected = state == "select"
+		}
 	}
 	val AddIDVertexButton = new ToggleButton() {
 		action = new Action(""){def apply()={Service.editCtrl.changeMouseState("addIDVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_id.png"), "Add Vertex")
 		tooltip = "Add an identity vertex"
+		listenTo(Service.editCtrl)
+		reactions += {
+			case MouseStateChangedEvent(state) => selected = state == "addIDVertex"
+		}
 	}
 	val AddATMVertexButton = new ToggleButton() {
 		action = new Action(""){def apply()={Service.editCtrl.changeMouseState("addATMVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_atomic.png"), "Add Vertex")
 		tooltip = "Add an atomic vertex"
+		listenTo(Service.editCtrl)
+		reactions += {
+			case MouseStateChangedEvent(state) => selected = state == "addATMVertex"
+		}
 	}
 	val AddNSTVertexButton = new ToggleButton() {
 		action = new Action(""){def apply()={Service.editCtrl.changeMouseState("addNSTVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_nested.png"), "Add Vertex")
 		tooltip = "Add a nested vertex"
+		listenTo(Service.editCtrl)
+		reactions += {
+			case MouseStateChangedEvent(state) => selected = state == "addNSTVertex"
+		}
 	}
 	val AddEdgeButton = new ToggleButton() {
 		action = new Action(""){def apply()={Service.editCtrl.changeMouseState("addEdge")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw-edge.png"), "Add Edge")
 		tooltip = "Add edge"
+		listenTo(Service.editCtrl)
+		reactions += {
+			case MouseStateChangedEvent(state) => selected = state == "addEdge"
+		}
 	}
 	val GraphToolGroup = new ButtonGroup(SelectButton, AddIDVertexButton, AddEdgeButton, AddATMVertexButton, AddNSTVertexButton)
 
