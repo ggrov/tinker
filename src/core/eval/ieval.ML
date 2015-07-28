@@ -39,11 +39,13 @@ struct
      if EVal.has_psgraph_terminated edata then Good edata
      else
      (* todo: hierichecal one *)
-       EVal.eval_goal_goalname if_debug  g edata
+       EVal.eval_goal_goalname if_debug g edata
        |> Seq.list_of (* get a list of eval results *)
        (*|> map fst  map out branches *)
        |> update_branches edata
    end
+   handle EVal.EData.PSGraph.Theory.Graph.no_such_vertex_exp (f, v, _) => 
+      raise logging_exp ("Exception in " ^ f ^ " for node " ^ (V.string_of_name v));
   
   val eval_goal = eval_goal0 false;
 (* need to restore pom depends on provers *)
