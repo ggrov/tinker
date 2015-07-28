@@ -27,7 +27,6 @@
    end;
 
  fun str_chunks l = 
-  let fun c (a,b) = a ^ "\n" ^ b; in 
-  List.foldr c (hd l) (tl l) end;
-
+  let fun c (a,b) = a ^ "\n" ^ b; val l' = rev l in 
+  List.foldl c (hd l') (tl l') end;
 

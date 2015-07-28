@@ -79,14 +79,17 @@ class EvalController(model:PSGraph) extends Publisher {
 		* @param j Json object of the new model.
 		*/
 	def loadJson(j:JsonObject) {
-		if(!j.isEmpty){
+		if(j.nonEmpty){
 			try{
 				model.loadJsonGraph(j)
 				publish(GraphTacticListEvent())
 				publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(Service.hierarchyCtrl.elementParents(model.getCurrentGTName))))
 				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
+				// to be enhanced one undo is handled by core
 				DocumentService.proofTitle = model.mainTactic.name
+				Service.documentCtrl.undoStack.empty()
+				Service.documentCtrl.redoStack.empty()
 				Service.documentCtrl.publish(DocumentChangedEvent(true))
 				saveEvalPath()
 			} catch {
@@ -113,7 +116,6 @@ class EvalController(model:PSGraph) extends Publisher {
 		*/
 	def selectEvalOption(o:String){
 		publish(DisableEvalOptionsEvent())
-		selectedNode = ""
 		o match {
 			case "PUSH" =>
 				model.updateJsonPSGraph()
@@ -123,6 +125,7 @@ class EvalController(model:PSGraph) extends Publisher {
 			case _ =>
 				publish(EvalOptionSelectedEvent(o, selectedNode))
 		}
+		selectedNode = ""
 	}
 
 	listenTo(QuantoLibAPI)

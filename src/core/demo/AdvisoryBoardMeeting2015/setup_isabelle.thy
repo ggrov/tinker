@@ -23,7 +23,7 @@ fun assm_tac  _ i = atac i;
 
 (* choose which logging info do we want *)
 ML{*
- LoggingHandler.active_all_tags ();
+  LoggingHandler.active_all_tags ();
   LoggingHandler.print_active();
   LoggingHandler.print_all_tags();
 *}

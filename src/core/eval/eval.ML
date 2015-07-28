@@ -439,7 +439,9 @@ struct
                |> (fn [x] => x) (* raise exception: log if not singleton list *)
    in
      eval_goal_gen is_debug gnode_name NONE NONE edata
-   end;
+   end
+
+(**)
   end; (* end of open local graph utils *)
 end (* functor *)
 
