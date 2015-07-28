@@ -1,5 +1,5 @@
 functor ClauseGTFun(structure Prover : PROVER  
-                    val struct_name : string)  : BASIC_GOALTYPE =
+                    val struct_name : string)  : CLAUSE_GOALTYPE =
 struct
 
   structure Prover = Prover;
@@ -56,7 +56,7 @@ struct
   val default_data = P {imports = [], defs = [], atomics = StrName.NTab.empty};
 
   (* required? *)
-  fun eq (t1,t2) = true;
+  fun eq _ = true;
   fun gnode_ord (g1, g2) = String.compare (goal_name g1, goal_name g2);
   fun gnode_eq (g1,g2) = case gnode_ord(g1,g2) of EQUAL => true | _ => false;
 
@@ -88,7 +88,7 @@ struct
    |  pretty_clause (Constraint arg) =
        Pretty.block [pretty_arg arg, Pretty.str ".\n"]  ;
 
-  fun pretty_data (P {imports,defs,atomics}) =
+  fun pretty_data (P {defs,...}) =
     Pretty.block (map pretty_clause defs);
 
   fun pretty (s,args) = 
@@ -101,7 +101,7 @@ struct
   val pretty_env = StrName.NTab.pretty (Prover.pretty_env_data Prover.default_ctxt);
 
   val str_env = pretty_env #> Pretty.string_of;
-  val dbg_env = str_env #> dbg;
+  (* val dbg_env = str_env #> dbg; *)
   val str_cls = pretty_clause #> Pretty.string_of;
   val str_arg = pretty_arg #> Pretty.string_of;
 
