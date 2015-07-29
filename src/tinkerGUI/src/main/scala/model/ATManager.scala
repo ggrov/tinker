@@ -17,34 +17,13 @@ trait ATManager {
 	 *
 	 * @param id Gui id/name of the atomic tactic.
 	 * @param tactic Core id of the atomic tactic.
-	 * @param args List of arguments for the atomic tactic.
 	 * @return Boolean notifying of successful creation or not (should be used to handle duplication).
 	 */
-	def createAT(id:String,tactic:String,args:Array[Array[String]]): Boolean = {
+	def createAT(id:String,tactic:String): Boolean = {
 		if(atCollection contains id){
 			false
 		} else {
-			val t: AtomicTactic = new AtomicTactic(id, tactic)
-			t.replaceArguments(args)
-			atCollection += id -> t
-			true
-		}
-	}
-
-	/** Method creating an atomic tactic if the id is available.
-		*
-		* @param id Gui id/name of the atomic tactic.
-		* @param tactic Core id of the atomic tactic.
-		* @param args List of arguments for the atomic tactic, in a string format.
-		* @return Boolean notifying of successful creation or not (should be used to handle duplication).
-		*/
-	def createAT(id:String,tactic:String,args:String): Boolean = {
-		if(atCollection contains id){
-			false
-		} else {
-			val t: AtomicTactic = new AtomicTactic(id, tactic)
-			t.replaceArguments(args)
-			atCollection += id -> t
+			atCollection += id -> new AtomicTactic(id, tactic)
 			true
 		}
 	}
@@ -54,17 +33,15 @@ trait ATManager {
 	 * @param id Gui id before change.
 	 * @param newId New gui id value.
 	 * @param newTactic New core id value.
-	 * @param newArgs New list of arguments.
 	 * @return Boolean notifying of successful change or not (should be used to handle duplication).
 	 * @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 	 */
-	def updateAT(id:String, newId:String, newTactic:String, newArgs:Array[Array[String]]):Boolean = {
+	def updateAT(id:String, newId:String, newTactic:String):Boolean = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
 				if(t.occurrences.size < 2){
 					t.name = newId
 					t.tactic = newTactic
-					t.replaceArguments(newArgs)
 					if(id != newId){
 						atCollection += (newId -> t)
 						atCollection -= id
@@ -82,18 +59,14 @@ trait ATManager {
 		*
 		* @param id Gui id before change.
 		* @param newId New gui id value.
-		* @param newTactic New core id value.
-		* @param newArgs New list of arguments, in a string format.
 		* @return Boolean notifying of successful change or not (should be used to handle duplication).
 		* @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
-	def updateAT(id:String, newId:String, newTactic:String, newArgs:String):Boolean = {
+	def updateAT(id:String, newId:String):Boolean = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
 				if(t.occurrences.size < 2){
 					t.name = newId
-					t.tactic = newTactic
-					t.replaceArguments(newArgs)
 					if(id != newId){
 						atCollection += (newId -> t)
 						atCollection -= id
@@ -112,18 +85,16 @@ trait ATManager {
 	 * @param id Gui id before change.
 	 * @param newId New gui id value.
 	 * @param newTactic New core id value.
-	 * @param newArgs New list of arguments.
 	 * @param graph Current graph id.
 	 * @param index Current graph index.
 	 * @return List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).
 	 * @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 	 */
-	def updateForceAT(id:String, newId:String, newTactic:String, newArgs:Array[Array[String]], graph:String, index:Int):Array[String] = {
+	def updateForceAT(id:String, newId:String, newTactic:String, graph:String, index:Int):Array[String] = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
 				t.name = newId
 				t.tactic = newTactic
-				t.replaceArguments(newArgs)
 				if (id != newId) {
 					atCollection += (newId -> t)
 					atCollection -= id
@@ -138,19 +109,15 @@ trait ATManager {
 		*
 		* @param id Gui id before change.
 		* @param newId New gui id value.
-		* @param newTactic New core id value.
-		* @param newArgs New list of arguments, in a string format.
 		* @param graph Current graph id.
 		* @param index Current graph index.
 		* @return List of node id linked with this atomic tactic in the current graph (should be used to update the graph view).
 		* @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
 		*/
-	def updateForceAT(id:String, newId:String, newTactic:String, newArgs:String, graph:String, index:Int):Array[String] = {
+	def updateForceAT(id:String, newId:String, graph:String, index:Int):Array[String] = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
 				t.name = newId
-				t.tactic = newTactic
-				t.replaceArguments(newArgs)
 				if (id != newId) {
 					atCollection += (newId -> t)
 					atCollection -= id
@@ -169,31 +136,30 @@ trait ATManager {
 		atCollection -= id
 	}
 
-	/** Method to get the full name (name + arguments) of an atomic tactic.
-		*
-		* @param id Gui id of the atomic tactic.
-		* @return Full name.
-		* @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
-		*/
-	def getATFullName(id:String):String = {
+	/** Method to get the tactic value of an atomic tactic.
+	 *
+	 * @param id Gui id of the atomic tactic.
+	 * @return Tactic value.
+	 * @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
+	 */
+	def getTacticValue(id:String):String = {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
-				t.name+"("+t.argumentsToString()+")"
-			case None =>
+				t.tactic
+			case _ =>
 				throw new AtomicTacticNotFoundException(id)
 		}
 	}
 
-	/** Method to get the core id of an atomic tactic.
-	 *
-	 * @param id Gui id of the atomic tactic.
-	 * @return Core id or "Not Found" in case the atomic tactic could not be found.
-	 * @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
-	 */
-	def getATCoreId(id:String):String = {
+	/** Method to set the tactic value of an atomic tactic.
+		*
+		* @param id Gui id of the atomic tactic.
+		* @throws AtomicTacticNotFoundException If the atomic tactic is not in the collection.
+		*/
+	def setTacticValue(id:String,tactic:String) {
 		atCollection get id match {
 			case Some(t:AtomicTactic) =>
-				t.tactic
+				t.tactic = tactic
 			case _ =>
 				throw new AtomicTacticNotFoundException(id)
 		}

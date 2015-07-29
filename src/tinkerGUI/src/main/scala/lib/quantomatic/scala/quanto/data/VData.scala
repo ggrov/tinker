@@ -62,40 +62,35 @@ case class NodeV(
 
   //val value: Json = (data.getPath(theory.vertexTypes(typ).value.path)) match {
   // changed by Pierre Le Bras : prints the label field instead of tactic default field
-  val value: Json = (data.getPath("$.label")) match {
+  val value: Json = (data.getPath(theory.vertexTypes(typ).value.path)) match {
     case str : JsonString => str
-    case obj : JsonObject => obj.getOrElse("pretty", JsonString(""))
-    case _ => (data.getPath(theory.vertexTypes(typ).value.path)) match {
-      case str : JsonString => str
-      case obj : JsonObject =>
-        if(typ=="G") {
-          obj / "name" match{
-            case str : JsonString => str
-            case _ => JsonString("")
-          }
+    case obj : JsonObject =>
+      if(typ=="G") {
+        obj / "name" match{
+          case str : JsonString => str
+          case _ => obj.getOrElse("pretty", JsonString(""))
         }
-        else obj.getOrElse("pretty", JsonString(""))
-      case _ => JsonString("")
-    }
+      }
+      else obj.getOrElse("pretty", JsonString(""))
+    case _ => JsonString("")
   }
 
-	// Added by plebras : mostly to get a goal node value
-	def getValue:String = {
-		data.getPath(theory.vertexTypes(typ).value.path) match {
-			case str : JsonString => str.stringValue
-			case obj : JsonObject =>
-				if(typ=="G"){
-					obj / "goal" match {
-						case str : JsonString => str.stringValue
-						case _ => ""
-					}
-				}
-				else ""
-			case _ => ""
-		}
-	}
+  val args: Json = (data.getPath("$.args")) match {
+    case arr : JsonArray => arr
+    case _ => JsonString("")
+  }
 
-  def label = data.getOrElse("label",value).stringValue
+  def label:String = {
+    data.getPath("$.label") match {
+			case str:JsonString => str.stringValue
+			case _ =>
+				typ match {
+					case "T_Atomic" => value.stringValue+"("+ArgumentParser.jsonToArgString(args.asArray)+")"
+					case _ => value.stringValue
+				}
+
+		}
+  }
  // def value = data ? "value"
 
   def typeInfo = theory.vertexTypes(typ)
@@ -105,7 +100,7 @@ case class NodeV(
   
   /** Create a copy of the current vertex with the new value */
   def withValue(s: String) =
-    copy(data = data.setPath(theory.vertexTypes(typ).value.path, ArgumentParser.separateNameArgs(s)._1).setPath("$.label", s).asObject)
+    copy(data = data.setPath(theory.vertexTypes(typ).value.path, ArgumentParser.separateNameArgs(s)._1).setPath("$.label", s).setPath("$.args",ArgumentParser.argStringToJson(ArgumentParser.separateNameArgs(s)._2)).asObject)
   // changed by Pierre Le Bras, uses an argument parser to store only the tactic name in the default field
 
   def isWireVertex = false

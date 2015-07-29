@@ -2,6 +2,8 @@ package tinkerGUI.utils
 
 import java.util.regex.Pattern
 
+import quanto.util.json.{JsonString, JsonArray}
+
 /** Object providing methods to parse tactic arguments
 	*
 	* It can parse from a string to an array of array of string and the other way around.
@@ -220,6 +222,34 @@ object ArgumentParser {
 		}
 		if(arg.size > 0) res = res.substring(0, res.length-1)
 		res
+	}
+
+	/** Method parsing a argument string into a JsonArray.
+		*
+		* @param s Arguments in string format.
+		* @return Arguments in json format.
+		*/
+	def argStringToJson(s:String):JsonArray = {
+		var arr1 = Array[JsonArray]()
+		var arr2 = Array[JsonString]()
+		stringToArguments(s).foreach{ arg =>
+			arr2 = Array()
+			arg.foreach{str =>
+				arr2 = arr2 :+ JsonString(str)
+			}
+			arr1 = arr1 :+ JsonArray(arr2)
+		}
+		JsonArray(arr1)
+	}
+
+	def jsonToArgString(j:JsonArray):String = {
+		var args = Array[Array[String]]()
+		j.foreach{ a =>
+			var arg = Array[String]()
+			a.asArray.foreach{ s => arg = arg :+ s.stringValue}
+			args = args :+ arg
+		}
+		argumentsToString(args)
 	}
 
 }

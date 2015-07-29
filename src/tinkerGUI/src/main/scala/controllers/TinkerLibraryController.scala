@@ -117,8 +117,9 @@ class TinkerLibraryController() extends Publisher {
 				val tctName = appendIndex(fileName+"-"+oldName,0)
 				valuesToReplace = valuesToReplace + (oldName->tctName)
 				val tctTactic = (tct / "tactic").stringValue
-				val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
-				Service.model.createAT(tctName,tctTactic,tctArgs)
+				//val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
+				//Service.model.createAT(tctName,tctTactic,tctArgs)
+				Service.model.createAT(tctName,tctTactic)
 			}
 			(json / "graphs").asArray.foreach{ tct =>
 				val oldName = (tct / "name").stringValue
@@ -126,8 +127,9 @@ class TinkerLibraryController() extends Publisher {
 					val tctName = appendIndex(fileName+"-"+oldName,0)
 					valuesToReplace = valuesToReplace + (oldName->tctName)
 					val tctBranchType = (tct / "branch_type").stringValue
-					val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
-					Service.model.createGT(tctName,tctBranchType,tctArgs)
+					//val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
+					//Service.model.createGT(tctName,tctBranchType,tctArgs)
+					Service.model.createGT(tctName,tctBranchType)
 				}
 			}
 			Service.model.goalTypes = Service.model.goalTypes+"\n\n\n/* From "+fileName+" */\n\n" + (json / "goal_types").stringValue
