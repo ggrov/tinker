@@ -43,11 +43,11 @@ struct
     |> Pretty.str
     end
 
-  type env_tac =  env -> env 
+  type env_tac =  arg_data list -> env -> env 
 
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term, env : env } 
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
-  type tactic = Proof.context -> int -> Tactical.tactic (* Proof.context -> int -> arg_data list -> Tactical.tactic*)
+  type tactic =  Proof.context -> int -> arg_data list -> Tactical.tactic
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
   exception env_data_exp
@@ -182,27 +182,27 @@ struct
 
   fun pretty_pplan _ = Pretty.str "Pretty PPLAN TOTO";
    
-  fun apply_tactic args (tac_code : string) (pnode,pplan) = 
-    let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in
-    tac (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
+  fun apply_tactic args (tac : tactic) (pnode,pplan) = 
+    (*let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in*)
+    tac (#pctxt pnode) (get_index pnode pplan) args (#goal pplan)
     |> Seq.map (update I (pnode,pplan))
     |> (fn x => 
         (case Seq.pull x of NONE 
            => (logging "TACTIC" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode); 
                raise tinker_fail) 
            | _ => x ))
-    end
+    (*end*)
   (* Update the env and then apply a dummy id tac in isabelle *)
-  fun apply_env_tactic args env_tac_code (pnode,pplan) = 
-    let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in
+  fun apply_env_tactic args (env_tac : env_tac) (pnode,pplan) = 
+    (*let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in*)
     (K (K all_tac)) (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
-    |> Seq.map (update env_tac (pnode,pplan))
+    |> Seq.map (update (env_tac args) (pnode,pplan))
     |> (fn x => 
         (case Seq.pull x of NONE 
            => (logging "TACTIC" ("Fail to apply env tactic for pnode " ^ get_pnode_name pnode); 
                raise tinker_fail) 
            | _ => x ))
-    end
+   (* end*)
   (* SOME default tactics *)
 
   (*fun lookup_thm ctxt name =

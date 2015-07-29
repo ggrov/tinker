@@ -186,7 +186,7 @@ struct
 
    fun is_hgragh_with_graph_name graph n v = 
      case lookup_ivertex_data graph v of 
-       SOME (Data.T_Graph name) => n = name
+       SOME (Data.T_Graph (name,_)) => n = name
        | _ => false; 
 
    fun is_gnode graph v = 
@@ -289,12 +289,12 @@ struct
  (* is a tactic node and also follows the name convension that has a prefix of ENV *)
   fun is_env_tactic g v = 
     let
-      fun gey_tactic_node_name graph vgraph = 
+      fun get_tactic_node_name graph vgraph = 
         case lookup_ivertex_data graph vgraph of 
-           SOME (Data.T_Atomic n ) => n
+           SOME (Data.T_Atomic n ) => fst n
            | _ => raise tinker_fail (*"This is not a tatic node"*) (* no need to logging this, as it won't happen *)
     in
-      is_tactic g v andalso is_env_tactic_name (gey_tactic_node_name g v)
+      is_tactic g v andalso is_env_tactic_name (get_tactic_node_name g v)
     end
 
 (* check the format is "?_" *)
