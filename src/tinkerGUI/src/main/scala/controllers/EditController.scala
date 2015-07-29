@@ -156,14 +156,12 @@ class EditController(model:PSGraph) extends Publisher {
 				case "T_Atomic" =>
 					def successCallback(values:Map[String,String]) {
 						val name = ArgumentParser.separateNameArgs(values("Name"))._1
-						val args = ArgumentParser.separateNameArgs(values("Name"))._2
-						val tactic = values("Tactic")
-						if(name.isEmpty || tactic.isEmpty){
+						if(name.isEmpty){
 							TinkerDialog.openEditDialog("Create atomic tactic",values,successCallback,()=>Unit)
 						} else {
 							Service.documentCtrl.registerChanges()
-							if(model.createAT(name,tactic,args)){
-								model.addATOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,model.getATFullName(name)))
+							if(model.createAT(name,"")){
+								model.addATOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,values("Name")))
 							} else {
 								var confirmDialog = new Dialog()
 								val newAction = new Action("Create new"){
@@ -175,25 +173,24 @@ class EditController(model:PSGraph) extends Publisher {
 								val duplicateAction = new Action("Duplicate tactic"){
 									def apply() = {
 										confirmDialog.close()
-										model.addATOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,model.getATFullName(name)))
+										model.addATOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,values("Name")))
 									}
 								}
 								confirmDialog = TinkerDialog.openConfirmationDialog("The atomic tactic name "+name+" is already taken.",Array(newAction,duplicateAction))
 							}
 						}
 					}
-					TinkerDialog.openEditDialog("Create atomic tactic", Map("Name"->"","Tactic"->""),successCallback,()=>Unit)
+					TinkerDialog.openEditDialog("Create atomic tactic", Map("Name"->""),successCallback,()=>Unit)
 				case "T_Graph" =>
 					def successCallback(values:Map[String,String]) {
 						val name = ArgumentParser.separateNameArgs(values("Name"))._1
-						val args = ArgumentParser.separateNameArgs(values("Name"))._2
 						val branchType = values("Branch type")
 						if(name.isEmpty){
 							TinkerDialog.openEditDialog("Create graph tactic",values,successCallback,()=>Unit)
 						} else {
 							Service.documentCtrl.registerChanges()
-							if(model.createGT(name,branchType,args)){
-								model.addGTOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,model.getGTFullName(name)))
+							if(model.createGT(name,branchType)){
+								model.addGTOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,values("Name")))
 								publish(GraphTacticListEvent())
 							} else {
 								var confirmDialog = new Dialog()
@@ -206,7 +203,7 @@ class EditController(model:PSGraph) extends Publisher {
 								val duplicateAction = new Action("Duplicate tactic"){
 									def apply() = {
 										confirmDialog.close()
-										model.addGTOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,model.getGTFullName(name)))
+										model.addGTOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,values("Name")))
 										publish(GraphTacticListEvent())
 									}
 								}
@@ -281,17 +278,16 @@ class EditController(model:PSGraph) extends Publisher {
 		* Does not implement any user interaction.
 		* @param nodeId Node id on the graph.
 		* @param name Tactic id.
-		* @param args Tactic arguments.
 		* @param param Tactic parameter (core id for atomic, branchtype for graph).
 		* @param isAtomic Whether it is an atomic tactic or not to be created.
 		*/
-	def createTactic(nodeId:String, name:String, args:String, param:String, isAtomic:Boolean) {
+	def createTactic(nodeId:String, name:String, param:String, isAtomic:Boolean) {
 		try{
 			if(isAtomic){
-				model.createAT(name,param,args)
+				model.createAT(name,param)
 				model.addATOccurrence(name,nodeId)
 			} else {
-				model.createGT(name,param,args)
+				model.createGT(name,param)
 				model.addGTOccurrence(name,nodeId)
 			}
 		} catch {
@@ -309,9 +305,7 @@ class EditController(model:PSGraph) extends Publisher {
 			if(isAtomicTactic){
 				def successCallback(values:Map[String,String]) {
 					val name = ArgumentParser.separateNameArgs(values("Name"))._1
-					val args = ArgumentParser.separateNameArgs(values("Name"))._2
-					val tactic = values("Tactic")
-					if(name.isEmpty || tactic.isEmpty){
+					if(name.isEmpty){
 						TinkerDialog.openEditDialog("Edit atomic tactic",values,successCallback,()=>Unit)
 					} else {
 						if(model.atCollection.contains(name) && name != tacticValue){
@@ -322,7 +316,7 @@ class EditController(model:PSGraph) extends Publisher {
 									Service.documentCtrl.registerChanges()
 									model.removeATOccurrence(tacticValue,nodeId)
 									model.addATOccurrence(name,nodeId)
-									QuantoLibAPI.setVertexValue(nodeId,model.getATFullName(name))
+									QuantoLibAPI.setVertexValue(nodeId,values("Name"))
 								}
 							}
 							val redoAction = new Action("Choose another name"){
@@ -333,9 +327,12 @@ class EditController(model:PSGraph) extends Publisher {
 							}
 							val cancelAction = new Action("Cancel"){def apply() = { confirmDialog.close() }}
 							confirmDialog = TinkerDialog.openConfirmationDialog("The atomic tactic name "+name+" is already taken.",Array(duplicateAction,redoAction,cancelAction))
+						} else if(name == tacticValue) {
+							Service.documentCtrl.registerChanges()
+							QuantoLibAPI.setVertexValue(nodeId,values("Name"))
 						} else {
 							Service.documentCtrl.registerChanges()
-							if(model.updateAT(tacticValue,name,tactic,args)){
+							if(model.updateAT(tacticValue,name)){
 								QuantoLibAPI.setVertexValue(nodeId,values("Name"))
 							} else {
 								var confirmDialog = new Dialog()
@@ -343,15 +340,15 @@ class EditController(model:PSGraph) extends Publisher {
 									def apply() = {
 										confirmDialog.close()
 										model.removeATOccurrence(tacticValue,nodeId)
-										model.createAT(name,tactic,args)
+										model.createAT(name,"")
 										model.addATOccurrence(name,nodeId)
-										QuantoLibAPI.setVertexValue(nodeId,model.getATFullName(name))
+										QuantoLibAPI.setVertexValue(nodeId,values("Name"))
 									}
 								}
 								val updateAction = new Action("Update all"){
 									def apply() = {
 										confirmDialog.close()
-										model.updateForceAT(tacticValue,name,tactic,args).foreach(QuantoLibAPI.setVertexValue(_,model.getATFullName(name)))
+										model.updateForceAT(tacticValue,name).foreach(QuantoLibAPI.setVertexValue(_,values("Name")))
 									}
 								}
 								val cancelAction = new Action("Cancel"){def apply() = { confirmDialog.close() }}
@@ -360,11 +357,10 @@ class EditController(model:PSGraph) extends Publisher {
 						}
 					}
 				}
-				TinkerDialog.openEditDialog("Edit atomic tactic",Map("Name"->nodeLabel,"Tactic"->model.getATCoreId(tacticValue)),successCallback,()=>Unit)
+				TinkerDialog.openEditDialog("Edit atomic tactic",Map("Name"->nodeLabel),successCallback,()=>Unit)
 			} else {
 				def successCallback(values:Map[String,String]) {
 					val name = ArgumentParser.separateNameArgs(values("Name"))._1
-					val args = ArgumentParser.separateNameArgs(values("Name"))._2
 					val branchType = values("Branch type")
 					if(name.isEmpty){
 						TinkerDialog.openEditDialog("Edit graph tactic",values,successCallback,()=>Unit)
@@ -377,7 +373,7 @@ class EditController(model:PSGraph) extends Publisher {
 									Service.documentCtrl.registerChanges()
 									model.removeGTOccurrence(tacticValue,nodeId)
 									model.addGTOccurrence(name,nodeId)
-									QuantoLibAPI.setVertexValue(nodeId,model.getGTFullName(name))
+									QuantoLibAPI.setVertexValue(nodeId,values("Name"))
 									publish(GraphTacticListEvent())
 								}
 							}
@@ -399,9 +395,12 @@ class EditController(model:PSGraph) extends Publisher {
 									Array(duplicateAction,redoAction,cancelAction)
 								}
 							confirmDialog = TinkerDialog.openConfirmationDialog("The graph tactic name "+name+" is already taken.",actionArray)
+						} else if(name == tacticValue && branchType == model.getGTBranchType(name)){
+							Service.documentCtrl.registerChanges()
+							QuantoLibAPI.setVertexValue(nodeId,values("Name"))
 						} else {
 							Service.documentCtrl.registerChanges()
-							if(model.updateGT(tacticValue,name,branchType,args)){
+							if(model.updateGT(tacticValue,name,branchType)){
 								QuantoLibAPI.setVertexValue(nodeId,values("Name"))
 								publish(GraphTacticListEvent())
 							} else {
@@ -410,16 +409,16 @@ class EditController(model:PSGraph) extends Publisher {
 									def apply() = {
 										confirmDialog.close()
 										model.removeGTOccurrence(tacticValue,nodeId)
-										model.createGT(name,branchType,args)
+										model.createGT(name,branchType)
 										model.addATOccurrence(name,nodeId)
-										QuantoLibAPI.setVertexValue(nodeId,model.getGTFullName(name))
+										QuantoLibAPI.setVertexValue(nodeId,values("Name"))
 										publish(GraphTacticListEvent())
 									}
 								}
 								val updateAction = new Action("Update all"){
 									def apply() = {
 										confirmDialog.close()
-										model.updateForceGT(tacticValue,name,branchType,args).foreach(QuantoLibAPI.setVertexValue(_,model.getGTFullName(name)))
+										model.updateForceGT(tacticValue,name,branchType).foreach(QuantoLibAPI.setVertexValue(_,values("Name")))
 										publish(GraphTacticListEvent())
 									}
 								}
@@ -567,12 +566,11 @@ class EditController(model:PSGraph) extends Publisher {
 				TinkerDialog.openEditDialog("Merge nodes into a graph tactic",values,successCallback,()=>Unit)
 			} else {
 				val name = ArgumentParser.separateNameArgs(values("Name"))._1
-				val args = ArgumentParser.separateNameArgs(values("Name"))._2
 				if(model.gtCollection.contains(name) || model.mainTactic.name == name){
 					TinkerDialog.openEditDialog("<html>Merge nodes into a graph tactic<br>This name is already taken</html>",values,successCallback,()=>Unit)
 				} else {
 					Service.documentCtrl.registerChanges()
-					model.createGT(name,values("Branch type"),args)
+					model.createGT(name,values("Branch type"))
 					model.addGTOccurrence(name,QuantoLibAPI.mergeSelectedVertices(values("Name")))
 					// todo : insert new tactic in eval path if necessary
 					publish(GraphTacticListEvent())

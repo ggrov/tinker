@@ -12,7 +12,7 @@ import scala.collection.mutable.ArrayBuffer
 	* @param name Id of the graph tactic.
 	* @param branchType Branch type of the graph tactic.
 	*/
-class GraphTactic(var name: String, var branchType: String) extends HasArguments with HasOccurrences {
+class GraphTactic(var name: String, var branchType: String) extends HasOccurrences {
 
 	/** Collection of subgraphs. */
 	var graphs : ArrayBuffer[JsonObject] = ArrayBuffer()
@@ -68,7 +68,7 @@ class GraphTactic(var name: String, var branchType: String) extends HasArguments
 		* @return Json object of the graph tactic.
 		*/
 	def toJson : JsonObject = {
-		JsonObject("name" -> name, "branch_type" -> branchType, "graphs" -> JsonArray(graphs), "args" -> argumentsToJson)
+		JsonObject("name" -> name, "branch_type" -> branchType, "graphs" -> JsonArray(graphs))
 	}
 
 	/** Method to add a child to the graph tactic.

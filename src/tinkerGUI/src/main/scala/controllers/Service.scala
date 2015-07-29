@@ -56,8 +56,8 @@ object Service extends Publisher {
 	def getCurrent = model.currentTactic.name
 	/** Method to get the goal types of the psgraph. See [[tinkerGUI.model.PSGraph.goalTypes]].*/
 	def getGoalTypes = model.goalTypes
-	/** Method to get the core id of an atomic tactic. See [[tinkerGUI.model.PSGraph.getATCoreId]].*/
-	def getATCoreId(name:String) = model.getATCoreId(name)
+	/** Method to get the core id of an atomic tactic. See [[tinkerGUI.model.PSGraph.getTacticValue]].*/
+	def getATCoreId(name:String) = model.getTacticValue(name)
 	/** Method to get the branch type of a specific graph tactic. See [[tinkerGUI.model.PSGraph.getGTBranchType]].*/
 	def getBranchTypeGT(tactic: String) = model.getGTBranchType(tactic)
 

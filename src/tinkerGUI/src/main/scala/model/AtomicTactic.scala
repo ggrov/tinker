@@ -11,11 +11,11 @@ import quanto.util.json._
 	* @param name Gui id of the atomic tactic.
 	* @param tactic Core id of the atomic tactic.
 	*/
-class AtomicTactic(var name: String, var tactic: String) extends HasArguments with HasOccurrences {
+class AtomicTactic(var name: String, var tactic: String) extends HasOccurrences {
 
 	/** Method to generate a Json object of the atomic tactic.
 		*
 		* @return Json object of the atomic tactic.
 		*/
-	def toJson: JsonObject = JsonObject("name" -> name, "tactic" -> tactic, "args" -> argumentsToJson)
+	def toJson: JsonObject = JsonObject("name" -> name, "tactic" -> tactic)
 }

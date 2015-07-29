@@ -76,19 +76,9 @@ object QuantoLibAPI extends Publisher{
 							case "G_Break" =>
 								gr = gr.updateVData(k) { _ => v.withValue("STOP") }
 							case "T_Atomic" =>
-								try{
-									gr = gr.updateVData(k) { _ => v.withValue(Service.model.getATFullName(v.label)) }
-								} catch {
-									case e:AtomicTacticNotFoundException =>
-										gr = gr.updateVData(k) { _ => v.withValue(v.label) }
-								}
+								gr = gr.updateVData(k) { _ => v.withValue(v.label) }
 							case "T_Graph" =>
-								try{
-									gr = gr.updateVData(k) { _ => v.withValue(Service.model.getGTFullName(v.label)) }
-								} catch {
-									case e:GraphTacticNotFoundException =>
-										gr = gr.updateVData(k) { _ => v.withValue(v.label) }
-								}
+								gr = gr.updateVData(k) { _ => v.withValue(v.label) }
 							case _ =>
 						}
 				}
@@ -419,7 +409,7 @@ object QuantoLibAPI extends Publisher{
 		*/
 	def getNodeTypeAndValue(n:String):(String,String) = {
 		graph.vdata(VName(n)) match {
-			case (d:NodeV) => (d.typ,d.getValue)
+			case (d:NodeV) => (d.typ,d.value.stringValue)
 			case (d:WireV) => ("Boundary","")
 		}
 	}
@@ -804,7 +794,7 @@ object QuantoLibAPI extends Publisher{
 			data match {
 				case d:NodeV if d.typ == "T_Graph" || d.typ == "T_Atomic" =>
 					tacticsToUpdate.foreach{ case (o,n) =>
-						if(d.getValue == o) gr = gr.updateVData(name){_ => d.withValue(n)}
+						if(d.value.stringValue == o) gr = gr.updateVData(name){_ => d.withValue(n)}
 					}
 				case _ =>
 			}
@@ -854,7 +844,7 @@ object QuantoLibAPI extends Publisher{
 	private def publishSelectedVerts(){
 		if(view.selectedVerts.size == 1 && view.selectedEdges.size == 0 && !(graph.vdata(view.selectedVerts.head).isBoundary)){
 			(view.selectedVerts.head, graph.vdata(view.selectedVerts.head)) match {
-				case (v: VName, data: NodeV) => publish(OneVertexSelectedEvent(v.s, data.typ, data.label, data.getValue))
+				case (v: VName, data: NodeV) => publish(OneVertexSelectedEvent(v.s, data.typ, data.label, data.value.stringValue))
 			}
 		}
 		else if(view.selectedVerts.size > 1 && view.selectedEdges.size == 0){
@@ -1004,8 +994,8 @@ object QuantoLibAPI extends Publisher{
 
 		vertexHit.map{ v => (v, graph.vdata(v)) } match {
 			case Some((v, data: NodeV)) =>
-				if(data.typ == "T_Atomic") Service.editCtrl.updateTactic(v.s,data.label,data.getValue,true)
-				else if(data.typ == "T_Graph") Service.editCtrl.updateTactic(v.s,data.label,data.getValue,false)
+				if(data.typ == "T_Atomic") Service.editCtrl.updateTactic(v.s,data.label,data.value.stringValue,true)
+				else if(data.typ == "T_Graph") Service.editCtrl.updateTactic(v.s,data.label,data.value.stringValue,false)
 			case _ =>
 				val edgeHit = view.edgeDisplay find { _._2.pointHit(pt) } map { _._1 }
 				edgeHit.foreach { e =>
@@ -1059,7 +1049,7 @@ object QuantoLibAPI extends Publisher{
 		var res = false
 		view.selectedVerts foreach { v =>
 			graph.vdata(v) match {
-				case (d:NodeV) if (d.typ=="T_Atomic" || d.typ=="T_Graph") && t.contains(d.getValue) => res = true
+				case (d:NodeV) if (d.typ=="T_Atomic" || d.typ=="T_Graph") && t.contains(d.value.stringValue) => res = true
 				case _ =>
 			}
 		}
@@ -1104,9 +1094,9 @@ object QuantoLibAPI extends Publisher{
 			graph.vdata(v) match {
 				case d:NodeV =>
 					if(d.typ == "T_Graph"){
-						Service.editCtrl.changeTacticOccurrence(v.s,d.getValue,newData.getValue,0,false)
+						Service.editCtrl.changeTacticOccurrence(v.s,d.value.stringValue,newData.value.stringValue,0,false)
 					} else if (d.typ == "T_Atomic") {
-						Service.editCtrl.changeTacticOccurrence(v.s,d.getValue,newData.getValue,0,true)
+						Service.editCtrl.changeTacticOccurrence(v.s,d.value.stringValue,newData.value.stringValue,0,true)
 					}
 			}
 			// foreach "in" edges of selected nodes, setting target to be new node except for recursion
@@ -1160,7 +1150,7 @@ object QuantoLibAPI extends Publisher{
 		}
 		// saving json graph
 		val jsonGraph = Graph.toJson(newSubgraph, theory)
-		Service.saveGraphSpecificTactic(newData.getValue, jsonGraph, 0)
+		Service.saveGraphSpecificTactic(newData.value.stringValue, jsonGraph, 0)
 		publish(NothingSelectedEvent())
 		newName.s
 	}
@@ -1210,10 +1200,10 @@ object QuantoLibAPI extends Publisher{
 	private var toPasteEdge:Map[EName,(VName,VName,EData)] = Map()
 
 	/** Map of atomic tactics to re-create or duplicate. */
-	private var toPasteATactics:Map[String,(String,String)] = Map()
+	private var toPasteATactics:Map[String,String] = Map()
 
 	/** Map of graph tactics to re-create, or duplicate. */
-	private var toPasteGTactics:Map[String,(String,String)] = Map()
+	private var toPasteGTactics:Map[String,String] = Map()
 
 	/** Method to know if there are anything to paste. */
 	def canPaste:Boolean = toPasteNode.nonEmpty
@@ -1240,11 +1230,11 @@ object QuantoLibAPI extends Publisher{
 			for ((name, node) <- toPasteNode) {
 				node match {
 					case d: NodeV if d.typ == "T_Atomic" =>
-						val (tName, tArgs) = ArgumentParser.separateNameArgs(d.label)
-						toPasteATactics += (tName ->(Service.model.getATCoreId(tName), tArgs))
+						//val (tName, tArgs) = ArgumentParser.separateNameArgs(d.label)
+						toPasteATactics += (d.value.stringValue ->Service.model.getTacticValue(d.value.stringValue))
 					case d: NodeV if d.typ == "T_Graph" =>
-						val (tName, tArgs) = ArgumentParser.separateNameArgs(d.label)
-						toPasteGTactics += (tName ->(Service.model.getGTBranchType(tName), tArgs))
+						//val (tName, tArgs) = ArgumentParser.separateNameArgs(d.label)
+						toPasteGTactics += (d.value.stringValue ->Service.model.getGTBranchType(d.value.stringValue))
 					case _ => // do nothing
 				}
 			}
@@ -1263,14 +1253,14 @@ object QuantoLibAPI extends Publisher{
 					newNodeNames = newNodeNames + (node -> vertexName)
 					addVertex(vertexName, d.withCoord(d.coord._1 + 1, d.coord._2 - 1))
 					if (d.typ == "T_Atomic") {
-						val tName = ArgumentParser.separateNameArgs(d.label)._1
-						val (tTactic, tArgs) = toPasteATactics(tName)
-						Service.editCtrl.createTactic(vertexName.s, tName, tArgs, tTactic, true)
+						//val tName = ArgumentParser.separateNameArgs(d.label)._1
+						//val (tTactic, tArgs) = toPasteATactics(tName)
+						Service.editCtrl.createTactic(vertexName.s, d.value.stringValue, toPasteATactics(d.value.stringValue), true)
 					}
 					if (d.typ == "T_Graph") {
-						val tName = ArgumentParser.separateNameArgs(d.label)._1
-						val (tBranch, tArgs) = toPasteGTactics(tName)
-						Service.editCtrl.createTactic(vertexName.s, tName, tArgs, tBranch, false)
+						//val tName = ArgumentParser.separateNameArgs(d.label)._1
+						//val (tBranch, tArgs) = toPasteGTactics(tName)
+						Service.editCtrl.createTactic(vertexName.s, d.value.stringValue, toPasteATactics(d.value.stringValue), false)
 					}
 				case d: WireV =>
 					val vertexName = graph.verts.freshWithSuggestion(VName("b0"))
