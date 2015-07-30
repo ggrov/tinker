@@ -66,7 +66,7 @@ case class NodeV(
     case str : JsonString => str
     case obj : JsonObject =>
       if(typ=="G") {
-        obj / "name" match{
+        obj / "goal" match{
           case str : JsonString => str
           case _ => obj.getOrElse("pretty", JsonString(""))
         }
@@ -86,6 +86,10 @@ case class NodeV(
 			case _ =>
 				typ match {
 					case "T_Graph"|"T_Atomic" => value.stringValue+"("+ArgumentParser.jsonToArgString(args.asArray)+")"
+					case "G" => (data.getPath(theory.vertexTypes(typ).value.path)) match {
+						case obj : JsonObject => obj.getOrElse("name",JsonString("")).stringValue
+						case _ => JsonString("").stringValue
+					}
 					case _ => value.stringValue
 				}
 
