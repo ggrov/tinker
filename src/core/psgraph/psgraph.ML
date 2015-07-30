@@ -30,11 +30,13 @@ struct
   datatype occurences = Occurs of {
         atomic_tactics : 
           ((StrName.NTab.name (* graph name *) * 
-           int (* index *)) StrName.NTab.T (* use vname as key for this table *)
+            int (* index *) * 
+            string (* use vname as key for this table *)) list
           ) StrName.NTab.T,
         graph_tactics : 
           ((StrName.NTab.name (* graph name *) * 
-           int (* index *)) StrName.NTab.T (* use vname as key for this table *)
+           int (* index *) * 
+           string (* use vname as key for this table *)) list
           ) StrName.NTab.T
   }
   val default_occurs : occurences = Occurs {atomic_tactics = StrName.NTab.empty, graph_tactics = StrName.NTab.empty};
@@ -243,19 +245,19 @@ struct
   end
  | input_subgraph_json _ = raise Json.parse_exn "unexcepted json strcure in input_subgraph_json"
  
- val get_V_from_occurs_record = (fn Json.String s => s) o  List.last;
- val get_others_from_occurs_record = 
-  (fn x => (hd x |> (fn Json.String x => x), 
-            hd (tl x) |>  (fn Json.Int x => x)))  o rev o tl o rev;
+ val get_V_from_occurs_record = (fn Json.String s => s) o List.last;
+ val get_idx_from_occurs_record = (fn Json.Int s => s) o hd o tl;
+ val get_graph_from_occurs_record = (fn Json.String s => s) o hd;
+
  fun input_occurs_json (Json.Object jobj)  =
   let
-    fun array_record_to_tab array =
+    fun array_record_to_list array =
       map (fn (Json.Array x) => x) array
-      |> map (fn x => (get_V_from_occurs_record x, get_others_from_occurs_record x))
-      |> StrName.NTab.of_list
+      |> map (fn x => [(get_graph_from_occurs_record x, get_idx_from_occurs_record x, get_V_from_occurs_record x)])
+      |> List.concat
     fun parse_occurs name json = 
       JsonInputUtils.get_obj json name
-      |> (fn obj => Json.properties obj |> map (fn v => (v, JsonInputUtils.get_array obj v |> array_record_to_tab)))
+      |> (fn obj => Json.properties obj |> map (fn v => (v, JsonInputUtils.get_array obj v |> array_record_to_list)))
       |> StrName.NTab.of_list
     val atomic_tactics = parse_occurs "atomic_tactics" jobj
     val graph_tactics = parse_occurs "graph_tactics" jobj
@@ -264,18 +266,18 @@ struct
   end
  | input_occurs_json _ = raise Json.parse_exn "unexcepted json strcure in input_occurs_json"
 
- fun mk_occurs_subfield_json (v, (n, idx)) = Json.Array [Json.String n, Json.Int idx, Json.String v];
- fun mk_occurs_graph_json (v, graph_tab) = (v,  map mk_occurs_subfield_json (StrName.NTab.list_of graph_tab) |> Json.Array)
+ fun mk_occurs_subfield_json (g, idx, v) = Json.Array [Json.String g, Json.Int idx, Json.String v];
+ fun mk_occurs_item_json (v, occ_l) = (v,  map mk_occurs_subfield_json occ_l |> Json.Array)
  fun output_occurs_json (Occurs occ)  = 
     [("atomic_tactics", 
       (#atomic_tactics occ) 
       |> StrName.NTab.list_of 
-      |> map mk_occurs_graph_json
+      |> map mk_occurs_item_json
       |> Json.mk_object),
     ("graph_tactics",
       (#graph_tactics occ) 
      |> StrName.NTab.list_of 
-     |> map mk_occurs_graph_json
+     |> map mk_occurs_item_json
      |> Json.mk_object)]
    |> Json.mk_object;
 
@@ -341,6 +343,7 @@ struct
       |> map input_atomic_json
       |> StrName.NTab.of_list
     val occurs = Json.get object "occurrences" |> input_occurs_json
+
     val main = JsonInputUtils.get_string object "main" 
   in
     default_psgraph

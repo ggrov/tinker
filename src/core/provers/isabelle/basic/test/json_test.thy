@@ -87,14 +87,9 @@ IEVal.output_string
 ML{*-
   TextSocket.safe_close();
 *}
-ML{*-  
+ML{* -
 Tinker.start_ieval @{context} ps [] @{prop "(C \<longrightarrow> ((A \<longrightarrow> A) \<and> (B \<longrightarrow> B)))"};
 *}
 
-ML{*
-rule_tac @{context} 1 "HOL.impI";
-*}
-lemma "(C \<longrightarrow> ((A \<longrightarrow> A) \<and> (B \<longrightarrow> B)))"
-apply (tactic {*rule_tac @{context} 1 "impI"*})
 
 
