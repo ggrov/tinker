@@ -1,5 +1,7 @@
 package tinkerGUI.controllers
 
+import java.util.regex.Pattern
+
 import tinkerGUI.controllers.events.{CurrentGraphChangedEvent, GraphTacticListEvent, MouseStateChangedEvent}
 import tinkerGUI.model.PSGraph
 import tinkerGUI.model.exceptions.{PSGraphModelException, SubgraphNotFoundException, GraphTacticNotFoundException}
@@ -23,7 +25,66 @@ class EditController(model:PSGraph) extends Publisher {
 		*/
 	private var mouseState: MouseState = SelectTool()
 
+	/** Log stack for edition.*/
 	val logStack = new FilteredLogStack
+
+	/** Callback method for parsing the tactic definitions in tactic editor.
+		*
+		* @param s Input string.
+		*/
+	def tacticParser(s:String) {
+		val pattern = Pattern.compile("^tactic\\s([^\\s]+)\\s?:=\\s*(([^;]|\\n|\\t)+)\\s*;$",Pattern.MULTILINE)
+		val matcher = pattern.matcher(s)
+		while(matcher.find()){
+			println("found : "+matcher.group())
+			println("tactic name : |"+matcher.group(1)+"|")
+			println("tactic value : "+matcher.group(2))
+			try{
+				Service.documentCtrl.registerChanges()
+				model.setTacticValue(matcher.group(1),matcher.group(2))
+			} catch {
+				case e:PSGraphModelException => logStack.addToLog("Model error",e.msg)
+			}
+		}
+	}
+
+	/** Tactic editor.*/
+	val tacticEditor = new EditorWindow("Tinker - tactic editor",tacticParser)
+
+	/** Method updating the tactic editor text, after loading a model for instance.*/
+	def updateTacticEditor() {
+		tacticEditor.clear()
+		tacticEditor.appendText("// edit your tactic here\n")
+		model.atCollection.foreach{ case (k,v) =>
+			if(v.tactic.nonEmpty){
+				tacticEditor.appendText("tactic "+v.name+" := "+v.tactic+";\n")
+			}
+		}
+	}
+
+	/** Callback method for parsing the goal types definitions in goal type editor.
+		*
+		* @param s Input string.
+		*/
+	def goalTypeParser(s:String) {
+		Service.documentCtrl.registerChanges()
+		model.goalTypes = s
+	}
+
+	/** Goal types editor.*/
+	val goaltypeEditor = new EditorWindow("Tinker - goal type editor",goalTypeParser)
+
+	/** Method updating the goal types editor text, after loading a model for instance.*/
+	def updateGoaltypeEditor() {
+		goaltypeEditor.clear()
+		goaltypeEditor.appendText(model.goalTypes)
+	}
+
+	/** Method launching all editors' update functions.*/
+	def updateEditors = {
+		updateTacticEditor()
+		updateGoaltypeEditor()
+	}
 
 	/** Method to update the mouse state.
 		*
@@ -316,7 +377,7 @@ class EditController(model:PSGraph) extends Publisher {
 									Service.documentCtrl.registerChanges()
 									model.removeATOccurrence(tacticValue,nodeId)
 									model.addATOccurrence(name,nodeId)
-									QuantoLibAPI.setVertexValue(nodeId,values("Name"))
+									QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
 								}
 							}
 							val redoAction = new Action("Choose another name"){
@@ -329,11 +390,11 @@ class EditController(model:PSGraph) extends Publisher {
 							confirmDialog = TinkerDialog.openConfirmationDialog("The atomic tactic name "+name+" is already taken.",Array(duplicateAction,redoAction,cancelAction))
 						} else if(name == tacticValue) {
 							Service.documentCtrl.registerChanges()
-							QuantoLibAPI.setVertexValue(nodeId,values("Name"))
+							QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
 						} else {
 							Service.documentCtrl.registerChanges()
 							if(model.updateAT(tacticValue,name)){
-								QuantoLibAPI.setVertexValue(nodeId,values("Name"))
+								QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
 							} else {
 								var confirmDialog = new Dialog()
 								val createAction = new Action("Create new"){
@@ -342,13 +403,14 @@ class EditController(model:PSGraph) extends Publisher {
 										model.removeATOccurrence(tacticValue,nodeId)
 										model.createAT(name,"")
 										model.addATOccurrence(name,nodeId)
-										QuantoLibAPI.setVertexValue(nodeId,values("Name"))
+										QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
 									}
 								}
 								val updateAction = new Action("Update all"){
 									def apply() = {
 										confirmDialog.close()
-										model.updateForceAT(tacticValue,name).foreach(QuantoLibAPI.setVertexValue(_,values("Name")))
+										model.updateForceAT(tacticValue,name).foreach(QuantoLibAPI.setVertexValue(_,name))
+										QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
 									}
 								}
 								val cancelAction = new Action("Cancel"){def apply() = { confirmDialog.close() }}
@@ -373,7 +435,7 @@ class EditController(model:PSGraph) extends Publisher {
 									Service.documentCtrl.registerChanges()
 									model.removeGTOccurrence(tacticValue,nodeId)
 									model.addGTOccurrence(name,nodeId)
-									QuantoLibAPI.setVertexValue(nodeId,values("Name"))
+									QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
 									publish(GraphTacticListEvent())
 								}
 							}
@@ -397,11 +459,11 @@ class EditController(model:PSGraph) extends Publisher {
 							confirmDialog = TinkerDialog.openConfirmationDialog("The graph tactic name "+name+" is already taken.",actionArray)
 						} else if(name == tacticValue && branchType == model.getGTBranchType(name)){
 							Service.documentCtrl.registerChanges()
-							QuantoLibAPI.setVertexValue(nodeId,values("Name"))
+							QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
 						} else {
 							Service.documentCtrl.registerChanges()
 							if(model.updateGT(tacticValue,name,branchType)){
-								QuantoLibAPI.setVertexValue(nodeId,values("Name"))
+								QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
 								publish(GraphTacticListEvent())
 							} else {
 								var confirmDialog = new Dialog()
@@ -411,14 +473,14 @@ class EditController(model:PSGraph) extends Publisher {
 										model.removeGTOccurrence(tacticValue,nodeId)
 										model.createGT(name,branchType)
 										model.addATOccurrence(name,nodeId)
-										QuantoLibAPI.setVertexValue(nodeId,values("Name"))
+										QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
 										publish(GraphTacticListEvent())
 									}
 								}
 								val updateAction = new Action("Update all"){
 									def apply() = {
 										confirmDialog.close()
-										model.updateForceGT(tacticValue,name,branchType).foreach(QuantoLibAPI.setVertexValue(_,values("Name")))
+										model.updateForceGT(tacticValue,name,branchType).foreach(QuantoLibAPI.setVertexLabel(_,values("Name")))
 										publish(GraphTacticListEvent())
 									}
 								}

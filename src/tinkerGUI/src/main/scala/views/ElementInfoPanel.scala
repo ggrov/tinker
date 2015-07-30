@@ -68,7 +68,7 @@ class VertexEditContent(nam: String, typ: String, label: String, value:String) e
 				case e:AtomicTacticNotFoundException => "Error : could not find tactic"
 			}
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+label))
-			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Tactic : "+tacticCoreId))
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Value : "+tacticCoreId))
 			contents += new FlowPanel(FlowPanel.Alignment.Left)() {
 				contents += editButton
 				contents += delButton

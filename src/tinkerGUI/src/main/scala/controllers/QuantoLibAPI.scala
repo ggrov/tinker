@@ -74,11 +74,11 @@ object QuantoLibAPI extends Publisher{
 					case None =>
 						v.typ match {
 							case "G_Break" =>
-								gr = gr.updateVData(k) { _ => v.withValue("STOP") }
+								gr = gr.updateVData(k) { _ => v.withLabel("STOP") }
 							case "T_Atomic" =>
-								gr = gr.updateVData(k) { _ => v.withValue(v.label) }
+								gr = gr.updateVData(k) { _ => v.withLabel(v.label) }
 							case "T_Graph" =>
-								gr = gr.updateVData(k) { _ => v.withValue(v.label) }
+								gr = gr.updateVData(k) { _ => v.withLabel(v.label) }
 							case _ =>
 						}
 				}
@@ -344,13 +344,29 @@ object QuantoLibAPI extends Publisher{
 		val coord = view.trans fromScreen (pt.getX, pt.getY)
 		val vertexData = NodeV(data = theory.vertexTypes(typ).defaultData, theory = theory).withCoord(coord)
 		val vertexName = graph.verts.freshWithSuggestion(VName("v0"))
-		addVertex(vertexName, vertexData.withCoord(coord).withValue(label))
+		addVertex(vertexName, vertexData.withCoord(coord).withLabel(label))
 		/*graph.vdata(vertexName) match {
 			case data: NodeV =>
 				if(typ == "T_Graph") Service.editCtrl.createTactic(vertexName.s,false)
 				else if (typ == "T_Atomic") Service.editCtrl.createTactic(vertexName.s, true)
 		}*/
 		vertexName.s
+	}
+
+	/** Method to update the value of a vertex.
+		*
+		* @param nodeId Id of the vertex.
+		* @param newValue New value of the vertex.
+		*/
+	def setVertexLabel(nodeId: String, newValue: String) {
+		graph.vdata(VName(nodeId)) match {
+			case data: NodeV =>
+				changeGraph(graph.updateVData(VName(nodeId)) { _ => data.withLabel(newValue) })
+				view.invalidateVertex(VName(nodeId))
+				graph.adjacentEdges(VName(nodeId)).foreach { view.invalidateEdge }
+				publishSelectedVerts()
+			case _ => // do nothing
+		}
 	}
 
 	/** Method to update the value of a vertex.
@@ -1078,7 +1094,7 @@ object QuantoLibAPI extends Publisher{
 		val newX = (minX+maxX)/2
 		val newY = (minY+maxY)/2
 		// creating new node (cannot use userAddVertex as we don't have the mouse point coordinates)
-		val newData = NodeV(data = theory.vertexTypes("T_Graph").defaultData, theory = theory).withCoord((newX,newY)).withValue(newNodeLabel)
+		val newData = NodeV(data = theory.vertexTypes("T_Graph").defaultData, theory = theory).withCoord((newX,newY)).withLabel(newNodeLabel)
 		val newName = graph.verts.freshWithSuggestion(VName("v0"))
 		changeGraph(graph.addVertex(newName, newData))
 		/*graph.vdata(newName) match {

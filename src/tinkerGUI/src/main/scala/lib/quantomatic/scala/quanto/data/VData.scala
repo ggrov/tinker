@@ -85,7 +85,7 @@ case class NodeV(
 			case str:JsonString => str.stringValue
 			case _ =>
 				typ match {
-					case "T_Atomic" => value.stringValue+"("+ArgumentParser.jsonToArgString(args.asArray)+")"
+					case "T_Graph"|"T_Atomic" => value.stringValue+"("+ArgumentParser.jsonToArgString(args.asArray)+")"
 					case _ => value.stringValue
 				}
 
@@ -97,9 +97,13 @@ case class NodeV(
 
   def withCoord(c: (Double,Double)) =
     copy(annotation = annotation + ("coord" -> JsonArray(c._1, c._2)))
-  
+
+	def withValue(s:String):NodeV = {
+		withLabel(s+"("+ArgumentParser.jsonToArgString(args.asArray)+")")
+	}
+
   /** Create a copy of the current vertex with the new value */
-  def withValue(s: String) =
+  def withLabel(s: String) =
     copy(data = data.setPath(theory.vertexTypes(typ).value.path, ArgumentParser.separateNameArgs(s)._1).setPath("$.label", s).setPath("$.args",ArgumentParser.argStringToJson(ArgumentParser.separateNameArgs(s)._2)).asObject)
   // changed by Pierre Le Bras, uses an argument parser to store only the tactic name in the default field
 

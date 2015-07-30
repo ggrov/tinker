@@ -57,7 +57,7 @@ class TinkerMenu() extends MenuBar{
 
 	val EditMenu = new Menu("Edit"){menu =>
 		mnemonic = Key.E
-		val UndoAction = new Action("Undo") {
+		new Action("Undo") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.U }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_Z, CommandMask))
 			enabled = false
@@ -71,7 +71,7 @@ class TinkerMenu() extends MenuBar{
 					title = "Undo"
 			}
 		}
-		val RedoAction = new Action("Redo") {
+		new Action("Redo") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.R }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_Z, CommandMask | Key.Modifier.Shift))
 			enabled = false
@@ -85,7 +85,19 @@ class TinkerMenu() extends MenuBar{
 					title = "Redo"
 			}
 		}
-		val LayoutAction = new Action("Layout Graph") {
+		new Action("Open tactic editor"){
+			menu.contents += new MenuItem(this)
+			def apply(){
+				Service.editCtrl.tacticEditor.open()
+			}
+		}
+		new Action("Open goal types editor"){
+			menu.contents += new MenuItem(this)
+			def apply(){
+				Service.editCtrl.goaltypeEditor.open()
+			}
+		}
+		new Action("Layout Graph") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.L }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_L, CommandMask))
 			def apply() {
@@ -95,7 +107,8 @@ class TinkerMenu() extends MenuBar{
 	}
 
 	// for test purpose
-	val Debug = new Menu("debug"){ menu =>
+	val Debug = new Menu("Debug"){ menu =>
+		mnemonic = Key.D
 		new Action("Open eval log window"){
 			menu.contents += new MenuItem(this)
 			def apply(){

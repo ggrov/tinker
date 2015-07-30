@@ -36,6 +36,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 					model.loadJsonGraph(j)
 					QuantoLibAPI.loadFromJson(model.getCurrentJson)
 					Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
+					Service.editCtrl.updateEditors
 					publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
 					publish(DocumentChangedEvent(unsavedChanges))
 				} catch {
@@ -58,6 +59,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 					model.loadJsonGraph(j)
 					QuantoLibAPI.loadFromJson(model.getCurrentJson)
 					Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
+					Service.editCtrl.updateEditors
 					publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
 					publish(DocumentChangedEvent(unsavedChanges))
 				} catch {
@@ -121,6 +123,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 				publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(model.currentParents)))
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
 				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
+				Service.editCtrl.updateEditors
 				unsavedChanges = false
 				publish(DocumentChangedEvent(unsavedChanges))
 			} catch {

@@ -8,7 +8,7 @@ import scala.swing._
 import scala.swing.event.KeyReleased
 import javax.swing.ImageIcon
 
-object GoalTypeEditor extends Frame {
+/*object GoalTypeEditor extends Frame {
 	title = "Tinker - " + Service.documentCtrl.title + " - Goal Type Editor"
 	listenTo(Service.documentCtrl)
 	reactions += {
@@ -33,7 +33,7 @@ object GoalTypeEditor extends Frame {
 		txtArea.text = prevText
 		super.open()
 	}
-}
+}*/
 
 class EditControlsPanel() extends Publisher {
 
@@ -85,19 +85,19 @@ class EditControlsPanel() extends Publisher {
 	}
 	val GraphToolGroup = new ButtonGroup(SelectButton, AddIDVertexButton, AddEdgeButton, AddATMVertexButton, AddNSTVertexButton)
 
-	val EditGoalTypesButton = new Button(new Action(""){
+/*	val EditGoalTypesButton = new Button(new Action(""){
 		def apply() {
 			GoalTypeEditor.open()
 		}
 	}) {
 		icon = new ImageIcon(MainGUI.getClass.getResource("edit-goal-type.png"), "Edit Goal Types")
 		tooltip = "Edit goal types"
-	}
+	}*/
 
 	val MainToolBar = new ToolBar {
 		contents += (SelectButton, AddIDVertexButton, AddATMVertexButton, AddNSTVertexButton, AddEdgeButton)
 	}
-	val SecondaryToolBar = new ToolBar {
+/*	val SecondaryToolBar = new ToolBar {
 		contents += EditGoalTypesButton
-	}
+	}*/
 }
