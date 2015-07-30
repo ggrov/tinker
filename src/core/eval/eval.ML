@@ -28,9 +28,10 @@ struct
          val ps = EData.get_psgraph edata
          val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
          val pplan = EData.get_pplan edata
+         val ctxt = Prover.get_pnode_ctxt pnode
          (* string vs facts : what about variables? and list of things bound? *)
          val name = (GData.get_nvdata_name (GData.T_Atomic atom))
-         val arg_list = (GData.get_nvdata_args (GData.T_Atomic atom)) |> GData.parse_arg_data
+         val arg_list = (GData.get_nvdata_args (GData.T_Atomic atom)) |> GData.parse_arg_data ctxt
        in 
         if  is_env_tactic_name name 
         then 

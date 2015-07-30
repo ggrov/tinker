@@ -126,6 +126,10 @@ struct
      Json.mk_object[
       ("cmd", Json.String "RSP_EXCEPTION"),
       ("log_info", buffer_to_json ())])
+    | tinker_fail => 
+      Json.mk_object[
+      ("cmd", Json.String "RSP_EXCEPTION"),
+      ("log_info", buffer_to_json ())]
 
   end
 

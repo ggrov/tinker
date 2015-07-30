@@ -10,9 +10,12 @@ signature PSGRAPH_DATA =
 sig
   structure GoalTyp : BASIC_GOALTYPE
 
-  type arg_typ = GoalTyp.Prover.arg_data list list (*e.g. [[x, int], [y int list]] = (x : int) (y : int list) *)
+  type arg_typ = string list list 
+  (*e.g. [[trm, A_Trm], [ml_str, A_ML]] = (trm : A_Trm) (ml_str : A_ML), eventually,
+    this should be parsed into the arg_data in prover, which is [A_Trm trm, A_ML ml_str]*)
   val arg_typ_to_json : arg_typ -> Json.json 
   val arg_typ_from_json : Json.json -> arg_typ
+  val parse_arg_data : GoalTyp.Prover.context -> arg_typ -> GoalTyp.Prover.arg_data list
 
 (* note: variables only for evaluation! *)
   datatype nvdata =  T_Atomic of  (string * arg_typ)
@@ -102,7 +105,6 @@ sig
   (* Apply substitutions to data. *)
   val subst_in_nvdata : subst -> nvdata -> subst * nvdata
   val subst_in_edata : subst -> edata -> subst * edata
-  val parse_arg_data : arg_typ -> GoalTyp.Prover.arg_data list
 
   structure Sharing : PSGRAPH_DATA_SHARING
     sharing type Sharing.nvdata = nvdata

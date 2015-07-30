@@ -1,7 +1,7 @@
 structure IsaProver : PROVER =
 struct 
    
-  local open LoggingHandler ProverUtils in 
+  local open LoggingHandler in 
   type typ = typ
   type term = Term.term  
   type thm = Thm.thm
@@ -13,10 +13,12 @@ struct
    in Print_Mode.setmp [] (Syntax.string_of_term ctxt') t end;
   val trm_of_string = Syntax.parse_term;
   val string_of_trm = (*Syntax.string_of_term*) term_to_string;
+  fun get_thm_by_name ctxt name = 
+    Find_Theorems.find_theorems ctxt NONE NONE false [(true, Find_Theorems.Name name)]
+    |> snd |> hd |> snd;
   val pretty_trm = Syntax.pretty_term;
 
-
-  type arg_data = string (* A_Const of string | A_Var of string | A_Trm of term *)
+  datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
   datatype env_data = 
     E_Str of string | 
     E_Trm of term | E_Thm of thm |
@@ -188,7 +190,7 @@ struct
     |> Seq.map (update I (pnode,pplan))
     |> (fn x => 
         (case Seq.pull x of NONE 
-           => (logging "TACTIC" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode); 
+           => (logging "EXCEPTION" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode ^ ", empty seqence"); 
                raise tinker_fail) 
            | _ => x ))
     (*end*)
@@ -199,7 +201,7 @@ struct
     |> Seq.map (update (env_tac args) (pnode,pplan))
     |> (fn x => 
         (case Seq.pull x of NONE 
-           => (logging "TACTIC" ("Fail to apply env tactic for pnode " ^ get_pnode_name pnode); 
+           => (logging "TACTIC" ("Fail to apply env tactic for pnode " ^ get_pnode_name pnode ^  ", empty seqence"); 
                raise tinker_fail) 
            | _ => x ))
    (* end*)

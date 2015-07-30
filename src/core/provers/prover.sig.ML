@@ -23,9 +23,8 @@ sig
   type tactic 
 
   (* arguments for atomic goal types and tactics *)
-  (*datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_ML of string*)
-  type arg_data = string (* to keep the flexibility of arg, define the arg_data as ML code, i.e. string *)
-
+  datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
+ 
   datatype env_data = 
     E_Str of string | 
     E_Trm of term  | 
@@ -57,6 +56,7 @@ sig
   val typ_of : term -> typ
   val match : context -> (term * term) -> bool
 
+  val get_thm_by_name : context -> string -> thm
   val trm_of_string : context -> string -> term
   val string_of_trm : context -> term -> string
   val pretty_trm : context -> term -> Pretty.T
@@ -115,7 +115,7 @@ sig
     sharing type Sharing.pnode = pnode
 
 end;
-
+(*
 structure ProverUtils = 
 struct
  local open LoggingHandler in
@@ -133,7 +133,6 @@ struct
   in
      tac_code ^ args
   end;
-
   end
 end
-
+*)
