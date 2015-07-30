@@ -4,7 +4,7 @@ package tinkerGUI.views
 import tinkerGUI.model.exceptions.{AtomicTacticNotFoundException, GraphTacticNotFoundException}
 import tinkerGUI.controllers._
 import tinkerGUI.controllers.events._
-import tinkerGUI.utils.{TinkerDialog, ArgumentParser}
+import tinkerGUI.utils.{UnicodeParser}
 
 import scala.swing._
 import javax.swing.ImageIcon
@@ -135,7 +135,7 @@ class VertexEditContent(nam: String, typ: String, label: String, value:String) e
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(removeBreak)
 		case "G" =>
 			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Name : "+label))
-			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Goal : "+value))
+			contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Goal : "+UnicodeParser.stringToUnicode(value)))
 	}
 
 }
