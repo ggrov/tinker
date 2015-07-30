@@ -119,7 +119,18 @@ struct
   let
     val func = case Symtab.lookup ftab (get_cmd_name json_input) of SOME x => x
                | NONE => raise user_exn ("Function not found: "  ^ "." ^ (get_cmd_name json_input))
-  in func json_input
+  in 
+    func json_input
+    handle logging_exp exp_str =>  
+    (logging "EXCEPTION" exp_str;
+     Json.mk_object[
+      ("cmd", Json.String "RSP_EXCEPTION"),
+      ("log_info", buffer_to_json ())])
+    | tinker_fail => 
+      Json.mk_object[
+      ("cmd", Json.String "RSP_EXCEPTION"),
+      ("log_info", buffer_to_json ())]
+
   end
 
 (****************************************************
@@ -141,13 +152,14 @@ struct
       val (json_list, src') = RawSource.get src
       val json = case json_list of [x] => x | _ =>
         raise protocol_exn "Expected: exactly one JSON object"
-     (* val _ = (logging "JSON_GUI" ("JSON IN: " ^ (Json.encode json)))*)
+      val _ = (logging_handler_print "JSON_GUI" ("JSON IN: " ^ (Json.encode json)))
       val json_output = dispatch json (* this output is always a json object *)
-     (* val _ =  logging "JSON_GUI" ("JSON OUT: " ^ ( Json.encode json_output))*)
+      val _ =  logging_handler_print "JSON_GUI" ("JSON OUT: " ^ ( Json.encode json_output))
     in 
       (case get_cmd_name json_output
           of "CMD_CLOSE_CONNECT" => () (* do nothing and exit: need to be consider what to do *)
           | "CMD_END_EVAL_SESSION" => send_msg (Json.encode json_output) (* send to stop cmd and quit *)
+          | "RSP_EXCEPTION" => send_msg (Json.encode json_output) (* end session and flash out the exception string*)
           | "Dummy_RSP" => ((); protocol_loop src')
           | "PRINT_ONLY_RSP" => 
             ((get_print_only_msg  json_output

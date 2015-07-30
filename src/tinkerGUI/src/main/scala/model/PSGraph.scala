@@ -34,20 +34,36 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		* @param name Gui id of the atomic tactic.
 		* @param newName New gui id of the atomic tactic.
 		* @param newTactic New core id of the atomic tactic.
-		* @param newArgs New arguments of the atomic tactic.
 		* @return List of the node ids to update on the current graph.
 		* @throws AtomicTacticNotFoundException If the atomic tactic was not found.
 		* @throws JsonAccessException If updating the values in the json graphs fails.
 		*/
-	def updateForceAT(name: String, newName:String, newTactic: String, newArgs:String):Array[String] = {
+	def updateForceAT(name: String, newName:String, newTactic: String):Array[String] = {
 		try{
-			val oldArgs = atCollection get name match {
-				case Some(t:AtomicTactic) => t.argumentsToString()
-				case None => throw new AtomicTacticNotFoundException(name)
+			val nodeIds = updateForceAT(name,newName,newTactic,currentTactic.name,currentIndex)
+			if(name != newName) {
+				updateValueInJsonGraphs(name, newName)
 			}
-			val nodeIds = updateForceAT(name,newName,newTactic,newArgs,currentTactic.name,currentIndex)
-			if(name != newName || oldArgs != newArgs) {
-				updateValueInJsonGraphs(name+"("+oldArgs+")", newName+"("+newArgs+")")
+			nodeIds
+		} catch {
+			case e:AtomicTacticNotFoundException => throw e
+			case e:JsonAccessException => throw e
+		}
+	}
+
+	/** Method to force the update of an atomic tactic.
+		*
+		* @param name Gui id of the atomic tactic.
+		* @param newName New gui id of the atomic tactic.
+		* @return List of the node ids to update on the current graph.
+		* @throws AtomicTacticNotFoundException If the atomic tactic was not found.
+		* @throws JsonAccessException If updating the values in the json graphs fails.
+		*/
+	def updateForceAT(name: String, newName:String):Array[String] = {
+		try{
+			val nodeIds = updateForceAT(name,newName,currentTactic.name,currentIndex)
+			if(name != newName) {
+				updateValueInJsonGraphs(name, newName)
 			}
 			nodeIds
 		} catch {
@@ -114,29 +130,13 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		*
 		* @param id Id/name of the graph tactic.
 		* @param branchType Branch type of the graph tactic.
-		* @param args List of arguments for the graph tactic.
 		* @return Boolean notifying of successful creation or not (should be used to handle duplication).
 		* @throws ReservedNameException If id is the main tactic name.
 		*/
-	override def createGT(id:String,branchType:String,args:Array[Array[String]]): Boolean = {
+	override def createGT(id:String,branchType:String): Boolean = {
 		if(id == mainTactic.name) throw new ReservedNameException(id)
 		else {
-			super.createGT(id,branchType,args)
-		}
-	}
-
-	/** Method creating an graph tactic if the id is available.
-		*
-		* @param id Id/name of the graph tactic.
-		* @param branchType Branch type of the graph tactic.
-		* @param args List of arguments for the graph tactic, in a string format.
-		* @return Boolean notifying of successful creation or not (should be used to handle duplication).
-		* @throws ReservedNameException If id is the main tactic name.
-		*/
-	override def createGT(id:String,branchType:String,args:String): Boolean = {
-		if(id == mainTactic.name) throw new ReservedNameException(id)
-		else {
-			super.createGT(id,branchType,args)
+			super.createGT(id,branchType)
 		}
 	}
 
@@ -146,43 +146,14 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		* @param name Gui id of the graph tactic.
 		* @param newName New gui id of the graph tactic.
 		* @param newBranchType New branch type value.
-		* @param newArgs New list of arguments.
 		* @return Boolean notifying of successful change or not (should be used to handle duplication).
 		* @throws GraphTacticNotFoundException If the graph tactic was not in the collection.
 		* @throws ReservedNameException If newName is the main tactic name.
 		*/
-	override def updateGT(name:String, newName:String, newBranchType:String, newArgs:Array[Array[String]]):Boolean = {
+	override def updateGT(name:String, newName:String, newBranchType:String):Boolean = {
 		if(newName == mainTactic.name) throw new ReservedNameException(newName)
 		try{
-			if(super.updateGT(name, newName, newBranchType, newArgs)){
-				if(name != newName){
-					for((k,v)<-gtCollection) v.changeOccurrences(name, newName)
-					for((k,v)<-atCollection) v.changeOccurrences(name, newName)
-				}
-				true
-			} else {
-				false
-			}
-		} catch {
-			case e:GraphTacticNotFoundException => throw e
-		}
-	}
-
-	/** Method to update a graph tactic.
-		*
-		* Also changes the occurrences of all other tactics if necessary.
-		* @param name Gui id of the graph tactic.
-		* @param newName New gui id of the graph tactic.
-		* @param newBranchType New branch type value.
-		* @param newArgs New list of arguments, in a string format.
-		* @return Boolean notifying of successful change or not (should be used to handle duplication).
-		* @throws GraphTacticNotFoundException If the graph tactic was not in the collection.
-		* @throws ReservedNameException If newName is "main".
-		*/
-	override def updateGT(name:String, newName:String, newBranchType:String, newArgs:String):Boolean = {
-		if(newName == mainTactic.name) throw new ReservedNameException(newName)
-		try{
-			if(super.updateGT(name, newName, newBranchType, newArgs)){
+			if(super.updateGT(name, newName, newBranchType)){
 				if(name != newName){
 					for((k,v)<-gtCollection) v.changeOccurrences(name, newName)
 					for((k,v)<-atCollection) v.changeOccurrences(name, newName)
@@ -201,26 +172,21 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		* @param name Gui id of the graph tactic.
 		* @param newName New gui id of the graph tactic.
 		* @param newBranchType New branch type of the graph tactic.
-		* @param newArgs New arguments of the graph tactic, in a string format.
 		* @return List of the node ids to update on the current graph.
 		* @throws GraphTacticNotFoundException If the graph tactic was not found.
-		* @throws ReservedNameException If newName is "main".
+		* @throws ReservedNameException If newName is the main tactic name.
 		* @throws JsonAccessException If updating the values in the json graphs fails.
 		*/
-	def updateForceGT(name: String, newName:String, newBranchType: String, newArgs:String):Array[String] = {
+	def updateForceGT(name: String, newName:String, newBranchType: String):Array[String] = {
 		if(newName == mainTactic.name) throw new ReservedNameException(newName)
 		try {
-			val oldArgs = gtCollection get name match {
-				case Some(t:GraphTactic) => t.argumentsToString()
-				case None => throw new GraphTacticNotFoundException(name)
-			}
-			val nodeIds = updateForceGT(name,newName,newBranchType,newArgs,currentTactic.name,currentIndex)
+			val nodeIds = updateForceGT(name,newName,newBranchType,currentTactic.name,currentIndex)
 			if(name != newName) {
 				for((k,v)<-gtCollection) v.changeOccurrences(name, newName)
 				for((k,v)<-atCollection) v.changeOccurrences(name, newName)
 			}
-			if(name != newName || oldArgs != newArgs){
-				updateValueInJsonGraphs(name+"("+oldArgs+")", newName+"("+newArgs+")")
+			if(name != newName){
+				updateValueInJsonGraphs(name, newName)
 			}
 			nodeIds
 		} catch {
@@ -393,6 +359,22 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		atCollection = Map()
 	}
 
+	/** Method removing all goals from graphs.
+		*
+		*/
+	def removeGoals {
+		try{
+			mainTactic.addSubgraph(QuantoLibAPI.graphWithNoGoals(mainTactic.getSubgraph(0)).asObject,0)
+			gtCollection.foreach{ case (name,gt) =>
+				gt.graphs.zipWithIndex.foreach { case (gr,i) =>
+					gt.addSubgraph(QuantoLibAPI.graphWithNoGoals(gr).asObject,i)
+				}
+			}
+		} catch {
+			case e:SubgraphNotFoundException =>
+		}
+	}
+
 	/** Method renaming the model, i.e. renames the main tactic.
 		*
 		* @param name New name.
@@ -525,7 +507,7 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		if(isMain){
 			gtCollection.foreach { case (k,v) =>
 					v.graphs.zipWithIndex.foreach { case (g,i) =>
-						QuantoLibAPI.updateValues(g,Array((oldVal,newVal))) match {
+						QuantoLibAPI.updateValuesInGraph(g,Array((oldVal,newVal))) match {
 							case j : JsonObject => v.graphs(i) = j
 							case j:Json => throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
 						}
@@ -539,14 +521,14 @@ class PSGraph(name:String) extends ATManager with GTManager {
 					}
 			}
 		} else {
-			QuantoLibAPI.updateValues(mainTactic.getSubgraph(0),Array((oldVal,newVal))) match {
+			QuantoLibAPI.updateValuesInGraph(mainTactic.getSubgraph(0),Array((oldVal,newVal))) match {
 				case j : JsonObject => mainTactic.graphs(0) = j
 				case j:Json => throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
 			}
 			gtCollection.foreach { case(k,v) =>
 				v.graphs.zipWithIndex.foreach { case (g,i)=>
 					if(k != currentTactic.name && i != currentIndex) {
-						QuantoLibAPI.updateValues(g,Array((oldVal,newVal))) match {
+						QuantoLibAPI.updateValuesInGraph(g,Array((oldVal,newVal))) match {
 							case j : JsonObject => v.graphs(i) = j
 							case j:Json => throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
 						}
@@ -577,38 +559,28 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		gtCollection = Map()
 		val current = (j / "current").asArray.head.stringValue
 		val main = (j / "main").stringValue
-		mainTactic.name = main
+		//mainTactic.name = main
 		currentParents = (j / "current").asArray.tail.foldRight(Array[String]()){ case (p,a) => a :+ p.stringValue}
 		currentIndex  = (j / "current_index").intValue
 		goalTypes = (j / "goal_types").stringValue
 		try{
-			(j / "atomic_tactics").asArray.foreach{ tct =>
+			/*(j / "atomic_tactics").asArray.foreach{ tct =>
 				val name = (tct / "name").stringValue
 				val tactic = (tct / "tactic").stringValue
-				var args = Array[Array[String]]()
-				(tct / "args").asArray.foreach{ a =>
-					var arg = Array[String]()
-					a.asArray.foreach{ s => arg = arg :+ s.stringValue}
-					args = args :+ arg
-				}
-				createAT(name, tactic , args)
-			}
-			(j / "graphs").asArray.foreach { tct =>
+				createAT(name,tactic)
+			}*/
+			loadATFromJson((j/"atomic_tactics").asArray)
+			mainTactic = loadGTFromJson((j/"graphs").asArray,main)
+			/*(j / "graphs").asArray.foreach { tct =>
 				val name = (tct / "name").stringValue
 				val branchType = (tct / "branch_type").stringValue
-				var args = Array[Array[String]]()
-				(tct / "args").asArray.foreach{ a =>
-					var arg = Array[String]()
-					a.asArray.foreach{ s => arg = arg :+ s.stringValue}
-					args = args :+ arg
-				}
-				if(name != main) createGT(name, branchType, args)
+				if(name != main) createGT(name, branchType)
 				var i = 0
 				(tct / "graphs").asArray.foreach{ gr =>
 					saveGraph(name, gr, i)
 					i+=1
 				}
-			}
+			}*/
 			(j / "occurrences").asObject match { case occ:JsonObject =>
 				(occ / "atomic_tactics").asObject.foreach { case(k,v) =>
 					v.asArray.foreach { occ =>

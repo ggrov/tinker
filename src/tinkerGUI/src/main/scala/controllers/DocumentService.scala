@@ -95,25 +95,20 @@ object DocumentService extends Publisher {
 	}
 
 	def showOpenDialog(rootDir: Option[String] = None): Option[Json] = {
-		if (promptUnsaved(Service.getJsonPSGraph)) {
-			val chooser = new FileChooser()
-			chooser.peer.setCurrentDirectory(rootDir match {
-				case Some(d) => new File(d)
-				case None => previousDir
-			})
-			chooser.fileFilter = new FileNameExtensionFilter("Tinker Proof Strategy Graph File (*.psgraph)", "psgraph")
-			chooser.showOpenDialog(Service.getMainFrame) match {
-				case FileChooser.Result.Approve =>
-					previousDir = chooser.selectedFile
-					load(chooser.selectedFile) match{
-						case Some(j: Json) => Some(j)
-						case None => None
-					}
-				case _ => None
-			}
-		}
-		else {
-			None
+		val chooser = new FileChooser()
+		chooser.peer.setCurrentDirectory(rootDir match {
+			case Some(d) => new File(d)
+			case None => previousDir
+		})
+		chooser.fileFilter = new FileNameExtensionFilter("Tinker Proof Strategy Graph File (*.psgraph)", "psgraph")
+		chooser.showOpenDialog(Service.getMainFrame) match {
+			case FileChooser.Result.Approve =>
+				previousDir = chooser.selectedFile
+				load(chooser.selectedFile) match{
+					case Some(j: Json) => Some(j)
+					case None => None
+				}
+			case _ => None
 		}
 	}
 

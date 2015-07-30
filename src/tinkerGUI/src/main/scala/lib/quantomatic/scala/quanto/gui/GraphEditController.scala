@@ -228,7 +228,7 @@ class GraphEditController(view: GraphView, undoStack: UndoStack, val readOnly: B
     graph.vdata(v) match {
       case data: NodeV =>
         val oldVal = data.value.stringValue
-        graph = graph.updateVData(v) { _ => data.withValue(str) }
+        graph = graph.updateVData(v) { _ => data.withLabel(str) }
         view.invalidateVertex(v)
         graph.adjacentEdges(v).foreach { view.invalidateEdge }
         undoStack.register("Set Vertex Data") { setVertexValue(v, oldVal) }

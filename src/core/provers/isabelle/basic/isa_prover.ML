@@ -1,7 +1,7 @@
 structure IsaProver : PROVER =
 struct 
    
-  local open LoggingHandler ProverUtils in 
+  local open LoggingHandler in 
   type typ = typ
   type term = Term.term  
   type thm = Thm.thm
@@ -13,10 +13,12 @@ struct
    in Print_Mode.setmp [] (Syntax.string_of_term ctxt') t end;
   val trm_of_string = Syntax.parse_term;
   val string_of_trm = (*Syntax.string_of_term*) term_to_string;
+  fun get_thm_by_name ctxt name = 
+    Find_Theorems.find_theorems ctxt NONE NONE false [(true, Find_Theorems.Name name)]
+    |> snd |> hd |> snd;
   val pretty_trm = Syntax.pretty_term;
 
-
-  type arg_data = string (* A_Const of string | A_Var of string | A_Trm of term *)
+  datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
   datatype env_data = 
     E_Str of string | 
     E_Trm of term | E_Thm of thm |
@@ -43,11 +45,11 @@ struct
     |> Pretty.str
     end
 
-  type env_tac =  env -> env 
+  type env_tac =  arg_data list -> env -> env 
 
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term, env : env } 
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
-  type tactic = Proof.context -> int -> Tactical.tactic (* Proof.context -> int -> arg_data list -> Tactical.tactic*)
+  type tactic =  Proof.context -> int -> arg_data list -> Tactical.tactic
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
   exception env_data_exp
@@ -182,27 +184,27 @@ struct
 
   fun pretty_pplan _ = Pretty.str "Pretty PPLAN TOTO";
    
-  fun apply_tactic args (tac_code : string) (pnode,pplan) = 
-    let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in
-    tac (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
+  fun apply_tactic args (tac : tactic) (pnode,pplan) = 
+    (*let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in*)
+    tac (#pctxt pnode) (get_index pnode pplan) args (#goal pplan)
     |> Seq.map (update I (pnode,pplan))
     |> (fn x => 
         (case Seq.pull x of NONE 
-           => (logging "TACTIC" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode); 
+           => (logging "EXCEPTION" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode ^ ", empty seqence"); 
                raise tinker_fail) 
            | _ => x ))
-    end
+    (*end*)
   (* Update the env and then apply a dummy id tac in isabelle *)
-  fun apply_env_tactic args env_tac_code (pnode,pplan) = 
-    let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in
+  fun apply_env_tactic args (env_tac : env_tac) (pnode,pplan) = 
+    (*let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in*)
     (K (K all_tac)) (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
-    |> Seq.map (update env_tac (pnode,pplan))
+    |> Seq.map (update (env_tac args) (pnode,pplan))
     |> (fn x => 
         (case Seq.pull x of NONE 
-           => (logging "TACTIC" ("Fail to apply env tactic for pnode " ^ get_pnode_name pnode); 
+           => (logging "TACTIC" ("Fail to apply env tactic for pnode " ^ get_pnode_name pnode ^  ", empty seqence"); 
                raise tinker_fail) 
            | _ => x ))
-    end
+   (* end*)
   (* SOME default tactics *)
 
   (*fun lookup_thm ctxt name =

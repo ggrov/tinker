@@ -4,50 +4,11 @@ import quanto.util.json._
 import tinkerGUI.controllers.events._
 import tinkerGUI.model.PSGraph
 import tinkerGUI.model.exceptions.{PSGraphModelException, GraphTacticNotFoundException}
-import tinkerGUI.utils.TinkerDialog
+import tinkerGUI.utils.{FilteredLogStack, TinkerDialog}
 
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer}
 import scala.swing.Publisher
-
-
-class EvalLogController extends Publisher {
-	val stack = mutable.ArrayStack[(String,String)]()
-
-	var filter = ArrayBuffer[String]()
-
-	def addToFilter(s:String) {
-		if(!filter.contains(s)) filter += s
-		publish(EvalLogEvent())
-	}
-
-	def removeFromFilter(s:String) {
-		if(filter.contains(s)) filter -= s
-		publish(EvalLogEvent())
-	}
-
-	def getLog:String = {
-		stack.foldRight(""){
-			case (p,s) =>
-				if(filter contains p._1) s + " > " + p._1 + " : " + p._2 + "\n"
-				else s
-		}
-	}
-
-	def addToLog(j:JsonObject) {
-		j.foreach{
-			case(k,v:JsonArray) =>
-				v.vectorValue.foreach{
-					case s:JsonString =>
-						stack.push((k,s.stringValue))
-					case _ =>
-				}
-			case _ =>
-		}
-		println(stack.foldLeft(""){ case (s,p) => s + p._1 + " - " + p._2 + "\n"})
-		publish(EvalLogEvent())
-	}
-}
 
 
 /** Controller managing the evaluation process of a psgraph.
@@ -72,7 +33,7 @@ class EvalController(model:PSGraph) extends Publisher {
 	var tmpEvalPSGraph = JsonObject()
 
 	/** Eval log controller. */
-	val evalLogCtrl = new EvalLogController
+	val logStack = new FilteredLogStack
 
 	/** Method to switch evaluation state.
 		*
@@ -83,6 +44,7 @@ class EvalController(model:PSGraph) extends Publisher {
 		inEval = b
 		if(!b) {
 			publish(DisableEvalOptionsEvent())
+			model.removeGoals
 			QuantoLibAPI.loadFromJson(model.getCurrentJson)
 		} else {
 			Service.editCtrl.changeMouseState("select")
@@ -117,13 +79,19 @@ class EvalController(model:PSGraph) extends Publisher {
 		* @param j Json object of the new model.
 		*/
 	def loadJson(j:JsonObject) {
-		if(!j.isEmpty){
+		if(j.nonEmpty){
 			try{
 				model.loadJsonGraph(j)
 				publish(GraphTacticListEvent())
 				publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(Service.hierarchyCtrl.elementParents(model.getCurrentGTName))))
 				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
+				Service.editCtrl.updateEditors
+				// to be enhanced once undo is handled by core
+				DocumentService.proofTitle = model.mainTactic.name
+				Service.documentCtrl.undoStack.empty()
+				Service.documentCtrl.redoStack.empty()
+				Service.documentCtrl.publish(DocumentChangedEvent(true))
 				saveEvalPath()
 			} catch {
 				case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
@@ -149,7 +117,6 @@ class EvalController(model:PSGraph) extends Publisher {
 		*/
 	def selectEvalOption(o:String){
 		publish(DisableEvalOptionsEvent())
-		selectedNode = ""
 		o match {
 			case "PUSH" =>
 				model.updateJsonPSGraph()
@@ -159,6 +126,7 @@ class EvalController(model:PSGraph) extends Publisher {
 			case _ =>
 				publish(EvalOptionSelectedEvent(o, selectedNode))
 		}
+		selectedNode = ""
 	}
 
 	listenTo(QuantoLibAPI)

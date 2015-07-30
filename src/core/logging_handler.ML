@@ -16,20 +16,25 @@ struct
     "JSON_CORE",
     "EVAL",
     "GUI_LAUNCHER",
-    "WARNING"
+    "WARNING",
+    "EXCEPTION"
   ] |> StrName.NSet.of_list;
 
   val active_tags = Unsynchronized.ref StrName.NSet.empty;
   fun get_active_tags _ = !active_tags;
   val set_active_tags = fn x => active_tags := x;
 
+  val if_debug = true
   val logging_handler_print = 
+   if if_debug then
    (fn tag => (fn msg =>  
       Pretty.writeln (
          Pretty.block [Pretty.str "[ LOGGING - ", 
                        Pretty.str (tag ^ ": "),
                        Pretty.str msg,
-                       Pretty.str " ]"]))); 
+                       Pretty.str " ]"])))
+   else (fn _ =>( fn _ => ()))
+
   val logging_handler = 
     Unsynchronized.ref logging_handler_print;
 
@@ -71,7 +76,8 @@ struct
     ("ENV_DATA", []), ("ARG_DATA", []), ("SOCKET", []),
     ("GRAPH", []), ("HIERARCHY", []), ("JSON_GUI", []),
     ("JSON_CORE", []), ("EVAL", []), ("GUI_LAUNCHER", []),
-    ("WARNING", [])];
+    ("WARNING", []),("EXCEPTION", [])];
+
   val logging_buffer : string list  StrName.NTab.T  Unsynchronized.ref = 
     Unsynchronized.ref defaul_buffer;
   val get_logging_buffer = fn _ => !logging_buffer;
@@ -98,5 +104,5 @@ struct
 end
 
 val _ = LoggingHandler.set_logging_handler 
-  (fn tag => fn msg => (LoggingHandler.logging_handler_print tag msg; LoggingHandler.logging_handler_gui tag msg));
+  (fn tag => fn msg => ((*LoggingHandler.logging_handler_print tag msg;*) LoggingHandler.logging_handler_gui tag msg));
 

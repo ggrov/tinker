@@ -80,7 +80,8 @@ trait VertexDisplayData { self: GraphView =>
       vertexDisplay(v) = data match {
         case vertexData : NodeV =>
           val style = vertexData.typeInfo.style
-          val text = vertexData.value.stringValue
+          //val text = vertexData.value.stringValue
+          val text = vertexData.label
             /*vertexData.typeInfo.value.typ match {
             case Theory.ValueType.String => vertexData.value
             case _ => ""

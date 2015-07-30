@@ -4,6 +4,7 @@ imports
   "../../provers/isabelle/basic/build/BIsaP"    
 begin
 
+  ML_file "goaltype.sig.ML"
   ML_file "goaltype.ML"                                                                                                                          
   
   section "Test for Isabelle"
@@ -12,6 +13,12 @@ begin
   ML{*
     structure ClauseGoalTyp = ClauseGTFun(structure Prover = IsaProver val struct_name = "ClauseGoalTyp");  
     structure C = ClauseGoalTyp;
+    C.Var;
+  *}
+
+
+  ML{*
+    structure C2 : CLAUSE_GOALTYPE = C;       
   *}
 
   ML{*

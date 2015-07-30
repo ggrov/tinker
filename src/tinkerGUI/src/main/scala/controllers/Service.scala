@@ -1,5 +1,7 @@
 package tinkerGUI.controllers
 
+import java.io.{IOException, FileNotFoundException, File}
+
 import tinkerGUI.controllers.events.GraphTacticListEvent
 import tinkerGUI.model.exceptions.{SubgraphNotFoundException, GraphTacticNotFoundException, AtomicTacticNotFoundException}
 
@@ -54,11 +56,37 @@ object Service extends Publisher {
 	def getCurrent = model.currentTactic.name
 	/** Method to get the goal types of the psgraph. See [[tinkerGUI.model.PSGraph.goalTypes]].*/
 	def getGoalTypes = model.goalTypes
-	/** Method to get the core id of an atomic tactic. See [[tinkerGUI.model.PSGraph.getATCoreId]].*/
-	def getATCoreId(name:String) = model.getATCoreId(name)
+	/** Method to get the core id of an atomic tactic. See [[tinkerGUI.model.PSGraph.getTacticValue]].*/
+	def getATCoreId(name:String) = model.getTacticValue(name)
 	/** Method to get the branch type of a specific graph tactic. See [[tinkerGUI.model.PSGraph.getGTBranchType]].*/
 	def getBranchTypeGT(tactic: String) = model.getGTBranchType(tactic)
 
+
+	def initApp():Boolean = {
+		try {
+			DocumentService.load(new File((Json.parse(new File(".tinkerConfig"))/"file").stringValue)) match {
+				case Some(j:JsonObject) =>
+					documentCtrl.openJson(j)
+					true
+				case _ =>
+					false
+			}
+		} catch {
+			case e: Exception =>
+				false
+		}
+	}
+
+	def closeApp() {
+		println("closing")
+		if(documentCtrl.closeDoc()){
+			DocumentService.file match {
+				case Some(f:File) => JsonObject("file"->JsonString(f.toString)).writeTo(new File(".tinkerConfig"))
+				case _ =>
+			}
+			sys.exit(0)
+		}
+	}
 
 
 	def saveGraphSpecificTactic(tactic: String, graph: Json, index: Int) = {

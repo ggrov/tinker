@@ -30,16 +30,17 @@ sig
   (* val get_tactics : T -> Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T *)
   val get_graph : T -> StrName.NTab.name -> int -> Theory.Graph.T
   val get_graphs : T -> StrName.NTab.name -> Theory.Graph.T list
-  val get_atomic_tac_code_and_args : T 
+(*   val get_atomic_tac_code_and_args : T 
     -> StrName.NTab.name (* atomic tactic node name *)
     -> Theory.GoalTyp.Prover.pnode
     -> (string * Theory.GoalTyp.Prover.arg_data list list) (* return the actual ml code to be evaluated *)
   val get_graph_tacs_args :  T 
     -> StrName.NTab.name
     -> Theory.Data.arg_typ
+ *)
   val get_occurs : T -> occurences
   val get_main : T -> StrName.NTab.name
-  
+  val get_atomic_tac_by_name : T -> StrName.NTab.name -> Theory.Data.GoalTyp.Prover.tactic
  (* set methods *)
   val set_top_graph : Theory.Graph.T -> T -> T
   val set_graph_tactics : graph_tacs StrName.NTab.T -> T -> T

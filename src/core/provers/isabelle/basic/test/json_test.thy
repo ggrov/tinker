@@ -47,11 +47,11 @@ ML{*
 ML{*
 val impI_thm = @{thm impI};
 val conjI_thm = @{thm conjI};
-fun rule_tac thm _ i =  rtac thm i;
-fun impI_tac  _ i  = rtac @{thm impI} i;
-fun conjI_tac _ i  = rtac @{thm conjI} i
+fun rule_tac ctxt i (arg as [IsaProver.A_Str thm_name]) =  rtac (get_thm_by_name ctxt thm_name) i;
+fun impI_tac  _ i _ = rtac @{thm impI} i;
+fun conjI_tac _ i _ = rtac @{thm conjI} i
 fun id_tac  _ _  = all_tac;
-fun assm_tac  _ i = atac i;
+fun assm_tac  _ i _ = atac i;
 
 (* test gty pred *)
 fun test_pred _ _ _ = true
@@ -61,8 +61,12 @@ fun test_true1 _ _ _ = true
 *}
 (* read and load a psgraph created by gui *)
 ML{*
+
   val ps = PSGraph.read_json_file (path^"demo.psgraph");
   PSGraph.write_json_file (path^"demo1.psgraph") ps; 
+*}
+ML{*    
+  val ps = PSGraph.read_json_file ("/Users/yuhuilin/Desktop/"^"demo.psgraph");
 *}
 
 ML{*
@@ -70,7 +74,7 @@ LoggingHandler.active_all_tags ();
 
 *}
 ML{* 
-  val edata0 = EVal.init ps @{context} [] @{prop "(A)  \<longrightarrow>  ((B \<longrightarrow>A) \<and>  (B \<longrightarrow>A) \<and> (B \<longrightarrow>A))"} |> hd; 
+  val edata0 = EVal.init ps @{context} [] @{prop "(A)  \<longrightarrow>  ((B \<longrightarrow> A) \<and>  (B \<longrightarrow>A) \<and> (B \<longrightarrow>A))"} |> hd; 
 
 IEVal.output_string 
           "CMD_INIT_PSGRAPH" 
@@ -83,8 +87,14 @@ IEVal.output_string
 ML{*-
   TextSocket.safe_close();
 *}
-ML{* 
-Tinker.start_ieval @{context} ps [] @{prop "(A)  \<longrightarrow>  ((B \<longrightarrow>A) \<and>  (B \<longrightarrow>A) \<and> (B \<longrightarrow>A))"};
+ML{*-  
+Tinker.start_ieval @{context} ps [] @{prop "(C \<longrightarrow> ((A \<longrightarrow> A) \<and> (B \<longrightarrow> B)))"};
 *}
+
+ML{*
+rule_tac @{context} 1 "HOL.impI";
+*}
+lemma "(C \<longrightarrow> ((A \<longrightarrow> A) \<and> (B \<longrightarrow> B)))"
+apply (tactic {*rule_tac @{context} 1 "impI"*})
 
 

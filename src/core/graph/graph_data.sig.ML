@@ -10,11 +10,16 @@ signature PSGRAPH_DATA =
 sig
   structure GoalTyp : BASIC_GOALTYPE
 
-  type arg_typ = GoalTyp.Prover.arg_data list list (*e.g. [[x, int], [y int list]] = (x : int) (y : int list) *)
+  type arg_typ = string list list 
+  (*e.g. [[trm, A_Trm], [ml_str, A_ML]] = (trm : A_Trm) (ml_str : A_ML), eventually,
+    this should be parsed into the arg_data in prover, which is [A_Trm trm, A_ML ml_str]*)
+  val arg_typ_to_json : arg_typ -> Json.json 
+  val arg_typ_from_json : Json.json -> arg_typ
+  val parse_arg_data : GoalTyp.Prover.context -> arg_typ -> GoalTyp.Prover.arg_data list
 
-  (* note: variables only for evaluation! *)
-  datatype nvdata =  T_Atomic of string (* tactic *)
-             | T_Graph of string (* nested / hierarchical graph*)
+(* note: variables only for evaluation! *)
+  datatype nvdata =  T_Atomic of  (string * arg_typ)
+             | T_Graph of (string * arg_typ)
              | T_Identity 
              | G_Break (* breakpoint *)
              | G of GoalTyp.gnode 
@@ -25,7 +30,8 @@ sig
                  | GT_Var of string (* variable of goal node *)
   
   exception gdata_json_exp of string * Json.json
-
+  val get_nvdata_name : nvdata -> string
+  val get_nvdata_args : nvdata -> arg_typ
   val nvdata_to_json : nvdata -> Json.json
   val nvdata_from_json : Json.json -> nvdata
   val edata_to_json : edata -> Json.json

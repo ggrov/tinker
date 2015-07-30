@@ -8,11 +8,10 @@ import java.awt.Point
 import java.awt.geom.Rectangle2D
 import math.{min,abs}
 
-/** 
- * Simple abstract class used to identify the current mouse state
- * (e.g. the "Add Vertex" tool has been selected, a selection box
- * is drawn etc.)
- */
+/** Simple abstract class used to identify the current mouse state
+  * (e.g. the "Add Vertex" tool has been selected, a selection box
+  * is drawn etc.)
+  */
 sealed abstract class MouseState
 
 class InvalidMouseStateException(val when: String, val state: MouseState)

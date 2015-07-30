@@ -36,6 +36,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 					model.loadJsonGraph(j)
 					QuantoLibAPI.loadFromJson(model.getCurrentJson)
 					Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
+					Service.editCtrl.updateEditors
 					publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
 					publish(DocumentChangedEvent(unsavedChanges))
 				} catch {
@@ -58,6 +59,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 					model.loadJsonGraph(j)
 					QuantoLibAPI.loadFromJson(model.getCurrentJson)
 					Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
+					Service.editCtrl.updateEditors
 					publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
 					publish(DocumentChangedEvent(unsavedChanges))
 				} catch {
@@ -95,28 +97,33 @@ class DocumentController(model:PSGraph) extends Publisher {
 		*
 		*/
 	def openJson() {
-		model.updateJsonPSGraph()
-		DocumentService.showOpenDialog(None) match {
-			case Some(j:JsonObject) =>
-				if(j.nonEmpty){
-					try{
-						model.loadJsonGraph(j)
-						undoStack.empty()
-						redoStack.empty()
-						publish(GraphTacticListEvent())
-						publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(model.currentParents)))
-						QuantoLibAPI.loadFromJson(model.getCurrentJson)
-						Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
-						unsavedChanges = false
-						publish(DocumentChangedEvent(unsavedChanges))
-					} catch {
-						case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
-						case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
-					}
-				} else {
-					TinkerDialog.openErrorDialog("<html>Error while loading json from file : object is empty.</html>")
-				}
-			case _ => TinkerDialog.openErrorDialog("<html>Error while loading json from file : not a json object.</html>")
+		val tmpModel = model
+		tmpModel.removeGoals
+		tmpModel.updateJsonPSGraph()
+		if(DocumentService.promptUnsaved(tmpModel.jsonPSGraph)){
+			DocumentService.showOpenDialog(None) match {
+				case Some(j:JsonObject) =>
+					openJson(j)
+				case _ => TinkerDialog.openErrorDialog("<html>Error while loading json from file : not a json object.</html>")
+			}
+		}
+	}
+
+	/** Method to open a Json object and set it as the model.
+		*
+		* @param j Json to open.
+		*/
+	def openJson(j:JsonObject) {
+		if(j.nonEmpty){
+			try{
+				model.loadJsonGraph(j)
+				resetApp()
+			} catch {
+				case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
+				case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
+			}
+		} else {
+			TinkerDialog.openErrorDialog("<html>Error while loading json from file : object is empty.</html>")
 		}
 	}
 
@@ -124,10 +131,13 @@ class DocumentController(model:PSGraph) extends Publisher {
 		*
 		*/
 	def saveJson() {
-		model.updateJsonPSGraph()
+		//model.updateJsonPSGraph()
+		val tmpModel = model
+		tmpModel.removeGoals
+		tmpModel.updateJsonPSGraph()
 		DocumentService.file match {
-			case Some(_) => DocumentService.save(None, model.jsonPSGraph)
-			case None => DocumentService.saveAs(None, model.jsonPSGraph)
+			case Some(_) => DocumentService.save(None, tmpModel.jsonPSGraph)
+			case None => DocumentService.saveAs(None, tmpModel.jsonPSGraph)
 		}
 		publish(DocumentChangedEvent(unsavedChanges))
 		// we leave the setting of unsavedChanges and the event in document service as errors might happen
@@ -137,8 +147,10 @@ class DocumentController(model:PSGraph) extends Publisher {
 		*
 		*/
 	def saveAsJson() {
-		model.updateJsonPSGraph()
-		DocumentService.saveAs(None, model.jsonPSGraph)
+		val tmpModel = model
+		tmpModel.removeGoals
+		tmpModel.updateJsonPSGraph()
+		DocumentService.saveAs(None, tmpModel.jsonPSGraph)
 		publish(DocumentChangedEvent(unsavedChanges))
 		// we leave the setting of unsavedChanges and the event in document service as errors might happen
 	}
@@ -148,8 +160,10 @@ class DocumentController(model:PSGraph) extends Publisher {
 		* @return Boolean to know if everything was correctly saved.
 		*/
 	def closeDoc():Boolean = {
-		model.updateJsonPSGraph()
-		DocumentService.promptUnsaved(model.jsonPSGraph)
+		val tmpModel = model
+		tmpModel.removeGoals
+		tmpModel.updateJsonPSGraph()
+		DocumentService.promptUnsaved(tmpModel.jsonPSGraph)
 		// we leave the setting of unsavedChanges and the event in document service as errors might happen
 	}
 
@@ -157,22 +171,16 @@ class DocumentController(model:PSGraph) extends Publisher {
 		*
 		*/
 	def newDoc() {
-		model.updateJsonPSGraph()
-		if(DocumentService.promptUnsaved(model.jsonPSGraph)){
+		val tmpModel = model
+		tmpModel.removeGoals
+		tmpModel.updateJsonPSGraph()
+		if(DocumentService.promptUnsaved(tmpModel.jsonPSGraph)){
 			def success(values:Map[String,String]) {
 				try{
 					model.reset(values("Proof name"))
-					Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
-					Service.libraryTreeCtrl.modelCreated = true
-					unsavedChanges = false
-					undoStack.empty()
-					redoStack.empty()
-					QuantoLibAPI.loadFromJson(model.getCurrentJson)
+					resetApp()
 					DocumentService.file = None
 					DocumentService.proofTitle = values("Proof name")
-					publish(GraphTacticListEvent())
-					publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
-					publish(DocumentChangedEvent(unsavedChanges))
 				} catch {
 					case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 				}
@@ -180,5 +188,37 @@ class DocumentController(model:PSGraph) extends Publisher {
 			def failure() {}
 			TinkerDialog.openEditDialog("New proof", Map("Proof name"->""),success,failure)
 		}
+	}
+
+	def newDoc(name:String): Unit ={
+		val tmpModel = model
+		tmpModel.removeGoals
+		tmpModel.updateJsonPSGraph()
+		if(DocumentService.promptUnsaved(tmpModel.jsonPSGraph)) {
+			try{
+				model.reset(name)
+				resetApp()
+				DocumentService.file = None
+				DocumentService.proofTitle = name
+			} catch {
+				case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
+			}
+		}
+	}
+
+	/** Method restoring the application state when using a new proof.
+		*
+		*/
+	def resetApp() {
+		Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
+		Service.libraryTreeCtrl.modelCreated = true
+		unsavedChanges = false
+		undoStack.empty()
+		redoStack.empty()
+		QuantoLibAPI.loadFromJson(model.getCurrentJson)
+		publish(GraphTacticListEvent())
+		publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
+		publish(DocumentChangedEvent(unsavedChanges))
+		Service.editCtrl.updateEditors
 	}
 }

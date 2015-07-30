@@ -1,9 +1,10 @@
 package tinkerGUI.views
 
 import tinkerGUI.controllers.events.DocumentChangedEvent
-import tinkerGUI.controllers.Service
+import tinkerGUI.controllers.{CommunicationService, Service}
 
 import scala.swing._
+import scala.swing.event.{Key, KeyReleased}
 
 object MainGUI extends SimpleSwingApplication {
 
@@ -42,6 +43,43 @@ object MainGUI extends SimpleSwingApplication {
 		contents_=(ThirdSplit, SecondSplit)
 	}
 
+	val initDialog = new Dialog(){ dialog =>
+		title = "Tinker start"
+		val newProject = new FlowPanel(){
+			val project = new TextField(15)
+			contents += new Label("New project :")
+			contents += project
+			contents += new Button(new Action("Create"){
+				def apply() = {
+					if(project.text.nonEmpty){
+						dialog.close()
+						Service.documentCtrl.newDoc(project.text)
+					}
+				}
+			})
+		}
+		val openProject = new FlowPanel(new Button(new Action("Open existing project"){
+			def apply() = {
+				dialog.close()
+				Service.documentCtrl.openJson()
+			}
+		}))
+		val connect = new FlowPanel(new Button(new Action("Connect to core"){
+			def apply() = {
+				dialog.close()
+				if(!CommunicationService.connecting && !CommunicationService.connected) CommunicationService.openConnection
+			}
+		}))
+		contents = new GridPanel(3,1){
+			contents += newProject
+			contents += openProject
+			contents += connect
+		}
+		centerOnScreen()
+		this.peer.setAlwaysOnTop(true)
+	}
+
+
 	def top = new MainFrame{
 		minimumSize = new Dimension (650,450)
 		title = "Tinker - " + Service.documentCtrl.title
@@ -55,8 +93,12 @@ object MainGUI extends SimpleSwingApplication {
 				title = "Tinker - " + Service.documentCtrl.title
 		}
     Service.setTopFrame(this)
+
+		if(!Service.initApp()){
+			initDialog.open()
+		}
+		centerOnScreen()
+		override def closeOperation() { Service.closeApp() }
 	}
-
-
 
 }

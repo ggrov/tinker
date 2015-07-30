@@ -30,3 +30,9 @@ class GraphTacticNotFoundException(val name:String) extends PSGraphModelExceptio
 	* @param index Graph index.
 	*/
 class SubgraphNotFoundException(val name:String, val index:Int) extends PSGraphModelException("No subgraph found at index "+index+" of tactic "+name+".")
+
+/** Exception class for bad json input.
+	*
+	* @param message Exception message.
+	*/
+class BadJsonInputException(val message:String) extends PSGraphModelException("Bad json input. "+message)

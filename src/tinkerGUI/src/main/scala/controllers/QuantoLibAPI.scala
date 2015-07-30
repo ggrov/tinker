@@ -41,7 +41,7 @@ object QuantoLibAPI extends Publisher{
 	private var document = graphPanel.graphDoc
 
 	/** variables used when we are moving an edge */
-	private var movingEdge: Boolean = false
+	var movingEdge: Boolean = false
 	private var movingEdgeSource: Boolean = false
 	private var movedEdge: EName = new EName("")
 
@@ -74,21 +74,11 @@ object QuantoLibAPI extends Publisher{
 					case None =>
 						v.typ match {
 							case "G_Break" =>
-								gr = gr.updateVData(k) { _ => v.withValue("STOP") }
+								gr = gr.updateVData(k) { _ => v.withLabel("STOP") }
 							case "T_Atomic" =>
-								try{
-									gr = gr.updateVData(k) { _ => v.withValue(Service.model.getATFullName(v.label)) }
-								} catch {
-									case e:AtomicTacticNotFoundException =>
-										gr = gr.updateVData(k) { _ => v.withValue(v.label) }
-								}
+								gr = gr.updateVData(k) { _ => v.withLabel(v.label) }
 							case "T_Graph" =>
-								try{
-									gr = gr.updateVData(k) { _ => v.withValue(Service.model.getGTFullName(v.label)) }
-								} catch {
-									case e:GraphTacticNotFoundException =>
-										gr = gr.updateVData(k) { _ => v.withValue(v.label) }
-								}
+								gr = gr.updateVData(k) { _ => v.withLabel(v.label) }
 							case _ =>
 						}
 				}
@@ -311,21 +301,11 @@ object QuantoLibAPI extends Publisher{
 		d match { 
 			case data:NodeV if data.typ == "G_Break" =>
 				removeBreakpoint(v.s)
+			case data:NodeV if data.typ == "G" =>
 			case _ =>
-				var canDeleteElements = true
-				if(graph.vdata.contains(v)){
-					d match {
-						case n: NodeV =>
-							if (n.typ == "T_Graph") canDeleteElements = Service.editCtrl.deleteTactic(n.label, v.s, false)
-							else if (n.typ == "T_Atomic") canDeleteElements = Service.editCtrl.deleteTactic(n.label, v.s, true)
-						case _ =>
-					}
-					if(canDeleteElements){
-						graph.adjacentEdges(v).foreach {deleteEdge}
-						view.invalidateVertex(v)
-						changeGraph(graph.deleteVertex(v))
-					}
-				}
+				graph.adjacentEdges(v).foreach {deleteEdge}
+				view.invalidateVertex(v)
+				changeGraph(graph.deleteVertex(v))
 		}
 	}
 
@@ -358,16 +338,34 @@ object QuantoLibAPI extends Publisher{
 	  *
 	  * @param pt Point where to add the vertex.
 	  * @param typ String representation of the type of node.
+		* @return Id of the new node
 	  */
-	def userAddVertex(pt: java.awt.Point, typ: String){
+	def userAddVertex(pt: java.awt.Point, typ: String, label:String):String = {
 		val coord = view.trans fromScreen (pt.getX, pt.getY)
 		val vertexData = NodeV(data = theory.vertexTypes(typ).defaultData, theory = theory).withCoord(coord)
 		val vertexName = graph.verts.freshWithSuggestion(VName("v0"))
-		addVertex(vertexName, vertexData.withCoord(coord))
-		graph.vdata(vertexName) match {
+		addVertex(vertexName, vertexData.withCoord(coord).withLabel(label))
+		/*graph.vdata(vertexName) match {
 			case data: NodeV =>
 				if(typ == "T_Graph") Service.editCtrl.createTactic(vertexName.s,false)
 				else if (typ == "T_Atomic") Service.editCtrl.createTactic(vertexName.s, true)
+		}*/
+		vertexName.s
+	}
+
+	/** Method to update the value of a vertex.
+		*
+		* @param nodeId Id of the vertex.
+		* @param newValue New value of the vertex.
+		*/
+	def setVertexLabel(nodeId: String, newValue: String) {
+		graph.vdata(VName(nodeId)) match {
+			case data: NodeV =>
+				changeGraph(graph.updateVData(VName(nodeId)) { _ => data.withLabel(newValue) })
+				view.invalidateVertex(VName(nodeId))
+				graph.adjacentEdges(VName(nodeId)).foreach { view.invalidateEdge }
+				publishSelectedVerts()
+			case _ => // do nothing
 		}
 	}
 
@@ -418,6 +416,18 @@ object QuantoLibAPI extends Publisher{
 			}
 		}
 		res
+	}
+
+	/** Method retreiving a node type and value.
+		*
+		* @param n Node id.
+ 		* @return Pair of string, first is type, second is value.
+		*/
+	def getNodeTypeAndValue(n:String):(String,String) = {
+		graph.vdata(VName(n)) match {
+			case (d:NodeV) => (d.typ,d.value.stringValue)
+			case (d:WireV) => ("Boundary","")
+		}
 	}
 
 	// ------------------------------------------------------------
@@ -569,7 +579,7 @@ object QuantoLibAPI extends Publisher{
 	  * @param pt Point where to look for the target (or source) vertex, if none we add a boundary.
 	  * @param changeMouseStateCallback Callback function to update the mouse state.
 	  */
-	def endAddEdge(startV: String, pt: java.awt.Point, changeMouseStateCallback: (String) => Unit){
+	def endAddEdge(startV: String, pt:java.awt.Point, changeMouseStateCallback: (String) => Unit){
 		var vertexHit = view.vertexDisplay find { _._2.pointHit(pt) } map { _._1 }
 		//if(vertexHit == None){
 		if(vertexHit.isEmpty)	{
@@ -694,6 +704,22 @@ object QuantoLibAPI extends Publisher{
 		}
 	}
 
+	/** Method to know if an edge is carrying a goal.
+		*
+		* @param e Edge id.
+ 		* @return Bolean result : true has goal, false does not.
+		*/
+	def hasGoal(e:String) : Boolean = {
+		graph.vdata(graph.source(EName(e))) match {
+			case d:NodeV if d.typ == "G"  => true
+			case _ =>
+				graph.vdata(graph.target(EName(e))) match {
+					case d:NodeV if d.typ == "G" => true
+					case _ => false
+				}
+		}
+	}
+
 	/** Method adding a breakpoint on an edge.
 		*
 		* @param edge edge id.
@@ -778,14 +804,34 @@ object QuantoLibAPI extends Publisher{
 		* @param tacticsToUpdate Array of the tactics' values to update.
 		* @return Updated json.
 		*/
-	def updateValues(graph:Json, tacticsToUpdate:Array[(String,String)]):Json = {
+	def updateValuesInGraph(graph:Json, tacticsToUpdate:Array[(String,String)]):Json = {
 		var gr = Graph.fromJson(graph,theory)
 		gr.vdata.foreach{ case (name,data) =>
 			data match {
 				case d:NodeV if d.typ == "T_Graph" || d.typ == "T_Atomic" =>
 					tacticsToUpdate.foreach{ case (o,n) =>
-						if(d.getValue == o) gr = gr.updateVData(name){_ => d.withValue(n)}
+						if(d.value.stringValue == o) gr = gr.updateVData(name){_ => d.withValue(n)}
 					}
+				case _ =>
+			}
+		}
+		Graph.toJson(gr,theory)
+	}
+
+	/** Method removing all goals from one graph.
+		*
+		* @param graph Json graph to modify.
+		* @return Updated json with no goals.
+		*/
+	def graphWithNoGoals(graph:Json):Json = {
+		var gr = Graph.fromJson(graph,theory)
+		gr.vdata.foreach { case(name,data) =>
+			data match {
+				case d:NodeV if d.typ == "G" =>
+					val prevNode = gr.source(gr.inEdges(name).head)
+					val nextNode = gr.target(gr.outEdges(name).head)
+					val edgeData = gr.edata(gr.inEdges(name).head)
+					gr = gr.deleteVertex(name).newEdge(edgeData,(prevNode,nextNode))
 				case _ =>
 			}
 		}
@@ -814,7 +860,7 @@ object QuantoLibAPI extends Publisher{
 	private def publishSelectedVerts(){
 		if(view.selectedVerts.size == 1 && view.selectedEdges.size == 0 && !(graph.vdata(view.selectedVerts.head).isBoundary)){
 			(view.selectedVerts.head, graph.vdata(view.selectedVerts.head)) match {
-				case (v: VName, data: NodeV) => publish(OneVertexSelectedEvent(v.s, data.typ, data.label, data.getValue))
+				case (v: VName, data: NodeV) => publish(OneVertexSelectedEvent(v.s, data.typ, data.label, data.value.stringValue))
 			}
 		}
 		else if(view.selectedVerts.size > 1 && view.selectedEdges.size == 0){
@@ -964,11 +1010,11 @@ object QuantoLibAPI extends Publisher{
 
 		vertexHit.map{ v => (v, graph.vdata(v)) } match {
 			case Some((v, data: NodeV)) =>
-				if(data.typ == "T_Atomic") Service.editCtrl.updateTactic(v.s,data.label,true)
-				else if(data.typ == "T_Graph") Service.editCtrl.updateTactic(v.s,data.label,false)
+				if(data.typ == "T_Atomic") Service.editCtrl.updateTactic(v.s,data.label,data.value.stringValue,true)
+				else if(data.typ == "T_Graph") Service.editCtrl.updateTactic(v.s,data.label,data.value.stringValue,false)
 			case _ =>
 				val edgeHit = view.edgeDisplay find { _._2.pointHit(pt) } map { _._1 }
-				edgeHit.map { e =>
+				edgeHit.foreach { e =>
 					val data = graph.edata(e)
 					Service.editCtrl.editEdge(e.s, graph.source(e).s, graph.target(e).s, data.value)
 				}
@@ -985,7 +1031,7 @@ object QuantoLibAPI extends Publisher{
 		}
 		else if (graph.edata.contains(EName(eltName))){
 			var ename = eltName
-			if(hasBreak(eltName)){
+			while(hasBreak(ename)){
 				ename = removeBreakpointFromEdge(eltName)
 			}
 			if(ename != ""){
@@ -995,12 +1041,43 @@ object QuantoLibAPI extends Publisher{
 		publish(NothingSelectedEvent())
 	}
 
+	/** Method to know if at least one of the selected vertices is a goal.
+		*
+		* @return Boolean stating if one of the selected vertices is a goal.
+		*/
+	def selectedContainGoals:Boolean = {
+		var res = false
+		view.selectedVerts foreach { v =>
+			graph.vdata(v) match {
+				case (d: NodeV) if d.typ == "G" => res = true
+				case _ =>
+			}
+		}
+		res
+	}
 
+	/** Method to know if at least one of the selected vertices match one of the tactics specified.
+		*
+		* @param t Set of tactic name.
+		* @return Boolean stating if one of the tactics is selected.
+		*/
+	def selectedContainTactics(t:Set[String]):Boolean = {
+		var res = false
+		view.selectedVerts foreach { v =>
+			graph.vdata(v) match {
+				case (d:NodeV) if (d.typ=="T_Atomic" || d.typ=="T_Graph") && t.contains(d.value.stringValue) => res = true
+				case _ =>
+			}
+		}
+		res
+	}
 
 	/** Method to merge selected vertices into a nested one.
 		*
-	  */
-	def mergeSelectedVertices() {
+		* @param newNodeLabel Label of of the new nested node.
+		* @return id of the new nested node.
+		*/
+	def mergeSelectedVertices(newNodeLabel:String):String = {
 		// duplicate graph in a subgraph
 		var newSubgraph = graph
 		// computing new node coordinates to be at center of all selected nodes
@@ -1017,33 +1094,25 @@ object QuantoLibAPI extends Publisher{
 		val newX = (minX+maxX)/2
 		val newY = (minY+maxY)/2
 		// creating new node (cannot use userAddVertex as we don't have the mouse point coordinates)
-		var newData = NodeV(data = theory.vertexTypes("T_Graph").defaultData, theory = theory).withCoord((newX,newY))
+		val newData = NodeV(data = theory.vertexTypes("T_Graph").defaultData, theory = theory).withCoord((newX,newY)).withLabel(newNodeLabel)
 		val newName = graph.verts.freshWithSuggestion(VName("v0"))
-		changeGraph(graph.addVertex(newName, newData.withCoord((newX,newY))))
-		graph.vdata(newName) match {
+		changeGraph(graph.addVertex(newName, newData))
+		/*graph.vdata(newName) match {
 			case data: NodeV =>
 				changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.editCtrl.createNewTactic(newName.s,"nested",false)) })
 				view.invalidateVertex(newName)
 				graph.adjacentEdges(newName).foreach { view.invalidateEdge }
 		}
-		graph.vdata(newName) match { case data: NodeV => newData = data}
+		graph.vdata(newName) match { case data: NodeV => newData = data}*/
 		var subgraphVerts = view.selectedVerts
 		view.selectedVerts.foreach { v =>
 			// we update the hierarchy if v is nested
 			graph.vdata(v) match {
 				case d:NodeV =>
 					if(d.typ == "T_Graph"){
-						Service.editCtrl.changeTacticOccurrence(v.s,
-							ArgumentParser.separateNameArgs(d.label)._1,
-							ArgumentParser.separateNameArgs(newData.label)._1,
-							0,
-							false)
+						Service.editCtrl.changeTacticOccurrence(v.s,d.value.stringValue,newData.value.stringValue,0,false)
 					} else if (d.typ == "T_Atomic") {
-						Service.editCtrl.changeTacticOccurrence(v.s,
-							ArgumentParser.separateNameArgs(d.label)._1,
-							ArgumentParser.separateNameArgs(newData.label)._1,
-							0,
-							true)
+						Service.editCtrl.changeTacticOccurrence(v.s,d.value.stringValue,newData.value.stringValue,0,true)
 					}
 			}
 			// foreach "in" edges of selected nodes, setting target to be new node except for recursion
@@ -1097,9 +1166,9 @@ object QuantoLibAPI extends Publisher{
 		}
 		// saving json graph
 		val jsonGraph = Graph.toJson(newSubgraph, theory)
-		Service.saveGraphSpecificTactic(ArgumentParser.separateNameArgs(newData.label)._1, jsonGraph, 0)
+		Service.saveGraphSpecificTactic(newData.value.stringValue, jsonGraph, 0)
 		publish(NothingSelectedEvent())
-		Service.editCtrl.updateTactic(newName.s, ArgumentParser.separateNameArgs(newData.label)._1, false)
+		newName.s
 	}
 
 	/** Method to add vertices and edges from specified json into our graph.
@@ -1147,10 +1216,10 @@ object QuantoLibAPI extends Publisher{
 	private var toPasteEdge:Map[EName,(VName,VName,EData)] = Map()
 
 	/** Map of atomic tactics to re-create or duplicate. */
-	private var toPasteATactics:Map[String,(String,String)] = Map()
+	private var toPasteATactics:Map[String,String] = Map()
 
 	/** Map of graph tactics to re-create, or duplicate. */
-	private var toPasteGTactics:Map[String,(String,String)] = Map()
+	private var toPasteGTactics:Map[String,String] = Map()
 
 	/** Method to know if there are anything to paste. */
 	def canPaste:Boolean = toPasteNode.nonEmpty
@@ -1177,11 +1246,11 @@ object QuantoLibAPI extends Publisher{
 			for ((name, node) <- toPasteNode) {
 				node match {
 					case d: NodeV if d.typ == "T_Atomic" =>
-						val (tName, tArgs) = ArgumentParser.separateNameArgs(d.label)
-						toPasteATactics += (tName ->(Service.model.getATCoreId(tName), tArgs))
+						//val (tName, tArgs) = ArgumentParser.separateNameArgs(d.label)
+						toPasteATactics += (d.value.stringValue ->Service.model.getTacticValue(d.value.stringValue))
 					case d: NodeV if d.typ == "T_Graph" =>
-						val (tName, tArgs) = ArgumentParser.separateNameArgs(d.label)
-						toPasteGTactics += (tName ->(Service.model.getGTBranchType(tName), tArgs))
+						//val (tName, tArgs) = ArgumentParser.separateNameArgs(d.label)
+						toPasteGTactics += (d.value.stringValue ->Service.model.getGTBranchType(d.value.stringValue))
 					case _ => // do nothing
 				}
 			}
@@ -1200,14 +1269,14 @@ object QuantoLibAPI extends Publisher{
 					newNodeNames = newNodeNames + (node -> vertexName)
 					addVertex(vertexName, d.withCoord(d.coord._1 + 1, d.coord._2 - 1))
 					if (d.typ == "T_Atomic") {
-						val tName = ArgumentParser.separateNameArgs(d.label)._1
-						val (tTactic, tArgs) = toPasteATactics(tName)
-						Service.editCtrl.createTactic(vertexName.s, tName, tArgs, tTactic, true)
+						//val tName = ArgumentParser.separateNameArgs(d.label)._1
+						//val (tTactic, tArgs) = toPasteATactics(tName)
+						Service.editCtrl.createTactic(vertexName.s, d.value.stringValue, toPasteATactics(d.value.stringValue), true)
 					}
 					if (d.typ == "T_Graph") {
-						val tName = ArgumentParser.separateNameArgs(d.label)._1
-						val (tBranch, tArgs) = toPasteGTactics(tName)
-						Service.editCtrl.createTactic(vertexName.s, tName, tArgs, tBranch, false)
+						//val tName = ArgumentParser.separateNameArgs(d.label)._1
+						//val (tBranch, tArgs) = toPasteGTactics(tName)
+						Service.editCtrl.createTactic(vertexName.s, d.value.stringValue, toPasteATactics(d.value.stringValue), false)
 					}
 				case d: WireV =>
 					val vertexName = graph.verts.freshWithSuggestion(VName("b0"))
@@ -1251,15 +1320,13 @@ object QuantoLibAPI extends Publisher{
 			Service.editCtrl.mouseReleased(e.point, e.modifiers)
 	}
 
-
 	/** listener to view keys events */
 	listenTo(view.keys)
 	reactions += {
 		case KeyPressed (_, (Key.Delete | Key.BackSpace), _, _) =>
 			if(view.selectedVerts.nonEmpty || view.selectedEdges.nonEmpty) {
-				Service.documentCtrl.registerChanges()
-				view.selectedVerts.foreach { deleteVertex }
-				view.selectedEdges.foreach { deleteEdge }
+				Service.editCtrl.deleteNodes(view.selectedVerts map (v => v.s))
+				view.selectedEdges.foreach { e => Service.editCtrl.deleteEdge(e.s) }
 				view.repaint()
 				publish(NothingSelectedEvent())
 			}
@@ -1270,9 +1337,19 @@ object QuantoLibAPI extends Publisher{
 				copy()
 			}
 		case KeyPressed(source, Key.V, Key.Modifier.Control, _) =>
-			if(source == this.view && canPaste) {
-				Service.documentCtrl.registerChanges()
-				paste()
+			if(source == this.view) {
+				Service.editCtrl.paste
 			}
+		case KeyReleased(_,Key.S,_,_) =>
+			Service.editCtrl.changeMouseState("select")
+		case KeyReleased(_,Key.I,_,_) =>
+			Service.editCtrl.changeMouseState("addIDVertex")
+		case KeyReleased(_,Key.A,_,_) =>
+			Service.editCtrl.changeMouseState("addATMVertex")
+		case KeyReleased(_,Key.N,_,_) =>
+			Service.editCtrl.changeMouseState("addNSTVertex")
+		case KeyReleased(_,Key.E,_,_) =>
+			Service.editCtrl.changeMouseState("addEdge")
+
 	}
 }

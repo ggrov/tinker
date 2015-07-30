@@ -1,7 +1,7 @@
 package tinkerGUI.model
 
 import quanto.util.json._
-import tinkerGUI.model.exceptions.SubgraphNotFoundException
+import tinkerGUI.model.exceptions.{BadJsonInputException, SubgraphNotFoundException}
 import scala.collection.mutable.ArrayBuffer
 
 /** A graph tactic in the psgraph.
@@ -12,7 +12,7 @@ import scala.collection.mutable.ArrayBuffer
 	* @param name Id of the graph tactic.
 	* @param branchType Branch type of the graph tactic.
 	*/
-class GraphTactic(var name: String, var branchType: String) extends HasArguments with HasOccurrences {
+class GraphTactic(var name: String, var branchType: String) extends HasOccurrences {
 
 	/** Collection of subgraphs. */
 	var graphs : ArrayBuffer[JsonObject] = ArrayBuffer()
@@ -68,7 +68,7 @@ class GraphTactic(var name: String, var branchType: String) extends HasArguments
 		* @return Json object of the graph tactic.
 		*/
 	def toJson : JsonObject = {
-		JsonObject("name" -> name, "branch_type" -> branchType, "graphs" -> JsonArray(graphs), "args" -> argumentsToJson)
+		JsonObject("name" -> name, "branch_type" -> branchType, "graphs" -> JsonArray(graphs))
 	}
 
 	/** Method to add a child to the graph tactic.
@@ -85,5 +85,49 @@ class GraphTactic(var name: String, var branchType: String) extends HasArguments
 		*/
 	def removeChild(t:GraphTactic) {
 		children -= t
+	}
+}
+
+/** Companion object for the GraphTactic class.
+	*
+	* Provides multiple constructors for this class.
+	*/
+object GraphTactic {
+
+	/** Creates a new graph tactic with two input strings.
+		*
+		* @param name Tactic name.
+		* @param branchType branch type value.
+		* @return New instance of a graph tactic.
+		*/
+	def apply(name:String,branchType:String) = {
+		new GraphTactic(name,branchType)
+	}
+
+	/** Creates a new graph tactic with one Json input.
+		*
+		* @param j Json object representing the tactic.
+		* @return New instance of a graph tactic.
+		* @throws BadJsonInputException if the input's structure is not correct.
+		*/
+	def apply(j:JsonObject) = {
+		j ? "name" match {
+			case n:JsonString =>
+				j ? "branch_type" match {
+					case bt:JsonString =>
+						val gt = new GraphTactic(n.stringValue,bt.stringValue)
+						j ? "graphs" match {
+							case grs:JsonArray =>
+								grs.zipWithIndex.foreach{
+									case (gr:JsonObject,i:Int) => gt.addSubgraph(gr,i)
+									case (gr:Json,i:Int) =>	throw new BadJsonInputException("New graph tactic : expected JsonObject for graph, got " + gr.getClass)
+								}
+								gt
+							case grs:Json => throw new BadJsonInputException("New graph tactic : expected JsonArray for graphs field, got " + grs.getClass)
+						}
+					case bt:Json => throw new BadJsonInputException("New graph tactic : expected JsonString for branch_type field, got " + bt.getClass)
+				}
+			case n:Json => throw new BadJsonInputException("New graph tactic : expected JsonString for name field, got " + n.getClass)
+		}
 	}
 }

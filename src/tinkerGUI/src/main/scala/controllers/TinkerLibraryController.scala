@@ -97,7 +97,7 @@ class TinkerLibraryController() extends Publisher {
 	def addFileToGraph() {
 		var valuesToReplace:Map[String,String] = Map()
 		def updateGraphJsonWithNewNames(json: Json): Json = {
-			QuantoLibAPI.updateValues(json,valuesToReplace.toArray)
+			QuantoLibAPI.updateValuesInGraph(json,valuesToReplace.toArray)
 			/*var newJson = json
 			valuesToReplace.foreach{ case (oldVal, newVal) =>
 				newJson = Json.parse(newJson.toString.replace("\""+oldVal+"\"", "\""+newVal+"\"").replace("\""+oldVal+"(", "\""+newVal+"("))
@@ -117,8 +117,9 @@ class TinkerLibraryController() extends Publisher {
 				val tctName = appendIndex(fileName+"-"+oldName,0)
 				valuesToReplace = valuesToReplace + (oldName->tctName)
 				val tctTactic = (tct / "tactic").stringValue
-				val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
-				Service.model.createAT(tctName,tctTactic,tctArgs)
+				//val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
+				//Service.model.createAT(tctName,tctTactic,tctArgs)
+				Service.model.createAT(tctName,tctTactic)
 			}
 			(json / "graphs").asArray.foreach{ tct =>
 				val oldName = (tct / "name").stringValue
@@ -126,8 +127,9 @@ class TinkerLibraryController() extends Publisher {
 					val tctName = appendIndex(fileName+"-"+oldName,0)
 					valuesToReplace = valuesToReplace + (oldName->tctName)
 					val tctBranchType = (tct / "branch_type").stringValue
-					val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
-					Service.model.createGT(tctName,tctBranchType,tctArgs)
+					//val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
+					//Service.model.createGT(tctName,tctBranchType,tctArgs)
+					Service.model.createGT(tctName,tctBranchType)
 				}
 			}
 			Service.model.goalTypes = Service.model.goalTypes+"\n\n\n/* From "+fileName+" */\n\n" + (json / "goal_types").stringValue
@@ -135,10 +137,10 @@ class TinkerLibraryController() extends Publisher {
 			(json / "graphs").asArray.foreach{ tct =>
 				val oldName = (tct / "name").stringValue
 				if(oldName == main){
-					nameNodeIdMap = QuantoLibAPI.addFromJson(QuantoLibAPI.updateValues(tct / "graphs" / 0,valuesToReplace.toArray))
+					nameNodeIdMap = QuantoLibAPI.addFromJson(QuantoLibAPI.updateValuesInGraph(tct / "graphs" / 0,valuesToReplace.toArray))
 				} else {
 					(tct / "graphs").asArray.foreach{ gr =>
-						Service.model.addSubgraphGT(valuesToReplace(oldName),QuantoLibAPI.updateValues(gr,valuesToReplace.toArray).asObject,-1)
+						Service.model.addSubgraphGT(valuesToReplace(oldName),QuantoLibAPI.updateValuesInGraph(gr,valuesToReplace.toArray).asObject,-1)
 					}
 				}
 			}
@@ -163,9 +165,10 @@ class TinkerLibraryController() extends Publisher {
 				}
 			}
 			publish(GraphTacticListEvent())
+			Service.editCtrl.updateEditors
 		} catch {
-			case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
-			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
+			case e:JsonAccessException => Service.editCtrl.logStack.addToLog("Json parse error",e.getMessage)
+			case e:PSGraphModelException => Service.editCtrl.logStack.addToLog("Model error",e.msg)
 		}
 	}
 }
