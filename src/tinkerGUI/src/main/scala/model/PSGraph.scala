@@ -559,17 +559,19 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		gtCollection = Map()
 		val current = (j / "current").asArray.head.stringValue
 		val main = (j / "main").stringValue
-		mainTactic.name = main
+		//mainTactic.name = main
 		currentParents = (j / "current").asArray.tail.foldRight(Array[String]()){ case (p,a) => a :+ p.stringValue}
 		currentIndex  = (j / "current_index").intValue
 		goalTypes = (j / "goal_types").stringValue
 		try{
-			(j / "atomic_tactics").asArray.foreach{ tct =>
+			/*(j / "atomic_tactics").asArray.foreach{ tct =>
 				val name = (tct / "name").stringValue
 				val tactic = (tct / "tactic").stringValue
 				createAT(name,tactic)
-			}
-			(j / "graphs").asArray.foreach { tct =>
+			}*/
+			loadATFromJson((j/"atomic_tactics").asArray)
+			mainTactic = loadGTFromJson((j/"graphs").asArray,main)
+			/*(j / "graphs").asArray.foreach { tct =>
 				val name = (tct / "name").stringValue
 				val branchType = (tct / "branch_type").stringValue
 				if(name != main) createGT(name, branchType)
@@ -578,7 +580,7 @@ class PSGraph(name:String) extends ATManager with GTManager {
 					saveGraph(name, gr, i)
 					i+=1
 				}
-			}
+			}*/
 			(j / "occurrences").asObject match { case occ:JsonObject =>
 				(occ / "atomic_tactics").asObject.foreach { case(k,v) =>
 					v.asArray.foreach { occ =>

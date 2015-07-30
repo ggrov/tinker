@@ -1,7 +1,7 @@
 package tinkerGUI.model
 
-import quanto.util.json.{JsonObject, JsonArray}
-import tinkerGUI.model.exceptions.AtomicTacticNotFoundException
+import quanto.util.json.{Json, JsonObject, JsonArray}
+import tinkerGUI.model.exceptions.{BadJsonInputException, AtomicTacticNotFoundException}
 
 /** A manager for the atomic tactics of a psgraph.
 	*
@@ -23,7 +23,7 @@ trait ATManager {
 		if(atCollection contains id){
 			false
 		} else {
-			atCollection += id -> new AtomicTactic(id, tactic)
+			atCollection += id -> AtomicTactic(id, tactic)
 			true
 		}
 	}
@@ -233,6 +233,26 @@ trait ATManager {
 				t.occurrences.size
 			case None =>
 				throw new AtomicTacticNotFoundException(id)
+		}
+	}
+
+	/** Method loading a collection of atomic tactics from a json.
+		*
+		* Note that loading an existing atomic tactic (with the same name) will override its value and occurrences.
+		*
+		* @param j Json input.
+		* @throws BadJsonInputException If input's structure is not correct.
+		*/
+	def loadATFromJson(j: JsonArray) {
+		try {
+			j.foreach {
+				case o:JsonObject =>
+					val at = AtomicTactic(o)
+					atCollection += at.name -> at
+				case o:Json => throw new BadJsonInputException("New atomic tactic : expected json object, got "+o.getClass)
+			}
+		} catch {
+			case e:BadJsonInputException => throw e
 		}
 	}
 }

@@ -4,7 +4,7 @@ import java.util.regex.Pattern
 
 import tinkerGUI.controllers.events.{CurrentGraphChangedEvent, GraphTacticListEvent, MouseStateChangedEvent}
 import tinkerGUI.model.PSGraph
-import tinkerGUI.model.exceptions.{PSGraphModelException, SubgraphNotFoundException, GraphTacticNotFoundException}
+import tinkerGUI.model.exceptions.{AtomicTacticNotFoundException, PSGraphModelException, SubgraphNotFoundException, GraphTacticNotFoundException}
 import tinkerGUI.utils._
 import tinkerGUI.views.ContextMenu
 
@@ -33,17 +33,15 @@ class EditController(model:PSGraph) extends Publisher {
 		* @param s Input string.
 		*/
 	def tacticParser(s:String) {
-		val pattern = Pattern.compile("^tactic\\s([^\\s]+)\\s?:=\\s*(([^;]|\\n|\\t)+)\\s*;$",Pattern.MULTILINE)
+		val pattern = Pattern.compile("^tactic\\s([^\\s]+)\\s?:=\\s*(([^;]|\\n|\\t)*)\\s*;$",Pattern.MULTILINE)
 		val matcher = pattern.matcher(s)
 		while(matcher.find()){
-			println("found : "+matcher.group())
-			println("tactic name : |"+matcher.group(1)+"|")
-			println("tactic value : "+matcher.group(2))
 			try{
 				Service.documentCtrl.registerChanges()
 				model.setTacticValue(matcher.group(1),matcher.group(2))
 			} catch {
-				case e:PSGraphModelException => logStack.addToLog("Model error",e.msg)
+				case e:AtomicTacticNotFoundException =>
+					model.createAT(matcher.group(1),matcher.group(2))
 			}
 		}
 	}
@@ -56,9 +54,7 @@ class EditController(model:PSGraph) extends Publisher {
 		tacticEditor.clear()
 		tacticEditor.appendText("// edit your tactic here\n")
 		model.atCollection.foreach{ case (k,v) =>
-			if(v.tactic.nonEmpty){
-				tacticEditor.appendText("tactic "+v.name+" := "+v.tactic+";\n")
-			}
+			tacticEditor.appendText("tactic "+v.name+" := "+v.tactic+";\n")
 		}
 	}
 
@@ -231,13 +227,13 @@ class EditController(model:PSGraph) extends Publisher {
 										TinkerDialog.openEditDialog("Create atomic tactic",values,successCallback,()=>Unit)
 									}
 								}
-								val duplicateAction = new Action("Duplicate tactic"){
+								val duplicateAction = new Action("Link node to tactic"){
 									def apply() = {
 										confirmDialog.close()
 										model.addATOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,values("Name")))
 									}
 								}
-								confirmDialog = TinkerDialog.openConfirmationDialog("The atomic tactic name "+name+" is already taken.",Array(newAction,duplicateAction))
+								confirmDialog = TinkerDialog.openConfirmationDialog("The atomic tactic name "+name+" is already defined.",Array(newAction,duplicateAction))
 							}
 						}
 					}
@@ -261,14 +257,14 @@ class EditController(model:PSGraph) extends Publisher {
 										TinkerDialog.openEditDialog("Create graph tactic",values,successCallback,()=>Unit)
 									}
 								}
-								val duplicateAction = new Action("Duplicate tactic"){
+								val duplicateAction = new Action("Link node to tactic"){
 									def apply() = {
 										confirmDialog.close()
 										model.addGTOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,values("Name")))
 										publish(GraphTacticListEvent())
 									}
 								}
-								confirmDialog = TinkerDialog.openConfirmationDialog("The graph tactic name "+name+" is already taken.",Array(newAction,duplicateAction))
+								confirmDialog = TinkerDialog.openConfirmationDialog("The graph tactic name "+name+" is already defined.",Array(newAction,duplicateAction))
 							}
 						}
 					}

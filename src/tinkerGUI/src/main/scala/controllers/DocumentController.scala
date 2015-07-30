@@ -117,15 +117,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 		if(j.nonEmpty){
 			try{
 				model.loadJsonGraph(j)
-				undoStack.empty()
-				redoStack.empty()
-				publish(GraphTacticListEvent())
-				publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(model.currentParents)))
-				QuantoLibAPI.loadFromJson(model.getCurrentJson)
-				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
-				Service.editCtrl.updateEditors
-				unsavedChanges = false
-				publish(DocumentChangedEvent(unsavedChanges))
+				resetApp()
 			} catch {
 				case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 				case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
@@ -186,17 +178,9 @@ class DocumentController(model:PSGraph) extends Publisher {
 			def success(values:Map[String,String]) {
 				try{
 					model.reset(values("Proof name"))
-					Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
-					Service.libraryTreeCtrl.modelCreated = true
-					unsavedChanges = false
-					undoStack.empty()
-					redoStack.empty()
-					QuantoLibAPI.loadFromJson(model.getCurrentJson)
+					resetApp()
 					DocumentService.file = None
 					DocumentService.proofTitle = values("Proof name")
-					publish(GraphTacticListEvent())
-					publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
-					publish(DocumentChangedEvent(unsavedChanges))
 				} catch {
 					case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 				}
@@ -213,20 +197,28 @@ class DocumentController(model:PSGraph) extends Publisher {
 		if(DocumentService.promptUnsaved(tmpModel.jsonPSGraph)) {
 			try{
 				model.reset(name)
-				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
-				Service.libraryTreeCtrl.modelCreated = true
-				unsavedChanges = false
-				undoStack.empty()
-				redoStack.empty()
-				QuantoLibAPI.loadFromJson(model.getCurrentJson)
+				resetApp()
 				DocumentService.file = None
 				DocumentService.proofTitle = name
-				publish(GraphTacticListEvent())
-				publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
-				publish(DocumentChangedEvent(unsavedChanges))
 			} catch {
 				case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 			}
 		}
+	}
+
+	/** Method restoring the application state when using a new proof.
+		*
+		*/
+	def resetApp() {
+		Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
+		Service.libraryTreeCtrl.modelCreated = true
+		unsavedChanges = false
+		undoStack.empty()
+		redoStack.empty()
+		QuantoLibAPI.loadFromJson(model.getCurrentJson)
+		publish(GraphTacticListEvent())
+		publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
+		publish(DocumentChangedEvent(unsavedChanges))
+		Service.editCtrl.updateEditors
 	}
 }

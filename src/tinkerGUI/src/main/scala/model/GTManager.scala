@@ -1,7 +1,7 @@
 package tinkerGUI.model
 
-import quanto.util.json.{JsonObject, JsonArray}
-import tinkerGUI.model.exceptions.{SubgraphNotFoundException, GraphTacticNotFoundException}
+import quanto.util.json.{Json, JsonObject, JsonArray}
+import tinkerGUI.model.exceptions.{BadJsonInputException, SubgraphNotFoundException, GraphTacticNotFoundException}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -254,6 +254,34 @@ trait GTManager {
 		gtCollection get id match {
 			case Some(t:GraphTactic) => t.children
 			case None => throw new GraphTacticNotFoundException(id)
+		}
+	}
+
+	/** Method loading a collection of graph tactics from a json.
+		*
+		* Note that loading an existing graph tactic (with the same name) will override its values and occurrences.
+		*
+		* @param j Json input.
+		* @param mainName the main tactic name
+		* @return the main tactic.
+		* @throws BadJsonInputException If input's structure is not correct.
+		*/
+	def loadGTFromJson(j: JsonArray, mainName:String):GraphTactic = {
+		var main = new GraphTactic("","")
+		try {
+			j.foreach {
+				case o:JsonObject =>
+					val gt = GraphTactic(o)
+					if(gt.name == mainName){
+						main = gt
+					} else {
+						gtCollection += gt.name -> gt
+					}
+				case o:Json => throw new BadJsonInputException("New graph tactic : expected json object, got "+o.getClass)
+			}
+			main
+		} catch {
+			case e:BadJsonInputException => throw e
 		}
 	}
 }

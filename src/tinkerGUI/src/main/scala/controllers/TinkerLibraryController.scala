@@ -165,9 +165,10 @@ class TinkerLibraryController() extends Publisher {
 				}
 			}
 			publish(GraphTacticListEvent())
+			Service.editCtrl.updateEditors
 		} catch {
-			case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
-			case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
+			case e:JsonAccessException => Service.editCtrl.logStack.addToLog("Json parse error",e.getMessage)
+			case e:PSGraphModelException => Service.editCtrl.logStack.addToLog("Model error",e.msg)
 		}
 	}
 }
