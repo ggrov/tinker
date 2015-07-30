@@ -66,10 +66,10 @@ sig
 
   val init : context -> term list -> term -> pnode * pplan
 
-  val apply_tactic : arg_data list list -> string (* name of tactic *) -> appf
+  val apply_tactic : arg_data list -> tactic (* name of tactic *) -> appf
   (* tactics that only update env (used to be in the goaltype)
      this will be registered in the pplan object now \<rightarrow> i.e. a new pnode *)
-  val apply_env_tactic :  arg_data list list -> string (* name of env_tac *) -> appf
+  val apply_env_tactic :  arg_data list  -> env_tac -> appf
 
   (* pnode related *)
   val get_open_pnodes : pplan -> pnode list
@@ -133,6 +133,7 @@ struct
   in
      tac_code ^ args
   end;
+
   end
 end
 

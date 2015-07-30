@@ -23,22 +23,22 @@ struct
   (*******
     Application of tactic - link with TP systems
   *******)   
-  fun apply_tactic edata gnode (GData.T_Atomic name) = 
+  fun apply_tactic edata gnode (GData.T_Atomic atom) = 
        let 
+         val ps = EData.get_psgraph edata
          val pnode = EData.get_goal edata (GoalTyp.goal_name gnode)
          val pplan = EData.get_pplan edata
          (* string vs facts : what about variables? and list of things bound? *)
-         val facts = []
-         (* get tactic string from the tactic node, and then eval the tac*)
-         val if_env_tac = is_env_tactic_name name
-         val (tac_code, arg_list) = 
-            EData.PSGraph.get_atomic_tac_code_and_args (EData.get_psgraph edata) name pnode
-            (* the actual ml code of the tactic to be evaluated *)
-         (* val tac = EData.PSGraph.Tac_ML_Exec.eval_ml tac_code *)
+         val name = (GData.get_nvdata_name (GData.T_Atomic atom))
+         val arg_list = (GData.get_nvdata_args (GData.T_Atomic atom)) |> GData.parse_arg_data
        in 
-        if if_env_tac 
-        then Prover.apply_env_tactic arg_list tac_code (pnode,pplan)
-        else Prover.apply_tactic arg_list tac_code (pnode,pplan)
+        if  is_env_tactic_name name 
+        then 
+        let val env_tac = Prover.EnvTac_ML_Exec.eval_ml name in
+        Prover.apply_env_tactic arg_list env_tac (pnode,pplan) end
+        else 
+        let val tac = EData.PSGraph.get_atomic_tac_by_name ps name in
+        Prover.apply_tactic arg_list tac (pnode,pplan) end
       end
    | apply_tactic _ gnode node = raise node_exp ("not an atomic tactic node",gnode ,node);
 
@@ -277,9 +277,9 @@ struct
     val goal = Util.gnode_of graph gnode_name
     val pnode = EData.get_goal edata (GoalTyp.goal_name goal)
     val hgraph_name = 
-      case hgraph_nv of (GData.T_Graph name) => name 
+      case hgraph_nv of (GData.T_Graph _) => GData.get_nvdata_name hgraph_nv 
       | _ => raise GData.node_exp ("expect hgraph, but some other type of nvnode",hgraph_nv);
-    val graph_tacs_args = EData.PSGraph.get_graph_tacs_args (EData.get_psgraph edata) hgraph_name
+    val graph_tacs_args = GData.get_nvdata_args hgraph_nv
     val cur_name = EData.get_name_current edata
     val cur_idx =  EData.get_index_current edata
     val gt_data = GoalTyp.default_data (*EData.get_psgraph edata |> EData.PSGraph.get_goaltype_data*)

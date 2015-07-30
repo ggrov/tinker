@@ -4,15 +4,28 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
   structure GoalTyp = GoalTyp;
 
   type arg_typ = GoalTyp.Prover.arg_data list list
+  
+  fun parse_arg_data arg_data = List.concat arg_data (* FIXME: need a proper parse *)
 
-  datatype nvdata = T_Atomic of string 
-                  | T_Graph of string 
+  datatype nvdata = T_Atomic of (string * arg_typ)
+                  | T_Graph of (string * arg_typ) 
                   | T_Identity 
                   | G_Break (* breakpoint *)
                   | G of GoalTyp.gnode 
                   | T_Var of string (* variable of rtechn *)
                   | G_Var of string (* variable of gnode *)
   
+  fun get_nvdata_name (T_Atomic atom) = fst atom
+  | get_nvdata_name (T_Graph g) = fst g
+  | get_nvdata_name _ = ""
+
+  fun get_nvdata_args (T_Atomic atom) = snd atom
+  | get_nvdata_args (T_Graph g) = snd g
+  | get_nvdata_args _ = [[]]
+
+  val get_graph_tac_name = fst
+  val get_graph_tac_args = snd
+
   (* example Atomic 
           rule,[[exI]]
           frule[[exI],[X,Y]]
@@ -48,8 +61,8 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
    |  is_break_point _ = false;
 
   (* node equality *)
-  fun nvdata_eq (T_Atomic a1,T_Atomic a2) = a1 = a2
-   | nvdata_eq (T_Graph n1,T_Graph n2) = n1 = n2
+  fun nvdata_eq (T_Atomic a1,T_Atomic a2) = (get_nvdata_name (T_Atomic a1) = get_nvdata_name (T_Atomic a2))
+   | nvdata_eq (T_Graph n1,T_Graph n2) = (get_nvdata_name (T_Graph n1) = get_nvdata_name (T_Graph n2))
    | nvdata_eq (T_Identity,T_Identity) = true 
    | nvdata_eq (G_Break,G_Break) = true 
    |  nvdata_eq (G g1,G g2) = GoalTyp.gnode_eq (g1,g2)
@@ -164,8 +177,8 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
 
   val pretty_theory_name = Pretty.str "PSGraph";
   (* fixme *)
-  fun pretty_nvdata (T_Atomic name) = Pretty.str name
-   |  pretty_nvdata (T_Graph name) = Pretty.str name
+  fun pretty_nvdata (T_Atomic name) = Pretty.str (get_nvdata_name (T_Atomic name))
+   |  pretty_nvdata (T_Graph name) = Pretty.str (get_nvdata_name (T_Graph name))
    |  pretty_nvdata (T_Identity) = Pretty.str "id"
    |  pretty_nvdata (G_Break) = Pretty.str "break_point"
    |  pretty_nvdata (G gn) = Pretty.str "" (* FIXME *)
@@ -188,10 +201,26 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
   
  exception gdata_json_exp of string * Json.json
 
+ fun arg_typ_to_json args = 
+  Json.Array (map (fn y => (Json.Array (map (fn x => Json.String x) y))) args)
+ fun arg_typ_from_json (Json.Array args) = 
+  map 
+  (fn (Json.Array x) => 
+    map 
+    (fn y => case y of (Json.String str) => str) 
+    x)
+  args 
+ | arg_typ_from_json _ =  raise Json.parse_exn "unexcepted json strcure in arg_typ_from_json"
+
+
  fun nvdata_to_json (T_Atomic atom) = 
-      Json.mk_object ([("type", Json.String "T_Atomic"), ("atm", Json.String atom)])
+      Json.mk_object ([("type", Json.String "T_Atomic"), 
+          ("atm", Json.String (get_nvdata_name (T_Atomic atom))), 
+          ("args", arg_typ_to_json (get_nvdata_args (T_Atomic atom)))])
    | nvdata_to_json (T_Graph tg) = 
-      Json.mk_object ([("type", Json.String "T_Graph"), ("subgraph", Json.String tg)]) 
+      Json.mk_object ([("type", Json.String "T_Graph"), 
+          ("subgraph",  Json.String (get_graph_tac_name tg)),
+           ("args", arg_typ_to_json (get_graph_tac_args tg))]) 
    | nvdata_to_json T_Identity = 
       Json.mk_object [("type", Json.String "T_Identity")]
    | nvdata_to_json G_Break = 
@@ -205,8 +234,14 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
    
  fun nvdata_from_json (Json.Object jobj) (* has to be jobj *) = 
        (case JsonInputUtils.get_string jobj "type" of
-              "T_Atomic" => T_Atomic  (JsonInputUtils.get_string jobj "atm")
-            | "T_Graph" =>  T_Graph (JsonInputUtils.get_string jobj "subgraph")
+              "T_Atomic" => 
+              T_Atomic 
+               (JsonInputUtils.get_string jobj "atm", 
+                JsonInputUtils.get jobj "args" |> arg_typ_from_json)
+            | "T_Graph" =>  
+              T_Graph
+               (JsonInputUtils.get_string jobj "subgraph", 
+                JsonInputUtils.get jobj "args" |> arg_typ_from_json)
             | "T_Identity"=> T_Identity
             | "G_Break" => G_Break
             | "G" => G (GoalTyp.gnode_from_json (Json.get jobj "gn") )
