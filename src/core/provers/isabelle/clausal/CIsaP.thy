@@ -4,6 +4,7 @@ imports
   "../../../build/isabelle/Tinker"                                                                               
 begin     
  -- "the goaltype"
+ ML_file "../../../goaltype/clause/goaltype.sig.ML"                                                                                                                      
  ML_file "../../../goaltype/clause/goaltype.ML"                                                                                                                        
 
  -- "the prover"  

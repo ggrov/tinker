@@ -14,11 +14,8 @@ ML{*-
 *}
 
 ML{*
-val impI_thm = @{thm impI};
-val conjI_thm = @{thm conjI};
-fun rule_tac thm _ i =  rtac thm i;
-fun id_tac  _ _  = all_tac;
-fun assm_tac  _ i = atac i;
+fun rule_tac ctxt i (arg as [IsaProver.A_Str thm_name]) =  rtac (get_thm_by_name ctxt thm_name) i;
+fun assm_tac  _ i _ = atac i;
 *}
 
 (* choose which logging info do we want *)
