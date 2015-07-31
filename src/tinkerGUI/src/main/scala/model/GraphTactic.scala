@@ -6,10 +6,10 @@ import scala.collection.mutable.ArrayBuffer
 
 /** A graph tactic in the psgraph.
 	*
-	* A graph tactic is identified by a unique name in the gui and in the core of tinker.
+	* A graph tactic is identified by a unique name.
 	* It also has a string defining its branching type, e.g. OR and ORELSE.
 	*
-	* @param name Id of the graph tactic.
+	* @param name Name of the graph tactic.
 	* @param branchType Branch type of the graph tactic.
 	*/
 class GraphTactic(var name: String, var branchType: String) extends HasOccurrences {
@@ -17,8 +17,8 @@ class GraphTactic(var name: String, var branchType: String) extends HasOccurrenc
 	/** Collection of subgraphs. */
 	var graphs : ArrayBuffer[JsonObject] = ArrayBuffer()
 
-	/** List of child graph tactics */
-	var children:ArrayBuffer[GraphTactic] = ArrayBuffer()
+	/** List of child graph tactics. */
+	var children : ArrayBuffer[GraphTactic] = ArrayBuffer()
 
 	/** Method to add/replace a subgraph in the graph tactic.
 		*
@@ -47,8 +47,8 @@ class GraphTactic(var name: String, var branchType: String) extends HasOccurrenc
 	/** Method to get the Json object of a subgraph.
 		*
 		* @param index Position of the desired subgraph.
-		* @throws SubgraphNotFoundException If the graph tactic does not have a subgraph at this index.
 		* @return Json object of the subgraph.
+		* @throws SubgraphNotFoundException If the graph tactic does not have a subgraph at this index.
 		*/
 	def getSubgraph(index: Int):JsonObject = {
 		if (graphs.isDefinedAt(index)) graphs(index)
@@ -76,7 +76,7 @@ class GraphTactic(var name: String, var branchType: String) extends HasOccurrenc
 		* @param t Child graph tactic.
 		*/
 	def addChild(t:GraphTactic) {
-		children = children :+ t
+		children += t
 	}
 
 	/** Method to remove a child from the graph tactic.

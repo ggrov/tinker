@@ -4,10 +4,12 @@ import java.util.regex.Pattern
 
 import quanto.util.json.{JsonString, JsonArray}
 
-/** Object providing methods to parse tactic arguments
+/** Object providing methods to parse tactic arguments.
 	*
 	* It can parse from a string to an array of array of string and the other way around.
-	* Also provides a function to separate the tactic name from its arguments.
+	* This format (array of array of string) is what the format used by tinker core.
+	* Also it extends this parsing to Json arrays (to append them in json messages).
+	* Finally it provides a function to separate the tactic name from its arguments.
 	*/
 object ArgumentParser {
 
@@ -33,12 +35,11 @@ object ArgumentParser {
 
 	/** Method to parse arguments from a string to an array of array of string.
 		*
-		* Array of string is the format used by the model to store a single argument, hence the format.
 		* Typically :
 		*
 		* "X: Y Z, A: B, C" becomes [ [ "X", "Y", "Z" ], [ "A", "B" ], [ "C" ] ].
 		*
-		* Note that variable X above (for instance) can be of type : "[i,j,..]", "{i,j,..}", "(i,j,..)", " "i,j,.." " or simply " i "
+		* Note that variable X above (for instance) can be of type : "[i,j,..]", "{i,j,..}", "(i,j,..)", " "i,j,.." " or simply " i ".
 		*
 		* @param s Arguments in a string format.
 		* @return Arguments in a array of array of string format.
@@ -115,12 +116,11 @@ object ArgumentParser {
 
 	/** Method to parse a single argument from a string to a an array of string.
 		*
-		* Array of string is the format used by the model to store a single argument, hence the format.
 		* Typically :
 		*
 		* "X: Y Z" becomes [ "X", "Y", "Z" ] , "A: B" becomes [ "A", "B" ] and "C" becomes [ "C" ]
 		*
-		* This method is private, hence will normally not be displayed in the doc.
+		* Note that variable X above (for instance) can be of type : "[i,j,..]", "{i,j,..}", "(i,j,..)", " "i,j,.." " or simply " i ".
 		*
 		* @param s Argument in a string format.
 		* @return Argument in a array of string format.
@@ -146,8 +146,6 @@ object ArgumentParser {
 
 	/** Method to parse argument's parameters from a string to an array of string.
 		*
-		* This method is private, hence will normally not be displayed in the doc.
-		*
 		* @param s Argument's parameters in a string format.
 		* @return Argument's parameters in an array of string format.
 		*/
@@ -165,8 +163,6 @@ object ArgumentParser {
 
 	/** Method to remove space ahead and at the end of a string.
 		*
-		* This method is private, hence will normally not be displayed in the doc.
-		*
 		* @param s String with spaces.
 		* @return String without spaces.
 		*/
@@ -179,10 +175,10 @@ object ArgumentParser {
 
 	/** Method to parse arguments from an array of array of string to a string.
 		*
-		* Array of array of string is the format used by the model to store arguments, hence this format.
 		* Typically :
 		*
 		* [ [ "X", "Y", "Z" ], [ "A", "B" ], [ "C" ] ] becomes "X: Y Z, A: B, C"
+		*
 		* @param args Arguments in a array of array of string format.
 		* @return Arguments in a string format.
 		*/
@@ -191,23 +187,16 @@ object ArgumentParser {
 		if(args.size > 0){
 			res = args.foldLeft(""){case(s,a) => s + argumentToString(a) + ", "}
 			res = res.substring(0, res.length-2)
-			/*args.foreach{ a =>
-				//res += a.foldLeft(""){case(s,arg) => s+arg+", "}
-				res += argumentToString(a)+", "
-			}
-			res = res.substring(0, res.length-2)*/
 		}
 		res
 	}
 
 	/** Method to parse a single argument from an array of string to a string.
 		*
-		* Array of string is the format used by the model to store a single argument, hence this format.
 		* Typically :
 		*
 		* [ "X", "Y", "Z" ] becomes "X: Y Z", [ "A", "B" ] becomes "A: B" and [ "C" ] becomes "C"
 		*
-		* This method is private, hence will normally not be displayed in the doc.
 		* @param arg Argument in array of string format.
 		* @return Argument in a string format.
 		*/
@@ -242,6 +231,11 @@ object ArgumentParser {
 		JsonArray(arr1)
 	}
 
+	/** Method parsing a JsonArray into a argument string.
+		*
+		* @param j Arguments in json format.
+		* @return Arguments in string format.
+		*/
 	def jsonToArgString(j:JsonArray):String = {
 		var args = Array[Array[String]]()
 		j.foreach{ a =>

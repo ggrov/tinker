@@ -6,12 +6,21 @@ import scala.collection.mutable.ArrayBuffer
 	*
 	* i.e. you can not add more than n element in the stack.
 	*
+	* @param size The size of the stack.
+	* @tparam T Type accepted by the stack.
 	*/
 class FixedStack[T](private val size:Int){
 
+	/** The actual collection.*/
 	private var stack:ArrayBuffer[T] = ArrayBuffer()
+
+	/** Integer pointing to the top index of the stack.*/
 	private var top:Int = -1
 
+	/** Method pushing an element in the stack.
+		*
+		* @param elem Element to append to the stack.
+		*/
 	def push(elem:T) {
 		top += 1
 		stack += elem
@@ -26,6 +35,10 @@ class FixedStack[T](private val size:Int){
 
 	// this one will return an optional element
 	// depending on the number of element in the stack
+	/** Method poping an element from the stack
+		*
+		* @return Optional result, None if the stack is empty.
+		*/
 	def pop():Option[T] = {
 		if(top < 0) None
 		else {
@@ -37,7 +50,12 @@ class FixedStack[T](private val size:Int){
 	}
 
 	// This one will throw an exception if the stack is empty
-	/*def pop():T = {
+	/*/** Method poping an element from the stack
+		*
+		* @return Element that was on top of the stack.
+		* @throws Exception If the stack was empty.
+		*/
+	def pop():T = {
 		if(top < 0) throw new Exception("index out of bound")
 		else {
 			val elem = stack(top)
@@ -47,20 +65,35 @@ class FixedStack[T](private val size:Int){
 		}
 	}*/
 
+	/** Method to check if the stack is empty or not.
+		*
+		* @return Boolean result.
+		*/
 	def isEmpty:Boolean = {
 		stack.isEmpty
 	}
 
+	/** Method emptying the stack.
+		*
+		*/
 	def empty() {
 		top = -1
 		stack.clear()
 	}
 
-	def getTop():Option[T] = {
+	/** Method simply reading the top of the stack, without poping it.
+		*
+		* @return Optional result, None if the stack is empty.
+		*/
+	def getTop:Option[T] = {
 		if(top < 0) None
 		else Some(stack(top))
 	}
 
+	/** Method printing the stack in a string.
+		*
+		* @return String result.
+		*/
 	override def toString:String = {
 		"FixedStack"+stack.foldLeft("("){case (s,e) => s + e +", "}.dropRight(2)+")"
 	}
