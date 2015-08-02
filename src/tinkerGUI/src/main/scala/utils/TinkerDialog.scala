@@ -2,21 +2,19 @@ package tinkerGUI.utils
 
 import scala.swing._
 
-/** Dialog system for tinker.
+/** Object implementing generic dialogs for tinker.
 	*
-	* Enable to display three types of dialogs :
-	*
+	* Enable to display four types of dialogs :
 	* - one asking for confirmation of action ;
-	*
 	* - one reporting errors ;
-	*
 	* - one simply displaying messages ;
-	*
 	* - one enabling field completion.
 	*/
 object TinkerDialog {
+
 	/** Maximum dimensions of the dialog window.*/
 	var max = new Dimension(400, 300)
+
 	/** Minimum dimensions of the dialog window.*/
 	var min = new Dimension(250, 100)
 

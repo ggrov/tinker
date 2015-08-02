@@ -40,12 +40,12 @@ class LogStack {
 			val options = new Menu("Options"){ menu =>
 				new Action("Clear"){
 					menu.contents += new MenuItem(this)
-					def apply() = clearStack
+					def apply() = clearStack()
 				}
 			}
 			contents += options
 		}
-		def updateText = {messages.text = getLog}
+		def updateText() = {messages.text = getLog}
 		minimumSize = new Dimension(250,250)
 		contents = new ScrollPane(messages)
 	}
@@ -63,7 +63,7 @@ class LogStack {
 		*/
 	def addToLog(m:String) {
 		stack += m
-		logFrame.updateText
+		logFrame.updateText()
 	}
 
 	/** Method adding a set of messages to the stack.
@@ -72,15 +72,15 @@ class LogStack {
 		*/
 	def addToLog(m:Traversable[String]) {
 		m.foreach(stack += _)
-		logFrame.updateText
+		logFrame.updateText()
 	}
 
 	/** Method to empty the stack.
 		*
 		*/
-	private def clearStack {
+	private def clearStack() {
 		stack.clear()
-		logFrame.updateText
+		logFrame.updateText()
 	}
 
 	/** Method opening a frame which displays the messages.
@@ -122,7 +122,10 @@ class FilteredLogStack {
 	/** The message's type to display.*/
 	private val filtered = mutable.ArrayBuffer[String]()
 
-	/** The frame object.*/
+	/** The frame object.
+		*
+		* Filters will be printed on the right-hand side, as a list of checkboxes.
+		*/
 	private object logFrame extends Frame{
 		val messages = new TextArea(){
 			lineWrap = true
@@ -133,7 +136,7 @@ class FilteredLogStack {
 		val filters = new BoxPanel(Orientation.Vertical){
 			contents += new Label("Filters :")
 			var f = Array[String]()
-			def updateFilters {
+			def updateFilters() {
 				stack.foreach{ case (s,_) =>
 					if(!f.contains(s)){
 						f = f :+ s
@@ -141,13 +144,13 @@ class FilteredLogStack {
 						this.contents += new CheckBox(s){
 							selected = true
 							action = new Action(s){
-								def apply = if(selected) addToFilter(s) else removeFromFilter(s)
+								def apply() = if(selected) addToFilter(s) else removeFromFilter(s)
 							}
 						}
 					}
 				}
 			}
-			updateFilters
+			updateFilters()
 		}
 		val mBar = new MenuBar(){
 			val options = new Menu("Options"){ menu =>
@@ -156,27 +159,10 @@ class FilteredLogStack {
 					def apply() = clearStack
 				}
 			}
-			/*var f = Array[String]()
-			val filters = new Menu("Filters")
-			def updateFilters {
-				stack.foreach{ case (s,_) =>
-					if(!f.contains(s)){
-						f = f :+ s
-						filtered += s
-						filters.contents += new CheckMenuItem(s){
-							selected = true
-							action = new Action(s){
-								def apply = if(selected) addToFilter(s) else removeFromFilter(s)
-							}
-						}
-					}
-				}
-			}
-			updateFilters*/
-			contents += (options)
+			contents += options
 		}
-		def updateText = {
-			filters.updateFilters
+		def updateText() = {
+			filters.updateFilters()
 			messages.text = getLog
 		}
 		menuBar = mBar
@@ -200,7 +186,7 @@ class FilteredLogStack {
 		*/
 	def addToLog(m:(String,String)) {
 		stack += m
-		logFrame.updateText
+		logFrame.updateText()
 	}
 
 	/** Method adding a set of messages to the stack.
@@ -209,7 +195,7 @@ class FilteredLogStack {
 		*/
 	def addToLog(m:Traversable[(String,String)]) {
 		m.foreach(stack += _)
-		logFrame.updateText
+		logFrame.updateText()
 	}
 
 	/** Method adding a set of messages to the stack, clustered by type.
@@ -221,15 +207,15 @@ class FilteredLogStack {
 			case (k,v) =>
 				v.foreach(stack += Tuple2(k,_))
 		}
-		logFrame.updateText
+		logFrame.updateText()
 	}
 
 	/** Method to empty the stack.
 		*
 		*/
-	private def clearStack {
+	private def clearStack() {
 		stack.clear()
-		logFrame.updateText
+		logFrame.updateText()
 	}
 
 	/** Method registering a type to filter.
@@ -238,7 +224,7 @@ class FilteredLogStack {
 		*/
 	private def addToFilter(s:String) {
 		if(!filtered.contains(s)) filtered += s
-		logFrame.updateText
+		logFrame.updateText()
 	}
 
 	/** Method removing a type to filter.
@@ -247,7 +233,7 @@ class FilteredLogStack {
 		*/
 	private def removeFromFilter(s:String) {
 		if(filtered.contains(s)) filtered -= s
-		logFrame.updateText
+		logFrame.updateText()
 	}
 
 	/** Method opening a frame which displays the messages.

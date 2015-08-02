@@ -1,1 +1,234 @@
-{"occurrences":{"atomic_tactics":{"assumption":[["demo",0,"v1"]],"Re-ImpI":[["demo",0,"v3"]],"ImpI":[["demo",0,"v0"]],"ConjI":[["Loop-ConjI",0,"v0"]]},"graph_tactics":{"Loop-ConjI":[["demo",0,"v2"]]}},"main":"demo","atomic_tactics":[{"name":"assumption","tactic":"assm_tac","args":[]},{"name":"Re-ImpI","tactic":"rule_tac","args":[["impI_thm"]]},{"name":"ImpI","tactic":"rule_tac","args":[["impI_thm"]]},{"name":"ConjI","tactic":"rule_tac","args":[["conjI_thm"]]}],"current_index":0,"goal_types":"","current":["demo"],"graphs":[{"name":"Loop-ConjI","branch_type":"OR","graphs":[{"dir_edges":{"e0":{"data":{"gtyp":"GT_top_symbol [\"HOL.conj\"] ","type":"GT","break":false,"label":"GT_top_symbol [\"HOL.conj\"] "},"src":"b0","tgt":"v0"},"e1":{"data":{"gtyp":"GT_NOT  (GT_top_symbol [\"HOL.conj\"] )","type":"GT","break":false,"label":"GT_NOT  (GT_top_symbol [\"HOL.conj\"] )"},"src":"v0","tgt":"b1"},"e2":{"data":{"gtyp":"GT_top_symbol [\"HOL.conj\"] ","type":"GT","break":false,"label":"GT_top_symbol [\"HOL.conj\"] "},"src":"v0","tgt":"v0"}},"wire_vertices":{"b0":{"annotation":{"boundary":true,"coord":[-1.32,5.139999999999995]}},"b1":{"annotation":{"boundary":true,"coord":[-1.16,1.76]}}},"node_vertices":{"v0":{"data":{"atm":"ConjI","type":"T_Atomic","label":"ConjI(conjI_thm)"},"annotation":{"coord":[1.5,3.0799999999999996]}}}}],"args":[]},{"name":"demo","branch_type":"OR","graphs":[{"dir_edges":{"e6":{"data":{"gtyp":"any","type":"GT","break":false},"src":"v3","tgt":"v1"},"e1":{"data":{"gtyp":"any","type":"GT","break":false},"src":"v0","tgt":"v2"},"e7":{"data":{"gtyp":"GT_NOT (GT_top_symbol [\"HOL.implies\"] )","type":"GT","break":false,"label":"GT_NOT (GT_top_symbol [\"HOL.implies\"] )"},"src":"v4","tgt":"v1"},"e0":{"data":{"gtyp":"GT_top_symbol [\"HOL.implies\"] ","type":"GT","break":false,"label":"GT_top_symbol [\"HOL.implies\"] "},"src":"b0","tgt":"v0"},"e4":{"data":{"gtyp":"GT_top_symbol [\"HOL.implies\"] ","type":"GT","break":false,"label":"GT_top_symbol [\"HOL.implies\"] "},"src":"v2","tgt":"v3"},"e8":{"data":{"gtyp":"GT_NOT (GT_top_symbol [\"HOL.implies\"] )","type":"GT","break":false,"label":"GT_NOT (GT_top_symbol [\"HOL.implies\"] )"},"src":"v2","tgt":"v4"},"e3":{"data":{"gtyp":"any","type":"GT","break":false},"src":"v1","tgt":"b1"}},"wire_vertices":{"b1":{"annotation":{"boundary":true,"coord":[0.42420840753525046,-2.6623647131866885]}},"b0":{"annotation":{"boundary":true,"coord":[-0.42,4.66]}}},"node_vertices":{"v2":{"data":{"subgraph":"Loop-ConjI","type":"T_Graph","label":"Loop-ConjI()"},"annotation":{"coord":[0.9574211173153435,1.1543955105787442]}},"v1":{"data":{"atm":"assumption","type":"T_Atomic","label":"assumption()"},"annotation":{"coord":[0.5242084075352504,-1.1223647131866885]}},"v4":{"data":{"label":"STOP","type":"G_Break"},"annotation":{"coord":[0.740814762425297,0.01601539869602786]}},"v0":{"data":{"atm":"ImpI","type":"T_Atomic","label":"ImpI(impI_thm)"},"annotation":{"coord":[0.32420840753525065,3.357635286813311]}},"v3":{"data":{"atm":"Re-ImpI","type":"T_Atomic","label":"Re-ImpI(impI_thm)"},"annotation":{"coord":[-2.66,0.22]}}}}],"args":[]}]}
+{
+  "occurrences" : {
+    "atomic_tactics" : {
+      "assm_tac" : [ [ "demo", 0, "v1" ] ],
+      "rule_tac" : [ [ "demo", 0, "v3" ], [ "demo", 0, "v0" ],  [ "Loop-ConjI", 0, "v0" ]]
+    },
+    "graph_tactics" : {
+      "Loop-ConjI" : [ [ "demo", 0, "v2" ] ]
+    }
+  },
+  "main" : "demo",
+  "atomic_tactics" : [ {
+    "name" : "assm_tac",
+    "tactic" : ""
+  }, {
+    "name" : "rule_tac",
+    "tactic" : ""
+  } ],
+  "current_index" : 0,
+  "goal_types" : "",
+  "current" : [ "demo" ],
+  "graphs" : [ {
+    "name" : "Loop-ConjI",
+    "branch_type" : "OR",
+    "graphs" : [ {
+      "dir_edges" : {
+        "e0" : {
+          "data" : {
+            "gtyp" : "GT_top_symbol [\"HOL.conj\"] ",
+            "type" : "GT",
+            "break" : false,
+            "label" : "GT_top_symbol [\"HOL.conj\"] "
+          },
+          "src" : "b0",
+          "tgt" : "v0"
+        },
+        "e1" : {
+          "data" : {
+            "gtyp" : "GT_NOT  (GT_top_symbol [\"HOL.conj\"] )",
+            "type" : "GT",
+            "break" : false,
+            "label" : "GT_NOT  (GT_top_symbol [\"HOL.conj\"] )"
+          },
+          "src" : "v0",
+          "tgt" : "b1"
+        },
+        "e2" : {
+          "data" : {
+            "gtyp" : "GT_top_symbol [\"HOL.conj\"] ",
+            "type" : "GT",
+            "break" : false,
+            "label" : "GT_top_symbol [\"HOL.conj\"] "
+          },
+          "src" : "v0",
+          "tgt" : "v0"
+        }
+      },
+      "wire_vertices" : {
+        "b0" : {
+          "annotation" : {
+            "boundary" : true,
+            "coord" : [ -1.32, 5.139999999999995 ]
+          }
+        },
+        "b1" : {
+          "annotation" : {
+            "boundary" : true,
+            "coord" : [ -1.16, 1.76 ]
+          }
+        }
+      },
+      "node_vertices" : {
+        "v0" : {
+          "data" : {
+            "atm" : "rule_tac",
+            "type" : "T_Atomic",
+            "label" : "rule_tac(conjI_thm)",
+            "args" : [ [ "conjI_thm" ] ]
+          },
+          "annotation" : {
+            "coord" : [ 1.5, 3.0799999999999996 ]
+          }
+        }
+      }
+    } ]
+  }, {
+    "name" : "demo",
+    "branch_type" : "OR",
+    "graphs" : [ {
+      "dir_edges" : {
+        "e6" : {
+          "data" : {
+            "gtyp" : "any",
+            "type" : "GT",
+            "break" : false
+          },
+          "src" : "v3",
+          "tgt" : "v1"
+        },
+        "e1" : {
+          "data" : {
+            "gtyp" : "any",
+            "type" : "GT",
+            "break" : false
+          },
+          "src" : "v0",
+          "tgt" : "v2"
+        },
+        "e7" : {
+          "data" : {
+            "gtyp" : "GT_NOT (GT_top_symbol [\"HOL.implies\"] )",
+            "type" : "GT",
+            "break" : false,
+            "label" : "GT_NOT (GT_top_symbol [\"HOL.implies\"] )"
+          },
+          "src" : "v4",
+          "tgt" : "v1"
+        },
+        "e0" : {
+          "data" : {
+            "gtyp" : "GT_top_symbol [\"HOL.implies\"] ",
+            "type" : "GT",
+            "break" : false,
+            "label" : "GT_top_symbol [\"HOL.implies\"] "
+          },
+          "src" : "b0",
+          "tgt" : "v0"
+        },
+        "e4" : {
+          "data" : {
+            "gtyp" : "GT_top_symbol [\"HOL.implies\"] ",
+            "type" : "GT",
+            "break" : false,
+            "label" : "GT_top_symbol [\"HOL.implies\"] "
+          },
+          "src" : "v2",
+          "tgt" : "v3"
+        },
+        "e8" : {
+          "data" : {
+            "gtyp" : "GT_NOT (GT_top_symbol [\"HOL.implies\"] )",
+            "type" : "GT",
+            "break" : false,
+            "label" : "GT_NOT (GT_top_symbol [\"HOL.implies\"] )"
+          },
+          "src" : "v2",
+          "tgt" : "v4"
+        },
+        "e3" : {
+          "data" : {
+            "gtyp" : "any",
+            "type" : "GT",
+            "break" : false
+          },
+          "src" : "v1",
+          "tgt" : "b1"
+        }
+      },
+      "wire_vertices" : {
+        "b1" : {
+          "annotation" : {
+            "boundary" : true,
+            "coord" : [ 0.42420840753525046, -2.6623647131866885 ]
+          }
+        },
+        "b0" : {
+          "annotation" : {
+            "boundary" : true,
+            "coord" : [ -0.42, 4.66 ]
+          }
+        }
+      },
+      "node_vertices" : {
+        "v2" : {
+          "data" : {
+            "subgraph" : "Loop-ConjI",
+            "type" : "T_Graph",
+            "label" : "Loop-ConjI()",
+            "args" : [ ]
+
+          },
+          "annotation" : {
+            "coord" : [ 0.9574211173153435, 1.1543955105787442 ]
+          }
+        },
+        "v1" : {
+          "data" : {
+            "atm" : "assm_tac",
+            "type" : "T_Atomic",
+            "label" : "assm_tac()",
+            "args" : [ ]
+          },
+          "annotation" : {
+            "coord" : [ 0.5242084075352504, -1.1223647131866885 ]
+          }
+        },
+        "v4" : {
+          "data" : {
+            "label" : "STOP",
+            "type" : "G_Break"
+          },
+          "annotation" : {
+            "coord" : [ 0.740814762425297, 0.01601539869602786 ]
+          }
+        },
+        "v0" : {
+          "data" : {
+            "atm" : "rule_tac",
+            "type" : "T_Atomic",
+            "label" : "rule_tac(impI_thm)",
+            "args" : [ [ "impI_thm" ] ]
+
+          },
+          "annotation" : {
+            "coord" : [ 0.32420840753525065, 3.357635286813311 ]
+          }
+        },
+        "v3" : {
+          "data" : {
+            "atm" : "rule_tac",
+            "type" : "T_Atomic",
+            "label" : "rule_tac(impI_thm)",
+            "args" : [ [ "impI_thm" ] ]
+
+          },
+          "annotation" : {
+            "coord" : [ -2.66, 0.22 ]
+          }
+        }
+      }
+    } ],
+    "args" : [ ]
+  } ]
+}
