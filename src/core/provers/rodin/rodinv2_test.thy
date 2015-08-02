@@ -8,15 +8,16 @@ ML{*
 LoggingHandler.active_all_tags ();
 LoggingHandler.print_active();
   val path2 = "F:/Library/Documents/git/tinker/src/tinkerGUI/release/tinker_library/rodin/";
+(*             F:\Library\Documents\git\tinker\src\tinkerGUI\release\tinker_library\rodin *)
 *}
 ML{*
-
+    ;
 *}
 (* read and load a psgraph created by gui *)
-ML{* 
+ML{*  
  
-  val ps = PSGraph.read_json_file (path2^"demo_rodin.psgraph");  
-  PSGraph.write_json_file (path2^"demo_rodin.psgraph") ps;  
+  val ps = PSGraph.read_json_file (path2^"oddEven.psgraph");  
+  PSGraph.write_json_file (path2^"oddEven.psgraph") ps;  
 *}
 
 
@@ -53,12 +54,12 @@ ML{*-
 *}
 ML{*
 SimpleNamer.init();     
- 
-Tinker.start_ieval "" ps [] ""  
- handle exn =>   
-( finish();  
-TextSocket.safe_close();    
-raise exn);           
-val _ = finish();    
+   
+Tinker.start_ieval "" ps [] ""    ;
+  handle exn =>     
+( finish();   
+TextSocket.safe_close();      
+raise exn);          
+val _ = finish(); 
 
 *} 

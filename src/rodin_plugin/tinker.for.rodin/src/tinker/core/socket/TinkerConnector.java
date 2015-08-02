@@ -6,7 +6,7 @@ import java.io.ObjectInputStream.GetField;
 
 import org.eventb.core.seqprover.IProofMonitor;
 
-import tinker.core.command.TinkerSession;
+import tinker.core.execute.TinkerSession;
 import tinker.core.states.PluginStates;
 import tinker.core.states.SocketStates;
 

@@ -3,6 +3,7 @@ struct
   exception gterm_exp
 
   (* Third Party Prover *)
+  open RodinHelper;
   structure tpp = Rodin
 
   type term = string
@@ -14,11 +15,13 @@ struct
   type tactic = tpp.tactic
 
   type pplan = tpp.pplan (* be the latest name of pnode *)
-
-  type arg_data = tpp.arg_data (* A_Const of string | A_Var of string | A_Trm of term *)
-  datatype env_data = 
+  datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
+ 
+  
+ datatype env_data = 
     E_Str of string | 
-    E_Trm of term | E_Thm of thm |
+    E_Trm of term |
+    E_Thm of thm |
     E_ML of string | 
     E_L of env_data list
   type env = env_data StrName.NTab.T 
@@ -38,25 +41,42 @@ struct
   structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = this_name^".Tac_ML_Exec");
 
   fun match context  (ta ,tb) = (tpp.match context (ta,tb))    (*TODO : context -> (term * term) -> bool *)
-  fun concl_of_thm  thm ="term" (* TODO: thm -> term *)
-  fun asms_of_thm  thm = ["term","list"] (*: TODO:  thm -> term list ? *)
 
   
- fun get_open_pnodes pplan = 
- let
+  fun get_thm_by_name _ thm = thm
+  fun concl_of_thm  _ ="term" (* TODO: thm -> term *)
+  fun asms_of_thm  _ = ["term","list"] (*: TODO:  thm -> term list ? *)
+
+  
+  fun get_open_pnodes pplan = 
+  let
      val nodes = tpp.get_all_open_nodes pplan
   in  
       map (fn x=> {pname = x, env = StrName.NTab.empty }) nodes  
   end;
-  (* tactic : args->fun -> tpp.tactic  *)
+
+  fun arg_data_to_string arg = case arg of 
+    A_Const str => str 
+  | A_Var str => str
+  | A_Trm str => str
+  | A_Thm str => str
+  | A_Str str =>str
+
+  fun args_convert (args:arg_data list)  = 
+  let
+       val strlist= map arg_data_to_string args
+  in strlist end;
+
   fun apply_tactic args tactic ({pname, env}:pnode, pplan) = 
   let 
-      val new_nodes= tpp.apply_tactic args tactic pname
+      val new_nodes= tpp.apply_tactic (args_convert args) tactic pname
   in
      Seq.single (map (fn x=> {pname = x, env = env}) new_nodes ,pplan)
   end;
 
-  fun apply_env_tactic args env_tac (pnode, pname)= Seq.single ([pnode], pname);
+
+
+  fun apply_env_tactic _ _ (pnode, pname)= Seq.single ([pnode], pname);
 
   fun get_pnode_name pnode = #pname pnode;
   fun get_pnode_env ({env, ...} : pnode) = env;
@@ -65,10 +85,14 @@ struct
     case get_pnode_env_data pnode name of (E_ML ml_code) => ml_code
     | _ => raise env_data_exp 
 
-  fun get_pnode_concl pn =	"conclude"  (* return type concl which would be type term*)
+  fun get_pnode_concl {pname:string, env=_} =  (* return type concl which would be type term*)
+      let val r=  get_goal_term pname ;
+      in 
+        r
+      end
 
-  fun get_pnode_hyps  pn  =	["hyps"] (*Dummy *)
 
+  fun get_pnode_hyps  {pname:string, env=_}  = hypUtil.get_hyps pname (*Dummy *)
   val get_pnode_ctxt = get_pnode_name
 
   fun update_pnode_env f ({env, pname} : pnode) = {pname = pname, env = f env};
@@ -81,7 +105,7 @@ struct
   val pretty_pplan = Pretty.str;
   val pretty_pnode = Pretty.str o get_pnode_name;
   val pretty_trm = K Pretty.str
-  cal pretty_goal = pretty_pnode
+  val pretty_goal = pretty_pnode
 
 (* TODO :*)
   fun typ_of term =tpp.typ_of term

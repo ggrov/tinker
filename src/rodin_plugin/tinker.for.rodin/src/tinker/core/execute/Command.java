@@ -1,4 +1,4 @@
-package tinker.core.command;
+package tinker.core.execute;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -40,11 +40,11 @@ public class Command {
 
 	private String unescape(String obj) {
 	    String r= StringEscapeUtils.unescapeJava(obj);
-	    return StringEscapeUtils.escapeJava(r);
+	    return StringEscapeUtils.unescapeJava(r);
 	}
 
 	public String getParameter(String paramName) {
-		return unescape(this.parameters.get(paramName));
+		return (unescape(this.parameters.get(paramName)));
 	}
 
 	public void setParameters(HashMap<String, String> parameters) {
@@ -74,11 +74,11 @@ public class Command {
 		Map<String, String> params = new HashMap<String, String>();
 		for (Iterator i = this.parameters.entrySet().iterator(); i.hasNext();) {
 			Map.Entry m = (Entry) i.next();
-			String key = m.getKey().toString();
-			String val = m.getValue().toString();
+			String key = StringEscapeUtils.escapeJava(m.getKey().toString());
+			String val = StringEscapeUtils.escapeJava(m.getValue().toString());
 			params.put(key, val);
 		}
-		resj.put("CMD", this.getCommand());
+		resj.put("CMD", StringEscapeUtils.escapeJava(this.getCommand()));
 		resj.put("PARAMS", params);
 		return JSONValue.toJSONString(resj);
 

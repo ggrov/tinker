@@ -6,10 +6,10 @@ import org.eventb.core.seqprover.IProofMonitor;
 import org.eventb.core.seqprover.IProofTreeNode;
 import org.eventb.core.seqprover.ITactic;
 
-import tinker.core.command.Command;
-import tinker.core.command.CommandExecutor;
-import tinker.core.command.CommandParser;
-import tinker.core.command.TinkerSession;
+import tinker.core.execute.Command;
+import tinker.core.execute.CommandExecutor;
+import tinker.core.execute.CommandParser;
+import tinker.core.execute.TinkerSession;
 import tinker.core.socket.TinkerConnector;
 import tinker.core.socket.TinkerConnector.RodinCancelInteruption;
 import tinker.core.socket.TinkerConnector.TinkerSessionEnd;
@@ -61,7 +61,7 @@ public class TinkerTactic implements ITactic {
 				// throws an TinkerSessionEnd
 				read = tinker.fromTinker();
 				session.setPluginSate(PluginStates.APPLYING);
-				Command cmd = (new CommandParser()).parseCommand(read);
+				Command cmd = CommandParser.parseCommand(read);
 
 				if (cmd.getCommand().equals("SESSION_END")) {
 					throw new TinkerSessionEnd();

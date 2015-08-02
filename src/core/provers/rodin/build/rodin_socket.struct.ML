@@ -40,7 +40,7 @@ struct
    send str *)
    raise exn
    ) 
-  |  OS.SysErr (a(* "Broken pipe" *),b) => 
+  |  OS.SysErr (_(* "Broken pipe" *),_) => 
   (  TextSocket.close (getInstance()); 
     Synchronized.change sock (fn _ => NONE); 
    (* raise OS.SysErr(a,b)) *)

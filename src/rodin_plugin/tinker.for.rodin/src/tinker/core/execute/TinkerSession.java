@@ -1,4 +1,4 @@
-package tinker.core.command;
+package tinker.core.execute;
 
 import java.util.HashMap;
 
