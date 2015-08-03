@@ -1097,13 +1097,6 @@ object QuantoLibAPI extends Publisher{
 		val newData = NodeV(data = theory.vertexTypes("T_Graph").defaultData, theory = theory).withCoord((newX,newY)).withLabel(newNodeLabel)
 		val newName = graph.verts.freshWithSuggestion(VName("v0"))
 		changeGraph(graph.addVertex(newName, newData))
-		/*graph.vdata(newName) match {
-			case data: NodeV =>
-				changeGraph(graph.updateVData(newName) { _ => data.withValue(Service.editCtrl.createNewTactic(newName.s,"nested",false)) })
-				view.invalidateVertex(newName)
-				graph.adjacentEdges(newName).foreach { view.invalidateEdge }
-		}
-		graph.vdata(newName) match { case data: NodeV => newData = data}*/
 		var subgraphVerts = view.selectedVerts
 		view.selectedVerts.foreach { v =>
 			// we update the hierarchy if v is nested
@@ -1207,6 +1200,11 @@ object QuantoLibAPI extends Publisher{
 		nameNodeIdMap
 	}
 
+	def printEvaluationFlag(b:Boolean) = {
+		view.printTinkerEvaluationFlag = b
+		view.repaint()
+	}
+
 	// --------- COPY / PASTE functions and variables ----------
 
 	/** Map of nodes to paste. */
@@ -1269,13 +1267,9 @@ object QuantoLibAPI extends Publisher{
 					newNodeNames = newNodeNames + (node -> vertexName)
 					addVertex(vertexName, d.withCoord(d.coord._1 + 1, d.coord._2 - 1))
 					if (d.typ == "T_Atomic") {
-						//val tName = ArgumentParser.separateNameArgs(d.label)._1
-						//val (tTactic, tArgs) = toPasteATactics(tName)
 						Service.editCtrl.createTactic(vertexName.s, d.value.stringValue, toPasteATactics(d.value.stringValue), true)
 					}
 					if (d.typ == "T_Graph") {
-						//val tName = ArgumentParser.separateNameArgs(d.label)._1
-						//val (tBranch, tArgs) = toPasteGTactics(tName)
 						Service.editCtrl.createTactic(vertexName.s, d.value.stringValue, toPasteATactics(d.value.stringValue), false)
 					}
 				case d: WireV =>

@@ -186,16 +186,31 @@ class GraphView(val theory: Theory, gRef: HasGraph) extends Panel
     super.repaint()
   }
 
+	var printTinkerEvaluationFlag = false
+
+	// added for tinker, by Pierre Le Bras
+	// displays a message if evaluation could fails
+	def printTinkerEvaluationFlag(g:Graphics2D) {
+		g.setColor(Color.RED)
+		g.fillPolygon(new java.awt.Polygon(Array(10,20,30),Array(30,10,30),3))
+		g.setFont(new Font("Dialog", AWTFont.BOLD, 14))
+		g.drawString("The evaluation may not be",32,27)
+		g.drawString("sound, you should restart it.",10,44)
+		g.setColor(Color.WHITE)
+		g.drawString("!",17,27)
+	}
+	
   override def paintComponent(g: Graphics2D) {
     super.paintComponent(g)
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
     init
 
+
     g.setColor(Color.WHITE)
     g.fillRect(0, 0, bounds.width, bounds.height)
     if (drawGrid) drawGridLines(g)
-
+		
     if (hasFocus) {
       g.setColor(Color.BLUE)
       g.drawRect(0,0, bounds.width, bounds.height)
@@ -452,6 +467,8 @@ class GraphView(val theory: Theory, gRef: HasGraph) extends Panel
 
       g.draw(new Line2D.Double(startPt._1, startPt._2, endPt._1, endPt._2))
     }
+		
+		if(printTinkerEvaluationFlag) printTinkerEvaluationFlag(g)
   }
 
 

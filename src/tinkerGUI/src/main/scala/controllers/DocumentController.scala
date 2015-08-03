@@ -77,7 +77,10 @@ class DocumentController(model:PSGraph) extends Publisher {
 		*/
 	def registerChanges() {
 		model.updateJsonPSGraph()
-		if(Service.evalCtrl.inEval) Service.evalCtrl.enableEvalOptions(ArrayBuffer("PUSH"))
+		if(Service.evalCtrl.inEval) {
+			Service.evalCtrl.enableEvalOptions(ArrayBuffer("PUSH"))
+			QuantoLibAPI.printEvaluationFlag(true)
+		}
 		if(undoStack.getTop.toString != model.jsonPSGraph.toString() && (if(!model.isMain) model.getSizeGT(model.getCurrentGTName) > model.currentIndex else true)){
 			undoStack.push(model.jsonPSGraph)
 			redoStack.empty()

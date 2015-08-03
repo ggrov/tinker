@@ -45,6 +45,7 @@ class EvalController(model:PSGraph) extends Publisher {
 		if(!b) {
 			publish(DisableEvalOptionsEvent())
 			model.removeGoals
+			QuantoLibAPI.printEvaluationFlag(false)
 			QuantoLibAPI.loadFromJson(model.getCurrentJson)
 		} else {
 			Service.editCtrl.changeMouseState("select")
