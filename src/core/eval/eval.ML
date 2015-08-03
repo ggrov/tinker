@@ -163,10 +163,9 @@ struct
  (* fixme: may loose goals! *)
  fun init_goal pnode edata  = 
    let
-     val gt_data = GoalTyp.default_data
-                (* edata 
+     val gt_data = edata 
                  |> EData.get_psgraph  
-                 |> EData.PSGraph.get_goaltype_data*)
+                 |> EData.PSGraph.get_goaltype_data
      val graph = EData.get_graph edata
      fun to_gt e = [(e,Util.goaltype_of graph e)] handle _ => []
      val in_edges = Util.input_boundary graph
@@ -221,9 +220,9 @@ struct
   (* fixme: make this into branch instead *)
   fun apply_atomic edata gnode tac goal_typs = 
    let 
-     val gt_data = GoalTyp.default_data (*edata 
+     val gt_data =edata 
                   |> EData.get_psgraph  
-                  |> EData.PSGraph.get_goaltype_data*)
+                  |> EData.PSGraph.get_goaltype_data
      fun apply_one (pnds,pplan) =
        Seq.single (EData.get_current edata
          |> EData.set_bpplan pplan
@@ -283,7 +282,7 @@ struct
     val graph_tacs_args = GData.get_nvdata_args hgraph_nv
     val cur_name = EData.get_name_current edata
     val cur_idx =  EData.get_index_current edata
-    val gt_data = GoalTyp.default_data (*EData.get_psgraph edata |> EData.PSGraph.get_goaltype_data*)
+    val gt_data = EData.get_psgraph edata |> EData.PSGraph.get_goaltype_data
     val graph' = Util.del_gnode gnode_name graph
     fun set_hgraph_idx 0 b = [EData.set_bindex_current 0 b]
     | set_hgraph_idx i b = (EData.set_bindex_current i b) :: (set_hgraph_idx (i-1) b)
@@ -336,7 +335,7 @@ struct
   let 
     val graph = EData.get_graph edata
     val graph' = Util.del_gnode gnode_name graph
-    val gt_data = GoalTyp.default_data (*edata |> EData.get_psgraph |> EData.PSGraph.get_goaltype_data*)
+    val gt_data = edata |> EData.get_psgraph |> EData.PSGraph.get_goaltype_data
     val goal = Util.gnode_of graph gnode_name
     val pnode = EData.get_goal edata (GoalTyp.goal_name goal)
     val cur_b = EData.get_current edata
@@ -370,7 +369,7 @@ struct
 
  fun eval_apply_id gnode_name id_node edata =
    let
-    val gt_data = GoalTyp.default_data (*edata |> EData.get_psgraph |> EData.PSGraph.get_goaltype_data*)
+    val gt_data = edata |> EData.get_psgraph |> EData.PSGraph.get_goaltype_data
     val graph = EData.get_graph edata
     val goal = Util.gnode_of graph gnode_name
     val pnode = EData.get_goal edata (GoalTyp.goal_name goal)

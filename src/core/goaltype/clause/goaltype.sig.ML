@@ -8,7 +8,7 @@ sig
   datatype arg = Name of string (* x,y,x *)
                 | Var of string (* X,Y,Z *)
                 | PVar of string (* ?x,?y,?z ...*)
-                | Concl (* turn into name? *) 
+                | Concl (* turn into name? *)
                 | Hyps (* turn into name? *)
                 | Ignore (* turn into name? *)
                 | Term of Prover.term 

@@ -40,7 +40,7 @@ struct
    send str *)
    raise exn
    ) 
-  |  OS.SysErr (a(* "Broken pipe" *),b) => 
+  |  OS.SysErr (_(* "Broken pipe" *),_) => 
   (  TextSocket.close (getInstance()); 
     Synchronized.change sock (fn _ => NONE); 
    (* raise OS.SysErr(a,b)) *)
@@ -52,11 +52,10 @@ struct
   
   fun receive() = 
   let val str=TextSocket.read (getInstance())
-      val  _ = logging "RODIN" ("RECEIVE:"^str)
     in
-      if str="RODIN_CANCEL" then
+       if str="RODIN_CANCEL" then
         raise Rodin_cancellation
-      else
+      else 
         str
   end
 
@@ -64,7 +63,6 @@ struct
   fun disconnect() = case Synchronized.value sock of  
                       SOME ins  =>  (TextSocket.close ins;
                                     Synchronized.change sock (fn _ => NONE);
-                                     LoggingHandler.logging "RODIN" ("DISCONNECTED");
                                     "Disconnected")
                      |NONE => "Already Disconnected"
 

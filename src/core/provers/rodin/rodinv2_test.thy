@@ -8,15 +8,16 @@ ML{*
 LoggingHandler.active_all_tags ();
 LoggingHandler.print_active();
   val path2 = "F:/Library/Documents/git/tinker/src/tinkerGUI/release/tinker_library/rodin/";
+(*             F:\Library\Documents\git\tinker\src\tinkerGUI\release\tinker_library\rodin *)
 *}
 ML{*
-
+    ;
 *}
 (* read and load a psgraph created by gui *)
-ML{* 
+ML{*  
  
-  val ps = PSGraph.read_json_file (path2^"demo_rodin.psgraph");  
-  PSGraph.write_json_file (path2^"demo_rodin.psgraph") ps;  
+  val ps = PSGraph.read_json_file (path2^"oddEven.psgraph");  
+  PSGraph.write_json_file (path2^"oddEven.psgraph") ps;  
 *}
 
 
@@ -37,32 +38,28 @@ let open Json;
 end
 
 fun finish () =
-  (RodinSock.send (toJson ("DISCONNECT_NORMALLY",[]));
+  (RodinSock.send (toJson ("SESSION_END",[]));
    RodinSock.disconnect ());   
  
-fun finish_with_ex e = 
-  (RodinSock.send (toJson ("DISSCONNECT_WITH_ERROR",[("ERROR",e)]));
-   RodinSock.disconnect ());     
-       
 *}
 ML{*-
    RodinSock.disconnect ();
 *}
 ML{*-
-  TextSocket.safe_close();   
+  TextSocket.safe_close();    
 *}
-
-ML{*
-  TextSocket.close ;   
-*}
-ML{*
-SimpleNamer.init();    
  
-Tinker.start_ieval "" ps [] ""  handle exn =>   
-(finish_with_ex "SOME SOCKET ERROR"; 
-disconn_gui();    
+ML{*-
+  TextSocket.close ;
+*}
+ML{*
+SimpleNamer.init();     
+   
+Tinker.start_ieval "" ps [] ""    ;
+  handle exn =>     
+( finish();   
 TextSocket.safe_close();      
-raise exn);           
-val _ = finish();    
+raise exn);          
+val _ = finish(); 
 
 *} 

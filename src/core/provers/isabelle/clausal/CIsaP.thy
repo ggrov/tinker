@@ -8,12 +8,12 @@ begin
  ML_file "../../../goaltype/clause/goaltype.ML"                                                                                                                        
 
  -- "the prover"  
- ML_file "../basic/isa_prover.ML"   
+ ML_file "../basic/isa_prover.ML"                                
 
  -- "setting up PSGraph"
 
 ML{*
-  structure Clause_GT : BASIC_GOALTYPE = ClauseGTFun(structure Prover = IsaProver val struct_name = "Clause_GT");
+  structure Clause_GT = ClauseGTFun(structure Prover = IsaProver val struct_name = "Clause_GT");
   structure Data = PSGraphDataFun(Clause_GT);
   structure PSDataIO = PSGraphIOFun(structure Data = Data);
   structure Theory = PSGraph_TheoryFun(structure GoalTyp = Clause_GT  

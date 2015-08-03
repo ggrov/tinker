@@ -68,12 +68,16 @@ struct
    PSGraph { main = f (#main rep), graph_tactics = #graph_tactics rep, 
              atomic_tactics = #atomic_tactics rep, (* tactics = #tactics rep,*)
              occurs = #occurs rep, goaltype_data = #goaltype_data rep}
-
  fun update_occurs f (PSGraph rep) = 
    PSGraph { main = #main rep, graph_tactics = #graph_tactics rep, 
              atomic_tactics = #atomic_tactics rep, (* tactics = #tactics rep,*)
              occurs = f(#occurs rep), goaltype_data = #goaltype_data rep}
- 
+ fun update_goaltype_data f (PSGraph rep) = 
+   PSGraph { main = #main rep, graph_tactics = #graph_tactics rep, 
+             atomic_tactics = #atomic_tactics rep, (* tactics = #tactics rep,*)
+             occurs = (#occurs rep), goaltype_data = f (#goaltype_data rep)}
+
+ fun get_goaltype_data (PSGraph rep) = #goaltype_data rep
  fun get_main (PSGraph rep) = #main rep
  fun get_graph_tactics (PSGraph rep) = #graph_tactics rep;
  fun get_atomic_tactics (PSGraph rep) = #atomic_tactics rep;
@@ -126,6 +130,7 @@ struct
    StrName.NTab.get (get_graph_tactics ps) name 
    |> (fn (Graph_Tacs {graphs,...})=> (fn x =>List.nth (x, idx)) graphs)
 
+ val set_goaltype_data = update_goaltype_data o K;
  val set_graph_tactics = update_graph_tactics o K;
  val set_atomic_tactics = update_atomic_tactics o K;
  val set_occurs = update_occurs o K;

@@ -3,9 +3,11 @@ functor ClauseGTFun(structure Prover : PROVER
 struct
 
   structure Prover = Prover;
+  local open LoggingHandler in 
 
-  (* debugging -> replace by logging stuff *)
   val DEBUG_ON = true;
+  val if_gui_mode = false;
+
   val tab = Unsynchronized.ref 0;
   fun inctab() = (tab := !tab +1);
   fun dectab() = if !tab >= 0 then (tab := !tab -1) else ();
@@ -13,7 +15,9 @@ struct
       let fun p 0 = ""
            |  p n = " " ^ p (n-1)
       in p (!tab) end;
-  fun dbg msg = if DEBUG_ON then writeln (tabs() ^ msg) else ();
+  fun dbg msg = 
+  let val f = if if_gui_mode then logging "GOALTYPE" else writeln in
+  if DEBUG_ON then f  (tabs() ^ msg) else () end;
   fun dbg_res res = 
       ((case res of 
          [] => dbg "FAILURE" 
@@ -284,7 +288,7 @@ struct
   (* 
     Goaltype evaluation / goaltype checking
   *)
-  fun lift pn = G {name = (Prover.get_pnode_name pn), pretty = Prover.pretty_pnode pn}
+  fun lift pn = G {name = (Prover.get_pnode_name pn), pretty = Prover.pretty_goal pn}
 
   (* note that this is when atomic on edge *)
   fun match_atomic (data as (P {atomics,...}))  pnode (t as (f,args):T) gtenv = 
@@ -390,14 +394,17 @@ struct
   *************************************)
 
   (* JSON on goal types *)
-  fun to_json gt = 
-     Json.mk_object [("type", Json.String "GT"), 
-                     ("gtype", Json.String (Pretty.str_of (pretty gt)))] 
+  fun to_json gt =
+   let 
+    val args = snd gt |> map pretty_arg |> map Pretty.string_of
+    fun app_args [] = ""
+        | app_args [x] =  x
+        | app_args (x::xs)  =  x ^ "," ^ (app_args xs);
+   in 
+     Json.String (fst gt ^ "(" ^ (app_args (rev args))  ^ ")")
+   end
 
-  fun from_json (Json.Object jobj) = 
-        Json.get jobj "gtyp_name" 
-        |> (fn Json.String x => x)
-        |> scan_goaltyp Prover.default_ctxt
+  fun from_json (Json.String str) = scan_goaltyp Prover.default_ctxt str
   | from_json _ = raise gt_exp "from_json: ill-formed json structure"
 
   (* JSON on goal nodes *)
@@ -412,7 +419,6 @@ struct
   | gnode_from_json _ = raise gt_exp "gnode_from_json: ill-formed json structure"
 
  (* JSON for data (definitions *)
-
   fun data_to_json gn = 
      Json.mk_object [("type", Json.String "GT_Data"), 
                      ("gt_data", Json.String (Pretty.str_of (pretty_data gn)))]; 
@@ -424,6 +430,7 @@ struct
         |> (fn defs => set_data_defs defs default_data)
   | data_from_json _ = raise gt_exp "from_json: ill-formed json structure"
 
+ end (* end of local open *)
   structure BasicSharing =
   struct
     type T = T

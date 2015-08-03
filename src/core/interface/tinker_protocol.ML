@@ -188,7 +188,7 @@ struct
            (IEVal.mk_cmd_str_arg_json [
               "OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
            (SOME edata0);
-      (*val _ = logging "JSON_GUI" ("JSON OUT: " ^ (init_msg))*)
+      val _ = logging_handler_print "JSON_GUI" ("JSON OUT: " ^ (init_msg))
       val _ = (reset_data (); set_data edata0)
     in
       run_in_textstreams (ins, outs) (SOME init_msg);

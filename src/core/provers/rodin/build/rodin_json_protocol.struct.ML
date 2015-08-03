@@ -4,7 +4,7 @@ structure RJP : JSONPROTOCOL=
 struct
   open Json
   type tkey = string
-  type tvalue= string
+  type tvalue = string
   type command = string * (tkey * tvalue ) list
 
   fun getParamKeys command = 
@@ -35,8 +35,8 @@ struct
     end;
                                                                                    
   fun build_jsonParams_from_params ((key, value)::xs) = 
-      let val nkey = UnicodeHelper.replaceUC key
-          val objval=  Json.String (UnicodeHelper.replaceUC value)
+      let val nkey = UnicodeHelper.encode key
+          val objval=  Json.String (UnicodeHelper.encode value)
       in
       (nkey,  objval) :: build_jsonParams_from_params xs 
       end
@@ -47,7 +47,7 @@ struct
     let 
         val json_params=build_jsonParams_from_params rawparams
     in
-        Json.encode (Json.mk_object [("CMD", (Json.String (UnicodeHelper.replaceUC str))),
+        Json.encode (Json.mk_object [("CMD", (Json.String (UnicodeHelper.encode str))),
                                   ("PARAMS",  Json.mk_object json_params )])
     end
 
@@ -58,12 +58,12 @@ struct
       
 
   fun fromJson jsonstr = 
-    let val Object jobj = of_string jsonstr;
+    let val Object jobj = of_string (jsonstr);
         val Json.String cmd = get jobj "CMD";
         val Object params = get jobj "PARAMS";
         val paramskeys = properties params
         val paramvalues = map (get params) paramskeys |> 
-                          map (fn Json.String x => x | _ => raise error "Unexpected Type") 
+                          map (fn Json.String x => UnicodeHelper.decode x | _ => raise error "Unexpected Type") 
         val cmdParams = pairList paramskeys paramvalues
     in 
       (cmd, cmdParams)

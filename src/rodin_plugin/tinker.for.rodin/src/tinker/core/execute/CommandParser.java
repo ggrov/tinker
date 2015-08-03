@@ -1,4 +1,4 @@
-package tinker.core.command;
+package tinker.core.execute;
 
 import java.util.HashMap;
 
@@ -7,12 +7,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 public class CommandParser {
+	
 
-	public CommandParser() {
-		// TODO Auto-generated constructor stub
-	}
-
-	public Command parseCommand(String commandstr) throws Exception{
+	public static Command parseCommand(String commandstr) throws Exception{
 
 		Command result = new Command();
 		try {
