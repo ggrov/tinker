@@ -292,10 +292,6 @@ ML{*
    val data = C.scan_data @{context} def1;
  *}
 
-ML{*
-   C.scan_name (C.explode "topconcl(conj)");
-*}
-
 
 
 end
