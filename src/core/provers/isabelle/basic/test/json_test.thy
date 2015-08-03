@@ -61,12 +61,7 @@ fun test_true1 _ _ _ = true
 *}
 (* read and load a psgraph created by gui *)
 ML{*
-
   val ps = PSGraph.read_json_file (path^"demo.psgraph");
-  PSGraph.write_json_file (path^"demo1.psgraph") ps; 
-*}
-ML{*    
-  val ps = PSGraph.read_json_file ("/Users/yuhuilin/Desktop/"^"demo.psgraph");
 *}
 
 ML{*
@@ -83,10 +78,10 @@ IEVal.output_string
 
 *} 
 
-
 ML{*-
   TextSocket.safe_close();
 *}
+
 ML{* -
 Tinker.start_ieval @{context} ps [] @{prop "(C \<longrightarrow> ((A \<longrightarrow> A) \<and> (B \<longrightarrow> B)))"};
 *}

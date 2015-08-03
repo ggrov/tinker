@@ -82,7 +82,7 @@ begin
   
    (* FIXME: handle all cases with trms *)
    (* note assumes existential reading *)
-   fun trm_str_schema f env pnode [r,C.Var v] = 
+   fun trm_str_schema f env pnode [r,C.Var v] : env list = 
      let 
        val t1 = C.project_terms env pnode r
        fun app_one t =  
@@ -128,7 +128,7 @@ begin
 *}
  
   (* to do: update to use above combinators *)
-  ML{*
+ML{*
   val ignore_module = List.last o String.tokens (fn ch => #"." = ch) ;
 
     fun top_level_str (Const (s,_)) = [ignore_module s]
@@ -141,7 +141,7 @@ begin
   | top_level_str (Abs (_,_,t)) = top_level_str t
   | top_level_str _ = [];
 
-   fun top_symbol env pnode [r,C.Var p] = 
+   fun top_symbol env pnode [r,C.Var p] : env list= 
           let 
             val tops = C.project_terms env pnode r
                      |> maps top_level_str
@@ -195,7 +195,7 @@ begin
   *}        
 
 
-  ML{*
+ ML{*
    val scan_def = C.scan_data @{context};
    val def1 = "topconcl(Z) :- top_symbol(concl,Z).";
    val pdef1 = scan_def def1;
@@ -221,6 +221,7 @@ begin
  *}
 
  -- "should work"
+
  ML{*
    C.imatch data pnode ("topconcl",[C.PVar "x"]);   
  *}
@@ -236,6 +237,7 @@ begin
    val t = @{prop "A \<Longrightarrow> B \<Longrightarrow> A \<and> B \<Longrightarrow> B \<and> A"}; 
    val (pnode,pplan) = IsaProver.init @{context} [] t;                         
   *}
+
 
   ML{*
    C.imatch data pnode ("top_symbol",[C.Concl,C.Name "conj"]);
@@ -271,6 +273,11 @@ ML{*
    C.imatch data pnode ("rightmost",[C.Concl,C.Var "Y"]);
 *}
 
+ML{*
+   C.imatch data pnode ("any",[]);
+*}
+  
+
  -- "Parsing"
  ML{*
    C.scan_body @{context} (C.explode "topsymbol(forall.HOL,?x).");
@@ -285,8 +292,10 @@ ML{*
    val data = C.scan_data @{context} def1;
  *}
 
+ML{*
+   C.scan_name (C.explode "topconcl(conj)");
+*}
 
 
-  
 
 end
