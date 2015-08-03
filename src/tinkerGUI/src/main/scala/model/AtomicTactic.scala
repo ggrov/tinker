@@ -26,6 +26,7 @@ class AtomicTactic(var name: String, var tactic: String) extends HasOccurrences 
 	* Provides multiple constructors for this class.
 	*/
 object AtomicTactic {
+
 	/** Creates a new atomic tactic with two input strings.
 		*
 		* @param name Tactic name.
@@ -40,7 +41,7 @@ object AtomicTactic {
 		*
 		* @param j Json object representing the tactic.
 		* @return New instance of an atomic tactic.
-		* @throws BadJsonInputException if the input's structure is not correct.
+		* @throws BadJsonInputException If the input's structure is not correct.
 		*/
 	def apply(j:JsonObject) = {
 		j ? "name" match {

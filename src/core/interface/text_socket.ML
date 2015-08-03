@@ -30,9 +30,9 @@ struct
   a way to prevernt isabelle from interrupt a thread, *)
   fun run_in_atomic func = 
    let
-    val m = Mutex.mutex ();
-    val attr = Thread.getAttributes () ;
-   in
+    val m = Mutex.mutex ();   
+    val attr = Thread.getAttributes () ; 
+   in 
     (Thread.setAttributes 
       [Thread.EnableBroadcastInterrupt false, 
        Thread.InterruptState Thread.InterruptDefer];
@@ -189,7 +189,7 @@ struct
           handle _ =>  warning ("can't close passive socket")));
 
   fun close s_data = 
-    run_in_atomic (close0 s_data)
+    run_in_atomic (close0 s_data)  
 
   val current_sock : (T option) Synchronized.var = Synchronized.var "current socket" NONE;
 

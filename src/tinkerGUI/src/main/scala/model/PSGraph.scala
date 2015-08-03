@@ -31,16 +31,16 @@ class PSGraph(name:String) extends ATManager with GTManager {
 
 	/** Method to force the update of an atomic tactic.
 		*
-		* @param name Gui id of the atomic tactic.
-		* @param newName New gui id of the atomic tactic.
-		* @param newTactic New core id of the atomic tactic.
+		* @param name Name of the atomic tactic.
+		* @param newName New name of the atomic tactic.
+		* @param newValue New value of the atomic tactic.
 		* @return List of the node ids to update on the current graph.
 		* @throws AtomicTacticNotFoundException If the atomic tactic was not found.
 		* @throws JsonAccessException If updating the values in the json graphs fails.
 		*/
-	def updateForceAT(name: String, newName:String, newTactic: String):Array[String] = {
+	def updateForceAT(name: String, newName:String, newValue: String):Set[String] = {
 		try{
-			val nodeIds = updateForceAT(name,newName,newTactic,currentTactic.name,currentIndex)
+			val nodeIds = updateForceAT(name,newName,newValue,currentTactic.name,currentIndex)
 			if(name != newName) {
 				updateValueInJsonGraphs(name, newName)
 			}
@@ -53,13 +53,13 @@ class PSGraph(name:String) extends ATManager with GTManager {
 
 	/** Method to force the update of an atomic tactic.
 		*
-		* @param name Gui id of the atomic tactic.
-		* @param newName New gui id of the atomic tactic.
+		* @param name Name of the atomic tactic.
+		* @param newName New name of the atomic tactic.
 		* @return List of the node ids to update on the current graph.
 		* @throws AtomicTacticNotFoundException If the atomic tactic was not found.
 		* @throws JsonAccessException If updating the values in the json graphs fails.
 		*/
-	def updateForceAT(name: String, newName:String):Array[String] = {
+	def updateForceAT(name: String, newName:String):Set[String] = {
 		try{
 			val nodeIds = updateForceAT(name,newName,currentTactic.name,currentIndex)
 			if(name != newName) {
@@ -74,7 +74,7 @@ class PSGraph(name:String) extends ATManager with GTManager {
 
 	/** Method to add an occurrence in an atomic tactic.
 		*
-		* @param name Gui id of the atomic tactic.
+		* @param name Name of the atomic tactic.
 		* @param node Node id of the occurrence.
 		* @throws AtomicTacticNotFoundException If the atomic tactic was not found.
 		*/
@@ -89,7 +89,7 @@ class PSGraph(name:String) extends ATManager with GTManager {
 	/** Method to remove an occurrence from an atomic tactic.
 		*
 		* Deletes the tactic's data from the model if it is the last occurrence.
-		* @param name Gui id of the atomic tactic.
+		* @param name Name of the atomic tactic.
 		* @param node Node id of the occurrence to remove.
 		* @return Boolean notifying if it was the last occurrence of the atomic tactic.
 		* @throws AtomicTacticNotFoundException If the atomic tactic was not found.
@@ -110,7 +110,7 @@ class PSGraph(name:String) extends ATManager with GTManager {
 	/** Method to remove an occurrence from an atomic tactic.
 		*
 		* Does not delete the tactic's data from the model if it is the last occurrence.
-		* @param name Gui id of the atomic tactic.
+		* @param name Name of the atomic tactic.
 		* @param node Node id of the occurrence to remove.
 		* @throws AtomicTacticNotFoundException If the atomic tactic was not found.
 		*/
@@ -128,23 +128,27 @@ class PSGraph(name:String) extends ATManager with GTManager {
 
 	/** Method creating an graph tactic if the id is available.
 		*
-		* @param id Id/name of the graph tactic.
+		* Overrides [[GTManager.createGT]] to prevent the creation of a graph tactic having the same name as the main one.
+		*
+		* @param name Name of the graph tactic.
 		* @param branchType Branch type of the graph tactic.
 		* @return Boolean notifying of successful creation or not (should be used to handle duplication).
-		* @throws ReservedNameException If id is the main tactic name.
+		* @throws ReservedNameException If name is the main tactic name.
 		*/
-	override def createGT(id:String,branchType:String): Boolean = {
-		if(id == mainTactic.name) throw new ReservedNameException(id)
+	override def createGT(name:String,branchType:String): Boolean = {
+		if(name == mainTactic.name) throw new ReservedNameException(name)
 		else {
-			super.createGT(id,branchType)
+			super.createGT(name,branchType)
 		}
 	}
 
 	/** Method to update a graph tactic.
 		*
-		* Also changes the occurrences of all other tactics if necessary.
-		* @param name Gui id of the graph tactic.
-		* @param newName New gui id of the graph tactic.
+		* Overrides [[GTManager.updateGT]] to change the occurrences of all other tactics if necessary,
+		* and prevent the use of the main graph tactic's name.
+		*
+		* @param name Name of the graph tactic.
+		* @param newName New name of the graph tactic.
 		* @param newBranchType New branch type value.
 		* @return Boolean notifying of successful change or not (should be used to handle duplication).
 		* @throws GraphTacticNotFoundException If the graph tactic was not in the collection.
@@ -169,15 +173,15 @@ class PSGraph(name:String) extends ATManager with GTManager {
 
 	/** Method to force the update of a graph tactic.
 		*
-		* @param name Gui id of the graph tactic.
-		* @param newName New gui id of the graph tactic.
+		* @param name Name of the graph tactic.
+		* @param newName New name of the graph tactic.
 		* @param newBranchType New branch type of the graph tactic.
 		* @return List of the node ids to update on the current graph.
 		* @throws GraphTacticNotFoundException If the graph tactic was not found.
 		* @throws ReservedNameException If newName is the main tactic name.
 		* @throws JsonAccessException If updating the values in the json graphs fails.
 		*/
-	def updateForceGT(name: String, newName:String, newBranchType: String):Array[String] = {
+	def updateForceGT(name: String, newName:String, newBranchType: String):Set[String] = {
 		if(newName == mainTactic.name) throw new ReservedNameException(newName)
 		try {
 			val nodeIds = updateForceGT(name,newName,newBranchType,currentTactic.name,currentIndex)
@@ -197,8 +201,8 @@ class PSGraph(name:String) extends ATManager with GTManager {
 
 	/** Method to add an occurrence in a graph tactic.
 		*
-		* Also register the graph as a child of the current graph tactic.
-		* @param name Gui id of the graph tactic.
+		* Also registers the graph as a child of the current graph tactic.
+		* @param name Name of the graph tactic.
 		* @param node Node id of the occurrence.
 		* @throws GraphTacticNotFoundException If the graph tactic was not found.
 		*/
@@ -218,8 +222,8 @@ class PSGraph(name:String) extends ATManager with GTManager {
 
 	/** Method to add an occurrence in a graph tactic.
 		*
-		* Also register the graph as a child of the specified graph tactic.
-		* @param name Gui id of the graph tactic.
+		* Overrides [[GTManager.addGTOccurrence]] to register the graph as a child of the specified graph tactic.
+		* @param name Nameof the graph tactic.
 		* @param graph Graph id in which the occurrence is.
 		* @param index Graph index in which the occurrence is.
 		* @param node Node id of the occurrence.
@@ -249,7 +253,7 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		*
 		* Also removes the graph from the children list of the current graph tactic.
 		* And deletes the tactic's data from the model if it is the last occurrence.
-		* @param name Gui id of the graph tactic.
+		* @param name Name of the graph tactic.
 		* @param node Node id of the occurrence to remove.
 		* @return Boolean notifying if it was the last occurrence of the graph tactic.
 		* @throws GraphTacticNotFoundException If the graph tactic was not found.
@@ -278,7 +282,7 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		*
 		* Also removes the graph from the children list of the current graph tactic.
 		* And does not delete the tactic's data from the model if it is the last occurrence.
-		* @param name Gui id of the graph tactic.
+		* @param name Name of the graph tactic.
 		* @param node Node id of the occurrence to remove.
 		* @throws GraphTacticNotFoundException If the graph tactic was not found.
 		*/
@@ -298,9 +302,9 @@ class PSGraph(name:String) extends ATManager with GTManager {
 
 	/** Method to delete a graph tactic from the tactic collection.
 		*
-		* This method overrides [[tinkerGUI.model.GTManager.deleteGT]] but still invokes it.
-		* It also remove all occurrences (in the atomic and graph tactic collections) which refers to this graph tactic id.
-		* @param name Gui id of the graph tactic to delete.
+		* Overrides [[tinkerGUI.model.GTManager.deleteGT]] to remove all occurrences
+		* (in the atomic and graph tactic collections) which refer to this graph tactic id.
+		* @param name Name of the graph tactic to delete.
 		*/
 	override def deleteGT(name:String) {
 		super.deleteGT(name)
@@ -340,12 +344,11 @@ class PSGraph(name:String) extends ATManager with GTManager {
 			"atomic_tactics" -> toJsonAT,
 			"goal_types" -> goalTypes,
 			"occurrences" -> JsonObject("atomic_tactics" -> toJsonATOccurrences, "graph_tactics" -> toJsonGTOccurrences))
-		// println("---------------------------------------------------")
-		// println(jsonPSGraph)
 	}
 
 	/** Method resetting the model.
 		*
+		* @param name New graph name, i.e. the main graph tactic name.
 		*/
 	def reset(name:String) {
 		currentIndex = 0
@@ -359,10 +362,10 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		atCollection = Map()
 	}
 
-	/** Method removing all goals from graphs.
-		*
+	/** Method removing all goals node from the graphs.
+		* Needs to access [[tinkerGUI.controllers.QuantoLibAPI]] to safely do so.
 		*/
-	def removeGoals {
+	def removeGoals() {
 		try{
 			mainTactic.addSubgraph(QuantoLibAPI.graphWithNoGoals(mainTactic.getSubgraph(0)).asObject,0)
 			gtCollection.foreach{ case (name,gt) =>
@@ -499,6 +502,8 @@ class PSGraph(name:String) extends ATManager with GTManager {
 
 	/** Method switching a string with another inside all graphs' json except the current one.
 		*
+		* Needs to access [[tinkerGUI.controllers.QuantoLibAPI]] to safely do that.
+		*
 		* @param oldVal String to replace.
 		* @param newVal String to insert.
 		* @throws JsonAccessException If the resulting graph is not a Json object.
@@ -511,13 +516,6 @@ class PSGraph(name:String) extends ATManager with GTManager {
 							case j : JsonObject => v.graphs(i) = j
 							case j:Json => throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
 						}
-						/*v.graphs -= g
-						Json.parse(g.toString().replace("\""+oldVal+"\"","\""+newVal+"\"")) match {
-							case j: JsonObject => v.graphs += j
-							case j: Json =>
-								v.graphs += g
-								throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
-						}*/
 					}
 			}
 		} else {
@@ -532,13 +530,6 @@ class PSGraph(name:String) extends ATManager with GTManager {
 							case j : JsonObject => v.graphs(i) = j
 							case j:Json => throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
 						}
-						/*v.graphs -= g
-						Json.parse(g.toString().replace(oldVal,newVal)) match {
-							case j: JsonObject => v.graphs += j
-							case j: Json =>
-								v.graphs += g
-								throw new JsonAccessException("Expected: JsonObject, got: "+j.getClass, j)
-						}*/
 					}
 				}
 			}
@@ -552,6 +543,7 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		* @param j Json input.
 		* @throws GraphTacticNotFoundException If a graph tactic is not found after importing the data.
 		* @throws AtomicTacticNotFoundException If a atomic tactic is not found after importing the data.
+		* @throws BadJsonInputException If a set of tactic is not correctly structured.
 		* @throws JsonAccessException If the json structure was not correct.
 		*/
 	def loadJsonGraph(j: JsonObject) {
@@ -559,28 +551,12 @@ class PSGraph(name:String) extends ATManager with GTManager {
 		gtCollection = Map()
 		val current = (j / "current").asArray.head.stringValue
 		val main = (j / "main").stringValue
-		//mainTactic.name = main
 		currentParents = (j / "current").asArray.tail.foldRight(Array[String]()){ case (p,a) => a :+ p.stringValue}
 		currentIndex  = (j / "current_index").intValue
 		goalTypes = (j / "goal_types").stringValue
 		try{
-			/*(j / "atomic_tactics").asArray.foreach{ tct =>
-				val name = (tct / "name").stringValue
-				val tactic = (tct / "tactic").stringValue
-				createAT(name,tactic)
-			}*/
 			loadATFromJson((j/"atomic_tactics").asArray)
 			mainTactic = loadGTFromJson((j/"graphs").asArray,main)
-			/*(j / "graphs").asArray.foreach { tct =>
-				val name = (tct / "name").stringValue
-				val branchType = (tct / "branch_type").stringValue
-				if(name != main) createGT(name, branchType)
-				var i = 0
-				(tct / "graphs").asArray.foreach{ gr =>
-					saveGraph(name, gr, i)
-					i+=1
-				}
-			}*/
 			(j / "occurrences").asObject match { case occ:JsonObject =>
 				(occ / "atomic_tactics").asObject.foreach { case(k,v) =>
 					v.asArray.foreach { occ =>
@@ -624,7 +600,7 @@ class PSGraph(name:String) extends ATManager with GTManager {
 
 	/** Method to find the children of a graph tactic, and their children as well.
 		*
-		* @param parent Gui id of the graph tactic.
+		* @param parent Name of the graph tactic.
 		*/
 	def buildPartialHierarchy(parent:GraphTactic) {
 		if(parent.children.isEmpty){

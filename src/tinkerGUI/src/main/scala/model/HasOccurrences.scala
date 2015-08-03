@@ -1,7 +1,6 @@
 package tinkerGUI.model
 
 import quanto.util.json._
-import scala.collection.mutable.ArrayBuffer
 
 /** Tactic behaviour for having occurrences
 	*
@@ -12,14 +11,14 @@ import scala.collection.mutable.ArrayBuffer
 trait HasOccurrences {
 	
 	/** Occurrence array of a tactic. */
-	var occurrences: ArrayBuffer[(String, Int, String)] = ArrayBuffer()
+	var occurrences: Set[(String, Int, String)] = Set()
 
 	/** Method to add an occurrence to a tactic.
 		*
 		* @param o Occurrence, a graph/index/node tuple.
 		*/
 	def addOccurrence(o: (String, Int, String)){
-		occurrences = occurrences :+ o
+		occurrences += o
 	}
 
 	/** Method to remove an occurrence from a tactic.
@@ -35,7 +34,7 @@ trait HasOccurrences {
 		* @param id Graph id.
 		*/
 	def removeOccurrence(id:String){
-		var occToRemove:ArrayBuffer[(String,Int,String)] = ArrayBuffer()
+		var occToRemove:Set[(String,Int,String)] = Set()
 		for(o<-occurrences if o._1 == id) {
 			occToRemove += o
 		}
@@ -44,14 +43,14 @@ trait HasOccurrences {
 
 	/** Method to change a set of occurrences from a tactic, depending on the graph id.
 		*
-		* @param id Initial gui id of the graph.
-		* @param newId Finale gui id of the graph.
+		* @param name Initial name of the graph.
+		* @param newName Finale name of the graph.
 		*/
-	def changeOccurrences(id:String, newId:String){
-		var occToRemove:ArrayBuffer[(String,Int,String)] = ArrayBuffer()
-		var occToAdd:ArrayBuffer[(String,Int,String)] = ArrayBuffer()
-		for(o<-occurrences if o._1 == id) {
-			occToAdd += Tuple3(newId, o._2, o._3)
+	def changeOccurrences(name:String, newName:String){
+		var occToRemove:Set[(String,Int,String)] = Set()
+		var occToAdd:Set[(String,Int,String)] = Set()
+		for(o<-occurrences if o._1 == name) {
+			occToAdd += Tuple3(newName, o._2, o._3)
 			occToRemove += o
 		}
 		for(o<-occToRemove) occurrences -= o
@@ -71,15 +70,15 @@ trait HasOccurrences {
 		*
 		* @param newOccs New occurrence list.
 		*/
-	def updateOccurrences(newOccs:ArrayBuffer[(String, Int, String)]) {
+	def updateOccurrences(newOccs:Set[(String, Int, String)]) {
 		occurrences = newOccs
 	}
 
-	/** Method to completly erase the occurrence list.
+	/** Method to completely erase the occurrence list.
 		*
 		*/
 	def eraseOccurrences() {
-		occurrences = ArrayBuffer()
+		occurrences = Set()
 	}
 
 	/** Method to get the list of node ids in a graph where the tactic has an occurrence.
@@ -87,11 +86,7 @@ trait HasOccurrences {
 		* @param graph Graph id.
 		* @return List of node ids.
 		*/
-	def getOccurrencesInGraph(graph:String, index:Int):Array[String] = {
-		var arr:Array[String] = Array()
-		occurrences.foreach{ o =>
-			if(o._1 == graph && o._2 == index) arr = arr :+ o._3
-		}
-		arr
+	def getOccurrencesInGraph(graph:String, index:Int):Set[String] = {
+		occurrences.foldLeft(Set[String]()){(s,t)=>if(t._1==graph && t._2==index) s+t._3 else s}
 	}
 }
