@@ -56,8 +56,9 @@ struct
   fun goal_pretty (G {pretty, ...}) = pretty
 
   val default = ("any",[]); (* fixme: does not evaluate *)
+  fun any env _ _ = [env]
   val default_gnode = G {name = "?", pretty = Pretty.str "?"};
-  val default_data = P {imports = [], defs = [], atomics = StrName.NTab.empty};
+  val default_data = P {imports = [], defs = [], atomics = StrName.NTab.ins ("any", any) StrName.NTab.empty};
 
   (* required? *)
   fun eq _ = true;
@@ -385,8 +386,10 @@ struct
 
   fun scan_gt_single ctxt = scan_name -- (scan_args ctxt || scan_empty)
   fun scan_gt_full ctxt = (scan_gt_single ctxt) -- Scan.repeat ($$ "," |-- (scan_gt_single ctxt)) --| $$ "." >> op :: ; 
-  fun scan_goaltyp ctxt = explode #> scan_gt_single ctxt #> #1; 
-
+  fun scan_goaltyp0 ctxt = explode #> scan_gt_single ctxt #> #1; 
+  fun scan_goaltyp ctxt str = 
+    case str of "any" =>  scan_goaltyp0 ctxt "any()" 
+    | _ => scan_goaltyp0 ctxt str
   (* add to defs *)
   fun add_parse_def new_def = add_defs (scan_data Prover.default_ctxt new_def);
   (************************************
