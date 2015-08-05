@@ -94,12 +94,12 @@ ML{*
    val data = C.update_data_defs (K pdef1) data;
 *}
 
-ML{*
+ML{* 
    val t = @{prop "A \<Longrightarrow> B \<Longrightarrow> A \<and> B \<Longrightarrow> B \<and> A"}; 
    val (pnode,pplan) = IsaProver.init @{context} [] t;                         
 *}
 
-ML{*
+ML{* 
    C.imatch data pnode ("any",[]);
    C.imatch data pnode ("topconcl",[C.Name "conj"]);
 *}      
@@ -119,7 +119,7 @@ ML{*-
   TextSocket.safe_close();
 *}
 
-ML{* -
+ML{*
 Tinker.start_ieval @{context} ps [] @{prop "A \<longrightarrow> A \<longrightarrow> A"};
 *}
 

@@ -104,6 +104,11 @@ struct
      [] => false
     | _ => true;
 
+  fun match data pn str _ = 
+    case init_lift (data,str) pn of
+    [] => []  
+    | _ =>  [Prover.get_pnode_env pn] (* simple goal type will never changed the env *)
+
   fun lift pn = G {name = (Prover.get_pnode_name pn), pretty = Prover.pretty_goal pn}
 
   structure BasicSharing =
