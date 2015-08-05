@@ -1,11 +1,10 @@
 structure PPProver : PROVER =
 struct
-  local open LoggingHandler ProverUtils in 
+  local open LoggingHandler (*ProverUtils*) in 
   type pos = PPTermLib.pos
   type typ = TYPE
   type term = TERM
   type thm = THM
-  type tactic = (*context ->*) TACTIC (* TODO: need pc ? *)
   type context = string list * string (* context string list * theory string *)
   
   val default_ctxt = get_current_pc (); (* used in those place need context in general *)
@@ -13,7 +12,7 @@ struct
     
   fun pretty_trm _ trm = String.concat (PrettyPrinter.format_term true trm) |> Pretty.str
 
-  type arg_data = string (* A_Const of string | A_Var of string | A_Trm of term *)
+  datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
   
   datatype env_data = 
     E_Str of string | 
@@ -40,8 +39,9 @@ struct
     |> (fn xs => str_chunks (( "ENV_DATA: [" :: xs) @ [ "]"]) )
     |> Pretty.str
     end
-    
-  type env_tac =  env -> env
+  
+  type tactic =  arg_data list -> TACTIC (* TODO: need pc ? *)
+  type env_tac =  arg_data list -> env -> env 
   
   (* atomic part *)
   type pnode = 
@@ -105,6 +105,9 @@ struct
   fun get_pnode_env_data_as_ML pnode name = 
     case get_pnode_env_data pnode name of (E_ML ml_code) => ml_code
     | _ => raise env_data_exp 
+    
+  structure THM_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = thm val struct_name = "PPProver.THM_ML_Exec");
+  fun get_thm_by_name _ str = THM_ML_Exec.eval_ml str
   
   exception atomic_exp of string
   val psgraph_prover_i = "proofpower";
@@ -126,7 +129,7 @@ struct
     end;
       
   (*val update : TACTIC -> (pnode * pplan) -> (pnode list * pplan) *)
-  fun update (tac : tactic) (env_tac : env_tac) (pnode : pnode, pplan : pplan)  : (pnode list * pplan) = 
+  fun update args (tac : tactic) (env_tac : env_tac) (pnode : pnode, pplan : pplan)  : (pnode list * pplan) = 
     let 
       fun gen_fresh_psgname nset (g : (string list * GOAL)) = 
         if (fst g) = [""] (* the case of single goal *)
@@ -139,7 +142,7 @@ struct
       (* set current goal and apply tactic then get the list of goals in the format of :
       	string list * (term list * term) list *)
       val sgs = (((if (#global pnode) = [] then () else set_labelled_goal (hd (#global pnode)));
-      		SubgoalPackage.apply_tactic tac); top_goals())
+      		SubgoalPackage.apply_tactic (tac args)); top_goals())
       val ctxt = get_current_pc();   
       fun filter_goals plist name = 
         filter 
@@ -167,7 +170,7 @@ struct
         	pns)
             all_pnodel
 	    (StrName.NSet.list_of (#usedgs pplan))
-	    |> map (update_pnode_env env_tac) (* update env from the consumed one *)
+	    |> map (update_pnode_env (env_tac args)) (* update env from the consumed one *)
 	  val new_opengs =  (* del old consumed goal then add new goals *)
 	    (#opengs pplan)
 	    |> StrName.NTab.delete (#pname pnode)
@@ -198,9 +201,9 @@ struct
 
   fun pretty_goal pnode = pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode)
 
-  fun apply_tactic args (tac_code : string) (pnode,pplan) = 
-    let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in
-    update tac I (pnode,pplan)
+  fun apply_tactic args tac (pnode,pplan) = 
+    (*let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in*)
+    update args tac (K I) (pnode,pplan)
     (*|> (fn (l,p) => ((get_open_pnodes p |> map pretty_pnode |> Pretty.chunks |> Pretty.writeln) ; (l,p)))*)
     |> Seq.single
     |> (fn x => 
@@ -208,11 +211,12 @@ struct
            => (logging "TACTIC" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode); 
                raise tinker_fail) 
            | _ => x ))
-    end
+    (*end*)
+    
   (* Update the env and then apply a dummy id tac in isabelle *)
-  fun apply_env_tactic args env_tac_code (pnode,pplan) = 
-    let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in
-    update id_tac env_tac (pnode,pplan)
+  fun apply_env_tactic args env_tac (pnode,pplan) = 
+    (*let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in*)
+    update args (K id_tac) env_tac (pnode,pplan)
     (*|> (fn (l,p) => ((get_open_pnodes p |> map pretty_pnode |> Pretty.chunks |> Pretty.writeln) ; (l,p)))*)
     |> Seq.single
     |> (fn x => 
@@ -220,7 +224,7 @@ struct
            => (logging "TACTIC" ("Fail to apply env_tactic for pnode " ^ get_pnode_name pnode); 
                raise tinker_fail) 
            | _ => x ))
-    end  
+    (*end*)  
   
   
   fun pretty_pplan pnode = Pretty.str "Pretty PPLAN TOTO";
@@ -236,6 +240,7 @@ struct
   val encode_prover_to_gui = I;
   val encode_gui_to_prover = I;
   fun get_goal_thm pplan = raise RunCall.Fail "TODO"; 
+  
 
   structure Sharing = 
   struct   
