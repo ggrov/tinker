@@ -121,6 +121,10 @@ class TinkerMenu() extends MenuBar{
 				Service.editCtrl.logStack.openFrame("Tinker - edit log")
 			}
 		}
+		new Action("to svg"){
+			menu.contents += new MenuItem(this)
+			def apply() = QuantoLibAPI.toSvg()
+		}
 		val printJson = new Action("Print JSON in Console") {
 			menu.contents += new MenuItem(this)
 			def apply(){
