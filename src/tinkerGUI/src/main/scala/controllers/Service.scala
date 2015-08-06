@@ -19,7 +19,7 @@ object Service extends Publisher {
 	val libraryTreeCtrl = new TinkerLibraryController()
 
 	/** Psgrah model. */
-	var model = new PSGraph("defaultProof")
+	var model = new PSGraph("scratch")
 	// controllers
 	/** Edit controller. */
 	val editCtrl = new EditController(model)
