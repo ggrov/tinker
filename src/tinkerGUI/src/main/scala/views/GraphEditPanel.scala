@@ -12,7 +12,7 @@ import scala.swing.event.{Key, KeyReleased}
 class GraphEditPanel() extends BorderPanel {
 
 	var graphPanel = QuantoLibAPI.getGraph
-	graphPanel.visible = false
+	//graphPanel.visible = false
 
 	val editControls = new EditControlsPanel()
 	val evalControls = new EvalControlsPanel()
@@ -49,7 +49,7 @@ class GraphEditPanel() extends BorderPanel {
 			contents += evalControls.MainEvalToolBar
 		}, BorderPanel.Position.South)
 	}
-	top.visible = false
+	//top.visible = false
 
 	add(top,BorderPanel.Position.North)
 

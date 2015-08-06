@@ -199,6 +199,24 @@ class EditController(model:PSGraph) extends Publisher {
 		}
 	}
 
+	/** Method editing the proof name.
+		*
+		*/
+	def changeProofName() {
+		def successCallBack(values:Map[String,String]) {
+			val name = values("Proof name")
+			if(model.gtCollection.contains(name)){
+				TinkerDialog.openEditDialog("This name is already taken, enter another one.",values,successCallBack,()=>Unit)
+			} else {
+				model.changeMainName(name)
+				DocumentService.proofTitle = name
+				publish(GraphTacticListEvent())
+				publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(model.currentParents)))
+			}
+		}
+		TinkerDialog.openEditDialog("Edit proof name.",Map("Proof name"->model.mainTactic.name),successCallBack,()=>Unit)
+	}
+
 	/** Method creating a node and if necessary a tactic.
 		*
 		* @param typ Type of node, should be "T_Identity", "T_Atomic" or "T_Graph", the latter two will create a tactic in the model.

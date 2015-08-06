@@ -19,7 +19,7 @@ object Service extends Publisher {
 	val libraryTreeCtrl = new TinkerLibraryController()
 
 	/** Psgrah model. */
-	var model = new PSGraph("main")
+	var model = new PSGraph("defaultProof")
 	// controllers
 	/** Edit controller. */
 	val editCtrl = new EditController(model)
@@ -62,18 +62,15 @@ object Service extends Publisher {
 	def getBranchTypeGT(tactic: String) = model.getGTBranchType(tactic)
 
 
-	def initApp():Boolean = {
+	def initApp() {
 		try {
-			DocumentService.load(new File((Json.parse(new File(".tinkerConfig"))/"file").stringValue)) match {
-				case Some(j:JsonObject) =>
-					documentCtrl.openJson(j)
-					true
-				case _ =>
-					false
-			}
+//			DocumentService.load(new File((Json.parse(new File(".tinkerConfig"))/"file").stringValue)) match {
+//				case Some(j:JsonObject) =>
+//					documentCtrl.openJson(j)
+//				case _ =>
+//			}
 		} catch {
 			case e: Exception =>
-				false
 		}
 	}
 
@@ -92,11 +89,6 @@ object Service extends Publisher {
 	def saveGraphSpecificTactic(tactic: String, graph: Json, index: Int) = {
 		//documentCtrl.registerChanges()
 		model.saveGraph(tactic, graph, index)
-	}
-
-	def setGoalTypes(s: String){
-		//documentCtrl.registerChanges()
-		model.goalTypes = s
 	}
 
   def showTinkerGUI (b : Boolean) {

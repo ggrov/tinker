@@ -91,6 +91,12 @@ class TinkerMenu() extends MenuBar{
 					title = "Redo"
 			}
 		}
+		new Action("Change proof name"){
+			menu.contents += new MenuItem(this)
+			def apply() {
+				Service.editCtrl.changeProofName()
+			}
+		}
 		new Action("Open tactic editor"){
 			menu.contents += new MenuItem(this)
 			def apply(){

@@ -88,15 +88,12 @@ object MainGUI extends SimpleSwingApplication {
 		listenTo(Service.documentCtrl)
 		reactions += {
 			case DocumentChangedEvent(_) =>
-				graphPanel.display(true)
-				inspectorPanel.display(true)
+				//graphPanel.display(true)
+				//inspectorPanel.display(true)
 				title = "Tinker - " + Service.documentCtrl.title
 		}
     Service.setTopFrame(this)
-
-		if(!Service.initApp()){
-			initDialog.open()
-		}
+		Service.initApp()
 		centerOnScreen()
 		override def closeOperation() { Service.closeApp() }
 	}
