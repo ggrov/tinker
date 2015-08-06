@@ -5,7 +5,7 @@ imports   "../../build/isabelle/Tinker"
 begin  
 
  -- "the goaltype"
-ML_file "../../../goaltype/clause/goaltype.ML"   
+
 
 ML_file "../../interface/text_socket.ML"
 
@@ -13,7 +13,7 @@ ML_file "./interface/wsock.sig.ML"
 ML_file "./interface/json_protocol.sig.ML"
 ML_file "./interface/tpp_protocol.sig.ML"
 
-ML_file "./build/unicode_helper.ML"
+ML_file "../../unicode_helper.ML"
 ML_file "./build/predicate_tag.ML"
 ML_file "./build/rodin_socket.struct.ML"
 ML_file "./build/rodin_json_protocol.struct.ML"
@@ -21,9 +21,8 @@ ML_file "./build/rodin_protocol.ML"
 
 ML_file "./rodin_prover.ML"
 
-ML_file "../../goaltype/simple_goaltype.ML"
+ML_file "../../goaltype/clause/goaltype.ML"   
 
-ML_file "simpleGT_lib.ML"
 
 
 ML{*
@@ -41,6 +40,6 @@ ML{*
   structure Tinker = TinkerProtocol (structure IEVal = IEVal val gui_socket_port = 1790 val prover_socket_port = 0);
   structure Env_Tac_Lib = EnvTacLibFunc (Theory);
 *}
-ML{*  open Env_Tac_Lib SimpleGT_Lib *}
+ML{*  open Env_Tac_Lib *}
 
 end

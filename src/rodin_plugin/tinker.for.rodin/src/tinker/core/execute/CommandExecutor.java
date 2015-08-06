@@ -357,47 +357,12 @@ public class CommandExecutor {
 		return resultCmd.toString();
 	}
 
-	private static String tagToString (int tag){
-		switch (tag){
-		case Formula.LAND:
-			return "∧";
-		case Formula.LOR:
-			return "∨";
-		default :
-			return "";
-		}
-	}
 	
-	private static int tagFromString (String str){
-		switch (str) {
-		case "AND":
-		case "∧":
-			return Formula.LAND;
-		case "OR":
-		case "∨":
-			return Formula.LOR;
-		case "NOT":
-		case "¬":
-			return  Formula.NOT;
-		case "FORALL":
-		case "∀":
-			return  Formula.FORALL;
-		case "EXISTS":
-		case "∃":
-			return  Formula.EXISTS;
-		case "IN":
-		case "∈":
-			return Formula.IN;
-		default:
-			return -1;
-		}
-
-	}
 	
 	private static boolean check_top_symbol(String symbol, String pnode, TinkerSession session) {
 		IProofTreeNode pt = session.nameToNodeMap.get(pnode);
 		int tag = pt.getSequent().goal().getTag();
-		return tag==tagFromString(symbol);
+		return tag==SymbolMapping.tagFromString(symbol);
 
 	}
 	
@@ -464,7 +429,7 @@ public class CommandExecutor {
 		IProofTreeNode pnode = session.nameToNodeMap.get(node);
 		String termstr = command.getParameter("TERM");
 		Predicate term = parseStr(termstr, pnode.getSequent().typeEnvironment());
-		String tag = String.valueOf(term.getTag());
+		String tag = SymbolMapping.tagToString(term.getTag());
 
 		Command cmd = (new Command("GET_TOP_SYMBOL_RESULT")).addParamter("TAG", tag);
 		return cmd.toString();
