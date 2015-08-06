@@ -37,6 +37,9 @@ object DocumentService extends Publisher {
 			try {
 				json.writeTo(f)
 				file = Some(f)
+				if(!Service.documentCtrl.recentProofs.values.map{p => p._2}.contains(f.getAbsolutePath)){
+					Service.documentCtrl.recentProofs.push(f.getName,f.getAbsolutePath)
+				}
 				Service.documentCtrl.unsavedChanges = false
 				publish(DocumentChangedEvent(false))
 			} catch {
@@ -134,9 +137,12 @@ object DocumentService extends Publisher {
 
 	def load(f : File): Option[Json] = {
 		try {
+			val json = Json.parse(f)
 			file = Some(f)
 			previousDir = f
-			val json = Json.parse(f)
+			if(!Service.documentCtrl.recentProofs.values.map{p => p._2}.contains(f.getAbsolutePath)){
+				Service.documentCtrl.recentProofs.push(f.getName,f.getAbsolutePath)
+			}
 			Some(json)
 		} catch {
 			case e: JsonParseException => 
