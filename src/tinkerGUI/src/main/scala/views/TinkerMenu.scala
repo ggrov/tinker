@@ -1,7 +1,7 @@
 package tinkerGUI.views
 
 import tinkerGUI.controllers.events.DocumentChangedEvent
-import tinkerGUI.controllers.{QuantoLibAPI, Service}
+import tinkerGUI.controllers.{DocumentService, QuantoLibAPI, Service}
 
 import scala.swing._
 import event.Key
@@ -13,21 +13,21 @@ class TinkerMenu() extends MenuBar{
 
 	val FileMenu = new Menu("File") { menu =>
 		mnemonic = Key.F
-		val NewAction = new Action("New") {
+		new Action("New") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.N }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_N, CommandMask))
 			def apply() {
 				Service.documentCtrl.newDoc()
 			}
 		}
-		val OpenAction = new Action("Open") {
+		new Action("Open") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.O }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_O, CommandMask))
 			def apply() {
 				Service.documentCtrl.openJson()
 			}
 		}
-		val SaveAction = new Action("Save") {
+		new Action("Save") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.S }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_S, CommandMask))
 			enabled = false
@@ -39,14 +39,20 @@ class TinkerMenu() extends MenuBar{
 				enabled = status
 			}
 		}
-		val SaveAsAction = new Action("Save As...") {
+		new Action("Save As...") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.A }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_S, CommandMask | Key.Modifier.Shift))
 			def apply() {
 				Service.documentCtrl.saveAsJson()
 			}
 		}
-		val QuitAction = new Action("Quit") {
+		new Action("Export as svg") {
+			menu.contents += new MenuItem(this)
+			def apply(): Unit = {
+				DocumentService.exportSvg()
+			}
+		}
+		new Action("Quit") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.Q }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_Q, CommandMask))
 			def apply() {
@@ -121,11 +127,7 @@ class TinkerMenu() extends MenuBar{
 				Service.editCtrl.logStack.openFrame("Tinker - edit log")
 			}
 		}
-		new Action("to svg"){
-			menu.contents += new MenuItem(this)
-			def apply() = QuantoLibAPI.toSvg()
-		}
-		val printJson = new Action("Print JSON in Console") {
+		new Action("Print JSON in Console") {
 			menu.contents += new MenuItem(this)
 			def apply(){
 				Service.debugPrintJson()

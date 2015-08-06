@@ -82,7 +82,7 @@ object Service extends Publisher {
 		if(documentCtrl.closeDoc()){
 			DocumentService.file match {
 				case Some(f:File) => JsonObject("file"->JsonString(f.toString)).writeTo(new File(".tinkerConfig"))
-				case _ =>
+				case None =>
 			}
 			sys.exit(0)
 		}

@@ -202,7 +202,6 @@ class DocumentController(model:PSGraph) extends Publisher {
 				model.reset(name)
 				resetApp()
 				DocumentService.file = None
-				DocumentService.proofTitle = name
 			} catch {
 				case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 			}
@@ -218,6 +217,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 		unsavedChanges = false
 		undoStack.empty()
 		redoStack.empty()
+		DocumentService.proofTitle = model.mainTactic.name
 		QuantoLibAPI.loadFromJson(model.getCurrentJson)
 		publish(GraphTacticListEvent())
 		publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))

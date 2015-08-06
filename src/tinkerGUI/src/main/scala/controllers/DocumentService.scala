@@ -3,6 +3,7 @@
 
 package tinkerGUI.controllers
 
+import quanto.util.FileHelper
 import tinkerGUI.controllers.events.DocumentChangedEvent
 import tinkerGUI.utils.TinkerDialog
 
@@ -57,9 +58,28 @@ object DocumentService extends Publisher {
 		chooser.fileFilter = new FileNameExtensionFilter("Tinker Proof Strategy Graph File (*.psgraph)", "psgraph")
 		chooser.showSaveDialog(Service.getMainFrame) match {
 			case FileChooser.Result.Approve =>
+				previousDir = chooser.selectedFile
 				val p = chooser.selectedFile.getAbsolutePath
 				val file = new File(if (p.endsWith("." + "psgraph")) p else p + "." + "psgraph")
 				if (promptExists(file)) save(Some(file), json)
+			case _ =>
+		}
+	}
+
+	def exportSvg(rootDir: Option[String] = None): Unit ={
+		val chooser = new FileChooser()
+		chooser.peer.setCurrentDirectory(rootDir match {
+			case Some(d) => new File(d)
+				case None => previousDir
+		})
+		chooser.peer.setSelectedFile(new File(proofTitle+".svg"))
+		chooser.fileFilter = new FileNameExtensionFilter("SVG File (*.svg)","svg")
+		chooser.showSaveDialog(Service.getMainFrame) match {
+			case FileChooser.Result.Approve =>
+				previousDir = chooser.selectedFile
+				val p = chooser.selectedFile.getAbsolutePath
+				val file = new File(if (p.endsWith("." + "svg")) p else p + "." + "svg")
+				if(promptExists(file)) QuantoLibAPI.toSvg(file)
 			case _ =>
 		}
 	}
@@ -115,6 +135,7 @@ object DocumentService extends Publisher {
 	def load(f : File): Option[Json] = {
 		try {
 			file = Some(f)
+			previousDir = f
 			val json = Json.parse(f)
 			Some(json)
 		} catch {

@@ -1213,7 +1213,7 @@ object QuantoLibAPI extends Publisher{
 	}
 
 
-	def toSvg() {
+	def toSvg(file:File) {
 		def getPolygonCoordinates(center:(Double,Double),scale:Double,rotationAngle:Double,numberOfPoints:Int):Array[(Double,Double)] = {
 			var arr = Array[(Double,Double)]()
 			for(i <- 0 to numberOfPoints-1){
@@ -1317,7 +1317,7 @@ object QuantoLibAPI extends Publisher{
 			maxX = max(maxX, ((nodes(v._2)._3 + nodes(v._3)._3) / 2) + (v._4 / 2))
 			maxY = max(maxY, ((nodes(v._2)._4 + nodes(v._3)._4) / 2) + (v._5 / 2))
 		}
-		FileHelper.printToFile(new File("psgraph.svg"), append = false)(p=>{
+		FileHelper.printToFile(file, append = false)(p=>{
 			def printNode(id:String,typ:String,label:String,x:Int,y:Int,w:Int,h:Int) {
 				p.println("\t<g transform=\"translate("+(x-w/2+20)+","+(y-h/2+20)+")\">")
 				typ match {
