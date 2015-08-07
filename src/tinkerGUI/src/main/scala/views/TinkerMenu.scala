@@ -1,7 +1,7 @@
 package tinkerGUI.views
 
 import tinkerGUI.controllers.events.DocumentChangedEvent
-import tinkerGUI.controllers.{QuantoLibAPI, Service}
+import tinkerGUI.controllers.{DocumentService, QuantoLibAPI, Service}
 
 import scala.swing._
 import event.Key
@@ -13,21 +13,42 @@ class TinkerMenu() extends MenuBar{
 
 	val FileMenu = new Menu("File") { menu =>
 		mnemonic = Key.F
-		val NewAction = new Action("New") {
+		new Action("New") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.N }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_N, CommandMask))
 			def apply() {
 				Service.documentCtrl.newDoc()
 			}
 		}
-		val OpenAction = new Action("Open") {
+		new Action("Open") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.O }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_O, CommandMask))
 			def apply() {
 				Service.documentCtrl.openJson()
 			}
 		}
-		val SaveAction = new Action("Save") {
+		menu.contents += new Menu("Recent files"){ m =>
+			def updateList(): Unit ={
+				m.contents.clear()
+				Service.documentCtrl.recentProofs.values.reverse.foreach{case(k,v)=>
+					m.contents += new MenuItem(new Action(k) {
+						def apply() {
+							Service.documentCtrl.openJson(Some(v))
+						}
+					})
+				}
+				m.contents += new Separator()
+				m.contents += new MenuItem(new Action("Clear recent files"){
+					def apply() {
+						Service.documentCtrl.recentProofs.empty()
+					}
+				})
+			}
+			updateList()
+			Service.documentCtrl.recentProofs.register(updateList)
+		}
+		menu.contents += new Separator()
+		new Action("Save") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.S }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_S, CommandMask))
 			enabled = false
@@ -39,14 +60,21 @@ class TinkerMenu() extends MenuBar{
 				enabled = status
 			}
 		}
-		val SaveAsAction = new Action("Save As...") {
+		new Action("Save As...") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.A }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_S, CommandMask | Key.Modifier.Shift))
 			def apply() {
 				Service.documentCtrl.saveAsJson()
 			}
 		}
-		val QuitAction = new Action("Quit") {
+		new Action("Export as svg") {
+			menu.contents += new MenuItem(this)
+			def apply(): Unit = {
+				DocumentService.exportSvg()
+			}
+		}
+		menu.contents += new Separator()
+		new Action("Quit") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.Q }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_Q, CommandMask))
 			def apply() {
@@ -85,6 +113,12 @@ class TinkerMenu() extends MenuBar{
 					title = "Redo"
 			}
 		}
+		new Action("Change proof name"){
+			menu.contents += new MenuItem(this)
+			def apply() {
+				Service.editCtrl.changeProofName()
+			}
+		}
 		new Action("Open tactic editor"){
 			menu.contents += new MenuItem(this)
 			def apply(){
@@ -121,14 +155,21 @@ class TinkerMenu() extends MenuBar{
 				Service.editCtrl.logStack.openFrame("Tinker - edit log")
 			}
 		}
-		new Action("to svg"){
-			menu.contents += new MenuItem(this)
-			def apply() = QuantoLibAPI.toSvg()
-		}
-		val printJson = new Action("Print JSON in Console") {
+		new Action("Print JSON in Console") {
 			menu.contents += new MenuItem(this)
 			def apply(){
 				Service.debugPrintJson()
+			}
+		}
+		new Action("Start recording") {
+			menu.contents += new MenuItem(this)
+			def apply() {
+				if(Service.evalCtrl.recording){
+					Service.evalCtrl.setRecording(false)
+				} else {
+					Service.evalCtrl.setRecording(true)
+				}
+				this.title = if(Service.evalCtrl.recording) "Stop recording" else "Start recording"
 			}
 		}
 	}

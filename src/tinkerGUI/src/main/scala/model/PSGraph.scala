@@ -27,6 +27,14 @@ class PSGraph(name:String) extends ATManager with GTManager {
 	/** Json representation of the psgraph. */
 	var jsonPSGraph: JsonObject = JsonObject()
 
+	def changeMainName(name: String) = {
+		val old = mainTactic.name
+		mainTactic.name = name
+		if(currentParents.nonEmpty) currentParents(0) = name
+		gtCollection.foreach(p => p._2.changeOccurrences(old,name))
+		atCollection.foreach(p => p._2.changeOccurrences(old,name))
+	}
+
 	// ---------- Atomic tactics functions ----------
 
 	/** Method to force the update of an atomic tactic.

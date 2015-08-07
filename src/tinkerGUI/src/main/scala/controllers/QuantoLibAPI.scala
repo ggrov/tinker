@@ -1213,7 +1213,45 @@ object QuantoLibAPI extends Publisher{
 	}
 
 
-	def toSvg() {
+	def toSvg(file:File) {
+		def getPolygonCoordinates(center:(Double,Double),scale:Double,rotationAngle:Double,numberOfPoints:Int):Array[(Double,Double)] = {
+			var arr = Array[(Double,Double)]()
+			for(i <- 0 to numberOfPoints-1){
+				arr = arr :+ Tuple2(center._1 + (sin(2 * Pi * i / numberOfPoints) * scale), center._2 - (cos(2 * Pi * i / numberOfPoints) * scale))
+			}
+			arr.foldLeft(Array[(Double,Double)]()){
+				case (a,c) =>
+					a :+ Tuple2(
+						((c._1-center._1)*cos(rotationAngle))-((c._2-center._2)*sin(rotationAngle))+center._1 ,
+						((c._2-center._2)*cos(rotationAngle))+((c._1-center._1)*sin(rotationAngle))+center._2
+					)
+			}
+		}
+		def getContactPoint(segment:((Double,Double),(Double,Double)),polygon:Array[(Double,Double)]):Option[(Double,Double)] = {
+			val seg = Tuple2(segment._2._1-segment._1._1, segment._2._2-segment._1._2)
+			var arraySeg = Array[(Double,Double,Int,Int)]()
+			for(i <- polygon.indices){
+				if(i == polygon.length-1){
+					arraySeg = arraySeg :+ Tuple4(polygon(0)._1-polygon(i)._1, polygon(0)._2-polygon(i)._2, i, 0)
+				} else {
+					arraySeg = arraySeg :+ Tuple4(polygon(i+1)._1-polygon(i)._1, polygon(i+1)._2-polygon(i)._2, i, i+1)
+				}
+			}
+			def rec(s:(Double,Double),arr:Array[(Double,Double,Int,Int)]):Option[(Double,Double)] = {
+				if(arr.nonEmpty){
+					val t = (-s._2 * (segment._1._1 - polygon(arr.head._3)._1) + s._1 * (segment._1._2 - polygon(arr.head._3)._2)) / (-arr.head._1 * s._2 + s._1 * arr.head._2)
+					val u = (-arr.head._2 * (segment._1._1 - polygon(arr.head._3)._1) + arr.head._1 * (segment._1._2 - polygon(arr.head._3)._2)) / (-arr.head._1 * s._2 + s._1 * arr.head._2)
+					if(t >= 0 && t <= 1 && u >= 0 && u<= 1){
+						Some(Tuple2(segment._1._1 + (u * s._1), segment._1._2 + (u * s._2)))
+					} else {
+						rec(s,arr.tail)
+					}
+				} else {
+					None
+				}
+			}
+			rec(seg,arraySeg)
+		}
 		val fmNode = view.peer.getGraphics.getFontMetrics(new Font("Dialog", AWTFont.PLAIN, 14))
 		val fmNodeSmall = view.peer.getGraphics.getFontMetrics(new Font("Dialog", AWTFont.BOLD, 10))
 		val fmEdge = view.peer.getGraphics.getFontMetrics(new Font("Dialog", AWTFont.PLAIN, 12))
@@ -1221,16 +1259,15 @@ object QuantoLibAPI extends Publisher{
 		var minY = 1000
 		var maxX = 0
 		var maxY = 0
-		val nodes = graph.vdata.foldLeft(Map[String,(String,String,Int,Int,Int,Int)]()){ (m,p) =>
+		var nodes = graph.vdata.foldLeft(Map[String,(String,String,Int,Int,Int,Int)]()){ (m,p) =>
 			val x = (p._2.coord._1*50).toInt
 			val y = (-p._2.coord._2*50).toInt
 			p._2 match {
 				case d:NodeV if d.typ == "T_Identity" =>
-					val w = 24
-					val h = 22
+					val w = 26
 					minX = min(minX,x-w/2)
-					minY = min(minY,y-h/2)
-					m + (p._1.s -> ("id","",x,y,w,h))
+					minY = min(minY,y-w/2)
+					m + (p._1.s -> ("id","",x,y,w,w))
 				case d:NodeV if d.typ == "T_Atomic" =>
 					val w = fmNode.charsWidth(d.label.toCharArray,0,d.label.size)+6
 					val h = fmNode.getHeight+4
@@ -1244,7 +1281,7 @@ object QuantoLibAPI extends Publisher{
 					minY = min(minY,y-h/2)
 					m + (p._1.s -> ("nst",d.label,x,y,w,h))
 				case d:NodeV if d.typ == "G_Break" =>
-					val w = fmNodeSmall.charsWidth("STOP".toCharArray,0,d.label.size)+2
+					val w = fmNodeSmall.charsWidth("STOP".toCharArray,0,d.label.size)+4
 					minX = min(minX,x-w/2)
 					minY = min(minY,y-w/2)
 					m + (p._1.s -> ("break","STOP",x,y,w,w))
@@ -1259,17 +1296,28 @@ object QuantoLibAPI extends Publisher{
 					minY = min(minY,y-w/2)
 					m + (p._1.s -> ("bound","",x,y,10,10))
 			}
-		}.mapValues(v => {
+		}
+		val edges = graph.edata.foldLeft(Map[String,(String,String,String,Int,Int)]()){ (m,p) =>
+			val src = graph.source(p._1).s
+			val tgt = graph.target(p._1).s
+			val w = fmEdge.charsWidth(p._2.value.toCharArray,0,p._2.value.size)+2
+			val h = fmEdge.getHeight
+			minX = min(minX, ((nodes(src)._3 + nodes(tgt)._3) / 2) - (w / 2))
+			minY = if(tgt==src) min(minY, nodes(src)._4 - 20) else min(minY, ((nodes(src)._4 + nodes(tgt)._4) / 2) - (h / 2))
+			m + (p._1.s -> (p._2.value,src,tgt,w,h))
+		}
+		nodes = nodes.mapValues(v => {
 			(v._1,v._2,v._3-minX,v._4-minY,v._5,v._6)
 		})
 		nodes.foreach{case (k,v) =>
 			maxX = max(maxX, v._3+v._5/2)
 			maxY = max(maxY, v._4+v._6/2)
 		}
-		val edges = graph.edata.foldLeft(Map[String,(String,String,String)]()){ (m,p) =>
-			m + (p._1.s -> (p._2.value,graph.source(p._1).s,graph.target(p._1).s))
+		edges.foreach{case(k,v) =>
+			maxX = max(maxX, ((nodes(v._2)._3 + nodes(v._3)._3) / 2) + (v._4 / 2))
+			maxY = max(maxY, ((nodes(v._2)._4 + nodes(v._3)._4) / 2) + (v._5 / 2))
 		}
-		FileHelper.printToFile(new File("psgraph.svg"), append = false)(p=>{
+		FileHelper.printToFile(file, append = false)(p=>{
 			def printNode(id:String,typ:String,label:String,x:Int,y:Int,w:Int,h:Int) {
 				p.println("\t<g transform=\"translate("+(x-w/2+20)+","+(y-h/2+20)+")\">")
 				typ match {
@@ -1281,34 +1329,107 @@ object QuantoLibAPI extends Publisher{
 						p.println("\t\t<rect class=\""+typ+"\" width=\""+w+"\" height=\""+h+"\"></rect>")
 						p.println("\t\t<text class=\"label\" x=\""+(w/2)+"\" y=\""+(h-6)+"\">"+label+"</text>")
 					case "id" =>
-						p.println("\t\t<polygon class=\""+typ+"\" points=\"0,"+h+" "+w+","+h+" "+(w/2)+",0 0,"+h+"\"/>")
+						val coordinates = getPolygonCoordinates((w/2,w/2),w/2,0,3).foldLeft(""){case(s,c)=>s+c._1+","+c._2+" "}
+						p.println("\t\t<polygon class=\""+typ+"\" points=\""+coordinates+"\"/>")
 					case "bound" =>
 						p.println("\t\t<rect class=\""+typ+"\" width=\""+w+"\" height=\""+h+"\"></rect>")
 					case "goal" =>
 						p.println("\t\t<circle class=\""+typ+"\" cx=\""+(w/2)+"\" cy=\""+(w/2)+"\" r=\""+(w/2)+"\"/>")
 						p.println("\t\t<text class=\"label\" x=\""+(w/2)+"\" y=\""+(h/3*2-2)+"\">"+label+"</text>")
 					case "break" =>
-						var arr = Array[(Double,Double)]()
-						for(i <- 0 to 7){
-							arr = arr :+ Tuple2(w / 2 + (sin(2 * Pi * i / 8) * w / 2), w / 2 - (cos(2 * Pi * i / 8) * w / 2))
-						}
-						p.println("\t\t<polygon class=\""+typ+"\" points=\""+arr(0)._1+","+arr(0)._2+" "+arr(1)._1+","+arr(1)._2+" "+arr(2)._1+","+arr(2)._2+" "+arr(3)._1+","+arr(3)._2+" "+arr(4)._1+","+arr(4)._2+" "+arr(5)._1+","+arr(5)._2+" "+arr(6)._1+","+arr(6)._2+" "+arr(7)._1+","+arr(7)._2+" "+"\" transform=\"rotate(22.5,"+(w/2)+","+(w/2)+")\"/>")
+						val coordinates = getPolygonCoordinates((w/2,w/2),w/2,0.3927,8).foldLeft(""){case(s,c)=>s+c._1+","+c._2+" "}
+						p.println("\t\t<polygon class=\""+typ+"\" points=\""+coordinates+"\"/>")
 						p.println("\t\t<text class=\"labelBreak\" x=\""+(w/2)+"\" y=\""+(h/3*2-2)+"\">"+label+"</text>")
 					case _ =>
 				}
 				p.println("\t\t<text class=\"nodeId\" x=\"-5\" y=\"-2\">"+id+"</text>")
 				p.println("\t</g>")
 			}
-			def printEdge(label:String, src:String, tgt:String) {
-				//atan2(nodes(tgt)._4+20 - nodes(src)._4+20, nodes(tgt)._3+20 - nodes(src)._3+20))
-				p.println("\t<path marker-end=\"url(#end-arrow)\" class=\"edge\" d=\"M "+(nodes(src)._3+20)+" "+(nodes(src)._4+20)+" L "+(nodes(tgt)._3+20)+" "+(nodes(tgt)._4+20)+"\"></path>")
+			def printEdge(label:String, src:String, tgt:String, w:Int, h:Int) {
+				if (tgt == src) {
+					val target = nodes(src)._1 match {
+						case "nst" | "atm" | "bound" =>
+							val x1 = (nodes(src)._3 - nodes(src)._5 / 2).toDouble
+							val x2 = (nodes(src)._3 + nodes(src)._5 / 2).toDouble
+							val y1 = (nodes(src)._4 - nodes(src)._6 / 2).toDouble
+							val y2 = (nodes(src)._4 + nodes(src)._6 / 2).toDouble
+							getContactPoint(((nodes(src)._3-50, nodes(src)._4-50), (nodes(src)._3, nodes(src)._4)), Array((x1, y1), (x2, y1), (x2, y2), (x1, y2)))
+						case "id" =>
+							getContactPoint(((nodes(src)._3-50, nodes(src)._4-50), (nodes(src)._3, nodes(src)._4)), getPolygonCoordinates((nodes(src)._3, nodes(src)._4), nodes(src)._5 / 2, 0, 3))
+						case "break" =>
+							getContactPoint(((nodes(src)._3-50, nodes(src)._4-50), (nodes(src)._3, nodes(src)._4)), getPolygonCoordinates((nodes(src)._3, nodes(src)._4), nodes(src)._5 / 2, 0.3927, 8))
+						case "goal" =>
+							getContactPoint(((nodes(src)._3-50, nodes(src)._4-50), (nodes(src)._3, nodes(src)._4)), getPolygonCoordinates((nodes(src)._3, nodes(src)._4), nodes(src)._5 / 2, 0, 20))
+						case _ => None
+					}
+					val source = nodes(src)._1 match {
+						case "nst" | "atm" | "bound" =>
+							val x1 = (nodes(src)._3 - nodes(src)._5 / 2).toDouble
+							val x2 = (nodes(src)._3 + nodes(src)._5 / 2).toDouble
+							val y1 = (nodes(src)._4 - nodes(src)._6 / 2).toDouble
+							val y2 = (nodes(src)._4 + nodes(src)._6 / 2).toDouble
+							getContactPoint(((nodes(src)._3, nodes(src)._4), (nodes(src)._3+50, nodes(src)._4-50)), Array((x1, y1), (x2, y1), (x2, y2), (x1, y2)))
+						case "id" =>
+							getContactPoint(((nodes(src)._3, nodes(src)._4), (nodes(src)._3+50, nodes(src)._4-50)), getPolygonCoordinates((nodes(src)._3, nodes(src)._4), nodes(src)._5 / 2, 0, 3))
+						case "break" =>
+							getContactPoint(((nodes(src)._3, nodes(src)._4), (nodes(src)._3+50, nodes(src)._4-50)), getPolygonCoordinates((nodes(src)._3, nodes(src)._4), nodes(src)._5 / 2, 0.3927, 8))
+						case "goal" =>
+							getContactPoint(((nodes(src)._3, nodes(src)._4), (nodes(src)._3+50, nodes(src)._4-50)), getPolygonCoordinates((nodes(src)._3, nodes(src)._4), nodes(src)._5 / 2, 0, 20))
+						case _ => None
+					}
+					source match {
+						case Some(coord1:(Double,Double)) =>
+							target match {
+								case Some(coord2:(Double,Double)) =>
+									p.println("\t<g>")
+									p.println("\t\t<path marker-end=\"url(#end-arrow)\" class=\"edge\" d=\"M " + (coord1._1 + 20) + " " + (coord1._2 + 20) + " A 20 20 0 1 0 " + (coord2._1 + 20) + " " + (coord2._2 + 20) + "\"></path>")
+									p.println("\t\t<rect class=\"labelEdge\" x=\"" + (nodes(src)._3 + 20 - (w / 2)) + "\" y=\"" + (nodes(src)._4 - 25 - (h / 2)) + "\" width=\"" + w + "\" height=\"" + h + "\"></rect>")
+									p.println("\t\t<text class=\"labelEdge\" x=\"" + (nodes(src)._3 + 20) + "\" y=\"" + (nodes(src)._4 - 22) + "\">" + label + "</text>")
+									p.println("\t</g>")
+								case _ =>
+							}
+						case _ =>
+					}
+				} else {
+					val target = nodes(tgt)._1 match {
+						case "nst" | "atm" | "bound" =>
+							val x1 = (nodes(tgt)._3 - nodes(tgt)._5 / 2).toDouble
+							val x2 = (nodes(tgt)._3 + nodes(tgt)._5 / 2).toDouble
+							val y1 = (nodes(tgt)._4 - nodes(tgt)._6 / 2).toDouble
+							val y2 = (nodes(tgt)._4 + nodes(tgt)._6 / 2).toDouble
+							getContactPoint(((nodes(src)._3, nodes(src)._4), (nodes(tgt)._3, nodes(tgt)._4)), Array((x1, y1), (x2, y1), (x2, y2), (x1, y2)))
+						case "id" =>
+							getContactPoint(((nodes(src)._3, nodes(src)._4), (nodes(tgt)._3, nodes(tgt)._4)), getPolygonCoordinates((nodes(tgt)._3, nodes(tgt)._4), nodes(tgt)._5 / 2, 0, 3))
+						case "break" =>
+							getContactPoint(((nodes(src)._3, nodes(src)._4), (nodes(tgt)._3, nodes(tgt)._4)), getPolygonCoordinates((nodes(tgt)._3, nodes(tgt)._4), nodes(tgt)._5 / 2, 0.3927, 8))
+						case "goal" =>
+							getContactPoint(((nodes(src)._3, nodes(src)._4), (nodes(tgt)._3, nodes(tgt)._4)), getPolygonCoordinates((nodes(tgt)._3, nodes(tgt)._4), nodes(tgt)._5 / 2, 0, 20))
+						case _ => None
+					}
+					target match {
+						case Some(coord: (Double, Double)) =>
+							p.println("\t<g>")
+							if (edges.exists(e => e._2._2 == tgt && e._2._3 == src)) {
+								val dr = sqrt((coord._1 - nodes(src)._3) * (coord._1 - nodes(src)._3) + (coord._2 - nodes(src)._4) * (coord._2 - nodes(src)._4))
+								p.println("\t\t<path marker-end=\"url(#end-arrow)\" class=\"edge\" d=\"M " + (nodes(src)._3 + 20) + " " + (nodes(src)._4 + 20) + " A " + dr + " " + dr + " 0 0,1 " + (coord._1 + 20) + " " + (coord._2 + 20) + "\"></path>")
+								p.println("\t\t<rect class=\"labelEdge\" x=\"" + (((nodes(src)._3 + coord._1 + 40) / 2) - (w / 2) - ((nodes(src)._4-coord._2)/8)) + "\" y=\"" + (((nodes(src)._4 + coord._2 + 40) / 2) - (h / 2) + ((nodes(src)._3-coord._1)/8)) + "\" width=\"" + w + "\" height=\"" + h + "\"></rect>")
+								p.println("\t\t<text class=\"labelEdge\" x=\"" + (((nodes(src)._3 + coord._1 + 40) / 2) - ((nodes(src)._4-coord._2)/8)) + "\" y=\"" + (((nodes(src)._4 + coord._2 + 40) / 2) + 3 + ((nodes(src)._3-coord._1)/8)) + "\">" + label + "</text>")
+							} else {
+								p.println("\t\t<path marker-end=\"url(#end-arrow)\" class=\"edge\" d=\"M " + (nodes(src)._3 + 20) + " " + (nodes(src)._4 + 20) + " L " + (coord._1 + 20) + " " + (coord._2 + 20) + "\"></path>")
+								p.println("\t\t<rect class=\"labelEdge\" x=\"" + (((nodes(src)._3 + coord._1 + 40) / 2) - (w / 2)) + "\" y=\"" + (((nodes(src)._4 + coord._2 + 40) / 2) - (h / 2)) + "\" width=\"" + w + "\" height=\"" + h + "\"></rect>")
+								p.println("\t\t<text class=\"labelEdge\" x=\"" + ((nodes(src)._3 + coord._1 + 40) / 2) + "\" y=\"" + (((nodes(src)._4 + coord._2 + 40) / 2) + 3) + "\">" + label + "</text>")
+							}
+							p.println("\t</g>")
+						case None =>
+					}
+				}
 			}
 			p.println("<svg width=\""+(maxX+40)+"\" height=\""+(maxY+40)+"\">")
 			p.println("\t<defs>")
-			p.println("\t\t<style type=\"text/css\"><![CDATA[path{stroke:#333;}path.edge{stroke-width:2px;}text{fill:#333;font-family:Arial;}text.nodeId{font-size:9;font-weight:bold;}text.label{text-anchor:middle;font-size:14;}text.labelBreak{fill:#eee;text-anchor:middle;font-size:10;font-weight:bold;}rect{stroke-width:1px;stroke:#333;}rect.atm{fill:#89D674;}rect.nst{fill:#F7A943;}polygon{stroke-width:1px;stroke:#333;}polygon.id{fill:#6495ED;}polygon.break{fill:#FF3000;}circle{stroke-width:1px;stroke:#333;}circle.break{fill:#FF3000;}circle.goal{fill:#B0C4DE;}]]></style>")
-			p.println("\t\t<marker id=\"end-arrow\" viewBox=\"0 -5 10 10\" refY=\"5\" refX=\"8\" markerWidth=\"4\" markerHeight=\"4\" orient=\"auto\">\n\t\t\t<path fill=\"#333\" d=\"M0,-5L10,0L0,5\"></path>\n\t\t</marker>")
+			p.println("\t\t<style type=\"text/css\"><![CDATA[path{stroke:#333;}path.edge{fill:none;stroke-width:2px;}text{fill:#333;font-family:Arial;}text.nodeId{fill:#151515;font-size:9;font-weight:bold;}text.label{text-anchor:middle;font-size:14;}text.labelEdge{text-anchor:middle;font-size:12;}text.labelBreak{fill:#eee;text-anchor:middle;font-size:10;font-weight:bold;}rect{stroke-width:1px;stroke:#333;}rect.labelEdge{stroke:0px;fill:#a0a8d9;fill-opacity:0.6;}rect.atm{fill:#89D674;}rect.nst{fill:#F7A943;}polygon{stroke-width:1px;stroke:#333;}polygon.id{fill:#6495ED;}polygon.break{fill:#FF3000;}circle{stroke-width:1px;stroke:#333;}circle.break{fill:#FF3000;}circle.goal{fill:#B0C4DE;}]]></style>")
+			p.println("\t\t<marker id=\"end-arrow\" viewBox=\"0 -5 10 10\" refY=\"5\" refX=\"10\" markerWidth=\"4\" markerHeight=\"4\" orient=\"auto\">\n\t\t\t<path fill=\"#333\" d=\"M0,-5L10,0L0,5\"></path>\n\t\t</marker>")
 			p.println("\t</defs>")
-			edges.foreach(e => printEdge(e._2._1,e._2._2,e._2._3))
+			edges.foreach(e => printEdge(e._2._1,e._2._2,e._2._3,e._2._4,e._2._5))
 			nodes.foreach(n => printNode(n._1,n._2._1,n._2._2,n._2._3,n._2._4,n._2._5,n._2._6))
 			p.println("</svg>")
 		})

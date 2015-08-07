@@ -8,7 +8,7 @@ import tinkerGUI.model.exceptions.{SubgraphNotFoundException, GraphTacticNotFoun
 import scala.swing._
 import tinkerGUI.model.PSGraph
 import quanto.util.json._
-import tinkerGUI.utils.{TinkerDialog, ArgumentParser}
+import tinkerGUI.utils.{FixedStack, TinkerDialog, ArgumentParser}
 import scala.collection.mutable.ArrayBuffer
 
 object Service extends Publisher {
@@ -19,7 +19,7 @@ object Service extends Publisher {
 	val libraryTreeCtrl = new TinkerLibraryController()
 
 	/** Psgrah model. */
-	var model = new PSGraph("main")
+	var model = new PSGraph("scratch")
 	// controllers
 	/** Edit controller. */
 	val editCtrl = new EditController(model)
@@ -61,29 +61,32 @@ object Service extends Publisher {
 	/** Method to get the branch type of a specific graph tactic. See [[tinkerGUI.model.PSGraph.getGTBranchType]].*/
 	def getBranchTypeGT(tactic: String) = model.getGTBranchType(tactic)
 
-
-	def initApp():Boolean = {
+	def initApp() {
 		try {
-			DocumentService.load(new File((Json.parse(new File(".tinkerConfig"))/"file").stringValue)) match {
-				case Some(j:JsonObject) =>
-					documentCtrl.openJson(j)
-					true
+			val jsonConfig = Json.parse(new File(".tinkerConfig"))
+			jsonConfig/"recent" match {
+				case j:JsonObject =>
+					j.foreach{case(k,v) => documentCtrl.recentProofs.push(k,v.stringValue)}
 				case _ =>
-					false
 			}
+//			DocumentService.load(new File((Json.parse(new File(".tinkerConfig"))/"file").stringValue)) match {
+//				case Some(j:JsonObject) =>
+//					documentCtrl.openJson(j)
+//				case _ =>
+//			}
 		} catch {
 			case e: Exception =>
-				false
 		}
 	}
 
 	def closeApp() {
-		println("closing")
 		if(documentCtrl.closeDoc()){
-			DocumentService.file match {
-				case Some(f:File) => JsonObject("file"->JsonString(f.toString)).writeTo(new File(".tinkerConfig"))
-				case _ =>
-			}
+			val recent = documentCtrl.recentProofs.values.reverse.foldLeft(JsonObject()){case(j,p) => j + (p._1 -> JsonString(p._2))}
+			JsonObject("recent"->recent).writeTo(new File(".tinkerConfig"))
+//			DocumentService.file match {
+//				case Some(f:File) => JsonObject("file"->JsonString(f.toString)).writeTo(new File(".tinkerConfig"))
+//				case None =>
+//			}
 			sys.exit(0)
 		}
 	}
@@ -92,11 +95,6 @@ object Service extends Publisher {
 	def saveGraphSpecificTactic(tactic: String, graph: Json, index: Int) = {
 		//documentCtrl.registerChanges()
 		model.saveGraph(tactic, graph, index)
-	}
-
-	def setGoalTypes(s: String){
-		//documentCtrl.registerChanges()
-		model.goalTypes = s
 	}
 
   def showTinkerGUI (b : Boolean) {
