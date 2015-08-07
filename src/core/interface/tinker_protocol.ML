@@ -84,12 +84,24 @@ struct
               edata0) 
     in
       case opt 
-        of "OPT_EVAL_NEXT" => eval_fn gnode edata0 |> make_ret_reuslt
-        | "OPT_EVAL_STEP_INTO" => eval_fn gnode edata0 |> make_ret_reuslt
-        | "OPT_EVAL_STEP_OVER" =>  IEVal.eval_step_over gnode edata0 |> make_ret_reuslt
-        | "OPT_EVAL_FINISH" => IEVal.eval_finish edata0 |> make_ret_reuslt
-        | "OPT_EVAL_COMPLETE" => IEVal.eval_complete edata0 |> make_ret_reuslt
-        | "OPT_EVAL_UNTIL_BREAK" => IEVal.eval_until_break edata0 |> make_ret_reuslt
+        of "OPT_EVAL_NEXT" => 
+          (eval_fn gnode edata0 |> make_ret_reuslt
+          handle tinker_fail _ => raise tinker_fail true)
+        | "OPT_EVAL_STEP_INTO" => 
+          (eval_fn gnode edata0 |> make_ret_reuslt
+           handle tinker_fail _ => raise tinker_fail true)
+        | "OPT_EVAL_STEP_OVER" =>  
+          (IEVal.eval_step_over gnode edata0 |> make_ret_reuslt          
+            handle tinker_fail _ => raise tinker_fail true)
+        | "OPT_EVAL_FINISH" => 
+          (IEVal.eval_finish edata0 |> make_ret_reuslt
+          handle tinker_fail b => raise tinker_fail b)
+        | "OPT_EVAL_COMPLETE" => 
+          (IEVal.eval_complete edata0 |> make_ret_reuslt
+          handle tinker_fail b => raise tinker_fail b)
+        | "OPT_EVAL_UNTIL_BREAK" => 
+          (IEVal.eval_until_break edata0 |> make_ret_reuslt
+          handle tinker_fail b => raise tinker_fail b)
         | "OPT_EVAL_STOP" =>
            (Json.mk_object[("cmd", Json.String  "CMD_END_EVAL_SESSION"), ("log_info", buffer_to_json ())])
         | x => raise protocol_exn ("ERR: protocol unkown option: " ^ x)
@@ -121,15 +133,11 @@ struct
                | NONE => raise user_exn ("Function not found: "  ^ "." ^ (get_cmd_name json_input))
   in 
     func json_input
-    handle logging_exp exp_str =>  
-    (logging "EXCEPTION" exp_str;
-     Json.mk_object[
-      ("cmd", Json.String "RSP_EXCEPTION"),
-      ("log_info", buffer_to_json ())])
-    | tinker_fail => 
+    handle tinker_fail b => 
       Json.mk_object[
       ("cmd", Json.String "RSP_EXCEPTION"),
-      ("log_info", buffer_to_json ())]
+      ("log_info", buffer_to_json ()),
+      ( "if_interrupt", Json.Bool b)]
 
   end
 
