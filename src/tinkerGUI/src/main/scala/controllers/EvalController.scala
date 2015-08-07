@@ -1,5 +1,7 @@
 package tinkerGUI.controllers
 
+import java.io.File
+
 import quanto.util.json._
 import tinkerGUI.controllers.events._
 import tinkerGUI.model.PSGraph
@@ -52,6 +54,20 @@ class EvalController(model:PSGraph) extends Publisher {
 		}
 	}
 
+	var records = Array[JsonObject]()
+	var recording = false
+	def setRecording(b:Boolean) {
+		if(recording && !b){
+			JsonArray(records).writeTo(new File("records.json"))
+			records = Array()
+			recording = b
+		} else if(!recording && b && inEval) {
+			model.updateJsonPSGraph()
+			records = records :+ model.jsonPSGraph
+			recording = b
+		}
+	}
+
 	/** Method saving the eval path from the model.*/
 	def saveEvalPath() {
 		evalPath = model.currentParents :+ model.getCurrentGTName
@@ -88,6 +104,10 @@ class EvalController(model:PSGraph) extends Publisher {
 				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
 				Service.editCtrl.updateEditors
+				if(recording) {
+					model.updateJsonPSGraph()
+					records = records :+ model.jsonPSGraph
+				}
 				// to be enhanced once undo is handled by core
 				DocumentService.proofTitle = model.mainTactic.name
 				Service.documentCtrl.undoStack.empty()

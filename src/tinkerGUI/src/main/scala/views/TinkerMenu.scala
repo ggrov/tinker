@@ -161,6 +161,17 @@ class TinkerMenu() extends MenuBar{
 				Service.debugPrintJson()
 			}
 		}
+		new Action("Start recording") {
+			menu.contents += new MenuItem(this)
+			def apply() {
+				if(Service.evalCtrl.recording){
+					Service.evalCtrl.setRecording(false)
+				} else {
+					Service.evalCtrl.setRecording(true)
+				}
+				this.title = if(Service.evalCtrl.recording) "Stop recording" else "Start recording"
+			}
+		}
 	}
 
 	contents += (FileMenu, EditMenu, Debug)
