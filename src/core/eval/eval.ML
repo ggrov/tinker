@@ -263,11 +263,9 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
      val (SOME tactic) = Util.lookup_ivertex_data graph tnode 
      val result = apply_atomic edata goal tactic out_goaltypes
    in
-      case Seq.pull result of SOME ([],pplan) (* no new goals is produced *) =>
+      case Seq.pull result of SOME ((b,[]),_) (* no new goals is produced *) =>
         Seq.single (
-          EData.get_current edata
-         |> EData.set_bpplan pplan
-         |> EData.set_bgraph graph')
+         EData.set_bgraph graph' b)
       | _ => Seq.map 
        (fn (b,rs) => (EData.set_bgraph (add_gnodes out_edges rs graph')) b) 
       result
