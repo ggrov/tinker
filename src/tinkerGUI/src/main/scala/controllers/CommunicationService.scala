@@ -3,6 +3,7 @@ package tinkerGUI.controllers
 import tinkerGUI.controllers.events.{ConnectedToCoreEvent, EvalOptionSelectedEvent}
 
 import quanto.util.json._
+import tinkerGUI.utils.TinkerDialog
 
 import scala.swing._
 import scala.concurrent._
@@ -122,7 +123,7 @@ object CommunicationService extends Publisher {
 				parseAndExecute(j)
 			} catch {
 				case e:JsonParseException =>
-					sendErrorResponse("RSP_MESSAGE_ERROR", "bad json")
+					sendErrorResponse("RSP_MESSAGE_ERROR", "bad json, message : "+e.getMessage)
 					println(e.getMessage)
 					println(b.toString())
 			}
@@ -145,32 +146,39 @@ object CommunicationService extends Publisher {
 				case "CMD_HIDE_GUI" =>
 					Service.showTinkerGUI(false)
 				case "CMD_INIT_PSGRAPH" =>
-					println("init psgraph")
-					Service.evalCtrl.setInEval(true)
-					println("eval psgraph")
-					getEvalPSGraph(j ? "eval_psgraph")
-					println("eval options")
-					getEvalOptions(j ? "eval_options")
-					println("log info")
-					getEvalLog(j ? "log_info")
+					j ? "psgraph" match {
+						case psgraph: Json if psgraph == JsonNull => sendErrorResponse("RSP_ERROR_INIT_PSGRAPH", "no psgraph")
+						case psgraph: JsonBool =>
+							j ? "goal" match {
+								case goal: Json if goal == JsonNull => sendErrorResponse("RSP_ERROR_INIT_PSGRAPH", "no goal")
+								case goal: JsonBool =>
+									val rsppsgraph = if(psgraph.boolValue) JsonArray() else JsonArray(Service.model.updateJsonPSGraph())
+									val rspgoal = if(goal.boolValue) JsonArray() else JsonArray(JsonString(Service.evalCtrl.goal), JsonArray(Service.evalCtrl.assms.foldLeft(Array[JsonString]()){case(a,s)=>a:+JsonString(s)}))
+									send(JsonObject("cmd"->"RSP_INIT_PSGRAPH","psgraph"->rsppsgraph,"goal"->rspgoal))
+							}
+					}
 				case "CMD_UPDATE_PSGRAPH" =>
 					println("update psgraph")
 					Service.evalCtrl.setInEval(true)
 					println("eval psgraph")
-					getEvalPSGraph(j ? "eval_psgraph")
+					getEvalPSGraph(j ? "eval_psgraph", "UPDATE_PSGRAPH")
 					println("eval options")
-					getEvalOptions(j ? "eval_options")
+					getEvalOptions(j ? "eval_options", "UPDATE_PSGRAPH")
 					println("log info")
-					getEvalLog(j ? "log_info")
+					getEvalLog(j ? "log_info", "UPDATE_PSGRAPH")
 				case "RSP_EXCEPTION" =>
-					getEvalLog(j ? "log_info")
+					getEvalLog(j ? "log_info", "EXCEPTION")
 					if (state == CommunicationState.WaitingForPsgraph) {
-						j ? "eval_psgraph" match {
-							case eval: Json if eval == JsonNull => // send back error
-							case eval: JsonObject =>
-								Service.evalCtrl.tmpEvalPSGraph = eval
-								Service.evalCtrl.enableEvalOptions(ArrayBuffer())
-								state = CommunicationState.WaitingForUserChoice
+						j ? "if_interrupt" match {
+							case interrupt: Json if interrupt == JsonNull => sendErrorResponse("RSP_ERROR_EXCEPTION","no if_interrupt")
+							case interrupt: JsonBool =>
+								state = CommunicationState.WaitingForEvalOptions
+								if(interrupt.boolValue) {
+									TinkerDialog.openInformationDialog("Proof failed, check log for more information and/or backtrack.")
+									getEvalOptions(JsonArray(JsonString("OPT_EVAL_STOP"),JsonString("OPT_EVAL_UNDO"),JsonString("OPT_EVAL_BACKTRACK")), "EXCEPTION")
+								} else {
+									getEvalOptions(JsonArray(JsonString("OPT_EVAL_STOP"),JsonString("OPT_EVAL_UNDO")), "EXCEPTION")
+								}
 						}
 					}
 				// close connection command
@@ -196,28 +204,29 @@ object CommunicationService extends Publisher {
 		}
 	}
 
-	def getEvalPSGraph(j:Json) {
+	def getEvalPSGraph(j:Json, context:String) {
 		if(state == CommunicationState.WaitingForPsgraph){
 			j match {
 				// if eval field not found
-				case eval: Json if eval == JsonNull => sendErrorResponse("RSP_ERROR_UPDATE_PSGRAPH", "no eval psgraph")
+				case eval: Json if eval == JsonNull => sendErrorResponse("RSP_ERROR_"+context, "no eval psgraph")
 				// if eval field found
 				case eval: JsonObject =>
+					//if(eval.isEmpty)
 					// loading eval model in gui
 					Service.evalCtrl.loadJson(eval)
 					Service.evalCtrl.tmpEvalPSGraph = JsonObject()
 					// changing state
 					state = CommunicationState.WaitingForEvalOptions
-				case _ => sendErrorResponse("RSP_ERROR_UPDATE_PSGRAPH", "bad eval psgraph format")
+				case _ => sendErrorResponse("RSP_ERROR_"+context, "bad eval psgraph format")
 			}
 		}
 	}
 
-	def getEvalOptions(j:Json) {
+	def getEvalOptions(j:Json, context:String) {
 		if (state == CommunicationState.WaitingForEvalOptions) {
 			j match {
 				// if options not found
-				case options: Json if options == JsonNull => sendErrorResponse("RSP_ERROR_UPDATE_PSGRAPH", "no eval options")
+				case options: Json if options == JsonNull => sendErrorResponse("RSP_ERROR_"+context, "no eval options")
 				// options found
 				case options: JsonArray =>
 					val opts = options.vectorValue.foldLeft(ArrayBuffer[String]()) {
@@ -235,19 +244,20 @@ object CommunicationService extends Publisher {
 							// check if correct state
 							if (state == CommunicationState.WaitingForUserChoice) {
 								// send option chosen
-								send(JsonObject("cmd" -> "RSP_UPDATE_PSGRAPH", "option" -> JsonString(opt), "node" -> JsonString(node)))
+								val cmd = "RSP_"+context
+								send(JsonObject("cmd" -> cmd, "option" -> JsonString(opt), "node" -> JsonString(node)))
 								// change state
 								state = CommunicationState.WaitingForPsgraph
 							}
 					}
-				case _ => sendErrorResponse("RSP_ERROR_UPDATE_PSGRAPH", "bad eval options format")
+				case _ => sendErrorResponse("RSP_ERROR_"+context, "bad eval options format")
 			}
 		}
 	}
 
-	def getEvalLog(j:Json) {
+	def getEvalLog(j:Json, context:String) {
 		j match {
-			case logs: Json if logs == JsonNull => sendErrorResponse("RSP_ERROR_UPDATE_PSGRAPH", "no log info")
+			case logs: Json if logs == JsonNull => sendErrorResponse("RSP_ERROR_"+context, "no log info")
 			case logs: JsonObject =>
 				Service.evalCtrl.logStack.addToLog(logs.mapValue.map{
 					case (k,v) =>
@@ -256,7 +266,7 @@ object CommunicationService extends Publisher {
 							case _ => "<< Message parse error, wrong type >>"
 						}
 				})
-			case _ => sendErrorResponse("RSP_ERROR_UPDATE_PSGRAPH", "bad log info format")
+			case _ => sendErrorResponse("RSP_ERROR_"+context, "bad log info format")
 		}
 	}
 

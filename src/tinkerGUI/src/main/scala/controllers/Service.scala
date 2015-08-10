@@ -46,7 +46,6 @@ object Service extends Publisher {
 	/** Method updating a getting the psgraph json object. See[[tinkerGUI.model.PSGraph.jsonPSGraph]].*/
 	def getJsonPSGraph:JsonObject = {
 		model.updateJsonPSGraph()
-		model.jsonPSGraph
 	}
 	/** Method to get the current graph index. See [[tinkerGUI.model.PSGraph.currentIndex]].*/
 	def getCurrentIndex = model.currentIndex
@@ -106,7 +105,6 @@ object Service extends Publisher {
 
 
   def debugPrintJson(){
-		model.updateJsonPSGraph()
-  	println(model.jsonPSGraph)
+  	println(model.updateJsonPSGraph())
   }
 }

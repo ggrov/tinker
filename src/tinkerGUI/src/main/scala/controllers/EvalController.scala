@@ -19,6 +19,12 @@ import scala.swing.Publisher
 	*/
 class EvalController(model:PSGraph) extends Publisher {
 
+	/** Goal value.*/
+	var goal:String = ""
+
+	/** Assumptions.*/
+	var assms:Array[String] = Array()
+
 	/** Boolean stating if the application is performing an evaluation or not.*/
 	var inEval:Boolean = false
 
@@ -62,8 +68,7 @@ class EvalController(model:PSGraph) extends Publisher {
 			records = Array()
 			recording = b
 		} else if(!recording && b && inEval) {
-			model.updateJsonPSGraph()
-			records = records :+ model.jsonPSGraph
+			records = records :+ model.updateJsonPSGraph()
 			recording = b
 		}
 	}
@@ -105,8 +110,7 @@ class EvalController(model:PSGraph) extends Publisher {
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
 				Service.editCtrl.updateEditors
 				if(recording) {
-					model.updateJsonPSGraph()
-					records = records :+ model.jsonPSGraph
+					records = records :+ model.updateJsonPSGraph()
 				}
 				// to be enhanced once undo is handled by core
 				DocumentService.proofTitle = model.mainTactic.name
@@ -140,8 +144,7 @@ class EvalController(model:PSGraph) extends Publisher {
 		publish(DisableEvalOptionsEvent())
 		o match {
 			case "PUSH" =>
-				model.updateJsonPSGraph()
-				CommunicationService.sendPSGraphChange(model.jsonPSGraph,JsonArray(evalPath.reverse))
+				CommunicationService.sendPSGraphChange(model.updateJsonPSGraph(),JsonArray(evalPath.reverse))
 			case "PULL" =>
 				loadJson(tmpEvalPSGraph)
 			case _ =>
