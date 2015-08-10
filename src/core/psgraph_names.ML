@@ -29,4 +29,5 @@
  fun str_chunks l = 
   let fun c (a,b) = a ^ "\n" ^ b; val l' = rev l in 
   List.foldl c (hd l') (tl l') end;
+ val gui_version = "0.4"
 

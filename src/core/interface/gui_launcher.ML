@@ -12,7 +12,7 @@ struct
   exception gui_launcher_exp of string
   val guiPath : (string * string) option Unsynchronized.ref =  Unsynchronized.ref NONE;
   val guiPID : int option Unsynchronized.ref =  Unsynchronized.ref NONE;
-  val version = "0.4"
+  val version = gui_version
   fun get_guiPath _ = 
     case !guiPath
       of NONE 

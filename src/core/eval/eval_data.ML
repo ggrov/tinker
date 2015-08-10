@@ -28,7 +28,7 @@ local open LoggingHandler in
       current : branch,
       branches : branch list
   }
-                                                               
+                                                        
   fun get_agnodes (Active rep) = #gnodes rep;
   fun get_aparent (Active rep) = #parent rep;
   fun get_asearchf (Active rep) = #searchf rep;
@@ -194,7 +194,7 @@ local open LoggingHandler in
     Branch {active = init_active  vs (PSGraph.get_main psgraph), pplan = prf, goals = goals, psgraph = psgraph};
 
   fun init psgraph prf goals vs  =
-    EData {current = init_branch prf psgraph goals vs, branches = []};
+    EData {current = init_branch prf psgraph goals vs, branches = []};  
 
   fun ins_tab pnode = StrName.NTab.ins (Prover.get_pnode_name pnode,pnode);
   val lookup_goal = StrName.NTab.lookup o get_goals;
