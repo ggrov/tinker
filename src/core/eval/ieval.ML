@@ -45,7 +45,8 @@ struct
        |> update_branches edata
    end
    handle EVal.EData.PSGraph.Theory.Graph.no_such_vertex_exp (f, v, _) => 
-      raise logging_exp ("Exception in " ^ f ^ " for node " ^ (V.string_of_name v));
+     (logging "FAILURE" ("Exception in " ^ f ^ " for node " ^ (V.string_of_name v) ^ ": no such vertex");
+       raise tinker_fail true)
   
   val eval_goal = eval_goal0 false;
 (* need to restore pom depends on provers *)

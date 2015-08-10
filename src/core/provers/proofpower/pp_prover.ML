@@ -40,8 +40,8 @@ struct
     |> Pretty.str
     end
   
-  type tactic =  arg_data list -> TACTIC (* TODO: need pc ? *)
-  type env_tac =  arg_data list -> env -> env 
+  type tactic = arg_data list -> TACTIC (* TODO: need pc ? *)
+  type env_tac = arg_data list -> env -> env list
   
   (* atomic part *)
   type pnode = 
@@ -97,6 +97,22 @@ struct
   fun get_pnode_hyps (pnode:pnode) = (#g pnode) |> fst;
   fun get_pnode_ctxt (pnode:pnode) = (#pctxt pnode) ;
   fun get_open_pnodes (pplan:pplan) = StrName.NTab.list_of (#opengs pplan) |> map snd (* should return some goals as top_goals () *)
+  fun get_open_pnode_by_name (pplan : pplan) name = StrName.NTab.get pplan name
+
+  fun set_open_goals_pplan (pplan : pplan) ogs  = {opengs = ogs, usedgs = #usedgs pplan}
+  fun set_pnode_pplan pnode (pplan : pplan) = 
+   let
+    val _ = get_open_pnode_by_name pplan (get_pnode_name pnode)
+   in
+    (#opengs pplan)
+    |> StrName.NTab.update (get_pnode_name pnode, pnode)
+    |> set_open_goals_pplan pplan
+   end
+   handle StrName.Tab.UNDEF n => 
+   (logging "FAILURE" ("Can not find the pnode of open goal for " ^ n ^ " to update") ;
+    raise tinker_fail true)
+
+
   fun get_pnode_env (pnode:pnode) = #env pnode;
   fun update_pnode_env f {pname,g,pctxt,global,env}  = 
     {pname = pname, g = g, pctxt = pctxt, global = global, env = f env};
@@ -129,7 +145,7 @@ struct
     end;
       
   (*val update : TACTIC -> (pnode * pplan) -> (pnode list * pplan) *)
-  fun update args (tac : tactic) (env_tac : env_tac) (pnode : pnode, pplan : pplan)  : (pnode list * pplan) = 
+  fun update  (tac : TACTIC) (env_tac : env -> env list) (pnode : pnode, pplan : pplan)  : (pnode list * pplan) list = 
     let 
       fun gen_fresh_psgname nset (g : (string list * GOAL)) = 
         if (fst g) = [""] (* the case of single goal *)
@@ -142,7 +158,7 @@ struct
       (* set current goal and apply tactic then get the list of goals in the format of :
       	string list * (term list * term) list *)
       val sgs = (((if (#global pnode) = [] then () else set_labelled_goal (hd (#global pnode)));
-      		SubgoalPackage.apply_tactic (tac args)); top_goals())
+      		SubgoalPackage.apply_tactic tac); top_goals())
       val ctxt = get_current_pc();   
       fun filter_goals plist name = 
         filter 
@@ -154,44 +170,66 @@ struct
     in
       if (List.length sgs) = 0 (* no sgs *) 
       then 
-        ([], {opengs = StrName.NTab.empty, usedgs = (#usedgs pplan)})
-      else((* a list of sgs*)
+        [([], {opengs = StrName.NTab.empty, usedgs = (#usedgs pplan)})]
+      else((* a list of sgs *)
         let
           val sgs' = map (gen_fresh_psgname (#usedgs pplan)) sgs 
-	  val all_pnodel = map gen_pnode sgs' (* all open subgoals *)
-	  (* filter out new goals *)
-	  val new_pnodel = 
-	    List.foldr
-	    (fn (n, pns) =>
-	        filter 
-	        (fn x => (case String.compare ((#pname x), n) 
-	        		of EQUAL => false 
-	        		| _ => true))
-        	pns)
-            all_pnodel
-	    (StrName.NSet.list_of (#usedgs pplan))
-	    |> map (update_pnode_env (env_tac args)) (* update env from the consumed one *)
-	  val new_opengs =  (* del old consumed goal then add new goals *)
-	    (#opengs pplan)
-	    |> StrName.NTab.delete (#pname pnode)
-	    |> (fn n => List.foldr (fn (x,y) => StrName.NTab.ins ((#pname x), x) y) n new_pnodel)
-
-          val new_pplan = 
-            {opengs = new_opengs, (* get all current sgs name *)
-             usedgs = StrName.NSet.add_list (map fst sgs') (#usedgs pplan)}
-          (*val _ = [Pretty.str "new sg list: ["] @ (map (Pretty.str o get_pnode_name) new_pnodel) @ [Pretty.str "]"] 
+          val all_pnodel = map gen_pnode sgs' (* all open subgoals *)
+          (* filter out new goals *)
+          val new_pnodel_l = 
+            List.foldr
+            (fn (n, pns) =>
+                filter 
+                (fn x => (case String.compare ((#pname x), n) 
+                    of EQUAL => false 
+                    | _ => true))
+                pns)
+                  all_pnodel
+            (StrName.NSet.list_of (#usedgs pplan))
+            |> (fn [x] => (map (fn y => [set_pnode_env y x]) (env_tac (get_pnode_env x))) (* either the case of env updat or the single node *)
+                | xs => [xs] ) (* if mul pnodes, no need to update env *)
+            (* update env from the consumed one:
+            this will be a g list list, -> branch of goal list*)
+         fun mk_new_opengs new_pnodel =  (* del old consumed goal then add new goals *)
+          (#opengs pplan)
+          |> StrName.NTab.delete (#pname pnode)
+          |> (fn n => List.foldr (fn (x,y) => StrName.NTab.ins ((#pname x), x) y) n new_pnodel)
+         fun mk_new_pplan new_pnodel = 
+          {opengs = mk_new_opengs new_pnodel, (* get all current sgs name *)
+           usedgs = StrName.NSet.add_list (map fst sgs') (#usedgs pplan)}
+        (*val _ = [Pretty.str "new sg list: ["] @ (map (Pretty.str o get_pnode_name) new_pnodel) @ [Pretty.str "]"] 
           	   |> Pretty.chunks |> Pretty.writeln
-	   val _ = [Pretty.str "new opengs status: ["] @ (StrName.NTab.keys new_opengs|> map Pretty.str)@ [Pretty.str "]"]
+         val _ = [Pretty.str "new opengs status: ["] @ (StrName.NTab.keys new_opengs|> map Pretty.str)@ [Pretty.str "]"]
 	           |> Pretty.chunks |> Pretty.writeln*)
+     in
+	    map (fn npl => (npl, mk_new_pplan npl)) new_pnodel_l  
+	   end 
+	  )
+   end
+    
 
-       in
-	  (new_pnodel, new_pplan) 
-	end
+  fun apply_tactic args tac (pnode,pplan) = 
+    (*let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in*)
+    update (tac args) (fn x => [x]) (pnode,pplan)
+    (*|> (fn (l,p) => ((get_open_pnodes p |> map pretty_pnode |> Pretty.chunks |> Pretty.writeln) ; (l,p)))*)
+    |> Seq.of_list 
+    handle BasicError.Fail msg => 
+      (logging "FAILURE" ("In pnode " ^ get_pnode_name pnode ^ ":" ^ BasicError.get_message msg); 
+               raise tinker_fail false) ;
+    (*end*)
 
-      )
-     end
-
-  fun pretty_pnode pnode = 
+  (* Update the env and then apply a dummy id tac in isabelle *)
+  fun apply_env_tactic args env_tac (pnode,pplan) = 
+    (*let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in*)
+    update (id_tac) (env_tac args) (pnode,pplan)
+    (*|> (fn (l,p) => ((get_open_pnodes p |> map pretty_pnode |> Pretty.chunks |> Pretty.writeln) ; (l,p)))*)
+    |> Seq.of_list
+    handle BasicError.Fail msg => 
+      (logging "FAILURE" ("In pnode " ^ get_pnode_name pnode ^ ":" ^ BasicError.get_message msg); 
+               raise tinker_fail false) ;
+    (*end*)  
+  
+    fun pretty_pnode pnode = 
     String.concat
     ["[ Goal ", 
     (get_pnode_name pnode),
@@ -200,33 +238,6 @@ struct
     " ]"] |> Pretty.str;
 
   fun pretty_goal pnode = pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode)
-
-  fun apply_tactic args tac (pnode,pplan) = 
-    (*let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in*)
-    update args tac (K I) (pnode,pplan)
-    (*|> (fn (l,p) => ((get_open_pnodes p |> map pretty_pnode |> Pretty.chunks |> Pretty.writeln) ; (l,p)))*)
-    |> Seq.single
-    |> (fn x => 
-        (case Seq.pull x of NONE 
-           => (logging "TACTIC" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode); 
-               raise tinker_fail) 
-           | _ => x ))
-    (*end*)
-    
-  (* Update the env and then apply a dummy id tac in isabelle *)
-  fun apply_env_tactic args env_tac (pnode,pplan) = 
-    (*let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in*)
-    update args (K id_tac) env_tac (pnode,pplan)
-    (*|> (fn (l,p) => ((get_open_pnodes p |> map pretty_pnode |> Pretty.chunks |> Pretty.writeln) ; (l,p)))*)
-    |> Seq.single
-    |> (fn x => 
-        (case Seq.pull x of NONE 
-           => (logging "TACTIC" ("Fail to apply env_tactic for pnode " ^ get_pnode_name pnode); 
-               raise tinker_fail) 
-           | _ => x ))
-    (*end*)  
-  
-  
   fun pretty_pplan pnode = Pretty.str "Pretty PPLAN TOTO";
   
 (*  

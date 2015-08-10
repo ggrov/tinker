@@ -201,11 +201,11 @@ struct
 
    fun goaltype_of graph e = 
      case edge_data graph e of (Data.GT g) => g   
-     |  _ => (logging "GRAPH" ("Unknown goaltype type in edge" ^ (E.string_of_name e)); raise tinker_fail)
+     |  _ => (logging "FAILURE" ("Unknown goaltype type in edge" ^ (E.string_of_name e)); raise tinker_fail true)
 
    fun gnode_of graph v = 
      case vertex_data graph v of (Data.G gn) => gn
-     | _ => (logging "GRAPH" ("This is not a goal node" ^ (V.string_of_name v)); raise tinker_fail) 
+     | _ => (logging "FAILURE" ("This is not a goal node" ^ (V.string_of_name v)); raise tinker_fail true) 
 
    fun mk_gnode gnode = Data.G gnode;
 
@@ -230,13 +230,13 @@ struct
      |> filter (is_hgragh_with_graph_name graph graph_name)
      |> (fn x => (case x of 
                    [] => 
-                   	(logging "GRAPH" ("Fail to find hgraph by name:" ^ graph_name); 
-                   	raise tinker_fail) 
+                   	(logging "FAILURE" ("Fail to find hgraph by name:" ^ graph_name); 
+                   	raise tinker_fail true) 
                    
                  | [h] => h
                  | _ => 
-                 	(logging "GRAPH" ("ERR: fail to find hgraph by name, more than one result are returned: " ^ graph_name); 
-                 	raise tinker_fail)))
+                 	(logging "FAILURE" ("ERR: fail to find hgraph by name, more than one result are returned: " ^ graph_name); 
+                 	raise tinker_fail true)))
  
    (* FIXME: makes one for each input - can be generalised by vars on the edges  instead - then we only need on lhs per rule  *)
    fun mk_lhs graph v =
@@ -292,7 +292,7 @@ struct
       fun get_tactic_node_name graph vgraph = 
         case lookup_ivertex_data graph vgraph of 
            SOME (Data.T_Atomic n ) => fst n
-           | _ => raise tinker_fail (*"This is not a tatic node"*) (* no need to logging this, as it won't happen *)
+           | _ => raise tinker_fail true (*"This is not a tatic node"*) (* no need to logging this, as it won't happen *)
     in
       is_tactic g v andalso is_env_tactic_name (get_tactic_node_name g v)
     end

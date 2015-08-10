@@ -24,7 +24,7 @@ functor ML_Exec_Func (val struct_name : string type ret  val exec_str : string -
  fun eval_ml str = 
   case exec_exp str 
     of SOME t => t
-    | NONE => (logging "ML_EXEC" ("Fail to eval the ML string ( " ^ str ^ " )");
-               raise tinker_fail)
+    | NONE => (logging "FAILURE" ("Fail to eval the ML string ( " ^ str ^ " )");
+               raise tinker_fail true)
  end (* end of local *)
  end;

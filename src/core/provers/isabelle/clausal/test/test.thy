@@ -2,8 +2,9 @@ theory test
 imports       
   "../CIsaP"  
 begin
+ 
 
-ML{*- 
+ML{*-   
   val path = "/u1/staff/gg112/";
   val guiPath = "/u1/staff/gg112/tinker/src/tinkerGUI/release/";
 *}
@@ -40,6 +41,7 @@ ML{*
 *}
 
 ML{*structure C = Clause_GT*}
+
 ML{*
   val ignore_module = List.last o String.tokens (fn ch => #"." = ch) ;
 
@@ -95,13 +97,21 @@ ML{*
 *}
 
 ML{* 
-   val t = @{prop "A \<Longrightarrow> B \<Longrightarrow> A \<and> B \<Longrightarrow> B \<and> A"}; 
+   val t = @{prop "A \<Longrightarrow> B \<Longrightarrow> A \<and> B \<Longrightarrow> B \<longrightarrow> A"}; 
    val (pnode,pplan) = IsaProver.init @{context} [] t;                         
 *}
 
 ML{* 
-   C.imatch data pnode ("any",[]);
-   C.imatch data pnode ("topconcl",[C.Name "conj"]);
+  C.match data pnode (C.scan_goaltyp @{context} "any") (IsaProver.get_pnode_env pnode);
+  C.match data pnode (C.scan_goaltyp @{context} "top_symbol(concl,?x)") (IsaProver.get_pnode_env pnode);
+  C.match data pnode (C.scan_goaltyp @{context} "top_symbol(X,implies)") (IsaProver.get_pnode_env pnode);
+
+(C.scan_goaltyp @{context} "top_symbol(concl,implies)") |> snd;
+top_symbol(IsaProver.get_pnode_env pnode) pnode [C.Var "X", C.Name "implies"];
+"top_symbol(concl,implies)";
+ "top_symbol(X,Implies)";
+
+
 *}      
 
 (* TODO:  1)fix any,2) combinator, e.g. not *)
@@ -119,7 +129,7 @@ ML{*-
   TextSocket.safe_close();
 *}
 
-ML{*
+ML{*-
 Tinker.start_ieval @{context} ps [] @{prop "A \<longrightarrow> A \<longrightarrow> A"};
 *}
 

@@ -28,7 +28,7 @@ sig
   (* get methods *)
   val get_psgraph : T -> PSGraph.T  
   val get_pplan : T -> PSGraph.Theory.Data.GoalTyp.Prover.pplan
-  val get_goals : T -> PSGraph.Theory.Data.GoalTyp.Prover.pnode StrName.NTab.T
+(*  val get_goals : T -> PSGraph.Theory.Data.GoalTyp.Prover.pnode StrName.NTab.T *)
   val get_gnodes : T -> gnode list
   val get_searchf : T -> string
   val get_evalf : T -> string
@@ -43,14 +43,14 @@ sig
 
   (* more get methods *)
   val lookup_goal : T -> string -> PSGraph.Theory.Data.GoalTyp.Prover.pnode option
-  val get_goal : T -> string -> PSGraph.Theory.Data.GoalTyp.Prover.pnode
+(*  val get_goal : T -> string -> PSGraph.Theory.Data.GoalTyp.Prover.pnode *)
 (*  val lookup_tactic : T ->  StrName.NTab.name -> PSGraph.Theory.Data.GoalTyp.Prover.tactic option
   val get_tactic : T ->  StrName.NTab.name -> PSGraph.Theory.Data.GoalTyp.Prover.tactic *)
 
   (* set methods *)
   val set_psgraph : PSGraph.T -> T -> T
   val set_pplan : PSGraph.Theory.Data.GoalTyp.Prover.pplan -> T -> T
-  val set_goals : PSGraph.Theory.Data.GoalTyp.Prover.pnode StrName.NTab.T -> T -> T
+(*  val set_goals : PSGraph.Theory.Data.GoalTyp.Prover.pnode StrName.NTab.T -> T -> T *)
   val set_gnodes : gnode list -> T -> T
   val set_searchf : string -> T -> T
   val set_evalf : string -> T -> T
@@ -68,17 +68,17 @@ sig
   val update_current : (branch -> branch) -> T -> T
   val update_branches : (branch list -> branch list) -> T -> T
   val update_parent : ((StrName.NTab.name * int) StrName.NTab.T -> (StrName.NTab.name * int) StrName.NTab.T) -> T -> T
-
+(*
   val add_goals : PSGraph.Theory.Data.GoalTyp.Prover.pnode list -> T -> T
   val add_bgoals : PSGraph.Theory.Data.GoalTyp.Prover.pnode list -> branch -> branch
- 
+*)
   val pop_cur_hie : T -> T
   val push_cur_hie : StrName.NTab.name -> T -> T
 
   (* methods for branches *)
   val get_bactive : branch -> active
   val get_bpplan : branch -> PSGraph.Theory.Data.GoalTyp.Prover.pplan
-  val get_bgoals : branch -> PSGraph.Theory.Data.GoalTyp.Prover.pnode StrName.NTab.T
+(*  val get_bgoals : branch -> PSGraph.Theory.Data.GoalTyp.Prover.pnode StrName.NTab.T *)
 
   val set_bactive : active -> branch -> branch 
   val set_bpplan : PSGraph.Theory.Data.GoalTyp.Prover.pplan -> branch -> branch
@@ -118,10 +118,10 @@ sig
   val update_bpplan : (PSGraph.Theory.Data.GoalTyp.Prover.pplan
                        -> PSGraph.Theory.Data.GoalTyp.Prover.pplan)
                       -> branch -> branch
-  val update_bgoals : (PSGraph.Theory.Data.GoalTyp.Prover.pnode StrName.NTab.T 
+(*   val update_bgoals : (PSGraph.Theory.Data.GoalTyp.Prover.pnode StrName.NTab.T 
                       -> PSGraph.Theory.Data.GoalTyp.Prover.pnode StrName.NTab.T)
                       -> branch -> branch
-
+ *)
   (* push and pop methods for parent *)
   val next_branch : T -> (branch * T) option (* moves to next branch *)
   
