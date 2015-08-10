@@ -27,6 +27,27 @@ class TinkerMenu() extends MenuBar{
 				Service.documentCtrl.openJson()
 			}
 		}
+		menu.contents += new Menu("Recent files"){ m =>
+			def updateList(): Unit ={
+				m.contents.clear()
+				Service.documentCtrl.recentProofs.values.reverse.foreach{case(k,v)=>
+					m.contents += new MenuItem(new Action(k) {
+						def apply() {
+							Service.documentCtrl.openJson(Some(v))
+						}
+					})
+				}
+				m.contents += new Separator()
+				m.contents += new MenuItem(new Action("Clear recent files"){
+					def apply() {
+						Service.documentCtrl.recentProofs.empty()
+					}
+				})
+			}
+			updateList()
+			Service.documentCtrl.recentProofs.register(updateList)
+		}
+		menu.contents += new Separator()
 		new Action("Save") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.S }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_S, CommandMask))
@@ -52,6 +73,7 @@ class TinkerMenu() extends MenuBar{
 				DocumentService.exportSvg()
 			}
 		}
+		menu.contents += new Separator()
 		new Action("Quit") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.Q }
 			accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_Q, CommandMask))
@@ -137,6 +159,17 @@ class TinkerMenu() extends MenuBar{
 			menu.contents += new MenuItem(this)
 			def apply(){
 				Service.debugPrintJson()
+			}
+		}
+		new Action("Start recording") {
+			menu.contents += new MenuItem(this)
+			def apply() {
+				if(Service.evalCtrl.recording){
+					Service.evalCtrl.setRecording(false)
+				} else {
+					Service.evalCtrl.setRecording(true)
+				}
+				this.title = if(Service.evalCtrl.recording) "Stop recording" else "Start recording"
 			}
 		}
 	}

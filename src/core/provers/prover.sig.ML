@@ -73,6 +73,7 @@ sig
 
   (* pnode related *)
   val get_open_pnodes : pplan -> pnode list
+(*  val get_open_pnode_by_name : pplan -> string -> pnode *)
   val get_pnode_name : pnode -> string
   val get_pnode_concl : pnode -> term (* return type concl which would be type term*)
   val get_pnode_hyps : pnode -> term list
@@ -81,7 +82,9 @@ sig
   val get_pnode_env_data : pnode -> StrName.name -> env_data
   val get_pnode_env_data_as_ML : pnode -> StrName.name -> string
   val get_goal_thm : pplan -> thm
- 
+  val get_open_pnode_by_name: pplan -> StrName.name -> pnode
+  
+  val set_pnode_pplan : pnode -> pplan -> pplan
   val set_pnode_env : env -> pnode -> pnode
   val update_pnode_env : (env -> env) -> pnode -> pnode
   

@@ -1,6 +1,6 @@
 structure LoggingHandler = 
 struct
-  exception tinker_fail
+  exception tinker_fail of (bool) (* if critical *)
   exception logging_exp of string
 
   val logging_tags = [ 
@@ -17,7 +17,7 @@ struct
     "EVAL",
     "GUI_LAUNCHER",
     "WARNING",
-    "EXCEPTION"
+    "FAILURE"
   ] |> StrName.NSet.of_list;
 
   val active_tags = Unsynchronized.ref StrName.NSet.empty;
@@ -70,13 +70,11 @@ struct
     if StrName.NSet.contains (get_active_tags ()) tag then (get_logging_handler ()) tag x
     else ()
 
-
-  val defaul_buffer = StrName.NTab.of_list 
-  [ ("BASIC_INFO", []), ("GOALTYPE", []), ("TACTIC", []),
-    ("ENV_DATA", []), ("ARG_DATA", []), ("SOCKET", []),
-    ("GRAPH", []), ("HIERARCHY", []), ("JSON_GUI", []),
-    ("JSON_CORE", []), ("EVAL", []), ("GUI_LAUNCHER", []),
-    ("WARNING", []),("EXCEPTION", [])];
+  val defaul_buffer = 
+   StrName.NSet.list_of logging_tags
+   |> map (fn x => ((x,[])))
+   |> StrName.NTab.of_list 
+  
 
   val logging_buffer : string list  StrName.NTab.T  Unsynchronized.ref = 
     Unsynchronized.ref defaul_buffer;

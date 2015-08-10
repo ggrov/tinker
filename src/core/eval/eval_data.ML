@@ -35,7 +35,7 @@ local open LoggingHandler in
   fun get_aevalf (Active rep) = #evalf rep;
   fun get_aname_current_hie (Active rep) = #name_current_hie rep;
   fun get_aname_current rep = get_aname_current_hie rep |> hd 
-  handle Empty => (logging "HIERARCHY" "Try entering parent graph but already at the top"; raise tinker_fail)
+  handle Empty => (logging "FAILURE" "Try entering parent graph but already at the top"; raise tinker_fail true)
   fun get_aindex_current (Active rep) = #index_current rep;
   
   fun get_bactive (Branch rep) = #active rep;
@@ -103,7 +103,7 @@ local open LoggingHandler in
   val set_aindex_current = update_aindex_current o K
 
   val pop_acur_hie = update_aname_current_hie tl
-  handle Empty => (logging "HIERARCHY" "Try entering parent graph but already at the top"; raise tinker_fail)
+  handle Empty => (logging "FAILURE" "Try entering parent graph but already at the top"; raise tinker_fail true)
   fun push_acur_hie n = update_aname_current_hie (fn x => n :: x)
 
   fun update_bactive f (Branch rep) =
@@ -179,7 +179,7 @@ local open LoggingHandler in
   val update_bname_current_hie = update_bactive o update_aname_current_hie;
   val set_bname_current_hie = update_bname_current_hie o K
   val pop_bcur_hie = update_bname_current_hie tl 
-  handle Empty => (logging "HIERARCHY" "Try entering parent graph but already at the top"; raise tinker_fail)
+  handle Empty => (logging "FAILURE" "Try entering parent graph but already at the top"; raise tinker_fail true)
   fun push_bcur_hie n = update_bname_current_hie  (fn x => n :: x)
 
   val update_bindex_current = update_bactive o update_aindex_current;

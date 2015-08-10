@@ -45,7 +45,7 @@ struct
     |> Pretty.str
     end
 
-  type env_tac =  arg_data list -> env -> env 
+  type env_tac =  arg_data list -> env -> env list
 
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term, env : env } 
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
@@ -144,7 +144,7 @@ struct
       fold ins goals ([],nameset)
     end;     
 
-  fun update env_tac (pnode,pplan) newgoal = 
+  fun update (env_tac : env -> env list) (pnode,pplan) newgoal = 
    let 
     val cur_env = get_pnode_env pnode
     val (b,ind,a) = othergs (#pname pnode) 1 (#opengs pplan) []; 
@@ -156,22 +156,54 @@ struct
        then drop (ind-1) prems 
             |> take numb  
        else []
-    val (newgoals,goalset) = to_goal_nms (#pctxt pnode) newgoals' (env_tac cur_env)(#usedgs pplan)
-    val ogoals = b @ newgoals @ a
-    val pplan' = {goal = newgoal,opengs = ogoals, usedgs = goalset}
+    fun mk_new_goal_status ctxt ngs plan new_env = 
+      let 
+         val (newgoals,goalset) = to_goal_nms ctxt ngs new_env plan
+         val ogoals = b @ newgoals @ a
+         val pplan' = {goal = newgoal, opengs = ogoals, usedgs = goalset}
+      in
+            (newgoals,pplan')
+      end    
   in
-    (newgoals,pplan')
+    map (mk_new_goal_status (#pctxt pnode) newgoals' (#usedgs pplan)) (env_tac cur_env)
+    |> Seq.of_list
   end;
 
  (* fun get_all_assms _ = []
   fun get_all_named_facts_pair _ = [] *)
-  fun get_open_pnodes (pplan : pplan) = (#opengs pplan)
+
 
   fun get_pnode_name (pnode:pnode) = #pname pnode;
   fun get_pnode_ctxt (pnode:pnode) = #pctxt pnode;
 
   fun get_pnode_concl (pnode:pnode) = #ptrm pnode |> Logic.strip_imp_concl;
   fun get_pnode_hyps (pnode:pnode) = #ptrm pnode |> Logic.strip_imp_prems;
+
+  fun get_open_pnodes (pplan : pplan) = (#opengs pplan)
+  fun get_open_pnode_by_name (pplan : pplan) name = 
+   get_open_pnodes pplan
+   |> map (fn pn => (get_pnode_name pn, pn))
+   |> StrName.NTab.of_list
+   |> (fn x => StrName.NTab.get x name)
+   
+  fun set_open_goals_pplan (pplan : pplan) ogs  = {goal = #goal pplan, opengs = ogs, usedgs = #usedgs pplan}
+  fun set_pnode_pplan pnode pplan = 
+   let
+    val _ = get_open_pnode_by_name pplan (get_pnode_name pnode)
+    val idx = get_index pnode pplan
+    fun list_to_seq _ seq []  = seq
+    |   list_to_seq idx seq (x::xs)  = list_to_seq (idx+1) (StrName.NTab.ins (Int.toString idx, x) seq) xs
+   in
+    get_open_pnodes pplan
+    |> list_to_seq 1 StrName.NTab.empty
+    |> StrName.NTab.update  (Int.toString idx, pnode)
+    |> StrName.NTab.list_of |> rev (* use the ntab to order the list *)
+    |> map snd
+    |> set_open_goals_pplan pplan
+   end
+   handle StrName.Tab.UNDEF n => 
+   (logging "FAILURE" ("Can not find the pnode of open goal for " ^ n ^ " to update") ;
+    raise tinker_fail true)
 
   fun pretty_goal pnode = string_of_trm (get_pnode_ctxt pnode)  (get_pnode_concl pnode) |> Pretty.str
   fun pretty_pnode pnode = 
@@ -187,22 +219,23 @@ struct
   fun apply_tactic args (tac : tactic) (pnode,pplan) = 
     (*let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in*)
     tac (#pctxt pnode) (get_index pnode pplan) args (#goal pplan)
-    |> Seq.map (update I (pnode,pplan))
+    (*|> (fn x =>( writeln "DEBUG: ";Seq.list_of x |> map Thm.prop_of|> map (pretty_trm (#pctxt pnode)) |>map  Pretty.writeln ;x))*)
+    |> Seq.maps (update (fn x => [x]) (pnode,pplan))
     |> (fn x => 
         (case Seq.pull x of NONE 
-           => (logging "EXCEPTION" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode ^ ", empty seqence"); 
-               raise tinker_fail) 
+           => (logging "FAILURE" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode ^ ", empty seqence"); 
+               raise tinker_fail false) 
            | _ => x ))
     (*end*)
   (* Update the env and then apply a dummy id tac in isabelle *)
   fun apply_env_tactic args (env_tac : env_tac) (pnode,pplan) = 
     (*let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in*)
     (K (K all_tac)) (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
-    |> Seq.map (update (env_tac args) (pnode,pplan))
+    |> Seq.maps (update (env_tac args) (pnode,pplan))
     |> (fn x => 
         (case Seq.pull x of NONE 
-           => (logging "TACTIC" ("Fail to apply env tactic for pnode " ^ get_pnode_name pnode ^  ", empty seqence"); 
-               raise tinker_fail) 
+           => (logging "FAILURE" ("Fail to apply env tactic for pnode " ^ get_pnode_name pnode ^  ", empty seqence"); 
+               raise tinker_fail false) 
            | _ => x ))
    (* end*)
   (* SOME default tactics *)

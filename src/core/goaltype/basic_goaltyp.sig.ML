@@ -42,9 +42,7 @@ sig
   val pretty :  T -> Pretty.T
   
   val check : data * T -> (gnode option * Prover.pnode) -> bool
-  val match :  data -> Prover.pnode -> T -> Prover.env -> Prover.env list
   val lift : Prover.pnode -> gnode
-  (* val init_lift :  data * T -> Prover.pnode -> gnode list *)
 
   structure BasicSharing : BASIC_GOALTYPE_SHARING
     sharing type BasicSharing.T = T

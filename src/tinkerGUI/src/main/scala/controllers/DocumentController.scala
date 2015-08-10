@@ -1,5 +1,7 @@
 package tinkerGUI.controllers
 
+import java.io.File
+
 import quanto.util.json.{JsonObject, JsonAccessException, Json}
 import tinkerGUI.controllers.events.{GraphTacticListEvent, CurrentGraphChangedEvent, DocumentChangedEvent}
 import tinkerGUI.model.PSGraph
@@ -23,6 +25,8 @@ class DocumentController(model:PSGraph) extends Publisher {
 
 	/** Boolean to know if there are any unsaved changes.*/
 	var unsavedChanges:Boolean = false
+
+	val recentProofs = new FixedStack[(String,String)](5)
 
 	/** Method to undo changes.
 		*
@@ -99,12 +103,16 @@ class DocumentController(model:PSGraph) extends Publisher {
 	/** Method to open a Json object and set it as the model.
 		*
 		*/
-	def openJson() {
+	def openJson(file:Option[String]=None) {
 		val tmpModel = model
 		tmpModel.removeGoals
 		tmpModel.updateJsonPSGraph()
 		if(DocumentService.promptUnsaved(tmpModel.jsonPSGraph)){
-			DocumentService.showOpenDialog(None) match {
+			val json = file match {
+				case Some(f:String) => DocumentService.load(new File(f))
+				case None => DocumentService.showOpenDialog(None)
+			}
+			json match {
 				case Some(j:JsonObject) =>
 					openJson(j)
 				case _ => TinkerDialog.openErrorDialog("<html>Error while loading json from file : not a json object.</html>")
@@ -181,9 +189,8 @@ class DocumentController(model:PSGraph) extends Publisher {
 			def success(values:Map[String,String]) {
 				try{
 					model.reset(values("Proof name"))
-					resetApp()
 					DocumentService.file = None
-					DocumentService.proofTitle = values("Proof name")
+					resetApp()
 				} catch {
 					case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 				}
@@ -200,8 +207,8 @@ class DocumentController(model:PSGraph) extends Publisher {
 		if(DocumentService.promptUnsaved(tmpModel.jsonPSGraph)) {
 			try{
 				model.reset(name)
-				resetApp()
 				DocumentService.file = None
+				resetApp()
 			} catch {
 				case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 			}

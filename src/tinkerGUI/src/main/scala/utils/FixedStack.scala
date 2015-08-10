@@ -17,6 +17,9 @@ class FixedStack[T](private val size:Int){
 	/** Integer pointing to the top index of the stack.*/
 	private var top:Int = -1
 
+	/** List of functions listeners will execute on a change to the stack.*/
+	private var listeners:ArrayBuffer[()=>Unit] = ArrayBuffer()
+
 	/** Method pushing an element in the stack.
 		*
 		* @param elem Element to append to the stack.
@@ -31,6 +34,7 @@ class FixedStack[T](private val size:Int){
 			// or throw an exception
 			// throw new Exception("stack overflow")
 		}
+		listeners.foreach(_.apply())
 	}
 
 	// this one will return an optional element
@@ -45,6 +49,7 @@ class FixedStack[T](private val size:Int){
 			val elem = stack(top)
 			stack -= elem
 			top -= 1
+			listeners.foreach(_.apply())
 			Some(elem)
 		}
 	}
@@ -79,6 +84,7 @@ class FixedStack[T](private val size:Int){
 	def empty() {
 		top = -1
 		stack.clear()
+		listeners.foreach(_.apply())
 	}
 
 	/** Method simply reading the top of the stack, without poping it.
@@ -95,6 +101,19 @@ class FixedStack[T](private val size:Int){
 		* @return String result.
 		*/
 	override def toString:String = {
-		"FixedStack"+stack.foldLeft("("){case (s,e) => s + e +", "}.dropRight(2)+")"
+		"FixedStack("+stack.foldLeft(""){case (s,e) => s + e +", "}.dropRight(2)+")"
+	}
+
+	/** Method returning the stack in an array, without poping any element.
+		*
+		* @return Array of values in the stack
+		*/
+	def values:ArrayBuffer[T] = {
+		new ArrayBuffer[T]() ++ stack
+	}
+
+	/** Method to register a callback in the listener list.*/
+	def register(callback:()=>Unit) {
+		listeners += callback
 	}
 }
