@@ -43,21 +43,47 @@ struct
   fun reset_data _ = edata := NONE
   fun get_data _ = !edata
   fun set_data d = edata := SOME (d)
+
+  val init_data : 
+    (EData.PSGraph.Theory.GoalTyp.Prover.context option * 
+     EData.PSGraph.Theory.GoalTyp.Prover.term option * 
+     EData.PSGraph.Theory.GoalTyp.Prover.term list option *
+     EData.PSGraph.T option)  Unsynchronized.ref = Unsynchronized.ref (NONE, NONE, NONE, NONE)
+ 
+  fun reset_init_data _ = init_data := (NONE, NONE, NONE, NONE)
+  fun get_init_data _ = !init_data
+  fun set_init_data d = init_data := d
 (****************************************************
   protocol commands 
 ****************************************************)
-  fun RSP_INIT_PSGRAPH _ = 
-   Json.mk_object[
-    ("cmd", Json.String  "PRINT_ONLY_RSP"),
-    ("print_only", Json.String "init graph in tinker")]
+  fun RSP_INIT_PSGRAPH (Json.Object obj) = 
+   let 
+    val init_data = get_init_data (); 
+    val ctxt = Option.valOf (#1 init_data)
+    val g = case (#2 init_data) of 
+      (SOME g0) => g0
+     | NONE => JsonInputUtils.get_array obj "goal" |> hd 
+      |> (fn (Json.String str) => EData.PSGraph.Theory.GoalTyp.Prover.trm_of_string ctxt str)
+    val assms = case (#3 init_data) of 
+      (SOME assms) => assms
+    | NONE => JsonInputUtils.get_array obj "goal" |> tl |> hd 
+       |> (fn (Json.Array arr) => 
+            map (fn (Json.String str) => EData.PSGraph.Theory.GoalTyp.Prover.trm_of_string ctxt str) arr) 
+    val ps = case (#4 init_data) of 
+      (SOME ps) => ps
+    | NONE => JsonInputUtils.get_array obj "psgraph" |> hd
+    |> EData.PSGraph.input_json 
+    val edata0 = IEVal.EVal.init ps ctxt assms g |> hd (* FIXME: only get the first one *)
+    val _ = set_data edata0;
+    val _ = pp_goal edata0 ()
+   in
+    IEVal.output_json "CMD_UPDATE_PSGRAPH" 
+     (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
+     edata0
+   end
+   | RSP_INIT_PSGRAPH _ = raise user_exn "wrong json type in RSP_UPDATE_PSGRAPH"
   val ftab = ftab |> register "RSP_INIT_PSGRAPH" RSP_INIT_PSGRAPH
-(*
-  fun RSP_UPDATE_PSGRAPH _ = 
-   Json.mk_object[
-     ("cmd", Json.String  "PRINT_ONLY_RSP"),
-     ("print_only", Json.String "update graph in tinker")]
-  val ftab = ftab |> register "RSP_UPDATE_PSGRAPH" RSP_UPDATE_PSGRAPH
-*)
+
   fun RSP_UPDATE_PSGRAPH (json as (Json.Object obj))= 
     let
       (*val opts = get_str_cmd_args_list json (* args option from users *)*)
@@ -129,10 +155,10 @@ struct
   
   fun RSP_MESSAGE_ERROR (Json.Object obj) = 
    let 
-    val err = JsonInputUtils.get_string obj "erroe"
+    val err = JsonInputUtils.get_string obj "error"
    in
     (logging_handler_print "FAILURE" err;
-    Json.Object Json.empty_obj)
+    Json.mk_object[("cmd", Json.String "RSP_MESSAGE_ERROR")])
    end
    | RSP_MESSAGE_ERROR _ = raise protocol_exn "dummy, this won't happen in RSP_MESSAGE_ERROR"
   
@@ -156,16 +182,13 @@ struct
   protocol executer 
 ****************************************************)
 
-  val version_string = Json.String "0.4"  
+  val version_string = Json.String gui_version 
 
-  fun run_in_textstreams (instream, outstream) init_msg =
+  fun run_in_textstreams (instream, outstream) init_json =
   let
     fun send_msg str =
-      (TextIO.output (outstream, str  ^ " \n");TextIO.flushOut outstream)
-    val _ = (* send the init msg if there is any *)
-        case init_msg 
-        of (SOME j) => (send_msg j)
-        |  NONE => ()
+      (TextIO.output (outstream, str  ^ " \n"); TextIO.flushOut outstream)
+    val _ = Json.encode init_json |> send_msg 
     fun protocol_loop src =
     let
       val (json_list, src') = RawSource.get src
@@ -176,7 +199,7 @@ struct
       val _ =  logging_handler_print "JSON_GUI" ("JSON OUT: " ^ ( Json.encode json_output))
     in 
       (case get_cmd_name json_output
-          of "CMD_CLOSE_CONNECT" => () (* do nothing and exit: need to be consider what to do *)
+         of "CMD_CLOSE_CONNECT" => () (* do nothing and exit: need to be consider what to do *)
           | "CMD_END_EVAL_SESSION" => send_msg (Json.encode json_output) (* send to stop cmd and quit *)
           | "RSP_EXCEPTION" => send_msg (Json.encode json_output) (* end session and flash out the exception string*)
           | "RSP_MESSAGE_ERROR" => ()
@@ -196,23 +219,20 @@ struct
 (****************************************************
     top level interface 
 ****************************************************)
-  fun start_ieval ctxt ps assms g = 
+  fun start_ieval ctxt ps_opt assms_opt g_opt = 
     let
-     val edata0 = IEVal.EVal.init ps ctxt assms g |> hd (* FIXME: only get the first one *)
-     val _ = pp_goal edata0 ();
-(*  in future, it should always maintain a socket connection*)
      val s = TextSocket.safe_local_client gui_socket_port;
      val (SOME (ins, outs)) = TextSocket.get_current_stream (); (* should always be something *)
-     val init_msg = IEVal.output_string 
-          "CMD_INIT_PSGRAPH" 
-           (IEVal.mk_cmd_str_arg_json [
-              "OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
-           (SOME edata0);
-      val _ = logging_handler_print "JSON_GUI" ("JSON OUT: " ^ (init_msg))
-      val _ = (reset_data (); set_data edata0)
+     val _  = (reset_data ();set_init_data (SOME ctxt, g_opt, assms_opt, ps_opt))
+     val init_json = Json.mk_object[
+      ("cmd", Json.String "CMD_INIT_PSGRAPH"),
+      ("psgraph", Json.Bool (Option.isSome ps_opt)),
+      ("goal", Json.Bool (Option.isSome g_opt))]
+      val _ = logging_handler_print "JSON_GUI" ("JSON OUT: " ^ (Json.encode init_json))
+      val _ = reset_data ()
     in
-      run_in_textstreams (ins, outs) (SOME init_msg);
-      get_data () |> (fn x => (reset_data () ; Option.valOf x))
+      run_in_textstreams (ins, outs) init_json;
+      get_data () |> (fn x => (reset_data () ; reset_init_data (); Option.valOf x))
     end
 end
 

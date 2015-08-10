@@ -358,7 +358,7 @@ struct
     |> set_main main
     (* |> set_tactics tactics*)
   end
- | input_json _ = raise Json.parse_exn "unexcepted json strcure in input_json"
+ | input_json _ = raise Json.parse_exn "unexcepted json structure in input_json"
 
  fun write_json_file path ps =  File_Io.write_string path (output_json ps |> Json.encode);
 
