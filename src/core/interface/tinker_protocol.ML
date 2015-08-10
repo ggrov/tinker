@@ -126,7 +126,18 @@ struct
    | CMD_CHANGE_PSGRAH _  = raise protocol_exn "dummy, this won't happen in CMD_CHANGE_PSGRAH"
   
   val ftab = ftab |> register "CMD_CHANGE_PSGRAPH" CMD_CHANGE_PSGRAH
-
+  
+  fun RSP_MESSAGE_ERROR (Json.Object obj) = 
+   let 
+    val err = JsonInputUtils.get_string obj "erroe"
+   in
+    (logging_handler_print "FAILURE" err;
+    Json.Object Json.empty_obj)
+   end
+   | RSP_MESSAGE_ERROR _ = raise protocol_exn "dummy, this won't happen in RSP_MESSAGE_ERROR"
+  
+  val ftab = ftab |> register "RSP_MESSAGE_ERROR" RSP_MESSAGE_ERROR
+  
   fun dispatch json_input =
   let
     val func = case Symtab.lookup ftab (get_cmd_name json_input) of SOME x => x
@@ -137,7 +148,7 @@ struct
       Json.mk_object[
       ("cmd", Json.String "RSP_EXCEPTION"),
       ("log_info", buffer_to_json ()),
-      ( "if_interrupt", Json.Bool b)]
+      ("if_interrupt", Json.Bool b)]
 
   end
 
@@ -168,6 +179,7 @@ struct
           of "CMD_CLOSE_CONNECT" => () (* do nothing and exit: need to be consider what to do *)
           | "CMD_END_EVAL_SESSION" => send_msg (Json.encode json_output) (* send to stop cmd and quit *)
           | "RSP_EXCEPTION" => send_msg (Json.encode json_output) (* end session and flash out the exception string*)
+          | "RSP_MESSAGE_ERROR" => ()
           | "Dummy_RSP" => ((); protocol_loop src')
           | "PRINT_ONLY_RSP" => 
             ((get_print_only_msg  json_output
