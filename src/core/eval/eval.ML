@@ -45,23 +45,19 @@ struct
   (* need some filtering of empty here *)
   fun partition_one' _ [] _ _ _ _  [] = [] (* fails to lift for this branch *)
    |  partition_one' gtype_data (gt::gts) pnode gnode_opt pplan bres (r::ares) = 
-    (case  GoalTyp.match gtype_data pnode gt (Prover.get_pnode_env pnode)  of
+     if not (GoalTyp.check (gtype_data,gt) (gnode_opt,pnode))
       (* fails to lift *)
-      [] => partition_one' gtype_data gts pnode gnode_opt pplan (bres@[r]) ares
+    then  partition_one' gtype_data gts pnode gnode_opt pplan (bres@[r]) ares
       (* succeeds, and check for further successes *)
-    | env_l =>
+    else
         let
-         val pn' = map (fn x => Prover.set_pnode_env x pnode) env_l
-         val pn_pplan_l = map (fn x => (x, Prover.set_pnode_pplan x pplan)) pn' 
-         val new_branches = 
-         map
-         (fn (pn, pp) => (pp, (bres @ [(GoalTyp.lift pn) :: r] @ ares)))
-         pn_pplan_l
+        
+         val new_branch =  (pplan, (bres @ [(GoalTyp.lift pnode) :: r] @ ares))
         in
         (* adds the succeded to the current result *)
-        new_branches @ 
+        [new_branch] @ 
         (* goes through and see if more succeeds (thus branching) *)
-         partition_one' gtype_data gts pnode gnode_opt pplan (bres@[r]) ares end) 
+         partition_one' gtype_data gts pnode gnode_opt pplan (bres@[r]) ares end
   | partition_one' _ _ _ _ _ _ _ = [];
 
   (* raises exception if one proof nodes fails *)
@@ -461,7 +457,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
       |> (fn x =>  Prover.get_open_pnode_by_name (EData.get_pplan edata) (GoalTyp.goal_name x))
       |> (fn pnode => Prover.pretty_env (Prover.get_pnode_ctxt pnode) (Prover.get_pnode_env pnode))
       |> (Pretty.string_of )
-      |> logging "PRE ENV_DATA" 
+      |> logging "ENV_DATA" 
      val graph = 
       if is_some graph_name0 then raise Fail "ERR: NOT Support to switch between subgraph yet" 
       else EData.get_graph edata
