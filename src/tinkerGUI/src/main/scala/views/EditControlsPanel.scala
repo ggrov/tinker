@@ -83,6 +83,11 @@ class EditControlsPanel() extends Publisher {
 			case MouseStateChangedEvent(state) => selected = state == "addEdge"
 		}
 	}
+	val EditGoalButton = new Button() {
+		action = new Action(""){def apply()={Service.evalCtrl.editGoal()}}
+		icon = new ImageIcon(MainGUI.getClass.getResource("edit-goal.png"), "Edit goal")
+		tooltip = "Edit goal"
+	}
 	val GraphToolGroup = new ButtonGroup(SelectButton, AddIDVertexButton, AddEdgeButton, AddATMVertexButton, AddNSTVertexButton)
 
 /*	val EditGoalTypesButton = new Button(new Action(""){
@@ -95,7 +100,7 @@ class EditControlsPanel() extends Publisher {
 	}*/
 
 	val MainToolBar = new ToolBar {
-		contents += (SelectButton, AddIDVertexButton, AddATMVertexButton, AddNSTVertexButton, AddEdgeButton)
+		contents += (SelectButton, AddIDVertexButton, AddATMVertexButton, AddNSTVertexButton, AddEdgeButton, EditGoalButton)
 	}
 /*	val SecondaryToolBar = new ToolBar {
 		contents += EditGoalTypesButton

@@ -25,6 +25,16 @@ class EvalController(model:PSGraph) extends Publisher {
 	/** Assumptions.*/
 	var assms:Array[String] = Array()
 
+	def editGoal() {
+		def success(values:Map[String,String]) {
+			assms = values("Assumptions").split("\n")
+			goal = values("Goal")
+			println(assms)
+			println(goal)
+		}
+		TinkerDialog.openEditDialog("Edit goal",Map("Assumptions"->assms.foldLeft(""){case(s,a)=>s+a+"\n"},"Goal"->goal),success,()=>Unit)
+	}
+
 	/** Boolean stating if the application is performing an evaluation or not.*/
 	var inEval:Boolean = false
 
