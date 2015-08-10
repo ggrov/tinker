@@ -16,6 +16,8 @@ structure C = Clause_GT
 
   open RodinHelper RJP
   fun is_top_symbol env pnode [C.Var p, C.Name symb] = 
+
+  (writeln ("Var="^p );
     let val temp = StrName.NTab.lookup env p
         val {pname = nodename , env=_} = pnode
     in
@@ -29,7 +31,7 @@ structure C = Clause_GT
             end
          |SOME _ => [] 
           )
-    end
+    end)
             
 
   fun top_symbol env pnode [r,C.Var p] = 

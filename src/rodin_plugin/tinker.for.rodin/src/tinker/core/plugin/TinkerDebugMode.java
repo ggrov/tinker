@@ -24,7 +24,7 @@ import tinker.core.execute.CommandExecutor;
 import tinker.core.socket.TinkerConnector;
 import tinker.core.tactics.TinkerTactic;
 
-public class TinkerTacticProvider extends DefaultTacticProvider {
+public class TinkerDebugMode extends DefaultTacticProvider {
 	public static class TinkerApplication extends DefaultPositionApplication {
 
 		private static final String TACTIC_ID = "org.eventb.ui.tinker";

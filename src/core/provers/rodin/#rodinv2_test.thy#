@@ -52,14 +52,14 @@ ML{*-
 ML{*-
   TextSocket.close ;
 *}
-ML{*
+ML{* 
 SimpleNamer.init();     
    
-Tinker.start_ieval "" ps [] ""    ;
-  handle exn =>     
+Tinker.start_ieval "" ps [] ""    ;  
+  handle exn =>  
 ( finish();    
-TextSocket.safe_close();      
-raise exn); 
+TextSocket.safe_close(); 
+raise exn);  
 val _ = finish();  
 
 *} 
