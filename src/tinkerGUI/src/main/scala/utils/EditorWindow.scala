@@ -17,7 +17,7 @@ class EditorWindow(frameTitle:String, parseCallback:(String)=>Unit) {
 		* Closing this frame will also parse the text.
 		*/
 	private object frame extends Frame {
-		val editArea = new TextArea(""){
+		val editArea = new UnicodeTextArea(""){
 			lineWrap = true
 			font = new Font(Font.MONOSPACED,Font.BOLD,14)
 		}

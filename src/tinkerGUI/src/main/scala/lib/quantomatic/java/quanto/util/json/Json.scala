@@ -248,7 +248,8 @@ object Json {
 
   class Input(val p: JsonParser) {
     p.enable(JsonParser.Feature.AUTO_CLOSE_SOURCE)
-
+    // added by P Le Bras, allow comments in jsons
+    p.enable(JsonParser.Feature.ALLOW_COMMENTS)
     def this(s: String) =
       this(try { factory.createJsonParser(s) } catch {
         case e: JacksonParseException =>

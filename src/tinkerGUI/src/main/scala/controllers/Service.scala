@@ -8,7 +8,7 @@ import tinkerGUI.model.exceptions.{SubgraphNotFoundException, GraphTacticNotFoun
 import scala.swing._
 import tinkerGUI.model.PSGraph
 import quanto.util.json._
-import tinkerGUI.utils.{FixedStack, TinkerDialog, ArgumentParser}
+import tinkerGUI.utils.{UnicodeParser, FixedStack, TinkerDialog, ArgumentParser}
 import scala.collection.mutable.ArrayBuffer
 
 object Service extends Publisher {
@@ -46,7 +46,6 @@ object Service extends Publisher {
 	/** Method updating a getting the psgraph json object. See[[tinkerGUI.model.PSGraph.jsonPSGraph]].*/
 	def getJsonPSGraph:JsonObject = {
 		model.updateJsonPSGraph()
-		model.jsonPSGraph
 	}
 	/** Method to get the current graph index. See [[tinkerGUI.model.PSGraph.currentIndex]].*/
 	def getCurrentIndex = model.currentIndex
@@ -77,6 +76,13 @@ object Service extends Publisher {
 		} catch {
 			case e: Exception =>
 		}
+
+		try {
+			UnicodeParser.loadMap(new File(".unicodeConfig"))
+		} catch {
+			case e: Exception =>
+				TinkerDialog.openErrorDialog("Error while opening .unicodeConfig<br>"+e.getMessage+"<br>Default settings will be used.")
+		}
 	}
 
 	def closeApp() {
@@ -106,7 +112,6 @@ object Service extends Publisher {
 
 
   def debugPrintJson(){
-		model.updateJsonPSGraph()
-  	println(model.jsonPSGraph)
+  	println(model.updateJsonPSGraph())
   }
 }

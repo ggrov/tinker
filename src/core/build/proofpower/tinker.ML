@@ -6,9 +6,9 @@
   OS.FileSys.chDir build_path;
 
   use "load_psgraph";
-  use "build_simple_GT.ML"; 
- (* use "build_clause_GT.ML"; *)
- OS.FileSys.chDir root_path;
+ (* use "build_simple_GT.ML"; *)
+  use "build_clause_GT.ML"; 
+  OS.FileSys.chDir root_path;
  
 (* enable the subgoal package printing 
   set_flags [

@@ -135,7 +135,7 @@ object ArgumentParser {
 					res = res :+ removeUselessSpace(parts(0))
 					res = res ++ stringToArgumentParameters(removeUselessSpace(parts(1)))
 				case x if x > 2 || x < 1 =>
-					TinkerDialog.openErrorDialog("<html>Error when parsing arguments, found more than one colon in one argument,<br> you probably forgot a comma to separate two arguments.</html>")
+					TinkerDialog.openErrorDialog("Error when parsing arguments, found more than one colon in one argument, you probably forgot a comma to separate two arguments.")
 					res = res :+ removeUselessSpace(parts(0))
 					res = res ++ stringToArgumentParameters(removeUselessSpace(parts(1)))
 			}

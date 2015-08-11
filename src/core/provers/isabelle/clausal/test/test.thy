@@ -125,11 +125,11 @@ ML{*
    |> PSGraph.set_goaltype_data data;       
 *}
 
-ML{*-
+ML{* 
   TextSocket.safe_close();
 *}
 
-ML{*-
+ML{*  
 Tinker.start_ieval @{context} ps [] @{prop "A \<longrightarrow> A \<longrightarrow> A"};
 *}
 

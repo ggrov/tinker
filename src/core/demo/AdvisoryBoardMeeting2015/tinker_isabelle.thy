@@ -13,8 +13,8 @@ ML{*-
   TextSocket.safe_close();
 *}    
   
-ML{*    
-val thm = Tinker.start_ieval @{context} ps [] @{prop "P  \<longrightarrow>   (P \<and>  P \<and> (Q \<longrightarrow> Q))"} (* prove the goal *)
+ML{*     -
+val thm = Tinker.start_ieval @{context} (NONE) (SOME []) (SOME @{prop "P  \<longrightarrow>   (P \<and>  P \<and> (Q \<longrightarrow> Q))"}) (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
 *}
 

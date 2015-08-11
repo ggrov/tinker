@@ -342,7 +342,7 @@ class PSGraph(name:String) extends ATManager with GTManager {
 	/** Method to update the Json representation of the psgraph.
 		*
 		*/
-	def updateJsonPSGraph() {
+	def updateJsonPSGraph():JsonObject = {
 		val current = JsonArray((currentParents :+ getCurrentGTName).reverse)
 		jsonPSGraph = JsonObject(
 			"main" -> mainTactic.name,
@@ -352,6 +352,7 @@ class PSGraph(name:String) extends ATManager with GTManager {
 			"atomic_tactics" -> toJsonAT,
 			"goal_types" -> goalTypes,
 			"occurrences" -> JsonObject("atomic_tactics" -> toJsonATOccurrences, "graph_tactics" -> toJsonGTOccurrences))
+		jsonPSGraph
 	}
 
 	/** Method resetting the model.

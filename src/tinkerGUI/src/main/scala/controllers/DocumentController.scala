@@ -35,8 +35,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 		undoStack.pop() match {
 			case Some(j:JsonObject) =>
 				try{
-					model.updateJsonPSGraph()
-					redoStack.push(model.jsonPSGraph)
+					redoStack.push(model.updateJsonPSGraph())
 					model.loadJsonGraph(j)
 					QuantoLibAPI.loadFromJson(model.getCurrentJson)
 					Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
@@ -58,8 +57,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 		redoStack.pop() match {
 			case Some(j:JsonObject) =>
 				try{
-					model.updateJsonPSGraph()
-					undoStack.push(model.jsonPSGraph)
+					undoStack.push(model.updateJsonPSGraph())
 					model.loadJsonGraph(j)
 					QuantoLibAPI.loadFromJson(model.getCurrentJson)
 					Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
@@ -80,12 +78,11 @@ class DocumentController(model:PSGraph) extends Publisher {
 		* Note that this method should be called before making any changes.
 		*/
 	def registerChanges() {
-		model.updateJsonPSGraph()
 		if(Service.evalCtrl.inEval) {
 			Service.evalCtrl.enableEvalOptions(ArrayBuffer("PUSH"))
 			QuantoLibAPI.printEvaluationFlag(true)
 		}
-		if(undoStack.getTop.toString != model.jsonPSGraph.toString() && (if(!model.isMain) model.getSizeGT(model.getCurrentGTName) > model.currentIndex else true)){
+		if(undoStack.getTop.toString != model.updateJsonPSGraph().toString() && (if(!model.isMain) model.getSizeGT(model.getCurrentGTName) > model.currentIndex else true)){
 			undoStack.push(model.jsonPSGraph)
 			redoStack.empty()
 			unsavedChanges = true
@@ -106,8 +103,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 	def openJson(file:Option[String]=None) {
 		val tmpModel = model
 		tmpModel.removeGoals
-		tmpModel.updateJsonPSGraph()
-		if(DocumentService.promptUnsaved(tmpModel.jsonPSGraph)){
+		if(DocumentService.promptUnsaved(tmpModel.updateJsonPSGraph())){
 			val json = file match {
 				case Some(f:String) => DocumentService.load(new File(f))
 				case None => DocumentService.showOpenDialog(None)
@@ -115,7 +111,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 			json match {
 				case Some(j:JsonObject) =>
 					openJson(j)
-				case _ => TinkerDialog.openErrorDialog("<html>Error while loading json from file : not a json object.</html>")
+				case _ => TinkerDialog.openErrorDialog("Error while loading json from file : not a json object.")
 			}
 		}
 	}
@@ -134,7 +130,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 				case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
 			}
 		} else {
-			TinkerDialog.openErrorDialog("<html>Error while loading json from file : object is empty.</html>")
+			TinkerDialog.openErrorDialog("Error while loading json from file : object is empty.")
 		}
 	}
 
@@ -144,11 +140,10 @@ class DocumentController(model:PSGraph) extends Publisher {
 	def saveJson() {
 		//model.updateJsonPSGraph()
 		val tmpModel = model
-		tmpModel.removeGoals
-		tmpModel.updateJsonPSGraph()
+		tmpModel.removeGoals()
 		DocumentService.file match {
-			case Some(_) => DocumentService.save(None, tmpModel.jsonPSGraph)
-			case None => DocumentService.saveAs(None, tmpModel.jsonPSGraph)
+			case Some(_) => DocumentService.save(None, tmpModel.updateJsonPSGraph())
+			case None => DocumentService.saveAs(None, tmpModel.updateJsonPSGraph())
 		}
 		publish(DocumentChangedEvent(unsavedChanges))
 		// we leave the setting of unsavedChanges and the event in document service as errors might happen
@@ -159,9 +154,8 @@ class DocumentController(model:PSGraph) extends Publisher {
 		*/
 	def saveAsJson() {
 		val tmpModel = model
-		tmpModel.removeGoals
-		tmpModel.updateJsonPSGraph()
-		DocumentService.saveAs(None, tmpModel.jsonPSGraph)
+		tmpModel.removeGoals()
+		DocumentService.saveAs(None, tmpModel.updateJsonPSGraph())
 		publish(DocumentChangedEvent(unsavedChanges))
 		// we leave the setting of unsavedChanges and the event in document service as errors might happen
 	}
@@ -172,9 +166,8 @@ class DocumentController(model:PSGraph) extends Publisher {
 		*/
 	def closeDoc():Boolean = {
 		val tmpModel = model
-		tmpModel.removeGoals
-		tmpModel.updateJsonPSGraph()
-		DocumentService.promptUnsaved(tmpModel.jsonPSGraph)
+		tmpModel.removeGoals()
+		DocumentService.promptUnsaved(tmpModel.updateJsonPSGraph())
 		// we leave the setting of unsavedChanges and the event in document service as errors might happen
 	}
 
@@ -183,9 +176,8 @@ class DocumentController(model:PSGraph) extends Publisher {
 		*/
 	def newDoc() {
 		val tmpModel = model
-		tmpModel.removeGoals
-		tmpModel.updateJsonPSGraph()
-		if(DocumentService.promptUnsaved(tmpModel.jsonPSGraph)){
+		tmpModel.removeGoals()
+		if(DocumentService.promptUnsaved(tmpModel.updateJsonPSGraph())){
 			def success(values:Map[String,String]) {
 				try{
 					model.reset(values("Proof name"))
@@ -202,9 +194,8 @@ class DocumentController(model:PSGraph) extends Publisher {
 
 	def newDoc(name:String): Unit ={
 		val tmpModel = model
-		tmpModel.removeGoals
-		tmpModel.updateJsonPSGraph()
-		if(DocumentService.promptUnsaved(tmpModel.jsonPSGraph)) {
+		tmpModel.removeGoals()
+		if(DocumentService.promptUnsaved(tmpModel.updateJsonPSGraph())) {
 			try{
 				model.reset(name)
 				DocumentService.file = None

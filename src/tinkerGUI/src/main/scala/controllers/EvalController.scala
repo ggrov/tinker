@@ -19,6 +19,20 @@ import scala.swing.Publisher
 	*/
 class EvalController(model:PSGraph) extends Publisher {
 
+	/** Goal value.*/
+	var goal:String = ""
+
+	/** Assumptions.*/
+	var assms:Array[String] = Array()
+
+	def editGoal() {
+		def success(values:Map[String,String]) {
+			assms = values("Assumptions").split("\n")
+			goal = values("Goal")
+		}
+		TinkerDialog.openEditDialog("Edit goal",Map("Assumptions"->assms.foldLeft(""){case(s,a)=>s+a+"\n"},"Goal"->goal),success,()=>Unit)
+	}
+
 	/** Boolean stating if the application is performing an evaluation or not.*/
 	var inEval:Boolean = false
 
@@ -62,8 +76,7 @@ class EvalController(model:PSGraph) extends Publisher {
 			records = Array()
 			recording = b
 		} else if(!recording && b && inEval) {
-			model.updateJsonPSGraph()
-			records = records :+ model.jsonPSGraph
+			records = records :+ model.updateJsonPSGraph()
 			recording = b
 		}
 	}
@@ -105,8 +118,7 @@ class EvalController(model:PSGraph) extends Publisher {
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
 				Service.editCtrl.updateEditors
 				if(recording) {
-					model.updateJsonPSGraph()
-					records = records :+ model.jsonPSGraph
+					records = records :+ model.updateJsonPSGraph()
 				}
 				// to be enhanced once undo is handled by core
 				DocumentService.proofTitle = model.mainTactic.name
@@ -119,7 +131,7 @@ class EvalController(model:PSGraph) extends Publisher {
 				case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
 			}
 		} else {
-			TinkerDialog.openErrorDialog("<html>Error while loading json from file : object is empty.</html>")
+			TinkerDialog.openErrorDialog("Error while loading json from file : object is empty.")
 		}
 	}
 
@@ -140,8 +152,7 @@ class EvalController(model:PSGraph) extends Publisher {
 		publish(DisableEvalOptionsEvent())
 		o match {
 			case "PUSH" =>
-				model.updateJsonPSGraph()
-				CommunicationService.sendPSGraphChange(model.jsonPSGraph,JsonArray(evalPath.reverse))
+				CommunicationService.sendPSGraphChange(model.updateJsonPSGraph(),JsonArray(evalPath.reverse))
 			case "PULL" =>
 				loadJson(tmpEvalPSGraph)
 			case _ =>

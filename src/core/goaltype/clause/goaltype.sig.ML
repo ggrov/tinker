@@ -61,7 +61,7 @@ sig
    val eval_defs : data -> Prover.pnode -> T -> env -> env list
 
    val match_atomic : data -> Prover.pnode -> T -> env -> env list
- (* val match :  data -> Prover.pnode -> T -> env -> env list *)
+   val match :  data -> Prover.pnode -> T -> env -> env list 
    val imatch :  data -> Prover.pnode -> T -> env list
    val type_check : data -> Prover.pnode -> T -> bool
 
