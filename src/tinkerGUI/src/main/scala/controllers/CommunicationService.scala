@@ -153,7 +153,9 @@ object CommunicationService extends Publisher {
 								case goal: Json if goal == JsonNull => sendErrorResponse("RSP_ERROR_INIT_PSGRAPH", "no goal")
 								case goal: JsonBool =>
 									val rsppsgraph = if(psgraph.boolValue) JsonArray() else JsonArray(Service.model.updateJsonPSGraph())
-									val rspgoal = if(goal.boolValue) JsonArray() else JsonArray(JsonString(Service.evalCtrl.goal), JsonArray(Service.evalCtrl.assms.foldLeft(Array[JsonString]()){case(a,s)=>a:+JsonString(s)}))
+									val rspgoal =
+										if(goal.boolValue) JsonArray()
+										else JsonArray(JsonString(Service.evalCtrl.goal), JsonArray(Service.evalCtrl.assms.foldLeft(Array[JsonString]()){case(a,s)=>a:+JsonString(s)}))
 									send(JsonObject("cmd"->"RSP_INIT_PSGRAPH","psgraph"->rsppsgraph,"goal"->rspgoal))
 							}
 					}

@@ -1,6 +1,7 @@
 package tinkerGUI.utils
 
 import scala.swing._
+import scala.swing.event.KeyReleased
 
 /** Object implementing generic dialogs for tinker.
 	*
@@ -54,9 +55,10 @@ object TinkerDialog {
 		errorDialog.maximumSize = max
 		errorDialog.minimumSize = min
 		errorDialog.title = "Tinker - Error"
-		errorDialog.contents = new GridPanel(3,1){
+		errorDialog.contents = new GridPanel(2,1){
 			contents += new FlowPanel(){
-				contents += new Label(message){
+				contents += new Label("<html><body style='width:400px'>"+message+"</body></html>"){
+					maximumSize = new Dimension(max)
 					icon = new javax.swing.ImageIcon(tinkerGUI.views.MainGUI.getClass.getResource("error.png"), "Error")
 				}
 			}
@@ -65,9 +67,9 @@ object TinkerDialog {
 					action = new Action("OK"){def apply(){errorDialog.close()}}
 				}
 			}
-			contents += new FlowPanel(){
-				contents += new Label("<html><h5>If a problem persists, look at the project website : ggrov.github.io/tinker.</h5></html>")
-			}
+//			contents += new FlowPanel(){
+//				contents += new Label("<html><h5>If a problem persists, look at the project website : ggrov.github.io/tinker.</h5></html>")
+//			}
 		}
 		errorDialog.open()
 		errorDialog.centerOnScreen()
@@ -136,11 +138,11 @@ object TinkerDialog {
 						contents += t
 						textfieldMap += (k -> t)
 					} else if(k=="Name"||k=="Proof name"||k=="Goal"){
-						val t = new TextField(v, 15)
+						val t = new UnicodeTextField(v, 15)
 						contents += t
 						textfieldMap += (k -> t)
 					} else {
-						val t = new TextArea(v, 3, 20)
+						val t = new UnicodeTextArea(v, 3, 20)
 						contents += new ScrollPane(t)
 						textfieldMap += (k -> t)
 					}

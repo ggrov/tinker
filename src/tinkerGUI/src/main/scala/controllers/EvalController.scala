@@ -29,8 +29,6 @@ class EvalController(model:PSGraph) extends Publisher {
 		def success(values:Map[String,String]) {
 			assms = values("Assumptions").split("\n")
 			goal = values("Goal")
-			println(assms)
-			println(goal)
 		}
 		TinkerDialog.openEditDialog("Edit goal",Map("Assumptions"->assms.foldLeft(""){case(s,a)=>s+a+"\n"},"Goal"->goal),success,()=>Unit)
 	}
@@ -133,7 +131,7 @@ class EvalController(model:PSGraph) extends Publisher {
 				case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
 			}
 		} else {
-			TinkerDialog.openErrorDialog("<html>Error while loading json from file : object is empty.</html>")
+			TinkerDialog.openErrorDialog("Error while loading json from file : object is empty.")
 		}
 	}
 
