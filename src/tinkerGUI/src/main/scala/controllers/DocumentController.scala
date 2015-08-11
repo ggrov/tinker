@@ -111,7 +111,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 			json match {
 				case Some(j:JsonObject) =>
 					openJson(j)
-				case _ => TinkerDialog.openErrorDialog("<html>Error while loading json from file : not a json object.</html>")
+				case _ => TinkerDialog.openErrorDialog("Error while loading json from file : not a json object.")
 			}
 		}
 	}
@@ -130,7 +130,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 				case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
 			}
 		} else {
-			TinkerDialog.openErrorDialog("<html>Error while loading json from file : object is empty.</html>")
+			TinkerDialog.openErrorDialog("Error while loading json from file : object is empty.")
 		}
 	}
 

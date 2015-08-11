@@ -8,7 +8,7 @@ import tinkerGUI.model.exceptions.{SubgraphNotFoundException, GraphTacticNotFoun
 import scala.swing._
 import tinkerGUI.model.PSGraph
 import quanto.util.json._
-import tinkerGUI.utils.{FixedStack, TinkerDialog, ArgumentParser}
+import tinkerGUI.utils.{UnicodeParser, FixedStack, TinkerDialog, ArgumentParser}
 import scala.collection.mutable.ArrayBuffer
 
 object Service extends Publisher {
@@ -75,6 +75,13 @@ object Service extends Publisher {
 //			}
 		} catch {
 			case e: Exception =>
+		}
+
+		try {
+			UnicodeParser.loadMap(new File(".unicodeConfig"))
+		} catch {
+			case e: Exception =>
+				TinkerDialog.openErrorDialog("Error while opening .unicodeConfig<br>"+e.getMessage+"<br>Default settings will be used.")
 		}
 	}
 

@@ -20,7 +20,7 @@ class TreeGraph() extends Panel{
 		try{
 			drawElement(g, Service.hierarchyCtrl.root, 100, 30, 1, Array())
 		} catch {
-			case e:InfiniteTreeException => TinkerDialog.openErrorDialog("<html>The hierarchy tree could not be drawn as <br>"+e.msg+"</html>")
+			case e:InfiniteTreeException => TinkerDialog.openErrorDialog("The hierarchy tree could not be drawn.<br>"+e.msg)
 		}
 	}
 
