@@ -43,6 +43,6 @@
   use "../termlib/termlib.ML";
   use "../termlib/term_features.ML";  
   use "../../prover.sig.ML";
-  use "../pp_prover.ML";
+  use_file "../pp_prover.ML";
 
 

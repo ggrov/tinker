@@ -1,4 +1,4 @@
-structure PPProver : PROVER =
+structure PPProver (*: PROVER*) =
 struct
   local open LoggingHandler (*ProverUtils*) in 
   type pos = PPTermLib.pos
@@ -8,9 +8,16 @@ struct
   type context = string list * string (* context string list * theory string *)
   
   val default_ctxt = get_current_pc (); (* used in those place need context in general *)
-
+  
+  val symbol_table = [("%and%", "&"), ("%implies%", "==>")] |> StrName.NTab.of_list;
+  fun decode_str c = case StrName.NTab.lookup (symbol_table) (String.str c) 
+    of (SOME str') => str'
+      | NONE => (String.str c);
     
-  fun pretty_trm _ trm = String.concat (PrettyPrinter.format_term true trm) |> Pretty.str
+  fun pretty_trm _ trm = 
+   String.concat (PrettyPrinter.format_term true trm) 
+   |> String.translate decode_str 
+   |> Pretty.str
 
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
   

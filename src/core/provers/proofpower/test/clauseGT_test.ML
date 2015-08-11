@@ -1,5 +1,8 @@
   use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
 
+ use "build_clause_GT.ML"; 
+
+
   val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/";
   val path = tinker_path ^ "src/dev/psgraph/";
   val guiPath = tinker_path ^ "src/tinkerGUI/release/";
@@ -30,3 +33,31 @@
 
   TextSocket.safe_close();
 
+
+
+  val (pnode,pplan) = PPProver.init PPProver.default_ctxt [] ¬A´A´A®;                         
+ClauseGoalTyp.match data pnode (ClauseGoalTyp.scan_goaltyp  PPProver.default_ctxt "any") (PPProver.get_pnode_env pnode);
+
+ClauseGoalTyp.match data pnode (ClauseGoalTyp.scan_goaltyp  PPProver.default_ctxt "top_symbol(concl,implies)") (PPProver.get_pnode_env pnode);
+
+ClauseGoalTyp.project_terms (PPProver.get_pnode_env pnode) pnode ClauseGoalTyp.Concl |> maps top_level_str';
+
+
+top_symbol(IsaProver.get_pnode_env pnode) pnode [C.Var "X", C.Name "implies"];
+"top_symbol(concl,implies)";
+ "top_symbol(X,Implies)";
+
+
+PPProver.pretty_trm ([],"") 
+ttt ¬A´A´A®;
+
+[("%and%", "&"),("%implies%", "==>")];
+
+
+StrName.NTab.lookup (symbol_table) (String.str (#"%and%"));
+
+fun ttt trm = String.concat (PrettyPrinter.format_term true trm) |> String.translate decode_str|> Pretty.str;
+
+val s = String.concat (PrettyPrinter.format_term true ¬A´A´A®);
+
+decode_str (#"%and%");
