@@ -227,7 +227,8 @@ struct
      val init_json = Json.mk_object[
       ("cmd", Json.String "CMD_INIT_PSGRAPH"),
       ("psgraph", Json.Bool (Option.isSome ps_opt)),
-      ("goal", Json.Bool (Option.isSome g_opt))]
+      ("goal", Json.Bool (Option.isSome g_opt)),
+      ("log_info", buffer_to_json ())]
       val _ = logging_handler_print "JSON_GUI" ("JSON OUT: " ^ (Json.encode init_json))
       val _ = reset_data ()
     in

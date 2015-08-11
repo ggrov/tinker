@@ -97,7 +97,7 @@ struct
   fun get_pnode_hyps (pnode:pnode) = (#g pnode) |> fst;
   fun get_pnode_ctxt (pnode:pnode) = (#pctxt pnode) ;
   fun get_open_pnodes (pplan:pplan) = StrName.NTab.list_of (#opengs pplan) |> map snd (* should return some goals as top_goals () *)
-  fun get_open_pnode_by_name (pplan : pplan) name = StrName.NTab.get pplan name
+  fun get_open_pnode_by_name (pplan : pplan) name = StrName.NTab.get (#opengs pplan) name
 
   fun set_open_goals_pplan (pplan : pplan) ogs  = {opengs = ogs, usedgs = #usedgs pplan}
   fun set_pnode_pplan pnode (pplan : pplan) = 

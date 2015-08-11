@@ -2,11 +2,12 @@
  structure PPIntf = 
   struct
   
-  fun set_psg_goal (assms, goal) ps = 
+  fun set_psg_goal g ps_opt = 
     let 
+      val (assms, goal) = case g of NONE => (NONE, NONE) | SOME (x, y) => (SOME x, SOME y)
       val ctxt = get_current_pc() 
     in
-      Tinker.start_ieval ctxt ps assms goal 
+      Tinker.start_ieval ctxt ps_opt assms goal 
     end
  (*    
    fun set_psg_goal (assms, goal) mode psg searchf goalf = 
