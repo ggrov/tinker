@@ -74,6 +74,7 @@ struct
     | NONE => JsonInputUtils.get_array obj "psgraph" |> hd
     |> EData.PSGraph.input_json 
     val edata0 = IEVal.EVal.init ps ctxt assms g |> hd (* FIXME: only get the first one *)
+    handle _ => (logging "FAILURE" "Fail to init the goal with the top-level graph"; raise tinker_fail true);
     val _ = set_data edata0;
     val _ = pp_goal edata0 ()
    in
