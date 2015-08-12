@@ -27,7 +27,7 @@ class EvalController(model:PSGraph) extends Publisher {
 
 	def editGoal() {
 		def success(values:Map[String,String]) {
-			assms = values("Assumptions").split("\n")
+			assms = values("Assumptions").split("\n").filterNot(p => p=="")
 			goal = values("Goal")
 		}
 		TinkerDialog.openEditDialog("Edit goal",Map("Assumptions"->assms.foldLeft(""){case(s,a)=>s+a+"\n"},"Goal"->goal),success,()=>Unit)
@@ -60,9 +60,13 @@ class EvalController(model:PSGraph) extends Publisher {
 		inEval = b
 		if(!b) {
 			publish(DisableEvalOptionsEvent())
-			model.removeGoals
-			QuantoLibAPI.printEvaluationFlag(false)
-			QuantoLibAPI.loadFromJson(model.getCurrentJson)
+			try {
+				model.removeGoals()
+				QuantoLibAPI.printEvaluationFlag(false)
+				QuantoLibAPI.loadFromJson(model.getCurrentJson)
+			} catch {
+				case e:PSGraphModelException => QuantoLibAPI.loadFromJson(JsonObject())
+			}
 		} else {
 			Service.editCtrl.changeMouseState("select")
 		}
