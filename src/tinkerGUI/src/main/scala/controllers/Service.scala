@@ -78,10 +78,10 @@ object Service extends Publisher {
 		}
 
 		try {
-			UnicodeParser.loadMap(new File(".unicodeConfig"))
+			UnicodeParser.loadMap(new File("unicodeConfig"))
 		} catch {
 			case e: Exception =>
-				TinkerDialog.openErrorDialog("Error while opening .unicodeConfig<br>"+e.getMessage+"<br>Default settings will be used.")
+				TinkerDialog.openErrorDialog("Error while opening unicodeConfig<br>"+e.getMessage+"<br>Default settings will be used.")
 		}
 	}
 

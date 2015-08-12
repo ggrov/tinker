@@ -16,8 +16,8 @@ object UnicodeParser {
 		* Should be set on application initialisation.
 		* Associates a character sequence to a unicode character.
 		*/
-	var unicodeMap = Map[String,String](
-		"\\not " -> "\u00AC ", // ¬,
+	var unicodeMap = Map[String,String]()
+/*		"\\not " -> "\u00AC ", // ¬,
 		"\\Gamma " -> "\u0393 ", // Γ,
 		"\\Theta " -> "\u0398 ", // Θ,
 		"\\Lambda " -> "\u039B ", // Λ,
@@ -122,7 +122,7 @@ object UnicodeParser {
 		"\\fset " -> "\uD835\uDD3D ", // 𝔽,
 		"\\symbol " -> "\uD835\uDD4A ", // 𝕊,
 		"\\bbU " -> "\uD835\uDD4C " // 𝕌,
-	)
+	)*/
 
 	/** Method loading the unicode map from a file.
 		* Load the default map if it fails.

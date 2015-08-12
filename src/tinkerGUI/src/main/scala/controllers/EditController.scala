@@ -53,7 +53,7 @@ class EditController(model:PSGraph) extends Publisher {
 	def updateTacticEditor() {
 		tacticEditor.clear()
 		tacticEditor.appendText("// edit your tactic here\n")
-		model.atCollection.foreach{ case (k,v) =>
+		model.atCollection.foreach{ case (k,v) if v.tactic.nonEmpty =>
 			tacticEditor.appendText("tactic "+v.name+" := "+v.tactic+";\n")
 		}
 	}
@@ -230,7 +230,7 @@ class EditController(model:PSGraph) extends Publisher {
 					QuantoLibAPI.userAddVertex(pt,typ,"")
 				case "T_Atomic" =>
 					def successCallback(values:Map[String,String]) {
-						val name = ArgumentParser.separateNameArgs(values("Name"))._1
+						val name = if(values("Name").charAt(0) == '?') values("Name") else ArgumentParser.separateNameArgs(values("Name"))._1
 						if(name.isEmpty){
 							TinkerDialog.openEditDialog("Create atomic tactic",values,successCallback,()=>Unit)
 						} else {
@@ -379,7 +379,7 @@ class EditController(model:PSGraph) extends Publisher {
 		try{
 			if(isAtomicTactic){
 				def successCallback(values:Map[String,String]) {
-					val name = ArgumentParser.separateNameArgs(values("Name"))._1
+					val name = if(values("Name").charAt(0) == '?') values("Name") else ArgumentParser.separateNameArgs(values("Name"))._1
 					if(name.isEmpty){
 						TinkerDialog.openEditDialog("Edit atomic tactic",values,successCallback,()=>Unit)
 					} else {
