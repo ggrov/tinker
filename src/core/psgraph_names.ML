@@ -28,6 +28,12 @@
 
  fun str_chunks l = 
   let fun c (a,b) = a ^ "\n" ^ b; val l' = rev l in 
+  case l of [] => "" | _ =>
   List.foldl c (hd l') (tl l') end;
+ fun str_blocks comb l = 
+  let fun c (a,b) = a ^ comb ^ b; val l' = rev l in
+  case l of [] => "" | _ => 
+  List.foldl c (hd l') (tl l') end;
+ 
  val gui_version = "0.4"
 
