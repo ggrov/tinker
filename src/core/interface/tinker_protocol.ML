@@ -63,12 +63,14 @@ struct
     val g = case (#2 init_data) of 
       (SOME g0) => g0
      | NONE => JsonInputUtils.get_array obj "goal" |> hd 
-      |> (fn (Json.String str) => EData.PSGraph.Theory.GoalTyp.Prover.trm_of_string ctxt str)
+      |> (fn (Json.String str) => EData.PSGraph.Theory.GoalTyp.Prover.prop_of_string ctxt str)
+    val _ = logging "EVAL" ("TO prove goal:" ^ (EData.PSGraph.Theory.GoalTyp.Prover.string_of_trm ctxt g))
     val assms = case (#3 init_data) of 
       (SOME assms) => assms
     | NONE => JsonInputUtils.get_array obj "goal" |> tl |> hd 
        |> (fn (Json.Array arr) => 
-            map (fn (Json.String str) => EData.PSGraph.Theory.GoalTyp.Prover.trm_of_string ctxt str) arr) 
+            map (fn (Json.String str) => EData.PSGraph.Theory.GoalTyp.Prover.prop_of_string ctxt str) arr) 
+    val _ = logging "EVAL" ("With assms: " ^ (str_blocks " " (map (EData.PSGraph.Theory.GoalTyp.Prover.string_of_trm ctxt) assms)))
     val ps = case (#4 init_data) of 
       (SOME ps) => ps
     | NONE => JsonInputUtils.get_array obj "psgraph" |> hd
@@ -176,6 +178,10 @@ struct
       ("cmd", Json.String "RSP_EXCEPTION"),
       ("log_info", buffer_to_json ()),
       ("if_interrupt", Json.Bool b)]
+    | _ => Json.mk_object[
+      ("cmd", Json.String "RSP_EXCEPTION"),
+      ("log_info", buffer_to_json ()),
+      ("if_interrupt", Json.Bool true)]
 
   end
 

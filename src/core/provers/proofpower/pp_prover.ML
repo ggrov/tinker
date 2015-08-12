@@ -1,3 +1,4 @@
+(*TODO: add goal_state in pplan, top_goal_state to save it, drop_main_goal (); push_goal_state to load it when backtracking *)
 structure PPProver (*: PROVER*) =
 struct
   local open LoggingHandler (*ProverUtils*) in 
@@ -91,6 +92,7 @@ struct
   val asms_of_thm =  asms
   (* get asm of thm - asms*)
   fun trm_of_string _ = mk_string 
+  val prop_of_string = trm_of_string
   
 (* TODO: how to print those fancy symbols in proofpower ?*)
   fun string_of_trm _ = fn trm => PrettyPrinter.format_term true trm |> String.concat
@@ -131,6 +133,7 @@ struct
     
   structure THM_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = thm val struct_name = "PPProver.THM_ML_Exec");
   fun get_thm_by_name _ str = THM_ML_Exec.eval_ml str
+  (logging "FAILURE" ("Fail to get thm by name: " ^ name); raise tinker_fail true);
   
   exception atomic_exp of string
   val psgraph_prover_i = "proofpower";
