@@ -19,7 +19,7 @@ object ArgumentParser {
 		* @return Pair of strings, one for the tactic name, the other for its arguments.
 		*/
 	def separateNameArgs(s: String): (String, String) = {
-		if(s.contains("(")){
+		if(s.contains("(") && s.charAt(0) != '?'){
 			val parts = s.split(Pattern.quote("("),2)
 			var args = ""
 			if(parts.size > 1){
