@@ -1,4 +1,4 @@
-
+(* an simple example for conv tac *)
 fun thm_conv thm = 
   (fn trm =>
    pure_once_rewrite_conv [thm] trm);
