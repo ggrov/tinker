@@ -65,6 +65,7 @@ val tac4 = REPEAT strip_tac THEN
 (******************************************)
 (* experiments*)
 (******************************************)
+  fun drop_asm_tac ast = DROP_ASM_T ast (fn _ => id_tac);
   PPIntf.set_psg_goal (SOME ([], ¬A%and%A%and%AÂ®)) (SOME ps);
 
   TextSocket.safe_close();
