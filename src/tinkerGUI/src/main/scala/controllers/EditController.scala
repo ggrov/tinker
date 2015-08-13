@@ -53,8 +53,10 @@ class EditController(model:PSGraph) extends Publisher {
 	def updateTacticEditor() {
 		tacticEditor.clear()
 		tacticEditor.appendText("// edit your tactic here\n")
-		model.atCollection.foreach{ case (k,v) if v.tactic.nonEmpty =>
-			tacticEditor.appendText("tactic "+v.name+" := "+v.tactic+";\n")
+		model.atCollection.foreach{
+			case (k,v) if v.tactic.nonEmpty =>
+				tacticEditor.appendText("tactic "+v.name+" := "+v.tactic+";\n")
+			case _ =>
 		}
 	}
 
@@ -180,6 +182,9 @@ class EditController(model:PSGraph) extends Publisher {
 			case DragVertex(start, end) =>
 				if(start.getX != end.getX || start.getY != end.getY) {
 					//QuantoLibAPI.moveVertex(start, end)
+				}
+				if(Service.evalCtrl.recording){
+					Service.evalCtrl.overwriteLastRecord()
 				}
 				mouseState = SelectTool()
 			case SelectionBox(start, _) =>

@@ -84,6 +84,9 @@ class EvalController(model:PSGraph) extends Publisher {
 			recording = b
 		}
 	}
+	def overwriteLastRecord() {
+		records(records.size-1) = model.updateJsonPSGraph()
+	}
 
 	/** Method saving the eval path from the model.*/
 	def saveEvalPath() {

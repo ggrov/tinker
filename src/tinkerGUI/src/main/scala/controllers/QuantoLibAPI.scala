@@ -800,6 +800,8 @@ object QuantoLibAPI extends Publisher{
 						rearrangeGoals(v,(delta._1),f,goals)
 					}
 					rec(succ,tvarX+delta._2._1,tvarY+delta._2._2)
+				} else if(succ.s == v.s && goals.nonEmpty) {
+					 // if goals on recursive edge
 				}
 			}
 		}
