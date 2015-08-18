@@ -1,7 +1,7 @@
 (* build tinker *)
  use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
 
- val path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/src/core/demo/AdvisoryBoardMeeting2015/" ;
+ val path = OS.FileSys.getDir() ^ "/psgraph/src/core/demo/AdvisoryBoardMeeting2015/";
 
 (* choose which logging info do we want *)
   LoggingHandler.clear_active_tags ();
