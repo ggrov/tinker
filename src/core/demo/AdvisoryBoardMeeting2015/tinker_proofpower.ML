@@ -4,6 +4,6 @@
 (* Load the proof strategy *)
   val ps = PSGraph.read_json_file (path ^"demo.psgraph");
 (* Proofs *)
-  PPIntf.set_psg_goal ([¬B : BOOL®], ¬A ´ (A ± B ± (C ´ C))®) ps;
+  PPIntf.set_psg_goal (SOME ([¬B : BOOL®], ¬A ´ (A ± B ± (C ´ C))®)) (SOME ps);
 
   TextSocket.safe_close();
