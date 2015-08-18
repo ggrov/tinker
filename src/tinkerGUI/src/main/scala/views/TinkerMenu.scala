@@ -1,6 +1,6 @@
 package tinkerGUI.views
 
-import tinkerGUI.controllers.events.DocumentChangedEvent
+import tinkerGUI.controllers.events.{RecordStartStopEvent, RecordFileSetupEvent, DocumentChangedEvent}
 import tinkerGUI.controllers.{DocumentService, QuantoLibAPI, Service}
 
 import scala.swing._
@@ -141,38 +141,65 @@ class TinkerMenu() extends MenuBar{
 	}
 
 	// for test purpose
-	val Debug = new Menu("Debug"){ menu =>
+	val Debug = new Menu("Debug") {menu =>
 		mnemonic = Key.D
-		new Action("Open eval log window"){
+		new Action("Open eval log window") {
 			menu.contents += new MenuItem(this)
-			def apply(){
+
+			def apply() {
 				Service.evalCtrl.logStack.openFrame("Tinker - eval log")
 			}
 		}
-		new Action("Open edit log window"){
+		new Action("Open edit log window") {
 			menu.contents += new MenuItem(this)
-			def apply(){
+
+			def apply() {
 				Service.editCtrl.logStack.openFrame("Tinker - edit log")
 			}
 		}
 		new Action("Print JSON in Console") {
 			menu.contents += new MenuItem(this)
-			def apply(){
+
+			def apply() {
 				Service.debugPrintJson()
 			}
 		}
+	}
+	val Record = new Menu("Record"){ menu =>
+		mnemonic = Key.R
 		new Action("Start recording") {
-			menu.contents += new MenuItem(this)
-			def apply() {
-				if(Service.evalCtrl.recording){
-					Service.evalCtrl.setRecording(false)
-				} else {
-					Service.evalCtrl.setRecording(true)
+			menu.contents += new MenuItem(this){
+				enabled = false
+				listenTo(Service.recordCtrl)
+				reactions += {
+					case RecordFileSetupEvent(setup) =>
+						enabled = setup
 				}
-				this.title = if(Service.evalCtrl.recording) "Stop recording" else "Start recording"
+			}
+			def apply() {
+				if(Service.recordCtrl.recording){
+					Service.recordCtrl.stopRecording()
+					//Service.evalCtrl.setRecording(false)
+				} else {
+					Service.recordCtrl.startRecording()
+					//Service.evalCtrl.setRecording(true)
+				}
+				this.title = if(Service.recordCtrl.recording) "Stop recording" else "Start recording"
+			}
+		}
+		new Action("Set up file for recording") {
+			menu.contents += new MenuItem(this){
+				listenTo(Service.recordCtrl)
+				reactions += {
+					case RecordStartStopEvent(recording) =>
+						enabled = !recording
+				}
+			}
+			def apply() {
+				Service.recordCtrl.setupFile()
 			}
 		}
 	}
 
-	contents += (FileMenu, EditMenu, Debug)
+	contents += (FileMenu, EditMenu, Debug, Record)
 }

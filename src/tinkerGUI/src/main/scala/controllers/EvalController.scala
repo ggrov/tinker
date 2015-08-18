@@ -72,22 +72,6 @@ class EvalController(model:PSGraph) extends Publisher {
 		}
 	}
 
-	var records = Array[JsonObject]()
-	var recording = false
-	def setRecording(b:Boolean) {
-		if(recording && !b){
-			JsonArray(records).writeTo(new File("records.json"))
-			records = Array()
-			recording = b
-		} else if(!recording && b && inEval) {
-			records = records :+ model.updateJsonPSGraph()
-			recording = b
-		}
-	}
-	def overwriteLastRecord() {
-		records(records.size-1) = model.updateJsonPSGraph()
-	}
-
 	/** Method saving the eval path from the model.*/
 	def saveEvalPath() {
 		evalPath = model.currentParents :+ model.getCurrentGTName
@@ -124,9 +108,7 @@ class EvalController(model:PSGraph) extends Publisher {
 				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
 				QuantoLibAPI.loadFromJson(model.getCurrentJson)
 				Service.editCtrl.updateEditors
-				if(recording) {
-					records = records :+ model.updateJsonPSGraph()
-				}
+				Service.recordCtrl.record()
 				// to be enhanced once undo is handled by core
 				DocumentService.proofTitle = model.mainTactic.name
 				Service.documentCtrl.undoStack.empty()

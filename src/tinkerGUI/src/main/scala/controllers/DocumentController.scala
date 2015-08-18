@@ -145,7 +145,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 			case Some(_) => DocumentService.save(None, tmpModel.updateJsonPSGraph())
 			case None => DocumentService.saveAs(None, tmpModel.updateJsonPSGraph())
 		}
-		publish(DocumentChangedEvent(unsavedChanges))
+		//publish(DocumentChangedEvent(unsavedChanges))
 		// we leave the setting of unsavedChanges and the event in document service as errors might happen
 	}
 
@@ -156,7 +156,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 		val tmpModel = model
 		tmpModel.removeGoals()
 		DocumentService.saveAs(None, tmpModel.updateJsonPSGraph())
-		publish(DocumentChangedEvent(unsavedChanges))
+		//publish(DocumentChangedEvent(unsavedChanges))
 		// we leave the setting of unsavedChanges and the event in document service as errors might happen
 	}
 

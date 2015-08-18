@@ -114,3 +114,16 @@ case class DisableNavigationEvent(a:Array[String]) extends Event
 	*
 	*/
 case class MouseStateChangedEvent(state:String) extends Event
+
+// launched by record controller
+/** Event notifying of file setup for recording.
+  *
+  * @param setup If record file is correctly setup.
+  */
+case class RecordFileSetupEvent(setup:Boolean) extends Event
+
+/** Event notifying of record started / stopped.
+  *
+  * @param recording If currently recording.
+  */
+case class RecordStartStopEvent(recording:Boolean) extends Event
