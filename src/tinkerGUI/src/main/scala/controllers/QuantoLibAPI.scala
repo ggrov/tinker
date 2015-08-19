@@ -701,7 +701,7 @@ object QuantoLibAPI extends Publisher{
 		graph.vdata(VName(v)) match {
 			case d:NodeV if d.typ == "G_Break" =>
 				val break = v
-				val edata = DirEdge.fromJson(theory.defaultEdgeData, theory)
+				val edata = graph.edata(graph.inEdges(break).head)
 				val src = graph.source(graph.inEdges(break).head)
 				val tgt = graph.target(graph.outEdges(break).head)
 				graph.adjacentEdges(break).foreach {e => view.invalidateEdge(e) ; changeGraph(graph.deleteEdge(e))}
