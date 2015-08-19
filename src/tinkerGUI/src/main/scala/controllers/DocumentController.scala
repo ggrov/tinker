@@ -211,7 +211,6 @@ class DocumentController(model:PSGraph) extends Publisher {
 		*/
 	def resetApp() {
 		Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
-		Service.libraryTreeCtrl.modelCreated = true
 		unsavedChanges = false
 		undoStack.empty()
 		redoStack.empty()

@@ -33,9 +33,6 @@ class TinkerLibraryController() extends Publisher {
 	/** Currently viewed subgraph index.*/
 	var currentIndex = 0
 
-	/** Model to work on. */
-	var modelCreated = false
-
 	/** Method to get the preview from QuantoLibAPI.*/
 	def getLibraryView = QuantoLibAPI.getLibraryPreview
 
@@ -75,7 +72,6 @@ class TinkerLibraryController() extends Publisher {
 					var arr = Array[String]()
 					if(index==0) arr = arr :+ "previous"
 					if(index == tacSize-1) arr = arr :+ "next"
-					if(!modelCreated) arr = arr :+ "addtograph"
 					publish(DisableNavigationEvent(arr))
 				} else {
 					//QuantoLibAPI.updateLibraryPreviewFromJson(json / "graph")
