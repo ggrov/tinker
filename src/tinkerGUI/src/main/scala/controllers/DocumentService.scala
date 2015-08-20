@@ -3,7 +3,6 @@
 
 package tinkerGUI.controllers
 
-import quanto.util.FileHelper
 import tinkerGUI.controllers.events.DocumentChangedEvent
 import tinkerGUI.utils.TinkerDialog
 
@@ -13,17 +12,39 @@ import quanto.util.json._
 import java.util.prefs.Preferences
 import javax.swing.filechooser.FileNameExtensionFilter
 
+/** Service to read and write psgraph files on the file management system.
+	*
+	* Inspired by [[quanto.gui.Document]].
+	*/
 object DocumentService extends Publisher {
+
+	/** Optional current file, on which to save the current psgraph.
+		* Note that the file name is also used as the document title.
+		*/
 	var file : Option[File] = None
 
-	var proofTitle = "untitled"
+	/** Current proof name, used as document title until the model has been saved on a file.*/
+	var proofTitle = Service.model.mainTactic.name
 
+	/** Method returning the document title (e.g. to be printed on windows).
+		*
+		* @return The title : either [[file]]'s name or [[proofTitle]]'s value.
+		*/
 	def title = file.map(f => f.getName).getOrElse(proofTitle)
 
+	/** Method to access the previous directory used by the user.
+		*
+		* @return Previous directory used by user.
+		*/
 	def previousDir: File = {
 		val prefs = Preferences.userRoot().node(this.getClass.getName)
 		new File(prefs.get("previousDir", System.getProperty("user.home")))
 	}
+
+	/** Method to set the previous directory used by the user.
+		*
+		* @param f File to become previous directory.
+		*/
 	def previousDir_=(f: File) {
 		val dir = if (f.isDirectory) f.getPath else f.getParent
 		if (dir != null) {
@@ -32,6 +53,11 @@ object DocumentService extends Publisher {
 		}
 	}
 
+	/** Method to save a psgraph model onto a file.
+		*
+		* @param fopt Optional file, default value is None, which will make the psgraph on [[file]]
+		* @param json Psgraph model in json format.
+		*/
 	def save(fopt: Option[File] = None, json: Json){
 		fopt.orElse(file).map { f =>
 			try {
@@ -51,6 +77,14 @@ object DocumentService extends Publisher {
 		}
 	}
 
+	/** Method to save a psgraph model onto a file.
+		* Will open a chooser dialog so the user can choose in which directory to save the psgraph,
+		* and if a new file should be created.
+		*
+		* @param rootDir Optional directory with which to set the chooser starting directory.
+		*                Default value is None which will make use of [[previousDir]].
+		* @param json Psgraph model in json format.
+		*/
 	def saveAs(rootDir: Option[String] = None, json: Json) {
 		val chooser = new FileChooser()
 		chooser.peer.setCurrentDirectory(rootDir match {
@@ -69,6 +103,11 @@ object DocumentService extends Publisher {
 		}
 	}
 
+	/** Method to save the current graph in a svg file.
+		*
+		* @param rootDir Optional directory with which to set the chooser starting directory.
+		*                Default value is None which will make use of [[previousDir]].
+		*/
 	def exportSvg(rootDir: Option[String] = None): Unit ={
 		val chooser = new FileChooser()
 		chooser.peer.setCurrentDirectory(rootDir match {
@@ -87,7 +126,13 @@ object DocumentService extends Publisher {
 		}
 	}
 
-	def promptExists(f: File) = {
+	/** Method displaying a prompt dialog in case a file exist.
+		* Will ask if the user want to overwrite the file.
+		*
+		* @param f File to check the existence of.
+		* @return Boolean if file is writable (true if file does not exist or user approved of overwriting).
+		*/
+	def promptExists(f: File):Boolean = {
 		if (f.exists()) {
 			Dialog.showConfirmation(
 				title = "File exists",
@@ -96,7 +141,13 @@ object DocumentService extends Publisher {
 		else true
 	}
 
-	def promptUnsaved(json: Json) = {
+	/** Method displaying a prompt dialog in case there are unsaved changes on the document.
+		* Will ask the user if they want to save those changes or discard them.
+		*
+		* @param json Psgraph model in json, in case it needs to be saved.
+		* @return Boolean to inform of save made if wanted.
+		*/
+	def promptUnsaved(json: Json):Boolean = {
 		if (Service.documentCtrl.unsavedChanges) {
 			val choice = Dialog.showOptions(
 				title = "Unsaved changes",
@@ -104,7 +155,6 @@ object DocumentService extends Publisher {
 				entries = "Save" :: "Discard" :: "Cancel" :: Nil,
 				initial = 0
 			)
-			// scala swing dialogs implementation is dumb, here's what I found :
 			// Result(0) = Save, Result(1) = Discard, Result(2) = Cancel
 			if (choice == Dialog.Result(0)) {
 				file match {
@@ -117,6 +167,12 @@ object DocumentService extends Publisher {
 		} else true
 	}
 
+	/** Method displaying a chooser dialog from which users can select a file to open.
+		*
+		* @param rootDir Optional directory with which to set the chooser starting directory.
+		*                Default value is None which will make use of [[previousDir]].
+		* @return Optional json result from loading the file (see [[load]]).
+		*/
 	def showOpenDialog(rootDir: Option[String] = None): Option[Json] = {
 		val chooser = new FileChooser()
 		chooser.peer.setCurrentDirectory(rootDir match {
@@ -135,6 +191,11 @@ object DocumentService extends Publisher {
 		}
 	}
 
+	/** Method opening a file and retrieving the potential json it has.
+		*
+		* @param f File to open.
+		* @return Optional json result, None if exception occurs (unreadable file, bad json format, ...).
+		*/
 	def load(f : File): Option[Json] = {
 		try {
 			val json = Json.parse(f)

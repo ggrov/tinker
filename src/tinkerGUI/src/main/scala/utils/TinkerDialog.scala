@@ -89,7 +89,7 @@ object TinkerDialog {
 		infoDialog.title = "Tinker - Message"
 		infoDialog.contents = new GridPanel(3,1){
 			contents += new FlowPanel(){
-				contents += new Label(message)
+				contents += new Label("<html><body style='width:400px'>"+message+"</body></html>")
 			}
 			contents += new FlowPanel(){
 				contents += new Button(){

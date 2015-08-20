@@ -2,10 +2,10 @@ package tinkerGUI.controllers
 
 import java.io.File
 
-import quanto.util.json.{JsonObject, JsonAccessException, Json}
+import quanto.util.json.{JsonObject, JsonAccessException}
 import tinkerGUI.controllers.events.{GraphTacticListEvent, CurrentGraphChangedEvent, DocumentChangedEvent}
 import tinkerGUI.model.PSGraph
-import tinkerGUI.model.exceptions.{PSGraphModelException, AtomicTacticNotFoundException, GraphTacticNotFoundException, SubgraphNotFoundException}
+import tinkerGUI.model.exceptions.{PSGraphModelException, SubgraphNotFoundException}
 import tinkerGUI.utils.{TinkerDialog, FixedStack}
 
 import scala.collection.mutable.ArrayBuffer
@@ -26,6 +26,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 	/** Boolean to know if there are any unsaved changes.*/
 	var unsavedChanges:Boolean = false
 
+	/** Stack of the last 5 psgraphs files accessed.*/
 	val recentProofs = new FixedStack[(String,String)](5)
 
 	/** Method to undo changes.
@@ -37,11 +38,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 				try{
 					redoStack.push(model.updateJsonPSGraph())
 					model.loadJsonGraph(j)
-					QuantoLibAPI.loadFromJson(model.getCurrentJson)
-					Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
-					Service.editCtrl.updateEditors
-					publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
-					publish(DocumentChangedEvent(unsavedChanges))
+					modelReload()
 				} catch {
 					case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 					case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
@@ -59,11 +56,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 				try{
 					undoStack.push(model.updateJsonPSGraph())
 					model.loadJsonGraph(j)
-					QuantoLibAPI.loadFromJson(model.getCurrentJson)
-					Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
-					Service.editCtrl.updateEditors
-					publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
-					publish(DocumentChangedEvent(unsavedChanges))
+					modelReload()
 				} catch {
 					case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 					case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
@@ -78,11 +71,11 @@ class DocumentController(model:PSGraph) extends Publisher {
 		* Note that this method should be called before making any changes.
 		*/
 	def registerChanges() {
-		if(Service.evalCtrl.inEval) {
-			Service.evalCtrl.enableEvalOptions(ArrayBuffer("PUSH"))
-			QuantoLibAPI.printEvaluationFlag(true)
-		}
 		if(undoStack.getTop.toString != model.updateJsonPSGraph().toString() && (if(!model.isMain) model.getSizeGT(model.getCurrentGTName) > model.currentIndex else true)){
+			if(Service.evalCtrl.inEval) {
+				Service.evalCtrl.enableEvalOptions(ArrayBuffer("PUSH"))
+				QuantoLibAPI.printEvaluationFlag(true)
+			}
 			undoStack.push(model.jsonPSGraph)
 			redoStack.empty()
 			unsavedChanges = true
@@ -99,6 +92,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 
 	/** Method to open a Json object and set it as the model.
 		*
+		* @param file Optional file from which to get the json. Default value is none and will trigger a chooser dialog.
 		*/
 	def openJson(file:Option[String]=None) {
 		val tmpModel = model
@@ -124,7 +118,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 		if(j.nonEmpty){
 			try{
 				model.loadJsonGraph(j)
-				resetApp()
+				resetDoc()
 			} catch {
 				case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)
 				case e:JsonAccessException => TinkerDialog.openErrorDialog(e.getMessage)
@@ -138,7 +132,6 @@ class DocumentController(model:PSGraph) extends Publisher {
 		*
 		*/
 	def saveJson() {
-		//model.updateJsonPSGraph()
 		val tmpModel = model
 		tmpModel.removeGoals()
 		DocumentService.file match {
@@ -160,7 +153,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 		// we leave the setting of unsavedChanges and the event in document service as errors might happen
 	}
 
-	/** Method to save the model in a new file.
+	/** Method to close the document, i.e. making sure everything is saved before exiting the application.
 		*
 		* @return Boolean to know if everything was correctly saved.
 		*/
@@ -173,6 +166,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 
 	/** Method to open a new empty model.
 		*
+		* Opens a dialog to get the proof name.
 		*/
 	def newDoc() {
 		val tmpModel = model
@@ -182,7 +176,7 @@ class DocumentController(model:PSGraph) extends Publisher {
 				try{
 					model.reset(values("Proof name"))
 					DocumentService.file = None
-					resetApp()
+					resetDoc()
 				} catch {
 					case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 				}
@@ -192,6 +186,12 @@ class DocumentController(model:PSGraph) extends Publisher {
 		}
 	}
 
+	/** Method opening a new empty model, with given proof name.
+		*
+		* Deprecated, since it was only used by the init app dialog [[tinkerGUI.views.MainGUI]], which not used anymore.
+		*
+		* @param name Proof name to give to the new model.
+		*/
 	def newDoc(name:String): Unit ={
 		val tmpModel = model
 		tmpModel.removeGoals()
@@ -199,26 +199,35 @@ class DocumentController(model:PSGraph) extends Publisher {
 			try{
 				model.reset(name)
 				DocumentService.file = None
-				resetApp()
+				resetDoc()
 			} catch {
 				case e:SubgraphNotFoundException => TinkerDialog.openErrorDialog(e.msg)
 			}
 		}
 	}
 
-	/** Method restoring the application state when using a new proof.
+	/** Method restoring the document state when using a new proof.
+		* Also calls [[modelReload]]
 		*
+		* @param unsaved Value of [[unsavedChanges]] after reset, default if false.
 		*/
-	def resetApp() {
-		Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
-		unsavedChanges = false
+	def resetDoc(unsaved:Boolean=false) {
+		unsavedChanges = unsaved
 		undoStack.empty()
 		redoStack.empty()
 		DocumentService.proofTitle = model.mainTactic.name
+		modelReload()
+	}
+
+	/** Method calling every methods and events to restore the app when a new model has been loaded.
+		*
+		*/
+	def modelReload(){
 		QuantoLibAPI.loadFromJson(model.getCurrentJson)
-		publish(GraphTacticListEvent())
+		Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
+		Service.editCtrl.updateEditors()
 		publish(CurrentGraphChangedEvent(model.getCurrentGTName, Some(model.currentParents)))
 		publish(DocumentChangedEvent(unsavedChanges))
-		Service.editCtrl.updateEditors
+		publish(GraphTacticListEvent())
 	}
 }

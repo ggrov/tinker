@@ -4,7 +4,9 @@ import scala.collection.mutable.ArrayBuffer
 import scala.swing.event.Event
 
 // Launched by EditController, DocumentController and EvalController
-/** Event notifying of a change in the graph tactic list.*/
+/** Event notifying of a change in a graph tactic list.
+  *
+  */
 case class GraphTacticListEvent() extends Event
 
 /** Event notifying of a new graph being edited.
@@ -15,11 +17,15 @@ case class GraphTacticListEvent() extends Event
 case class CurrentGraphChangedEvent(current:String, parents:Option[Array[String]]) extends Event
 
 // Launched by HierarchyController
-/** Event for redrawing the hierarchy tree.*/
+/** Event for redrawing the hierarchy tree.
+  *
+  */
 case class RedrawHierarchyTreeEvent() extends Event
 
 // Launched by QuantoLibAPI
-/** Event notifying of an empty selection.*/
+/** Event notifying of an empty node/edge selection.
+  *
+  */
 case class NothingSelectedEvent() extends Event
 
 /** Event notifying of a selection containing one vertex.
@@ -46,19 +52,15 @@ case class OneEdgeSelectedEvent(name: String, value: String, source: String, tar
 case class ManyVerticesSelectedEvent(vnames : Set[String]) extends Event
 
 //Launched by EvalController
-
-/** Event notifying of a change in the logs.
-	*
-	*/
-case class EvalLogEvent() extends Event
-
-/** Event notifying of new available evaluation options.
+/** Event to enable evaluation options.
 	*
 	* @param a List of available options.
 	*/
 case class EnableEvalOptionsEvent(a:ArrayBuffer[String]) extends Event
 
-/** Even notifying of no available evaluation options.*/
+/** Even to disable evaluation options.
+  *
+  */
 case class DisableEvalOptionsEvent() extends Event
 
 /** Event notifying of the selection of an evaluation option by the user.

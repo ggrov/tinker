@@ -13,12 +13,12 @@ import java.net._
 import java.io._
 import ExecutionContext.Implicits.global
 
-/** Object listing the potential evaluation statuses.*/
+/** Object listing the potential protocol states.*/
 object CommunicationState extends Enumeration {
-	val WaitingForPsgraph, NotConnected, WaitingForEvalOptions, WaitingForUserChoice, WaitingForPsgraphUpdate = Value
+	val WaitingForUpdate, NotConnected, WaitingForEvalOptions, WaitingForUserChoice, WaitingForInit = Value
 }
 
-/** Service establishing and managing the connection with the core.*/
+/** Service establishing and managing connection with core.*/
 object CommunicationService extends Publisher {
 
 	/** Connection status.*/
@@ -35,7 +35,6 @@ object CommunicationService extends Publisher {
 
 	/** Evaluation status.*/
 	var state:CommunicationState.Value = CommunicationState.NotConnected
-	//reInitConnection
 
 	/** Method closing the connection.
 		*
@@ -54,7 +53,7 @@ object CommunicationService extends Publisher {
 	/** Method opening a connection.
 		*
 		* It will launch a socket and wait for a connection on it.
-		* A successful connection will launch the 'listen' method.
+		* A successful connection will launch the [[listen]] method.
 		*/
 	def openConnection() {
 		if(!connecting){
@@ -71,7 +70,7 @@ object CommunicationService extends Publisher {
 					println("GUI speaking : connected !")
 					connected = true
 					publish(ConnectedToCoreEvent(connected))
-					state = CommunicationState.WaitingForPsgraph
+					state = CommunicationState.WaitingForInit
 					listen()
 				case Failure(t) =>
 					connecting = false
@@ -83,7 +82,7 @@ object CommunicationService extends Publisher {
 
 	/** Method listening for incoming messages.
 		*
-		* As soon as a message arrives in the buffered reader, the 'getMessage' method is launched.
+		* As soon as a message arrives in the buffered reader, the [[getMessage]] method is launched.
 		*/
 	def listen() {
 		if(connected){
@@ -99,12 +98,10 @@ object CommunicationService extends Publisher {
 		}
 	}
 
-	var i = 0
-
 	/** Method getting a complete message from a buffered reader.
 		*
 		* The message is fetched while there are strings in the buffered reader.
-		* When it is finish the 'parseAndExecute' method is launched, and the 'listen' method after that.
+		* When it is finish the [[parseAndExecute]] method is launched, and the [[listen]] method after that.
 		*
 		* @param in Buffered Reader were the message is incoming.
 		* @param firstLine Message's first line that came in the reader.
@@ -141,36 +138,35 @@ object CommunicationService extends Publisher {
 			case cmd: Json if cmd == JsonNull => sendErrorResponse("RSP_MESSAGE_ERROR", "no command")
 			// if command found
 			case cmd: Json => cmd.stringValue match {
-				case "CMD_SHOW_GUI" =>
+				case "CMD_SHOW_GUI" => // deprecated
 					Service.showTinkerGUI(true)
-				case "CMD_HIDE_GUI" =>
+				case "CMD_HIDE_GUI" => // deprecated
 					Service.showTinkerGUI(false)
-				case "CMD_INIT_PSGRAPH" =>
-					j ? "psgraph" match {
-						case psgraph: Json if psgraph == JsonNull => sendErrorResponse("RSP_ERROR_INIT_PSGRAPH", "no psgraph")
-						case psgraph: JsonBool =>
-							j ? "goal" match {
-								case goal: Json if goal == JsonNull => sendErrorResponse("RSP_ERROR_INIT_PSGRAPH", "no goal")
-								case goal: JsonBool =>
-									val rsppsgraph = if(psgraph.boolValue) JsonArray() else JsonArray(Service.model.updateJsonPSGraph())
-									val rspgoal =
-										if(goal.boolValue) JsonArray()
-										else JsonArray(JsonString(Service.evalCtrl.goal), JsonArray(Service.evalCtrl.assms.foldLeft(Array[JsonString]()){case(a,s)=>a:+JsonString(s)}))
-									send(JsonObject("cmd"->"RSP_INIT_PSGRAPH","psgraph"->rsppsgraph,"goal"->rspgoal))
-							}
+				case "CMD_INIT_PSGRAPH" => // command initialising evaluation : i.e. synchronising psgraph and goal between both sides
+					if(state == CommunicationState.WaitingForInit){
+						j ? "psgraph" match {
+							case psgraph: Json if psgraph == JsonNull => sendErrorResponse("RSP_ERROR_INIT_PSGRAPH", "no psgraph")
+							case psgraph: JsonBool =>
+								j ? "goal" match {
+									case goal: Json if goal == JsonNull => sendErrorResponse("RSP_ERROR_INIT_PSGRAPH", "no goal")
+									case goal: JsonBool =>
+										val rsppsgraph = if(psgraph.boolValue) JsonArray() else JsonArray(Service.model.updateJsonPSGraph())
+										val rspgoal =
+											if(goal.boolValue) JsonArray()
+											else JsonArray(JsonString(Service.evalCtrl.goal), JsonArray(Service.evalCtrl.assms.foldLeft(Array[JsonString]()){case(a,s)=>a:+JsonString(s)}))
+										send(JsonObject("cmd"->"RSP_INIT_PSGRAPH","psgraph"->rsppsgraph,"goal"->rspgoal))
+										state = CommunicationState.WaitingForUpdate
+								}
+						}
 					}
-				case "CMD_UPDATE_PSGRAPH" =>
-					println("update psgraph")
+				case "CMD_UPDATE_PSGRAPH" => // command updating graph after evaluation step
 					Service.evalCtrl.setInEval(true)
-					println("eval psgraph")
 					getEvalPSGraph(j ? "eval_psgraph", "UPDATE_PSGRAPH")
-					println("eval options")
 					getEvalOptions(j ? "eval_options", "UPDATE_PSGRAPH")
-					println("log info")
 					getEvalLog(j ? "log_info", "UPDATE_PSGRAPH")
-				case "RSP_EXCEPTION" =>
+				case "RSP_EXCEPTION" => // command for exception
 					getEvalLog(j ? "log_info", "EXCEPTION")
-					if (state == CommunicationState.WaitingForPsgraph) {
+					if (state == CommunicationState.WaitingForUpdate) {
 						j ? "if_interrupt" match {
 							case interrupt: Json if interrupt == JsonNull => sendErrorResponse("RSP_ERROR_EXCEPTION","no if_interrupt")
 							case interrupt: JsonBool =>
@@ -183,39 +179,36 @@ object CommunicationService extends Publisher {
 								}
 						}
 					}
-				// close connection command
-				case "CMD_CLOSE_CONNECT" =>
+				case "CMD_CLOSE_CONNECT" => // command closing the connection
 					Service.evalCtrl.setInEval(false)
 					sendErrorResponse("RSP_CLOSE_CONNECT", "closing connection")
-					/*prover.close
-					gui.close
-					connected = false*/
 					closeConnection()
-				// end of the eval session, but keep the current socket connection
-				case "CMD_END_EVAL_SESSION" =>
+				case "CMD_END_EVAL_SESSION" => // ending eval, but keeping connection
 					println("receive cmd CMD_END_EVAL_SESSION: reset state")
 					Service.evalCtrl.setInEval(false)
-					state = CommunicationState.WaitingForPsgraph
-				// unsupported command
-				case _ =>
+					state = CommunicationState.WaitingForInit
+				case _ => // unsupported command
 					sendErrorResponse("RSP_ERROR_BAD_CMD", "")
-					// reset status
-					state = CommunicationState.WaitingForPsgraph
 
 			}
 		}
 	}
 
+	/** Method retrieving a psgraph model from a json input and loading as new model for the app.
+		*
+		* @param j Json psgraph model.
+		* @param context Context for error handling, e.g. UPDATE_PSGRAPH.
+		*/
 	def getEvalPSGraph(j:Json, context:String) {
-		if(state == CommunicationState.WaitingForPsgraph){
+		if(state == CommunicationState.WaitingForUpdate){
 			j match {
 				// if eval field not found
 				case eval: Json if eval == JsonNull => sendErrorResponse("RSP_ERROR_"+context, "no eval psgraph")
 				// if eval field found
 				case eval: JsonObject =>
-					//if(eval.isEmpty)
 					// loading eval model in gui
 					Service.evalCtrl.loadJson(eval)
+					// setting the backup model to empty
 					Service.evalCtrl.tmpEvalPSGraph = JsonObject()
 					// changing state
 					state = CommunicationState.WaitingForEvalOptions
@@ -224,6 +217,13 @@ object CommunicationService extends Publisher {
 		}
 	}
 
+	/** Method retrieving the available evaluation options from a json input and enabling them on the view.
+		*
+		* Also set up a listener to get the user choice when they click on a option button, and send it to the core.
+		*
+		* @param j Json array containing the evaluation options.
+		* @param context Context for error handling, e.g. UPDATE_PSGRAPH.
+		*/
 	def getEvalOptions(j:Json, context:String) {
 		if (state == CommunicationState.WaitingForEvalOptions) {
 			j match {
@@ -249,7 +249,7 @@ object CommunicationService extends Publisher {
 								val cmd = "RSP_"+context
 								send(JsonObject("cmd" -> cmd, "option" -> JsonString(opt), "node" -> JsonString(node)))
 								// change state
-								state = CommunicationState.WaitingForPsgraph
+								state = CommunicationState.WaitingForUpdate
 							}
 					}
 				case _ => sendErrorResponse("RSP_ERROR_"+context, "bad eval options format")
@@ -257,6 +257,11 @@ object CommunicationService extends Publisher {
 		}
 	}
 
+	/** Method retrieving logging informations from a json input and printing them in the evaluation log stack.
+		*
+		* @param j Json object containing the logging messages.
+		* @param context Context for error handling, e.g. UPDATE_PSGRAPH.
+		*/
 	def getEvalLog(j:Json, context:String) {
 		j match {
 			case logs: Json if logs == JsonNull => sendErrorResponse("RSP_ERROR_"+context, "no log info")
@@ -313,7 +318,7 @@ object CommunicationService extends Publisher {
 	def sendPSGraphChange(psgraph:Json, evalPath:JsonArray): Unit ={
 		if(state == CommunicationState.WaitingForUserChoice){
 			send(JsonObject("cmd" -> "CMD_CHANGE_PSGRAPH", "eval_psgraph" -> psgraph, "eval_path" -> evalPath))
-			state = CommunicationState.WaitingForPsgraph
+			state = CommunicationState.WaitingForUpdate
 		}
 	}
 	

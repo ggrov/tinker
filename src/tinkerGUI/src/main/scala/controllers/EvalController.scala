@@ -103,17 +103,18 @@ class EvalController(model:PSGraph) extends Publisher {
 		if(j.nonEmpty){
 			try{
 				model.loadJsonGraph(j)
-				publish(GraphTacticListEvent())
-				publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(Service.hierarchyCtrl.elementParents(model.getCurrentGTName))))
-				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
-				QuantoLibAPI.loadFromJson(model.getCurrentJson)
-				Service.editCtrl.updateEditors
-				Service.recordCtrl.record()
+				Service.documentCtrl.resetDoc(true)
 				// to be enhanced once undo is handled by core
-				DocumentService.proofTitle = model.mainTactic.name
-				Service.documentCtrl.undoStack.empty()
-				Service.documentCtrl.redoStack.empty()
-				Service.documentCtrl.publish(DocumentChangedEvent(true))
+//				publish(GraphTacticListEvent())
+//				publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(Service.hierarchyCtrl.elementParents(model.getCurrentGTName))))
+//				Service.graphNavCtrl.viewedGraphChanged(model.isMain, false)
+//				QuantoLibAPI.loadFromJson(model.getCurrentJson)
+//				Service.editCtrl.updateEditors()
+//				DocumentService.proofTitle = model.mainTactic.name
+//				Service.documentCtrl.undoStack.empty()
+//				Service.documentCtrl.redoStack.empty()
+//				Service.documentCtrl.publish(DocumentChangedEvent(true))
+				Service.recordCtrl.record()
 				saveEvalPath()
 			} catch {
 				case e:PSGraphModelException => TinkerDialog.openErrorDialog(e.msg)

@@ -10,7 +10,7 @@ import quanto.util.json._
 import scala.swing._
 import java.io.File
 
-class TinkerLibraryController() extends Publisher {
+class TinkerLibraryController(model:PSGraph) extends Publisher {
 
 	/** Json model of the psgraph to be loaded.*/
 	var json = new JsonObject()
@@ -92,17 +92,9 @@ class TinkerLibraryController() extends Publisher {
 		*/
 	def addFileToGraph() {
 		var valuesToReplace:Map[String,String] = Map()
-		def updateGraphJsonWithNewNames(json: Json): Json = {
-			QuantoLibAPI.updateValuesInGraph(json,valuesToReplace.toArray)
-			/*var newJson = json
-			valuesToReplace.foreach{ case (oldVal, newVal) =>
-				newJson = Json.parse(newJson.toString.replace("\""+oldVal+"\"", "\""+newVal+"\"").replace("\""+oldVal+"(", "\""+newVal+"("))
-			}
-			newJson*/
-		}
 		def appendIndex(name:String, index:Int): String = {
-			if(index == 0 && !Service.model.atCollection.contains(name) && !Service.model.gtCollection.contains(name)) name
-			else if (index > 0 && !Service.model.atCollection.contains(name+"-"+index) && !Service.model.gtCollection.contains(name+"-"+index)) name+"-"+index
+			if(index == 0 && !model.atCollection.contains(name) && !model.gtCollection.contains(name)) name
+			else if (index > 0 && !model.atCollection.contains(name+"-"+index) && !model.gtCollection.contains(name+"-"+index)) name+"-"+index
 			else appendIndex(name, index+1)
 		}
 		try{
@@ -110,12 +102,20 @@ class TinkerLibraryController() extends Publisher {
 			val main = (json / "main").stringValue
 			(json / "atomic_tactics").asArray.foreach{ tct =>
 				val oldName = (tct / "name").stringValue
-				val tctName = appendIndex(fileName+"-"+oldName,0)
-				valuesToReplace = valuesToReplace + (oldName->tctName)
-				val tctTactic = (tct / "tactic").stringValue
-				//val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
-				//Service.model.createAT(tctName,tctTactic,tctArgs)
-				Service.model.createAT(tctName,tctTactic)
+				var tctTactic = (tct / "tactic").stringValue
+				if(!model.createAT(oldName,tctTactic)){
+					if(model.getTacticValue(oldName) != "" && tctTactic != ""){
+						val tctName = appendIndex(oldName,0)
+						model.createAT(tctName,tctTactic)
+						valuesToReplace = valuesToReplace + (oldName->tctName)
+					} else {
+						tctTactic = if(model.getTacticValue(oldName) != "") model.getTacticValue(oldName) else tctTactic
+						model.setTacticValue(oldName,tctTactic)
+						valuesToReplace = valuesToReplace + (oldName->oldName)
+					}
+				} else {
+					valuesToReplace = valuesToReplace + (oldName->oldName)
+				}
 			}
 			(json / "graphs").asArray.foreach{ tct =>
 				val oldName = (tct / "name").stringValue
@@ -123,12 +123,10 @@ class TinkerLibraryController() extends Publisher {
 					val tctName = appendIndex(fileName+"-"+oldName,0)
 					valuesToReplace = valuesToReplace + (oldName->tctName)
 					val tctBranchType = (tct / "branch_type").stringValue
-					//val tctArgs = (tct / "args").asArray.foldLeft(Array[Array[String]]()){ case (arr,arg) => arr :+ arg.asArray.foldLeft(Array[String]()){ case (a,s) => a :+ s.stringValue}}
-					//Service.model.createGT(tctName,tctBranchType,tctArgs)
-					Service.model.createGT(tctName,tctBranchType)
+					model.createGT(tctName,tctBranchType)
 				}
 			}
-			Service.model.goalTypes = Service.model.goalTypes+"\n\n\n/* From "+fileName+" */\n\n" + (json / "goal_types").stringValue
+			model.goalTypes = model.goalTypes+"\n\n\n/* From "+fileName+" */\n\n" + (json / "goal_types").stringValue
 			var nameNodeIdMap = Map[String,String]()
 			(json / "graphs").asArray.foreach{ tct =>
 				val oldName = (tct / "name").stringValue
@@ -136,7 +134,7 @@ class TinkerLibraryController() extends Publisher {
 					nameNodeIdMap = QuantoLibAPI.addFromJson(QuantoLibAPI.updateValuesInGraph(tct / "graphs" / 0,valuesToReplace.toArray))
 				} else {
 					(tct / "graphs").asArray.foreach{ gr =>
-						Service.model.addSubgraphGT(valuesToReplace(oldName),QuantoLibAPI.updateValuesInGraph(gr,valuesToReplace.toArray).asObject,-1)
+						model.addSubgraphGT(valuesToReplace(oldName),QuantoLibAPI.updateValuesInGraph(gr,valuesToReplace.toArray).asObject,-1)
 					}
 				}
 			}
@@ -144,8 +142,8 @@ class TinkerLibraryController() extends Publisher {
 				v.asArray.foreach{ occ =>
 					occ.asArray.get(0) match {
 						case Some(g:JsonString) =>
-							if(g.stringValue == main) Service.model.addATOccurrence(valuesToReplace(k),Service.model.getCurrentGTName, Service.model.currentIndex, nameNodeIdMap(valuesToReplace(k)))
-							else Service.model.addATOccurrence(valuesToReplace(k),valuesToReplace(g.stringValue),occ.asArray.get(1).intValue,occ.asArray.get(2).stringValue)
+							if(g.stringValue == main) model.addATOccurrence(valuesToReplace(k),model.getCurrentGTName, model.currentIndex, nameNodeIdMap(valuesToReplace(k)))
+							else model.addATOccurrence(valuesToReplace(k),valuesToReplace(g.stringValue),occ.asArray.get(1).intValue,occ.asArray.get(2).stringValue)
 						case _ => throw new JsonAccessException("Json string type expected",json)
 					}
 				}
@@ -154,14 +152,15 @@ class TinkerLibraryController() extends Publisher {
 				v.asArray.foreach{ occ =>
 					occ.asArray.get(0) match {
 						case Some(g:JsonString) =>
-							if(g.stringValue == main) Service.model.addGTOccurrence(valuesToReplace(k),Service.model.getCurrentGTName, Service.model.currentIndex, nameNodeIdMap(valuesToReplace(k)))
-							else Service.model.addGTOccurrence(valuesToReplace(k),valuesToReplace(g.stringValue),occ.asArray.get(1).intValue,occ.asArray.get(2).stringValue)
+							if(g.stringValue == main) model.addGTOccurrence(valuesToReplace(k),model.getCurrentGTName, model.currentIndex, nameNodeIdMap(valuesToReplace(k)))
+							else model.addGTOccurrence(valuesToReplace(k),valuesToReplace(g.stringValue),occ.asArray.get(1).intValue,occ.asArray.get(2).stringValue)
 						case _ => throw new JsonAccessException("Json string type expected",json)
 					}
 				}
 			}
 			publish(GraphTacticListEvent())
-			Service.editCtrl.updateEditors
+			Service.editCtrl.updateEditors()
+			TinkerDialog.openInformationDialog("This values have been replaced during import :"+valuesToReplace.foldLeft(""){case (s,v) => if(v._1==v._2) s else s+"<br>"+v._1+" to "+v._2})
 		} catch {
 			case e:JsonAccessException => Service.editCtrl.logStack.addToLog("Json parse error",e.getMessage)
 			case e:PSGraphModelException => Service.editCtrl.logStack.addToLog("Model error",e.msg)

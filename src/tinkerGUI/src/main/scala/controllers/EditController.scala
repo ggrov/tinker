@@ -20,7 +20,6 @@ import scala.swing.{Component, Publisher, Action, Dialog}
 class EditController(model:PSGraph) extends Publisher {
 
 	/** Mouse state variable.
-		*
 		* Keeps track of what is the current edition mode.
 		*/
 	private var mouseState: MouseState = SelectTool()
