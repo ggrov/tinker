@@ -1,0 +1,92 @@
+div#graph {
+	width: 100%;
+/*	min-width: 800px;*/
+	height: 600px;
+}
+
+svg {
+	background-color: #F5F5F5;
+	border-radius: 4px;
+}
+
+path {
+	stroke:#333;
+}
+
+path.edge {
+	fill:none;
+	stroke-width:2px;
+}
+
+text {
+	fill:#333;
+	font-family:Arial;
+}
+
+text.nodeId {
+	fill:#151515;
+	font-size:9;
+	font-weight:bold;
+}
+
+text.label {
+	text-anchor:middle;
+	font-size:14;
+}
+
+text.labelEdge {
+	text-anchor:middle;
+	font-size:12;
+}
+
+text.labelBreak {
+	fill:#eee;
+	text-anchor:middle;
+	font-size:10;
+	font-weight:bold;
+}
+
+rect {
+	stroke-width:1px;
+	stroke:#333;
+}
+
+rect.labelEdge {
+	stroke-width:0px;
+	fill:#a0a8d9;
+	fill-opacity:0.5;
+}
+
+rect.atm {
+	fill:#89D674;
+}
+
+rect.nst{
+	fill:#F7A943;
+}
+
+polygon{
+	stroke-width:1px;
+	stroke:#333;
+}
+
+polygon.id {
+	fill:#6495ED;
+}
+
+polygon.break {
+	fill:#FF3000;
+}
+
+circle {
+	stroke-width:1px;
+	stroke:#333;
+}
+
+circle.break {
+	fill:#FF3000;
+}
+
+circle.goal {
+	fill:#B0C4DE;
+}
