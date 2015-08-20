@@ -221,9 +221,11 @@ class EditController(model:PSGraph) extends Publisher {
 		TinkerDialog.openEditDialog("Edit proof name.",Map("Proof name"->model.mainTactic.name),successCallBack,()=>Unit)
 	}
 
-	/** Method creating a node and if necessary a tactic.
+	/** Method creating a node and if necessary the tactic linked to it.
 		*
-		* @param typ Type of node, should be "T_Identity", "T_Atomic" or "T_Graph", the latter two will create a tactic in the model.
+		* @param typ Type of node, should be "T_Identity", "T_Atomic" or "T_Graph",
+		*            the latter two will launch a dialog to ask details on the tactic
+		*            and create it in the model if necessary.
 		* @param pt Coordinates of the node.
 		*/
 	def createNode(typ:String,pt:java.awt.Point) {
@@ -306,7 +308,7 @@ class EditController(model:PSGraph) extends Publisher {
 	/** Method deleting a node and removing its occurrence in the model if necessary.
 		*
 		* @param typ Type of node, should be "T_Identity", "T_Atomic" or "T_Graph", the latter two will remove the occurrence in the model.
-		* @param nodeId Id tof the node to delete.
+		* @param nodeId Id of the node to delete.
 		* @param nodeValue Value associated with the node, i.e. the tactic name if any.
 		*/
 	def deleteNode(typ:String,nodeId:String,nodeValue:String) {
@@ -365,6 +367,7 @@ class EditController(model:PSGraph) extends Publisher {
 
 	/** Method to create a tactic with given name and parameters.
 		*
+		* Mainly used when pasting nodes, in case some of the copied nodes might have been deleted and their tactic with it.
 		* Does not implement any user interaction.
 		* @param nodeId Node id on the graph.
 		* @param name Tactic id.
@@ -389,6 +392,10 @@ class EditController(model:PSGraph) extends Publisher {
 		*
 		* Launched after the user selected the edit option.
 		* Launches dialogs to interact with user to get more information on tactic.
+		* @param nodeId Id of the node from which the update was launched.
+		* @param nodeLabel Label on node.
+		* @param tacticValue Tactic name associated with the node.
+		* @param isAtomicTactic Boolean stating the nature of the node, atomic or nested.
 		*/
 	def updateTactic(nodeId:String, nodeLabel:String, tacticValue:String, isAtomicTactic:Boolean){
 		try{
@@ -548,7 +555,7 @@ class EditController(model:PSGraph) extends Publisher {
 
 	/** Method changing a tactic occurrence in the model.
 		*
-		* Mainly used when nodes are merged into a subgraph.
+		* Mainly used when nodes are merged into a graph tactic.
 		*
 		* @param nodeId Id of the node.
 		* @param name Id of the tactic.
@@ -641,7 +648,7 @@ class EditController(model:PSGraph) extends Publisher {
 			QuantoLibAPI.newGraph()
 			Service.graphNavCtrl.viewedGraphChanged(model.isMain,true)
 			publish(CurrentGraphChangedEvent(tactic,parents))
-			Service.recordCtrl.record()
+			//Service.recordCtrl.record()
 		} catch {
 			case e:GraphTacticNotFoundException => logStack.addToLog("Model error",e.msg)
 		}
@@ -677,15 +684,15 @@ class EditController(model:PSGraph) extends Publisher {
 					Service.documentCtrl.registerChanges()
 					model.createGT(name,values("Branch type"))
 					model.addGTOccurrence(name,QuantoLibAPI.mergeSelectedVertices(values("Name")))
-					// todo : insert new tactic in eval path if necessary
 					publish(GraphTacticListEvent())
 					Service.recordCtrl.record()
 				}
 			}
 		}
 		if(Service.evalCtrl.inEval
-			&& !QuantoLibAPI.selectedContainTactics(Service.evalCtrl.evalPath.toSet)
-			&& QuantoLibAPI.selectedContainGoals){
+			&& (QuantoLibAPI.selectedContainTactics(Service.evalCtrl.evalPath.toSet)
+					|| QuantoLibAPI.selectedContainGoals)
+			){
 			logStack.addToLog("Edit forbidden","merging these nodes will break the evaluation")
 		} else {
 			TinkerDialog.openEditDialog("Merge nodes into a graph tactic",Map("Name"->"","Branch type"->"OR"),successCallback,()=>Unit)
