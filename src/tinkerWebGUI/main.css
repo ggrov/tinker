@@ -23,7 +23,7 @@ header {
 
 header > h1 {
     margin: 0px;
-    padding-right: 100px;
+    padding-right: 20%;
     font-size: 4em;
 }
 
@@ -83,4 +83,15 @@ div#proofInfo > span#proofTitle {
 div#proofInfo > span#proofDate {
     font-size: 0.8em;
     color: #666666
+}
+div#credits{
+    text-align: right;
+    font-size: 0.8em;
+}
+a {
+    color:teal;
+    text-decoration: none;
+}
+span.button {
+    cursor: pointer;
 }

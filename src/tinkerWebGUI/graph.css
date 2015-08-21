@@ -90,3 +90,32 @@ circle.break {
 circle.goal {
 	fill:#B0C4DE;
 }
+
+.tooltip {
+  line-height: 1;
+  font-weight: normal;
+  padding: 12px;
+  background: rgba(40, 70, 70, 0.8);
+  color: #fff;
+  border-radius: 8px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.tooltip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(50, 50, 50, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.tooltip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}
