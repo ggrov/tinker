@@ -14,7 +14,6 @@ struct
 
   type tactic = tpp.tactic
 
-  type pplan = tpp.pplan (* be the latest name of pnode *)
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
  
   
@@ -27,6 +26,7 @@ struct
   type env = env_data StrName.NTab.T 
   type env_tac =  env -> env 
   type pnode = { pname : string, env : env } 
+  type pplan = {name: tpp.pplan, envs: env StrName.NTab.T } (* be the latest name of pnode *)
 
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq  
 
@@ -77,6 +77,10 @@ struct
 
 
   fun apply_env_tactic _ _ (pnode, pname)= Seq.single ([pnode], pname);
+  
+
+  fun get_open_pnode_by_name _ name = name 
+  fun set_pnode_pplan _ = raise error "todo"
 
   fun get_pnode_name pnode = #pname pnode;
   fun get_pnode_env ({env, ...} : pnode) = env;

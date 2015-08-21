@@ -31,12 +31,12 @@ struct
   fun run_in_atomic func = 
    let
     val m = Mutex.mutex ();   
-    val attr = Thread.getAttributes () ;  
+    val attr = Thread.getAttributes () ;    
    in 
     (Thread.setAttributes 
       [Thread.EnableBroadcastInterrupt false, 
        Thread.InterruptState Thread.InterruptDefer];
-    Mutex.lock m; 
+    Mutex.lock m;  
     func ())
     |> (fn x => (Mutex.unlock m ; x))
     |> (fn x => (Thread.setAttributes attr; x))

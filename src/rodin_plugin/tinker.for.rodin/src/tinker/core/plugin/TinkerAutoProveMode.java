@@ -27,7 +27,7 @@ import tinker.core.tactics.TinkerTactic;
 public class TinkerAutoProveMode extends DefaultTacticProvider {
 	public static class TinkerApplication extends DefaultPositionApplication {
 
-		private static final String TACTIC_ID = "org.eventb.ui.tinker";
+		private static final String TACTIC_ID = "org.eventb.ui.tinker.autoprover";
 
 		public TinkerApplication(Predicate hyp) {
 			super(hyp, IPosition.ROOT);
