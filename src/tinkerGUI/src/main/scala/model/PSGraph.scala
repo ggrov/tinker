@@ -594,6 +594,10 @@ class PSGraph(name:String) extends ATManager with GTManager {
 				case None => throw new GraphTacticNotFoundException(current)
 			}
 		}
+		mainTactic.graphs = mainTactic.graphs.map(QuantoLibAPI.graphWithCompleteLabels).map(QuantoLibAPI.tinkerLayout)
+		gtCollection.foreach{ case (k,v) =>
+			v.graphs = v.graphs.map(QuantoLibAPI.graphWithCompleteLabels).map(QuantoLibAPI.tinkerLayout)
+		}
 	}
 
 	/** Method to find the children of every graph tactic, including the main graph.

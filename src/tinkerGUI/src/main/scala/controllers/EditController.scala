@@ -20,7 +20,6 @@ import scala.swing.{Component, Publisher, Action, Dialog}
 class EditController(model:PSGraph) extends Publisher {
 
 	/** Mouse state variable.
-		*
 		* Keeps track of what is the current edition mode.
 		*/
 	private var mouseState: MouseState = SelectTool()
@@ -53,8 +52,10 @@ class EditController(model:PSGraph) extends Publisher {
 	def updateTacticEditor() {
 		tacticEditor.clear()
 		tacticEditor.appendText("// edit your tactic here\n")
-		model.atCollection.foreach{ case (k,v) =>
-			tacticEditor.appendText("tactic "+v.name+" := "+v.tactic+";\n")
+		model.atCollection.foreach{
+			case (k,v) if v.tactic.nonEmpty =>
+				tacticEditor.appendText("tactic "+v.name+" := "+v.tactic+";\n")
+			case _ =>
 		}
 	}
 
@@ -77,7 +78,7 @@ class EditController(model:PSGraph) extends Publisher {
 	}
 
 	/** Method launching all editors' update functions.*/
-	def updateEditors = {
+	def updateEditors() {
 		updateTacticEditor()
 		updateGoaltypeEditor()
 	}
@@ -191,6 +192,7 @@ class EditController(model:PSGraph) extends Publisher {
 			case DragEdge(startV) =>
 				if(QuantoLibAPI.movingEdge) Service.documentCtrl.registerChanges()
 				QuantoLibAPI.endAddEdge(startV, point, changeMouseState)
+				Service.recordCtrl.record()
 			case AddVertexTool(typ) =>
 				//Service.documentCtrl.registerChanges()
 				createNode(typ,point)
@@ -208,18 +210,22 @@ class EditController(model:PSGraph) extends Publisher {
 			if(model.gtCollection.contains(name)){
 				TinkerDialog.openEditDialog("This name is already taken, enter another one.",values,successCallBack,()=>Unit)
 			} else {
+				Service.documentCtrl.registerChanges()
 				model.changeMainName(name)
 				DocumentService.proofTitle = name
 				publish(GraphTacticListEvent())
 				publish(CurrentGraphChangedEvent(model.getCurrentGTName,Some(model.currentParents)))
+				Service.recordCtrl.record()
 			}
 		}
 		TinkerDialog.openEditDialog("Edit proof name.",Map("Proof name"->model.mainTactic.name),successCallBack,()=>Unit)
 	}
 
-	/** Method creating a node and if necessary a tactic.
+	/** Method creating a node and if necessary the tactic linked to it.
 		*
-		* @param typ Type of node, should be "T_Identity", "T_Atomic" or "T_Graph", the latter two will create a tactic in the model.
+		* @param typ Type of node, should be "T_Identity", "T_Atomic" or "T_Graph",
+		*            the latter two will launch a dialog to ask details on the tactic
+		*            and create it in the model if necessary.
 		* @param pt Coordinates of the node.
 		*/
 	def createNode(typ:String,pt:java.awt.Point) {
@@ -228,6 +234,7 @@ class EditController(model:PSGraph) extends Publisher {
 				case "T_Identity" =>
 					Service.documentCtrl.registerChanges()
 					QuantoLibAPI.userAddVertex(pt,typ,"")
+					Service.recordCtrl.record()
 				case "T_Atomic" =>
 					def successCallback(values:Map[String,String]) {
 						val name = ArgumentParser.separateNameArgs(values("Name"))._1
@@ -237,6 +244,7 @@ class EditController(model:PSGraph) extends Publisher {
 							Service.documentCtrl.registerChanges()
 							if(model.createAT(name,"")){
 								model.addATOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,values("Name")))
+								Service.recordCtrl.record()
 							} else {
 								var confirmDialog = new Dialog()
 								val newAction = new Action("Create new"){
@@ -249,6 +257,7 @@ class EditController(model:PSGraph) extends Publisher {
 									def apply() = {
 										confirmDialog.close()
 										model.addATOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,values("Name")))
+										Service.recordCtrl.record()
 									}
 								}
 								confirmDialog = TinkerDialog.openConfirmationDialog("The atomic tactic name "+name+" is already defined.",Array(newAction,duplicateAction))
@@ -266,6 +275,7 @@ class EditController(model:PSGraph) extends Publisher {
 							Service.documentCtrl.registerChanges()
 							if(model.createGT(name,branchType)){
 								model.addGTOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,values("Name")))
+								Service.recordCtrl.record()
 								publish(GraphTacticListEvent())
 							} else {
 								var confirmDialog = new Dialog()
@@ -279,6 +289,7 @@ class EditController(model:PSGraph) extends Publisher {
 									def apply() = {
 										confirmDialog.close()
 										model.addGTOccurrence(name,QuantoLibAPI.userAddVertex(pt,typ,values("Name")))
+										Service.recordCtrl.record()
 										publish(GraphTacticListEvent())
 									}
 								}
@@ -297,7 +308,7 @@ class EditController(model:PSGraph) extends Publisher {
 	/** Method deleting a node and removing its occurrence in the model if necessary.
 		*
 		* @param typ Type of node, should be "T_Identity", "T_Atomic" or "T_Graph", the latter two will remove the occurrence in the model.
-		* @param nodeId Id tof the node to delete.
+		* @param nodeId Id of the node to delete.
 		* @param nodeValue Value associated with the node, i.e. the tactic name if any.
 		*/
 	def deleteNode(typ:String,nodeId:String,nodeValue:String) {
@@ -306,13 +317,16 @@ class EditController(model:PSGraph) extends Publisher {
 				case "G_Break" =>
 					Service.documentCtrl.registerChanges()
 					QuantoLibAPI.removeBreakpoint(nodeId)
+					Service.recordCtrl.record()
 				case "T_Identity" =>
 					Service.documentCtrl.registerChanges()
 					QuantoLibAPI.userDeleteElement(nodeId)
+					Service.recordCtrl.record()
 				case "T_Atomic" =>
 					Service.documentCtrl.registerChanges()
 					QuantoLibAPI.userDeleteElement(nodeId)
 					model.removeATOccurrence(nodeValue,nodeId)
+					Service.recordCtrl.record()
 				case "T_Graph" =>
 					if(!(Service.evalCtrl.inEval
 						&& Service.evalCtrl.evalPath.contains(model.getCurrentGTName)
@@ -320,6 +334,7 @@ class EditController(model:PSGraph) extends Publisher {
 						Service.documentCtrl.registerChanges()
 						QuantoLibAPI.userDeleteElement(nodeId)
 						model.removeGTOccurrence(nodeValue,nodeId)
+						Service.recordCtrl.record()
 						publish(GraphTacticListEvent())
 					} else {
 						logStack.addToLog("Edit forbidden","this tactic is being evaluated by the core, you cannot delete it")
@@ -327,6 +342,7 @@ class EditController(model:PSGraph) extends Publisher {
 				case "Boundary" =>
 					Service.documentCtrl.registerChanges()
 					QuantoLibAPI.userDeleteElement(nodeId)
+					Service.recordCtrl.record()
 				case "G" => logStack.addToLog("Edit forbidden","you cannot delete a goal")
 			}
 		} catch {
@@ -343,6 +359,7 @@ class EditController(model:PSGraph) extends Publisher {
 		if(!QuantoLibAPI.hasGoal(edgeId)){
 			Service.documentCtrl.registerChanges()
 			QuantoLibAPI.userDeleteElement(edgeId)
+			Service.recordCtrl.record()
 		} else {
 			logStack.addToLog("Edit forbidden","you can not delete an edge with a goal on it.")
 		}
@@ -350,6 +367,7 @@ class EditController(model:PSGraph) extends Publisher {
 
 	/** Method to create a tactic with given name and parameters.
 		*
+		* Mainly used when pasting nodes, in case some of the copied nodes might have been deleted and their tactic with it.
 		* Does not implement any user interaction.
 		* @param nodeId Node id on the graph.
 		* @param name Tactic id.
@@ -374,6 +392,10 @@ class EditController(model:PSGraph) extends Publisher {
 		*
 		* Launched after the user selected the edit option.
 		* Launches dialogs to interact with user to get more information on tactic.
+		* @param nodeId Id of the node from which the update was launched.
+		* @param nodeLabel Label on node.
+		* @param tacticValue Tactic name associated with the node.
+		* @param isAtomicTactic Boolean stating the nature of the node, atomic or nested.
 		*/
 	def updateTactic(nodeId:String, nodeLabel:String, tacticValue:String, isAtomicTactic:Boolean){
 		try{
@@ -392,6 +414,7 @@ class EditController(model:PSGraph) extends Publisher {
 									model.removeATOccurrence(tacticValue,nodeId)
 									model.addATOccurrence(name,nodeId)
 									QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
+									Service.recordCtrl.record()
 								}
 							}
 							val redoAction = new Action("Choose another name"){
@@ -405,10 +428,12 @@ class EditController(model:PSGraph) extends Publisher {
 						} else if(name == tacticValue) {
 							Service.documentCtrl.registerChanges()
 							QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
+							Service.recordCtrl.record()
 						} else {
 							Service.documentCtrl.registerChanges()
 							if(model.updateAT(tacticValue,name)){
 								QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
+								Service.recordCtrl.record()
 							} else {
 								var confirmDialog = new Dialog()
 								val createAction = new Action("Create new"){
@@ -418,6 +443,7 @@ class EditController(model:PSGraph) extends Publisher {
 										model.createAT(name,"")
 										model.addATOccurrence(name,nodeId)
 										QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
+										Service.recordCtrl.record()
 									}
 								}
 								val updateAction = new Action("Update all"){
@@ -425,6 +451,7 @@ class EditController(model:PSGraph) extends Publisher {
 										confirmDialog.close()
 										model.updateForceAT(tacticValue,name).foreach(QuantoLibAPI.setVertexValue(_,name))
 										QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
+										Service.recordCtrl.record()
 									}
 								}
 								val cancelAction = new Action("Cancel"){def apply() = { confirmDialog.close() }}
@@ -450,6 +477,7 @@ class EditController(model:PSGraph) extends Publisher {
 									model.removeGTOccurrence(tacticValue,nodeId)
 									model.addGTOccurrence(name,nodeId)
 									QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
+									Service.recordCtrl.record()
 									publish(GraphTacticListEvent())
 								}
 							}
@@ -474,10 +502,12 @@ class EditController(model:PSGraph) extends Publisher {
 						} else if(name == tacticValue && branchType == model.getGTBranchType(name)){
 							Service.documentCtrl.registerChanges()
 							QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
+							Service.recordCtrl.record()
 						} else {
 							Service.documentCtrl.registerChanges()
 							if(model.updateGT(tacticValue,name,branchType)){
 								QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
+								Service.recordCtrl.record()
 								publish(GraphTacticListEvent())
 							} else {
 								var confirmDialog = new Dialog()
@@ -488,6 +518,7 @@ class EditController(model:PSGraph) extends Publisher {
 										model.createGT(name,branchType)
 										model.addATOccurrence(name,nodeId)
 										QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
+										Service.recordCtrl.record()
 										publish(GraphTacticListEvent())
 									}
 								}
@@ -495,6 +526,7 @@ class EditController(model:PSGraph) extends Publisher {
 									def apply() = {
 										confirmDialog.close()
 										model.updateForceGT(tacticValue,name,branchType).foreach(QuantoLibAPI.setVertexLabel(_,values("Name")))
+										Service.recordCtrl.record()
 										publish(GraphTacticListEvent())
 									}
 								}
@@ -523,7 +555,7 @@ class EditController(model:PSGraph) extends Publisher {
 
 	/** Method changing a tactic occurrence in the model.
 		*
-		* Mainly used when nodes are merged into a subgraph.
+		* Mainly used when nodes are merged into a graph tactic.
 		*
 		* @param nodeId Id of the node.
 		* @param name Id of the tactic.
@@ -574,6 +606,7 @@ class EditController(model:PSGraph) extends Publisher {
 				Service.documentCtrl.registerChanges()
 				QuantoLibAPI.setEdgeValue(edge, goalTypes)
 				QuantoLibAPI.userUpdateEdge(edge, source, target)
+				Service.recordCtrl.record()
 			}
 		}
 		TinkerDialog.openEditDialog("Edit edge "+edge,
@@ -595,6 +628,7 @@ class EditController(model:PSGraph) extends Publisher {
 			Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
 			QuantoLibAPI.loadFromJson(model.getCurrentJson)
 			publish(CurrentGraphChangedEvent(tactic,parents))
+			Service.recordCtrl.record()
 		} catch {
 			case e:GraphTacticNotFoundException => logStack.addToLog("Model error",e.msg)
 			case e:SubgraphNotFoundException =>
@@ -614,6 +648,7 @@ class EditController(model:PSGraph) extends Publisher {
 			QuantoLibAPI.newGraph()
 			Service.graphNavCtrl.viewedGraphChanged(model.isMain,true)
 			publish(CurrentGraphChangedEvent(tactic,parents))
+			//Service.recordCtrl.record()
 		} catch {
 			case e:GraphTacticNotFoundException => logStack.addToLog("Model error",e.msg)
 		}
@@ -628,6 +663,7 @@ class EditController(model:PSGraph) extends Publisher {
 		if(!(Service.evalCtrl.inEval && Service.evalCtrl.evalPath.contains(tactic))){
 			Service.documentCtrl.registerChanges()
 			model.delSubgraphGT(tactic,index)
+			Service.recordCtrl.record()
 		} else {
 			logStack.addToLog("Edit forbidden","this tactic is being evaluated by the core, you cannot delete one of its subgraph")
 		}
@@ -648,14 +684,15 @@ class EditController(model:PSGraph) extends Publisher {
 					Service.documentCtrl.registerChanges()
 					model.createGT(name,values("Branch type"))
 					model.addGTOccurrence(name,QuantoLibAPI.mergeSelectedVertices(values("Name")))
-					// todo : insert new tactic in eval path if necessary
 					publish(GraphTacticListEvent())
+					Service.recordCtrl.record()
 				}
 			}
 		}
 		if(Service.evalCtrl.inEval
-			&& !QuantoLibAPI.selectedContainTactics(Service.evalCtrl.evalPath.toSet)
-			&& QuantoLibAPI.selectedContainGoals){
+			&& (QuantoLibAPI.selectedContainTactics(Service.evalCtrl.evalPath.toSet)
+					|| QuantoLibAPI.selectedContainGoals)
+			){
 			logStack.addToLog("Edit forbidden","merging these nodes will break the evaluation")
 		} else {
 			TinkerDialog.openEditDialog("Merge nodes into a graph tactic",Map("Name"->"","Branch type"->"OR"),successCallback,()=>Unit)
@@ -689,6 +726,7 @@ class EditController(model:PSGraph) extends Publisher {
 					}
 			}
 		}
+		Service.recordCtrl.record()
 	}
 
 	/** Method to trigger the paste function.
@@ -698,6 +736,7 @@ class EditController(model:PSGraph) extends Publisher {
 		if(QuantoLibAPI.canPaste){
 			Service.documentCtrl.registerChanges()
 			QuantoLibAPI.paste()
+			Service.recordCtrl.record()
 		}
 	}
 
@@ -708,6 +747,7 @@ class EditController(model:PSGraph) extends Publisher {
 	def removeBreakFromEdge(edge:String) {
 		Service.documentCtrl.registerChanges()
 		QuantoLibAPI.removeBreakpointFromEdge(edge)
+		Service.recordCtrl.record()
 	}
 
 	/** Method adding a breakpoint on aa edge.
@@ -717,5 +757,6 @@ class EditController(model:PSGraph) extends Publisher {
 	def addBreakOnEdge(edge:String) {
 		Service.documentCtrl.registerChanges()
 		QuantoLibAPI.addBreakpointOnEdge(edge)
+		Service.recordCtrl.record()
 	}
 }

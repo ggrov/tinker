@@ -16,15 +16,16 @@ object Service extends Publisher {
 	//val c = CommunicationService // the communication needs to be "instantiates" to actually listen for connections
 	// Models
 	//val hierarchyModel = new HierarchyModel()
-	val libraryTreeCtrl = new TinkerLibraryController()
 
 	/** Psgrah model. */
 	var model = new PSGraph("scratch")
-	// controllers
 	/** Edit controller. */
 	val editCtrl = new EditController(model)
+	// controllers
+	val libraryTreeCtrl = new TinkerLibraryController(model)
 	val evalCtrl = new EvalController(model)
 	val documentCtrl = new DocumentController(model)
+	val recordCtrl = new RecordController(model)
 	val hierarchyCtrl = new HierarchyController(model)
 	val inspectorCtrl = new InspectorController(model)
 	val graphNavCtrl = new GraphNavigationController(model)
@@ -78,10 +79,10 @@ object Service extends Publisher {
 		}
 
 		try {
-			UnicodeParser.loadMap(new File(".unicodeConfig"))
+			UnicodeParser.loadMap(new File("unicodeConfig"))
 		} catch {
 			case e: Exception =>
-				TinkerDialog.openErrorDialog("Error while opening .unicodeConfig<br>"+e.getMessage+"<br>Default settings will be used.")
+				TinkerDialog.openErrorDialog("Error while opening unicodeConfig<br>"+e.getMessage+"<br>Default settings will be used.")
 		}
 	}
 

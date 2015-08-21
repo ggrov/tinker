@@ -12,10 +12,15 @@ struct
     val ctxt' = Config.put show_markup false ctxt;
    in Print_Mode.setmp [] (Syntax.string_of_term ctxt') t end;
   val trm_of_string = Syntax.parse_term;
+  fun prop_of_string ctxt x = 
+    Syntax.parse_term ctxt x 
+    |> (fn t => (Const ("HOL.Trueprop", dummyT) $ t))
+    |> Syntax.check_term ctxt
   val string_of_trm = (*Syntax.string_of_term*) term_to_string;
   fun get_thm_by_name ctxt name = 
     Find_Theorems.find_theorems ctxt NONE NONE false [(true, Find_Theorems.Name name)]
-    |> snd |> hd |> snd;
+    |> snd |> hd |> snd
+   handle _ => (logging "FAILURE" ("Fail to get thm by name: " ^ name); raise tinker_fail true)
   val pretty_trm = Syntax.pretty_term;
 
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string

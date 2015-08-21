@@ -92,9 +92,9 @@ object MainGUI extends SimpleSwingApplication {
 				//inspectorPanel.display(true)
 				title = "Tinker - " + Service.documentCtrl.title
 		}
-    Service.setTopFrame(this)
-		Service.initApp()
 		centerOnScreen()
+		Service.setTopFrame(this)
+		Service.initApp()
 		override def closeOperation() { Service.closeApp() }
 	}
 

@@ -58,6 +58,7 @@ sig
 
   val get_thm_by_name : context -> string -> thm
   val trm_of_string : context -> string -> term
+  val prop_of_string : context -> string -> term  
   val string_of_trm : context -> term -> string
   val pretty_trm : context -> term -> Pretty.T
 

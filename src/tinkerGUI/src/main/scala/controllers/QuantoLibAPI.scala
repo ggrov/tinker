@@ -63,99 +63,22 @@ object QuantoLibAPI extends Publisher{
 		publish(NothingSelectedEvent())
 	}
 
-	/** Private method setting the labels on nodes with complete names of tactic (including arguments).
-		*
-		* @param json Input graph in json format.
-		* @return Updated graph object.
-		*/
-	private def graphWithCompleteLabels(json:JsonObject):Graph = {
-		var gr = Graph.fromJson(json, theory)
-		gr.vdata.foreach{
-			case (k,v:NodeV) =>
-				v.data.get("label") match {
-					case Some(j:Json) =>
-					case None =>
-						v.typ match {
-							case "G_Break" =>
-								gr = gr.updateVData(k) { _ => v.withLabel("STOP") }
-							case "T_Atomic" =>
-								gr = gr.updateVData(k) { _ => v.withLabel(v.label) }
-							case "T_Graph" =>
-								gr = gr.updateVData(k) { _ => v.withLabel(v.label) }
-							case _ =>
-						}
-				}
-			case _ =>
-		}
-		gr
-	}
-
-	private def tinkerLayout(graph:Graph):Graph = {
-		var gr = graph
-		def rearrange(v1:VName,v2:VName,factor:Double):((Double,Double),(Double,Double)) = {
-			val c1 = gr.vdata(v1).coord
-			val c2 = gr.vdata(v2).coord
-			val varX = c2._1-c1._1
-			val varY = c2._2-c1._2
-			val d = Math.sqrt(varX*varX + varY*varY)
-			if(d < factor){
-				val newvarX = (factor/d)*varX
-				val newvarY = (factor/d)*varY
-				gr = gr.updateVData(v2) { d => d.withCoord(gr.vdata(v1).coord._1 + newvarX, gr.vdata(v1).coord._2 + newvarY)}
-				((newvarX,newvarY),(newvarX-varX,newvarY-varY))
-			} else {
-				((varX,varY),(0,0))
-			}
-		}
-		def rearrangeGoals(pred:VName,delta:(Double,Double),factor:Int,goals:Set[VName]){
-			if(!goals.isEmpty){
-				val g = goals.head
-				gr = gr.updateVData(g) { d => d.withCoord(gr.vdata(pred).coord._1 + delta._1/factor, gr.vdata(pred).coord._2 + delta._2/factor)}
-				val newDelta = (delta._1 - delta._1/factor, delta._2 - delta._2/factor)
-				rearrangeGoals(g,newDelta,factor-1,goals.tail)
-			}
-		}
-		var nodeComputed = Set[VName]()
-		def rec(v:VName, tvarX:Double, tvarY:Double){
-			nodeComputed = nodeComputed + v
-			gr.succVerts(v).foreach { case v1 =>
-				var f = 1
-				var succ = v1
-				var goals = Set[VName]()
-				while(gr.vdata(succ) match { case n:NodeV => n.typ=="G" case _ => false}){
-					f += 1
-					goals = goals + succ
-					succ = gr.succVerts(succ).head
-				}
-				if(succ.s != v.s && !nodeComputed.contains(succ)){
-					gr = gr.updateVData(succ) { d => d.withCoord(d.coord._1 + tvarX, d.coord._2 + tvarY)}
-					val delta = rearrange(v,succ,f*1.5)
-					if(f > 1){
-						rearrangeGoals(v,(delta._1),f,goals)
-					}
-					rec(succ,tvarX+delta._2._1,tvarY+delta._2._2)
-				}
-			}
-		}
-		gr.inputs.foreach(rec(_,0,0))
-
-		gr
-	}
-
 	/** Method to load a graph from a Json object.
 	  *
 	  * @param json Json object to load.
+		* @return Json object processed to have correct layout and labels.
 	  */
-	def loadFromJson(json: JsonObject) {
+	def loadFromJson(json: JsonObject):JsonObject =  {
 		document.clear()
 		//val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
 		// wrap Graph.fromJson .... with layout.layout(...) in next line to activate layout
-		document.graph = tinkerLayout(graphWithCompleteLabels(json))
+		document.graph = Graph.fromJson(json,theory)
 		//document.graph = graphWithCompleteLabels(json)
 		document.publish(GraphReplaced(document, clearSelection = true))
 		localUpdate()
 		view.resizeViewToFit()
 		publish(NothingSelectedEvent())
+		Graph.toJson(graph, theory).asObject
 	}
 		
 	/** Panel object containing a preview of a nested tactic (used for the graph inspector).
@@ -198,7 +121,7 @@ object QuantoLibAPI extends Publisher{
 		subgraphPreview.subgraphPreviewDoc.clear()
 		// val layout = new ForceLayout with IRanking with VerticalBoundary with Clusters
 		// wrap Graph.fromJson .... with layout.layout(...) in next line to activate layout
-		subgraphPreview.subgraphPreviewDoc.graph = graphWithCompleteLabels(json)
+		subgraphPreview.subgraphPreviewDoc.graph = Graph.fromJson(json,theory)
 		subgraphPreview.subgraphPreviewDoc.publish(GraphReplaced(subgraphPreview.subgraphPreviewDoc, clearSelection = true))
 		subgraphPreview.subgraphPreviewView.resizeViewToFit()
 	}
@@ -778,7 +701,7 @@ object QuantoLibAPI extends Publisher{
 		graph.vdata(VName(v)) match {
 			case d:NodeV if d.typ == "G_Break" =>
 				val break = v
-				val edata = DirEdge.fromJson(theory.defaultEdgeData, theory)
+				val edata = graph.edata(graph.inEdges(break).head)
 				val src = graph.source(graph.inEdges(break).head)
 				val tgt = graph.target(graph.outEdges(break).head)
 				graph.adjacentEdges(break).foreach {e => view.invalidateEdge(e) ; changeGraph(graph.deleteEdge(e))}
@@ -800,6 +723,92 @@ object QuantoLibAPI extends Publisher{
 	// Methods manipulating graphs (generic, i.e. those method
 	// will take a json graph as parameter and return a json graph)
 	// ------------------------------------------------------------
+
+	/** Method setting the labels on nodes with complete names of tactic (including arguments).
+		*
+		* @param json Input graph in json format.
+		* @return Updated graph object.
+		*/
+	def graphWithCompleteLabels(json:JsonObject):JsonObject = {
+		var gr = Graph.fromJson(json, theory)
+		gr.vdata.foreach{
+			case (k,v:NodeV) =>
+				v.data.get("label") match {
+					case Some(j:Json) =>
+					case None =>
+						v.typ match {
+							case "G_Break" =>
+								gr = gr.updateVData(k) { _ => v.withLabel("STOP") }
+							case "T_Atomic" =>
+								gr = gr.updateVData(k) { _ => v.withLabel(v.label) }
+							case "T_Graph" =>
+								gr = gr.updateVData(k) { _ => v.withLabel(v.label) }
+							case _ =>
+						}
+				}
+			case _ =>
+		}
+		Graph.toJson(gr,theory).asObject
+	}
+
+	/** Method adding enough space between nodes and correctly placing goals between them.
+		*
+		* @param json Input Json.
+		* @return Processed Json.
+		*/
+	def tinkerLayout(json:JsonObject):JsonObject = {
+		var gr = Graph.fromJson(json,theory)
+		def rearrange(v1:VName,v2:VName,factor:Double):((Double,Double),(Double,Double)) = {
+			val c1 = gr.vdata(v1).coord
+			val c2 = gr.vdata(v2).coord
+			val varX = c2._1-c1._1
+			val varY = c2._2-c1._2
+			val d = Math.sqrt(varX*varX + varY*varY)
+			if(d < factor){
+				val newvarX = (factor/d)*varX
+				val newvarY = (factor/d)*varY
+				gr = gr.updateVData(v2) { d => d.withCoord(gr.vdata(v1).coord._1 + newvarX, gr.vdata(v1).coord._2 + newvarY)}
+				((newvarX,newvarY),(newvarX-varX,newvarY-varY))
+			} else {
+				((varX,varY),(0,0))
+			}
+		}
+		def rearrangeGoals(pred:VName,delta:(Double,Double),factor:Int,goals:Set[VName]){
+			if(!goals.isEmpty){
+				val g = goals.head
+				gr = gr.updateVData(g) { d => d.withCoord(gr.vdata(pred).coord._1 + delta._1/factor, gr.vdata(pred).coord._2 + delta._2/factor)}
+				val newDelta = (delta._1 - delta._1/factor, delta._2 - delta._2/factor)
+				rearrangeGoals(g,newDelta,factor-1,goals.tail)
+			}
+		}
+		var nodeComputed = Set[VName]()
+		def rec(v:VName, tvarX:Double, tvarY:Double){
+			nodeComputed = nodeComputed + v
+			gr.succVerts(v).foreach { case v1 =>
+				var f = 1
+				var succ = v1
+				var goals = Set[VName]()
+				while(gr.vdata(succ) match { case n:NodeV => n.typ=="G" case _ => false}){
+					f += 1
+					goals = goals + succ
+					succ = gr.succVerts(succ).head
+				}
+				if(succ.s != v.s && !nodeComputed.contains(succ)){
+					gr = gr.updateVData(succ) { d => d.withCoord(d.coord._1 + tvarX, d.coord._2 + tvarY)}
+					val delta = rearrange(v,succ,f*1.5)
+					if(f > 1){
+						rearrangeGoals(v,(delta._1),f,goals)
+					}
+					rec(succ,tvarX+delta._2._1,tvarY+delta._2._2)
+				} else if(succ.s == v.s && goals.nonEmpty) {
+					 // if goals on recursive edge
+				}
+			}
+		}
+		gr.inputs.foreach(rec(_,0,0))
+
+		Graph.toJson(gr,theory).asObject
+	}
 
 	/** Method updating tactics' values.
 		*

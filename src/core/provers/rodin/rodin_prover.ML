@@ -126,7 +126,7 @@ struct
     end;
 
   fun get_goal_thm pplan = raise Fail "TODO"; 
-  
+  val prop_of_string = trm_of_string
   fun pretty_env _ _ = Pretty.str "dummy" 
   fun pretty_env_data _ _ = Pretty.str "dummy"
   structure Sharing = 

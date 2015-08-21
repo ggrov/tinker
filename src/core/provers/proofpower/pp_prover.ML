@@ -1,4 +1,5 @@
-structure PPProver : PROVER =
+(*TODO: add goal_state in pplan, top_goal_state to save it, drop_main_goal (); push_goal_state to load it when backtracking *)
+structure PPProver (*: PROVER*) =
 struct
   local open LoggingHandler (*ProverUtils*) in 
   type pos = PPTermLib.pos
@@ -8,9 +9,16 @@ struct
   type context = string list * string (* context string list * theory string *)
   
   val default_ctxt = get_current_pc (); (* used in those place need context in general *)
-
+  
+  val symbol_table = [("%and%", "&"), ("%implies%", "==>")] |> StrName.NTab.of_list;
+  fun decode_str c = case StrName.NTab.lookup (symbol_table) (String.str c) 
+    of (SOME str') => str'
+      | NONE => (String.str c);
     
-  fun pretty_trm _ trm = String.concat (PrettyPrinter.format_term true trm) |> Pretty.str
+  fun pretty_trm _ trm = 
+   String.concat (PrettyPrinter.format_term true trm) 
+   |> String.translate decode_str 
+   |> Pretty.str
 
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
   
@@ -84,6 +92,7 @@ struct
   val asms_of_thm =  asms
   (* get asm of thm - asms*)
   fun trm_of_string _ = mk_string 
+  val prop_of_string = trm_of_string
   
 (* TODO: how to print those fancy symbols in proofpower ?*)
   fun string_of_trm _ = fn trm => PrettyPrinter.format_term true trm |> String.concat
@@ -124,6 +133,7 @@ struct
     
   structure THM_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = thm val struct_name = "PPProver.THM_ML_Exec");
   fun get_thm_by_name _ str = THM_ML_Exec.eval_ml str
+   handle _ => (logging "FAILURE" ("Fail to get thm by name: " ^ str); raise tinker_fail true);
   
   exception atomic_exp of string
   val psgraph_prover_i = "proofpower";
@@ -147,14 +157,15 @@ struct
   (*val update : TACTIC -> (pnode * pplan) -> (pnode list * pplan) *)
   fun update  (tac : TACTIC) (env_tac : env -> env list) (pnode : pnode, pplan : pplan)  : (pnode list * pplan) list = 
     let 
+      val debug = true;
       fun gen_fresh_psgname nset (g : (string list * GOAL)) = 
         if (fst g) = [""] (* the case of single goal *)
         then 
-          (StrName.NSet.new nset "g",  g) (* following this convesion to gen nwe goal name *)
+          (StrName.NSet.new nset "g",  g) (* following this convesion to gen new goal name *)
         else
           (hd (fst g), g) (* otherwise, use the name from pp *)
-      (*val _ = writeln ("called set label on pname "  ^ (#pname pnode))*) 
-      (*val _ = Pretty.writeln  (Pretty.chunks (map Pretty.str ((#global pnode))))*)
+        (*val _ = if debug then  writeln ("called set label on pname "  ^ (#pname pnode)) else ()
+        val _ = if debug then Pretty.writeln  (Pretty.chunks (map Pretty.str ((#global pnode)))) else ()*)
       (* set current goal and apply tactic then get the list of goals in the format of :
       	string list * (term list * term) list *)
       val sgs = (((if (#global pnode) = [] then () else set_labelled_goal (hd (#global pnode)));
@@ -175,32 +186,44 @@ struct
         let
           val sgs' = map (gen_fresh_psgname (#usedgs pplan)) sgs 
           val all_pnodel = map gen_pnode sgs' (* all open subgoals *)
+          val _ = if debug then  [Pretty.str "all new open sg list: ["] @ (map (Pretty.str o get_pnode_name) all_pnodel) @ [Pretty.str "]"] 
+          	   |> Pretty.chunks |> Pretty.writeln else ()
           (* filter out new goals *)
-          val new_pnodel_l = 
+          val used_names = (StrName.NSet.list_of (#usedgs pplan));
+          val _ = if debug then  [Pretty.str "list of used name in ori pp: ["] @ (map (Pretty.str) used_names ) @ [Pretty.str "]"] 
+            |> Pretty.chunks |> Pretty.writeln else ()
+          val new_pnodel_l0 = 
             List.foldr
             (fn (n, pns) =>
                 filter 
-                (fn x => (case String.compare ((#pname x), n) 
-                    of EQUAL => false 
-                    | _ => true))
-                pns)
-                  all_pnodel
-            (StrName.NSet.list_of (#usedgs pplan))
-            |> (fn [x] => (map (fn y => [set_pnode_env y x]) (env_tac (get_pnode_env x))) (* either the case of env updat or the single node *)
-                | xs => [xs] ) (* if mul pnodes, no need to update env *)
+                (fn x => (not((get_pnode_name x) = n))) pns)
+                  all_pnodel used_names
+            val _ = if debug then [Pretty.str "new_pnodel_l0 after filtering: ["] @ (map (Pretty.str o get_pnode_name) new_pnodel_l0) @ [Pretty.str "]"] 
+          	   |> Pretty.chunks |> Pretty.writeln else ()
+            val new_pnodel_l = new_pnodel_l0 
+            |> (
+                  fn [x] => (map (fn y => [set_pnode_env y x]) (env_tac (get_pnode_env x))) (* either the case of env updat or the single node *)
+                  | xs => [xs] 
+               ) (* if mul pnodes, no need to update env, because env_update won't produce more than one sg, must be tac  *)
             (* update env from the consumed one:
             this will be a g list list, -> branch of goal list*)
+        val _ = if debug then [Pretty.str "hd of new_pnodel_l: ["] @ (map (Pretty.str o get_pnode_name) (hd new_pnodel_l)) @ [Pretty.str "]"] 
+          	   |> Pretty.chunks |> Pretty.writeln else ()
          fun mk_new_opengs new_pnodel =  (* del old consumed goal then add new goals *)
           (#opengs pplan)
           |> StrName.NTab.delete (#pname pnode)
           |> (fn n => List.foldr (fn (x,y) => StrName.NTab.ins ((#pname x), x) y) n new_pnodel)
          fun mk_new_pplan new_pnodel = 
+         let
+         val _ = if debug then [Pretty.str "new sg list: ["] @ (map (Pretty.str o get_pnode_name) new_pnodel) @ [Pretty.str "]"] 
+          	   |> Pretty.chunks |> Pretty.writeln else ()
+         val _ = if debug then [Pretty.str "new opengs status: ["] @ (StrName.NTab.keys (mk_new_opengs new_pnodel)|> map Pretty.str)@ [Pretty.str "]"]
+	           |> Pretty.chunks |> Pretty.writeln else ()
+         in
           {opengs = mk_new_opengs new_pnodel, (* get all current sgs name *)
            usedgs = StrName.NSet.add_list (map fst sgs') (#usedgs pplan)}
-        (*val _ = [Pretty.str "new sg list: ["] @ (map (Pretty.str o get_pnode_name) new_pnodel) @ [Pretty.str "]"] 
-          	   |> Pretty.chunks |> Pretty.writeln
-         val _ = [Pretty.str "new opengs status: ["] @ (StrName.NTab.keys new_opengs|> map Pretty.str)@ [Pretty.str "]"]
-	           |> Pretty.chunks |> Pretty.writeln*)
+          end
+
      in
 	    map (fn npl => (npl, mk_new_pplan npl)) new_pnodel_l  
 	   end 
@@ -208,10 +231,19 @@ struct
    end
     
 
+  fun pretty_pnode pnode = 
+  String.concat
+  ["[ Goal ", 
+  (get_pnode_name pnode),
+  " : ",
+  pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode) |> Pretty.string_of,
+  " ]"] |> Pretty.str;
+
+
   fun apply_tactic args tac (pnode,pplan) = 
     (*let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in*)
     update (tac args) (fn x => [x]) (pnode,pplan)
-    (*|> (fn (l,p) => ((get_open_pnodes p |> map pretty_pnode |> Pretty.chunks |> Pretty.writeln) ; (l,p)))*)
+    (*|> (fn x => (writeln "|||DEBUG: ";(map (fn (l,p) => (get_open_pnodes p |> map pretty_pnode |> Pretty.chunks |> Pretty.writeln)) x) ; x))*)
     |> Seq.of_list 
     handle BasicError.Fail msg => 
       (logging "FAILURE" ("In pnode " ^ get_pnode_name pnode ^ ":" ^ BasicError.get_message msg); 
@@ -229,14 +261,6 @@ struct
                raise tinker_fail false) ;
     (*end*)  
   
-    fun pretty_pnode pnode = 
-    String.concat
-    ["[ Goal ", 
-    (get_pnode_name pnode),
-    " : ",
-    pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode) |> Pretty.string_of,
-    " ]"] |> Pretty.str;
-
   fun pretty_goal pnode = pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode)
   fun pretty_pplan pnode = Pretty.str "Pretty PPLAN TOTO";
   
