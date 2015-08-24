@@ -23,7 +23,13 @@ struct
 
   datatype atomic_tacs = Atomic_Tacs of {
      name : string, 
-     tactic: Prover.tactic (* actual ml code of the tactic *)
+     tactic: Prover.tactic 
+     (*args : Theory.Data.arg_typ*)
+  }
+
+  datatype env_tacs = Env_Tacs of {
+     name : string, 
+     tactic: string (* actual ml code of the tactic *)
      (*args : Theory.Data.arg_typ*)
   }
 
@@ -46,6 +52,7 @@ struct
       main : StrName.NTab.name,
       graph_tactics : graph_tacs StrName.NTab.T, (* only name of parent *)
       atomic_tactics : atomic_tacs StrName.NTab.T,
+      env_tactics : env_tacs StrName.NTab.T,
 (* as we allow using tactic with various arguments, the types of tactics various, we need to use string *)
       (*tactics : Prover.tactic StrName.NTab.T,*) (* atomic_tactics name -> tactic *) (* do we still need it ? *)
       goaltype_data : Theory.Data.GoalTyp.data,
@@ -58,29 +65,34 @@ struct
  exception tactic_exp of string
  fun update_graph_tactics f (PSGraph rep) = 
    PSGraph { graph_tactics = f (#graph_tactics rep), main = (#main rep),
-             atomic_tactics = #atomic_tactics rep, (* tactics = #tactics rep,*)
+             atomic_tactics = #atomic_tactics rep, env_tactics = #env_tactics rep,(* tactics = #tactics rep,*)
              occurs = #occurs rep, goaltype_data = #goaltype_data rep}
  fun update_atomic_tactics f (PSGraph rep) = 
    PSGraph { main = #main rep, graph_tactics = #graph_tactics rep, 
-             atomic_tactics = f (#atomic_tactics rep), (* tactics = #tactics rep,*)
+             atomic_tactics = f (#atomic_tactics rep), env_tactics = #env_tactics rep,(* tactics = #tactics rep,*)
+             occurs = #occurs rep, goaltype_data = #goaltype_data rep}
+ fun update_env_tactics f (PSGraph rep) = 
+   PSGraph { main = #main rep, graph_tactics = #graph_tactics rep, 
+             atomic_tactics = #atomic_tactics rep, env_tactics = f (#env_tactics rep),(* tactics = #tactics rep,*)
              occurs = #occurs rep, goaltype_data = #goaltype_data rep}
  fun update_main f (PSGraph rep) = 
    PSGraph { main = f (#main rep), graph_tactics = #graph_tactics rep, 
-             atomic_tactics = #atomic_tactics rep, (* tactics = #tactics rep,*)
+             atomic_tactics = #atomic_tactics rep, env_tactics = #env_tactics rep,(* tactics = #tactics rep,*)
              occurs = #occurs rep, goaltype_data = #goaltype_data rep}
  fun update_occurs f (PSGraph rep) = 
    PSGraph { main = #main rep, graph_tactics = #graph_tactics rep, 
-             atomic_tactics = #atomic_tactics rep, (* tactics = #tactics rep,*)
+             atomic_tactics = #atomic_tactics rep, env_tactics = #env_tactics rep,(* tactics = #tactics rep,*)
              occurs = f(#occurs rep), goaltype_data = #goaltype_data rep}
  fun update_goaltype_data f (PSGraph rep) = 
    PSGraph { main = #main rep, graph_tactics = #graph_tactics rep, 
-             atomic_tactics = #atomic_tactics rep, (* tactics = #tactics rep,*)
+             atomic_tactics = #atomic_tactics rep, env_tactics = #env_tactics rep,(* tactics = #tactics rep,*)
              occurs = (#occurs rep), goaltype_data = f (#goaltype_data rep)}
 
  fun get_goaltype_data (PSGraph rep) = #goaltype_data rep
  fun get_main (PSGraph rep) = #main rep
  fun get_graph_tactics (PSGraph rep) = #graph_tactics rep;
  fun get_atomic_tactics (PSGraph rep) = #atomic_tactics rep;
+ fun get_env_tactics (PSGraph rep) = #env_tactics rep;
  fun get_top_graph ps = 
   StrName.NTab.get (get_graph_tactics ps) (get_main ps) 
   |> (fn (Graph_Tacs rep) => (#graphs rep) |> hd);
@@ -133,6 +145,7 @@ struct
  val set_goaltype_data = update_goaltype_data o K;
  val set_graph_tactics = update_graph_tactics o K;
  val set_atomic_tactics = update_atomic_tactics o K;
+ val set_env_tactics = update_env_tactics o K;
  val set_occurs = update_occurs o K;
  val set_main = update_main o K;
  fun set_top_graph g ps = 
@@ -162,10 +175,12 @@ struct
  fun of_graph name graph = 
    PSGraph { graph_tactics = StrName.NTab.ins (name, mk_default_graph_tacs name graph) StrName.NTab.empty,
              atomic_tactics = StrName.NTab.empty,
+             env_tactics = StrName.NTab.empty,
              main = "default", occurs = default_occurs, goaltype_data = Theory.Data.GoalTyp.default_data};
  val default_psgraph =    
    PSGraph { graph_tactics =  StrName.NTab.empty,
              atomic_tactics = StrName.NTab.empty,
+             env_tactics = StrName.NTab.empty,
              main = "default", occurs = default_occurs,
              goaltype_data = Theory.Data.GoalTyp.default_data};
 
@@ -186,12 +201,13 @@ struct
   let 
     val graph_tactics' = StrName.NTab.merge_disjoint (get_graph_tactics ps1) (get_graph_tactics ps2)
     val atomic_tactics' = StrName.NTab.merge_disjoint (get_atomic_tactics ps1) (get_atomic_tactics ps2)
+    val env_tactics' = StrName.NTab.merge_disjoint (get_env_tactics ps1) (get_env_tactics ps2)
   (*  val tactics' = StrName.NTab.merge_disjoint (get_tactics ps1) (get_tactics ps2) *)
   in
       PSGraph { main = main,
              graph_tactics = graph_tactics',
              atomic_tactics = atomic_tactics',
-            (* tactics = tactics',*)
+             env_tactics = env_tactics',
              occurs = default_occurs,
              goaltype_data = Theory.Data.GoalTyp.default_data
             (* TODO: should be able to merger*)
@@ -211,6 +227,23 @@ struct
     ("tactic", Json.String (*(#tactic atom)*) "") 
     (*"args", arg_typ_to_json (#args atom)*)]
 
+ fun output_env_json (_, Env_Tacs env) =
+   Json.mk_object [
+    ("name", Json.String (#name env)), 
+    ("tactic", Json.String (*(#tactic atom)*) "") 
+    (*"args", arg_typ_to_json (#args atom)*)]
+
+ fun is_atom_tac (Json.Object jobj) = not (Theory.Graph_Utils.is_env_tactic_name (JsonInputUtils.get_string jobj "name"))
+ | is_atom_tac _ = raise Json.parse_exn "unexcepted json strcure in is_env in PSGraph"
+
+ fun input_env_json (Json.Object jobj) = 
+  let
+    val name = JsonInputUtils.get_string jobj "name"
+    val tactic = ""
+   in
+    (name, Env_Tacs { name = name, tactic = tactic(*, args = args*)})
+   end
+
  fun input_atomic_json (Json.Object jobj) = 
   let
     fun eval_ml ml_str = 
@@ -220,7 +253,7 @@ struct
       in
         Prover.Tac_ML_Exec.eval_ml ml_str
       end
-    val name =  JsonInputUtils.get_string jobj "name"
+    val name = JsonInputUtils.get_string jobj "name"
     val tactic = 
       case JsonInputUtils.get_string jobj "tactic" 
       of "" =>  eval_ml name 
@@ -295,8 +328,10 @@ struct
        |> map output_subgraph_json)
     val atomic_tactics =  
       Json.Array 
-       (StrName.NTab.list_of (get_atomic_tactics ps) 
-       |> map output_atomic_json)
+      ((StrName.NTab.list_of (get_atomic_tactics ps) 
+       |> map output_atomic_json) @
+       (StrName.NTab.list_of (get_env_tactics ps) 
+       |> map output_env_json))
     val goaltype_data = Json.String "" 
     val current = Json.Array[Json.String (get_main ps)]
     val current_index = Json.Int 0     
@@ -345,7 +380,13 @@ struct
       |> StrName.NTab.of_list
     val atomic_tactics = 
       JsonInputUtils.get_array object "atomic_tactics"
+      |> filter is_atom_tac(* filter out the ENV tac *)
       |> map input_atomic_json
+      |> StrName.NTab.of_list
+    val env_tactics = 
+      JsonInputUtils.get_array object "atomic_tactics"
+      |> filter is_atom_tac(* filter out the ENV tac *)
+      |> map input_env_json
       |> StrName.NTab.of_list
     val occurs = Json.get object "occurrences" |> input_occurs_json
 
@@ -354,6 +395,7 @@ struct
     default_psgraph
     |> set_graph_tactics graph_tactics
     |> set_atomic_tactics atomic_tactics
+    |> set_env_tactics env_tactics
     |> set_occurs occurs
     |> set_main main
     (* |> set_tactics tactics*)
