@@ -211,6 +211,10 @@ struct
     ("tactic", Json.String (*(#tactic atom)*) "") 
     (*"args", arg_typ_to_json (#args atom)*)]
 
+ fun is_atom_tac (Json.Object jobj) = not (Theory.Graph_Utils.is_env_tactic_name (JsonInputUtils.get_string jobj "name"))
+ | is_atom_tac _ = raise Json.parse_exn "unexcepted json strcure in is_env in PSGraph"
+
+
  fun input_atomic_json (Json.Object jobj) = 
   let
     fun eval_ml ml_str = 
@@ -220,7 +224,7 @@ struct
       in
         Prover.Tac_ML_Exec.eval_ml ml_str
       end
-    val name =  JsonInputUtils.get_string jobj "name"
+    val name = JsonInputUtils.get_string jobj "name"
     val tactic = 
       case JsonInputUtils.get_string jobj "tactic" 
       of "" =>  eval_ml name 
@@ -345,6 +349,7 @@ struct
       |> StrName.NTab.of_list
     val atomic_tactics = 
       JsonInputUtils.get_array object "atomic_tactics"
+      |> filter is_atom_tac(* filter out the ENV tac *)
       |> map input_atomic_json
       |> StrName.NTab.of_list
     val occurs = Json.get object "occurrences" |> input_occurs_json
