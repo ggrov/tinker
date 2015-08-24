@@ -1,5 +1,6 @@
 package tinkerGUI.controllers
 
+import java.awt.Font
 import java.io.{IOException, FileNotFoundException, File}
 
 import tinkerGUI.controllers.events.GraphTacticListEvent
@@ -108,11 +109,25 @@ object Service extends Publisher {
     getTopFrame.visible_=(b)
   }
 
-
-
-
-
   def debugPrintJson(){
-  	println(model.updateJsonPSGraph())
+		new Frame(){
+			val modelArea = new TextArea(){
+				lineWrap = true
+				editable = false
+				font = new Font(Font.MONOSPACED,Font.BOLD,14)
+				text = model.updateJsonPSGraph().toString()
+			}
+			contents = new ScrollPane(modelArea)
+			menuBar = new MenuBar(){
+				contents += new Button(new Action("Refresh"){
+					def apply() = {
+						modelArea.text = model.updateJsonPSGraph().toString()
+					}
+				})
+			}
+			minimumSize = new Dimension(250,250)
+			size = new Dimension(500,350)
+			title = "Tinker - "+documentCtrl.title+" - model"
+		}.open()
   }
 }

@@ -157,7 +157,7 @@ class TinkerMenu() extends MenuBar{
 				Service.editCtrl.logStack.openFrame("Tinker - edit log")
 			}
 		}
-		new Action("Print JSON in Console") {
+		new Action("Print model") {
 			menu.contents += new MenuItem(this)
 
 			def apply() {
