@@ -31,7 +31,7 @@ struct
   fun run_in_atomic func = 
    let
     val m = Mutex.mutex ();   
-    val attr = Thread.getAttributes () ;    
+    val attr = Thread.getAttributes () ;     
    in 
     (Thread.setAttributes 
       [Thread.EnableBroadcastInterrupt false, 
@@ -299,14 +299,14 @@ struct
           accept_until_timeout 8 (* timeout for 8 s *)
         end
       val (sin0, sout0) = make_streams sock0;
-      val _ = 
-        Synchronized.change 
+      val _ =  
+        Synchronized.change    
           current_sock 
           (fn _ =>
             SockData {sock = sock0, passive = SOME passive_sock, sin = sin0, sout = sout0} |> SOME)
     in
       SockData { sock = sock0, passive = SOME passive_sock, sin = sin0, sout = sout0}
-    end
+    end  
   handle exp_text_socket msg => (clear_current_sock0 () ; raise exp_text_socket msg) (* timeout , stop trying *)
         | _                  => (clear_current_sock0 () ;raise exp_text_socket "socket in use")
 

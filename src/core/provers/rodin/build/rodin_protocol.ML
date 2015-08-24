@@ -24,10 +24,10 @@ struct
   type term = string 
   type thm = string
   type context= string
-  type tactic = string
+  type tactic = {tac_name : string, tac_type : string}
 
   (* arguments for atomic goal types and tactics *)
-  type arg_data =  string
+  type arg_data =  string * string
 
   datatype env_data = 
     E_Str of string | 
@@ -83,7 +83,8 @@ struct
 
   fun apply args tactic pnode = 
   let
-      val reply=execute ("APPLY_TACTIC",[("TACTIC",tactic),("NODE",pnode)] @ args);
+      val {tac_name, tac_type} = tactic
+      val reply=execute ("APPLY_TACTIC",[("TACTIC",tac_name),("NODE",pnode), ("TYPE",tac_type)] @ args);
       val new_nodes = case getInstruction reply of 
                   "NODE_CLOSED" =>[]
                    (*  let val reply= (Rodin.execute  ("GET_ALL_OPEN_NODES",[("PPLAN",pplan)]));
@@ -99,24 +100,24 @@ struct
                  | "ERROR" =>
                     (RodinSock.send (toJson ("DISSCONNECT_WITH_ERROR",[("ERROR", getParam reply "ERROR_INFO")]));  
                      RodinSock.disconnect();
-                      raise error (String.concat["Cannot Apply this Tactic: ",tactic, " ERROR: ", getParam reply "ERROR_INFO"]))
+                      raise error (String.concat["Cannot Apply this Tactic: ",tac_name, " ERROR: ", getParam reply "ERROR_INFO"]))
                  | str =>  
                     (RodinSock.send (toJson ("DISSCONNECT_WITH_ERROR",[("ERROR",str)]));  
                      RodinSock.disconnect();
-                    raise error (String.concat["Cannot Apply this Tactic: ",tactic," with instruction:", str]))
+                    raise error (String.concat["Cannot Apply this Tactic: ",tac_name," with instruction:", str]))
   in
       new_nodes 
   end;
 
-  fun apply_tactic (args:string list) tactic pnode = 
+  fun apply_tactic args tactic pnode = 
   let  val c_args =args in
-    if isExternalTac(tactic) then
+(*     if isExternalTac(tactic) then
       let
           val (new_args, tac, pnode)=(externalTac c_args tactic pnode) 
       in 
        apply new_args tac pnode 
       end
-    else
-      apply [] tactic pnode 
+    else *)
+      apply c_args tactic pnode 
   end
 end

@@ -10,6 +10,13 @@ struct
       RJP.fromJson reply
     end
 
+  fun get_psgraph () = 
+  let val reply = execute ("GET_PSGRAPH", [])
+      val result=getParam reply "PS"
+  in
+    result
+  end
+
   fun match0 context term1 term2 = 
   let val reply = execute ("MATCH_TERMS",[("TERM1",term1),("TERM2",term2),("CONTEXT",context)])
       val result= getParam reply "RESULT"
@@ -67,7 +74,7 @@ struct
       end;
   end
 
-
+(* 
   fun apply_on_hyp (args: string list) pnode = raise error "TODO"
 
   fun apply_on_goal (args: string list) pnode =
@@ -84,6 +91,6 @@ struct
   fun externalTac  (args:string list) tactic pnode = 
   case tactic of "APPLY_ON_HYP" => apply_on_hyp args pnode
                | "APPLY_ON_GOAL"=> apply_on_goal args pnode
-  | str => raise error ("SOME TACTIC "^ str ^" UNKNOWN")
+  | str => raise error ("SOME TACTIC "^ str ^" UNKNOWN") *)
 
 end

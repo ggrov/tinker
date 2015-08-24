@@ -29,7 +29,7 @@ ML_file "./rodin_prover.ML"
 ML_file "simpleGT_lib.ML" *)
 
 ML{*
-  structure Clause_GT : CLAUSE_GOALTYPE = ClauseGTFun(structure Prover = RodinProver val struct_name = "SimpleGoalType");
+  structure Clause_GT : CLAUSE_GOALTYPE = ClauseGTFun(structure Prover = RodinProver val struct_name = "ClauseGoalType");
   structure Data = PSGraphDataFun(Clause_GT);
   structure PSDataIO = PSGraphIOFun(structure Data = Data);
   structure Theory = PSGraph_TheoryFun(structure GoalTyp = Clause_GT  

@@ -25,6 +25,10 @@ public class TinkerSession {
 	private int TacticState = TacticStates.NOT_APPLICABLE;
 
 	private IProofMonitor pm;
+	
+	private String psgraph;
+	
+	
 
 	public TinkerSession(IWorkbenchWindow workbench, IProofMonitor pm) {
 		this.sessionCode = String.valueOf((new Object()).hashCode());
@@ -66,6 +70,14 @@ public class TinkerSession {
 
 	public void setTacticState(int rodinState) {
 		TacticState = rodinState;
+	}
+
+	public String getPsgraph() {
+		return psgraph;
+	}
+
+	public void setPsgraph(String psgraph) {
+		this.psgraph = psgraph;
 	}
 
 }

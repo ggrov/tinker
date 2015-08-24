@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.internal.handlers.WizardHandler.New;
+import org.eventb.core.EventBPlugin;
 import org.eventb.core.IPORoot;
 import org.eventb.core.ast.AssociativeExpression;
 import org.eventb.core.ast.AssociativePredicate;
@@ -52,11 +53,13 @@ import org.eventb.core.seqprover.eventbExtensions.AutoTactics;
 import org.eventb.core.seqprover.eventbExtensions.DLib;
 import org.eventb.core.seqprover.eventbExtensions.Lib;
 import org.eventb.core.seqprover.eventbExtensions.Tactics;
+import org.eventb.internal.core.ast.Position;
 import org.eventb.internal.core.seqprover.eventbExtensions.utils.FreshInstantiation;
 import org.eventb.internal.ui.prooftreeui.ProofTreeUI;
 import org.eventb.internal.ui.prooftreeui.ProofTreeUIPage;
 import org.eventb.internal.ui.prover.tactics.AutoProver.AutoProverApplication;
 import org.eventb.internal.ui.prover.tactics.EqvLR;
+import org.eventb.pp.PPCore;
 import org.eventb.ui.prover.ITacticApplication;
 
 import tinker.core.socket.TinkerConnector;
@@ -275,7 +278,7 @@ public class CommandExecutor {
 			TinkerConnector tinker, TinkerSession session) throws Exception {
 
 		String result;
-		String tactic_type = command.getParameter("TACTIC");
+		String tactic_type = command.getParameter("TYPE").toUpperCase();
 		String targetNode = command.getParameter("NODE");
 		IProofTreeNode target = session.nameToNodeMap.get(targetNode);
 
@@ -291,7 +294,7 @@ public class CommandExecutor {
 		// 2. arg 2
 		// 3. arg 3
 		// .. arg ... etc
-		String tac_name = command.getParameter("REALTAC");
+		String tac_name = command.getParameter("TACTIC");
 		if (tactic_type.equals("AUTO_TACTIC")) {
 			tac_result = getAutoTactic(tac_name, target).apply(target, pm);
 		} else if (tactic_type.equals("ON_HYP")) {
@@ -370,8 +373,8 @@ public class CommandExecutor {
 
 	private static String handle_TOP_SYMBOL_IS(Command command, IProofTreeNode pt, IProofMonitor pm,
 			TinkerConnector tinker, TinkerSession session) throws Exception {
-		String pnode = command.getParameter("CONTEXT");
-		String symbol = command.getParameter("SYMBOL");
+		String pnode = command.getParameter("NODE");
+		String symbol = command.getParameter("SYMB");
 		Command cmd = new Command("TOP_SYMBOL_CHECK_RESULT").addParamter("RESULT",
 				String.valueOf(check_top_symbol(symbol, pnode, session)));
 
@@ -496,7 +499,10 @@ public class CommandExecutor {
 				result = handle_GET_GOAL_TERM(command, pt, pm, tinker, session);
 				break;
 			case "ALL_SYMBOL":
-
+			
+				break;
+			case "GET_PSGRAPH":
+				result= handle_GET_PSGRAPH(command, pt, pm, tinker, session);
 				break;
 			default:
 				break;
@@ -507,25 +513,51 @@ public class CommandExecutor {
 		}
 	}
 
+	private static String handle_GET_PSGRAPH(Command command, IProofTreeNode pt, IProofMonitor pm,
+			TinkerConnector tinker, TinkerSession session) {
+		// TODO Auto-generated method stub
+		Command cmd = new Command("PS_GRAPH");
+		cmd.addParamter("PS", session.getPsgraph());
+		
+		
+		return cmd.toString();
+	}
+
 	private static ITactic getOnGoalTactic(String tacticName, Command cmd, IProofTreeNode pnode) {
-		switch (tacticName) {
+		switch (tacticName.toUpperCase()) {
 		case "INST":
 			String[] inst_values = cmd.getParameter("PARAM").split(",");
 			return Tactics.exI(inst_values);
+		case "IMPI":
+			return Tactics.impI();
 		default:
 			return new Tactics.FailureTactic();
 
 		}
 	}
 
+	private static Predicate get_hyp(String str, IProofTreeNode pnode){
+		Predicate term= parseStr(str, pnode.getSequent().typeEnvironment());
+		for(Predicate hyp : pnode.getSequent().hiddenHypIterable()){
+			if (term.equals(hyp)){
+				return hyp;
+			}
+		}
+		return null;
+	}
+	
 	private static ITactic getOnHypTactic(String tacticName, Command cmd, IProofTreeNode pnode) {
+		Predicate hyp =  get_hyp(cmd.getParameter("TERM"), pnode);
 		switch (tacticName) {
 		case "EqHypTac": // eqvRewrite Equivalent Hypothesis rewrite tactic
-			Predicate hyp = null;
+			
 			final ITacticApplication appli = (new EqvLR()).getPossibleApplications(pnode, hyp, null).get(0);
 
 			return appli.getTactic(null, null);
-
+		case "remove IN":
+			
+			IPosition pos = Position.getRoot();
+			Tactics.removeMembership(hyp, pos);
 		case "INST": // instantiate
 			String termstr = cmd.getParameter("HYP");
 			Predicate selected_hyp = null;
@@ -563,9 +595,17 @@ public class CommandExecutor {
 			return Tactics.hyp();
 		case "EqHypTac":
 			return new AutoTactics.EqHypTac();
+		case "partition_rewrite":
+			return new AutoTactics.PartitionRewriteTac();
 		case "symp_rewrite":
 			return (new AutoTactics.AutoRewriteTac());
-		case "default":
+		case "newPP_AL":
+			return Tactics.afterLasoo(PPCore.newPP(true, 2000, 3000));
+		case "newPP_UR":
+			return PPCore.newPP(false, 2000, 3000);
+		case "newPP_R":
+			return PPCore.newPP(true, 2000, 3000);
+		case "autoProver":
 			// Simple copy from the construction of
 			// AutoProver.AutoProverApplication
 			final Object origin = pnode.getProofTree().getOrigin();
@@ -574,8 +614,8 @@ public class CommandExecutor {
 			}
 			final IProofAttempt pa = (IProofAttempt) origin;
 			final IPORoot poRoot = pa.getComponent().getPORoot();
-			final ITacticApplication appli = new AutoProverApplication(poRoot);
-			return appli.getTactic(null, null);
+			return EventBPlugin.getAutoPostTacticManager()
+					.getSelectedAutoTactics(poRoot);
 		default:
 			return Tactics.autoRewrite();
 		}
