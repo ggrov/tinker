@@ -1334,14 +1334,16 @@ object QuantoLibAPI extends Publisher{
 						p.println("\t\t<rect class=\""+typ+"\" width=\""+w+"\" height=\""+h+"\" transform=\"translate(4,4)\"></rect>")
 						p.println("\t\t<rect class=\""+typ+"\" width=\""+w+"\" height=\""+h+"\"></rect>")
 						p.println("\t\t<text class=\"label\" x=\""+(w/2)+"\" y=\""+(h-6)+"\">"+label+"</text>")
+						p.println("\t\t<text class=\"nodeId\" x=\"-5\" y=\"-2\">"+id+"</text>")
 					case "atm" =>
 						p.println("\t\t<rect class=\""+typ+"\" width=\""+w+"\" height=\""+h+"\"></rect>")
 						p.println("\t\t<text class=\"label\" x=\""+(w/2)+"\" y=\""+(h-6)+"\">"+label+"</text>")
+						p.println("\t\t<text class=\"nodeId\" x=\"-5\" y=\"-2\">"+id+"</text>")
 					case "id" =>
 						val coordinates = getPolygonCoordinates((w/2,w/2),w/2,0,3).foldLeft(""){case(s,c)=>s+c._1+","+c._2+" "}
 						p.println("\t\t<polygon class=\""+typ+"\" points=\""+coordinates+"\"/>")
 					case "bound" =>
-						p.println("\t\t<rect class=\""+typ+"\" width=\""+w+"\" height=\""+h+"\"></rect>")
+						//p.println("\t\t<rect class=\""+typ+"\" width=\""+w+"\" height=\""+h+"\"></rect>")
 					case "goal" =>
 						p.println("\t\t<circle class=\""+typ+"\" cx=\""+(w/2)+"\" cy=\""+(w/2)+"\" r=\""+(w/2)+"\"/>")
 						p.println("\t\t<text class=\"label\" x=\""+(w/2)+"\" y=\""+(h/3*2-2)+"\">"+label+"</text>")
@@ -1351,7 +1353,7 @@ object QuantoLibAPI extends Publisher{
 						p.println("\t\t<text class=\"labelBreak\" x=\""+(w/2)+"\" y=\""+(h/3*2-2)+"\">"+label+"</text>")
 					case _ =>
 				}
-				p.println("\t\t<text class=\"nodeId\" x=\"-5\" y=\"-2\">"+id+"</text>")
+				//p.println("\t\t<text class=\"nodeId\" x=\"-5\" y=\"-2\">"+id+"</text>")
 				p.println("\t</g>")
 			}
 			def printEdge(label:String, src:String, tgt:String, w:Int, h:Int) {

@@ -119,32 +119,43 @@ object TinkerDialog {
 		var newValMap = Map[String, String]()
 		var textfieldMap = Map[String, TextComponent]()
 		var radios:List[RadioButton] = List()
+		var checks:Map[String,CheckBox] = Map()
 		editDialog.contents = new GridPanel(fields.size+2, 1){
 			contents += new FlowPanel() {
 				contents += new Label(message)
 			}
 			fields.foreach{ case (k,v)=>
 				contents += new FlowPanel() {
-					contents += new Label(k+" : ")
-					if(k=="Branch type") {
-						val orRadio = new RadioButton("OR"){selected = v=="OR"}
-						val orelseRadio = new RadioButton("ORELSE"){selected = v=="ORELSE"}
-						new ButtonGroup(orRadio, orelseRadio)
-						radios = List(orRadio, orelseRadio)
-						contents ++= radios
-						textfieldMap += (k -> new TextField())
-					} else if(k=="From" || k=="To"){
-						val t = new TextField(v, 5)
-						contents += t
-						textfieldMap += (k -> t)
-					} else if(k=="Name"||k=="Proof name"||k=="Goal"){
-						val t = new UnicodeTextField(v, 15)
-						contents += t
-						textfieldMap += (k -> t)
-					} else {
-						val t = new UnicodeTextArea(v, 3, 20)
-						contents += new ScrollPane(t)
-						textfieldMap += (k -> t)
+					k match {
+						case "Branch type" => // radio buttons
+							val orRadio = new RadioButton("OR"){selected = v=="OR"}
+							val orelseRadio = new RadioButton("ORELSE"){selected = v=="ORELSE"}
+							new ButtonGroup(orRadio, orelseRadio)
+							radios = List(orRadio, orelseRadio)
+							contents += new Label(k+" : ")
+							contents ++= radios
+							textfieldMap += (k -> new TextField())
+//						case "Creat html app" => //checkbox
+//							val check = new CheckBox(k)
+//							check.selected = v=="true"
+//							checks = checks + (k->check)
+//							textfieldMap += (k -> new TextField())
+//							contents += check
+						case "From" | "To" => // small text fields
+							val t = new TextField(v, 5)
+							contents += new Label(k+" : ")
+							contents += t
+							textfieldMap += (k -> t)
+						case "Name" | "Proof name" | "Goal" | "Title (*)" | "Author" | "Date" => // large text fields
+							val t = new UnicodeTextField(v, 15)
+							contents += new Label(k+" : ")
+							contents += t
+							textfieldMap += (k -> t)
+						case _ => // large text area
+							val t = new UnicodeTextArea(v, 3, 20)
+							contents += new Label(k+" : ")
+							contents += new ScrollPane(t)
+							textfieldMap += (k -> t)
 					}
 				}
 			}
@@ -157,6 +168,10 @@ object TinkerDialog {
 									var text = ""
 									radios.foreach { case r => if (r.selected) text = r.text }
 									newValMap += (k -> text)
+									// for checkboxes
+//								} else if(k == "Create html app"){
+//									val text = if(checks(k).selected) "true" else "false"
+//									newValMap += (k -> text)
 								} else {
 									newValMap += (k -> v.text)
 								}

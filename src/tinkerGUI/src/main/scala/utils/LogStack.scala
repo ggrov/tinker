@@ -2,6 +2,8 @@ package tinkerGUI.utils
 
 import java.awt.{Dimension, Font}
 
+//import tinkerGUI.utils.LogStack.logFrame._
+
 import scala.collection.mutable
 import scala.swing._
 
@@ -47,6 +49,7 @@ class LogStack {
 		}
 		def updateText() = {messages.text = getLog}
 		minimumSize = new Dimension(250,250)
+		preferredSize = new Dimension(500,350)
 		contents = new ScrollPane(messages)
 	}
 
@@ -167,8 +170,9 @@ class FilteredLogStack {
 		}
 		menuBar = mBar
 		minimumSize = new Dimension(250,250)
+		preferredSize = new Dimension(500,350)
 		contents = new SplitPane(Orientation.Vertical){
-			contents_=(new ScrollPane(messages),filters)
+			contents_=(filters, new ScrollPane(messages))
 		}
 	}
 
