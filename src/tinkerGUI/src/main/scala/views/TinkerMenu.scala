@@ -157,7 +157,7 @@ class TinkerMenu() extends MenuBar{
 				Service.editCtrl.logStack.openFrame("Tinker - edit log")
 			}
 		}
-		new Action("Print JSON in Console") {
+		new Action("Print model") {
 			menu.contents += new MenuItem(this)
 
 			def apply() {
@@ -173,6 +173,7 @@ class TinkerMenu() extends MenuBar{
 				listenTo(Service.recordCtrl)
 				reactions += {
 					case RecordFileSetupEvent(setup) =>
+						title = "Start Recording"
 						enabled = setup
 				}
 			}
@@ -184,7 +185,7 @@ class TinkerMenu() extends MenuBar{
 					Service.recordCtrl.startRecording()
 					//Service.evalCtrl.setRecording(true)
 				}
-				this.title = if(Service.recordCtrl.recording) "Stop recording" else "Start recording"
+				this.title = if(Service.recordCtrl.recording) "Pause recording" else "Resume recording"
 			}
 		}
 		new Action("Set up file for recording") {
@@ -197,6 +198,12 @@ class TinkerMenu() extends MenuBar{
 			}
 			def apply() {
 				Service.recordCtrl.setupFile()
+			}
+		}
+		new Action("Generate web app") {
+			menu.contents += new MenuItem(this)
+			def apply() {
+				Service.recordCtrl.generateWebApp()
 			}
 		}
 	}

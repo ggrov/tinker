@@ -105,4 +105,10 @@ class InspectorController(model: PSGraph) extends Publisher {
 			gtList = model.gtCollection.keys.toList :+ model.mainTactic.name
 			publish(UpdateGTListEvent())
 	}
+
+	listenTo(QuantoLibAPI)
+	reactions += {
+		case OneVertexSelectedEvent(_,typ,_,value) if typ == "T_Graph" =>
+			inspect(value)
+	}
 }

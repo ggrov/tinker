@@ -23,10 +23,14 @@ class EditorWindow(frameTitle:String, parseCallback:(String)=>Unit) {
 		}
 		title = frameTitle
 		minimumSize = new Dimension(250,250)
-		contents = new BorderPanel(){
-			add(new ScrollPane(editArea),BorderPanel.Position.Center)
-			add(new FlowPanel(FlowPanel.Alignment.Right)(new Button(new Action("Submit"){def apply(){parseCallback(editArea.text)}})),BorderPanel.Position.South)
+		contents = new ScrollPane(editArea)
+		menuBar = new MenuBar(){
+			contents += new Button(new Action("Submit"){def apply(){parseCallback(editArea.text)}})
 		}
+//		contents = new BorderPanel(){
+//			add(new ScrollPane(editArea),BorderPanel.Position.Center)
+//			add(new FlowPanel(FlowPanel.Alignment.Right)(new Button(new Action("Submit"){def apply(){parseCallback(editArea.text)}})),BorderPanel.Position.South)
+//		}
 		override def closeOperation() {
 			parseCallback(editArea.text)
 		}

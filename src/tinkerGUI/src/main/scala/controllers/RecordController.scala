@@ -6,8 +6,9 @@ import javax.swing.filechooser.FileNameExtensionFilter
 import quanto.util.json._
 import tinkerGUI.controllers.events.{RecordStartStopEvent, RecordFileSetupEvent}
 import tinkerGUI.model.PSGraph
-import tinkerGUI.utils.TinkerDialog
+import tinkerGUI.utils.{FileUtils, TinkerDialog}
 
+import scala.swing.FileChooser.SelectionMode
 import scala.swing.{Dialog, Publisher, FileChooser}
 
 class RecordController(model:PSGraph) extends Publisher {
@@ -17,7 +18,7 @@ class RecordController(model:PSGraph) extends Publisher {
   var recording = false
 
   def setupFile(): Unit ={
-    showOpenDialog() match {
+    showJsonFileOpenDialog() match {
       case Some(f:File) =>
         file = Some(f)
         if(promptExists(f)){
@@ -33,7 +34,7 @@ class RecordController(model:PSGraph) extends Publisher {
               publish(RecordFileSetupEvent(true))
             }
           }
-          TinkerDialog.openEditDialog("Details about this recording ( (*) mandatory fields)",Map("Title (*)"->"","Author"->"","Date"->""),successCallback,failureCallback)
+          TinkerDialog.openEditDialog("Details about this recording ( (*) mandatory fields).",Map("Title (*)"->"","Author"->"","Date"->""),successCallback,failureCallback)
         }
       case None =>
     }
@@ -48,7 +49,7 @@ class RecordController(model:PSGraph) extends Publisher {
     else true
   }
 
-  def showOpenDialog(rootDir: Option[String] = None): Option[File] = {
+  def showJsonFileOpenDialog(rootDir: Option[String] = None): Option[File] = {
     val chooser = new FileChooser()
     chooser.peer.setCurrentDirectory(rootDir match {
       case Some(d) => new File(d)
@@ -60,6 +61,22 @@ class RecordController(model:PSGraph) extends Publisher {
         val p = chooser.selectedFile.getAbsolutePath
         previousDir = chooser.selectedFile
         Some(new File(if(p.endsWith(".json")) p else p+".json"))
+      case _ => None
+    }
+  }
+
+  def showDirOpenDialog(rootDir: Option[String] = None): Option[File] = {
+    val chooser = new FileChooser()
+    chooser.peer.setCurrentDirectory(rootDir match {
+      case Some(d) => new File(d)
+      case None => previousDir
+    })
+    chooser.fileSelectionMode = SelectionMode.DirectoriesOnly
+    chooser.showDialog(Service.getMainFrame,"Create") match {
+      case FileChooser.Result.Approve =>
+        val p = if(chooser.selectedFile.isDirectory) chooser.selectedFile.getAbsolutePath else chooser.selectedFile.getParent
+        previousDir = chooser.selectedFile
+        Some(new File(p))
       case _ => None
     }
   }
@@ -99,6 +116,26 @@ class RecordController(model:PSGraph) extends Publisher {
   def stopRecording():Unit ={
     recording = false
     publish(RecordStartStopEvent(recording))
+  }
+
+  def generateWebApp(): Unit ={
+    showDirOpenDialog() match {
+      case Some(f:File) =>
+        println(f.getAbsolutePath)
+          val template = new File("web_app")
+          if(template.exists && template.isDirectory){
+            try{
+              for(src<-template.listFiles()){
+                FileUtils.copy(src,new File(f,src.getName))
+              }
+            } catch {
+              case e:Exception => TinkerDialog.openErrorDialog("Error while generating web app<br>"+e.getMessage)
+            }
+          } else {
+            TinkerDialog.openErrorDialog("Could not find web app template directory")
+          }
+      case None => //
+    }
   }
 
 }
