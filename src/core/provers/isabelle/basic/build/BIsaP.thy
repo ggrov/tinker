@@ -41,8 +41,7 @@ begin
   ML_file "../../termlib/induct.ML"
 
   ML_file "../../../../goaltype/simple_goaltype.ML"
-                            
-
+                                                           
 ML{*
   structure SimpleGoalType : BASIC_GOALTYPE = SimpleGoalType_Fun(structure Prover = IsaProver val struct_name = "SimpleGoalType");
   structure Data = PSGraphDataFun(SimpleGoalType);
@@ -56,11 +55,11 @@ ML{*
   structure EVal = EValFun(EData);
   structure IEVal = InteractiveEvalFun (EVal);
   structure Tinker = TinkerProtocol (structure IEVal = IEVal val gui_socket_port = 1790 val prover_socket_port = 0);
-  structure Env_Tac_Lib = EnvTacLibFunc (Theory);
+  structure Env_Tac_Utils = EnvTacUtilsFunc (structure Theory = Theory val struct_name = "Env_Tac_Utils" );
 *}
 
   ML_file "../simpleGT_lib.ML"
-  ML{*  open Env_Tac_Lib SimpleGT_Lib IsaProver*}
+  ML{*  open Env_Tac_Utils SimpleGT_Lib IsaProver*}
   (* ML_file "../psgraph_isar_method.ML"*) (*method does not work because fail to exec ml code*)
 end
 

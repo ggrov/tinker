@@ -61,6 +61,7 @@ sig
   val prop_of_string : context -> string -> term  
   val string_of_trm : context -> term -> string
   val pretty_trm : context -> term -> Pretty.T
+  val antiquto_handler : env -> (string * string) -> string
 
   val concl_of_thm : thm -> term
   val asms_of_thm : thm -> term list
