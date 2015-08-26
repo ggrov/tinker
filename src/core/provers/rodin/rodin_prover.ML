@@ -144,6 +144,7 @@ struct
   val prop_of_string = trm_of_string
   fun pretty_env _ _ = Pretty.str "dummy" 
   fun pretty_env_data _ _ = Pretty.str "dummy"
+  fun antiquto_handler _ _ = "dummy"
   structure Sharing = 
   struct
     type typ = typ

@@ -13,14 +13,13 @@
   structure EVal = EValFun(EData);
   structure IEVal = InteractiveEvalFun (EVal);
   structure Tinker = TinkerProtocol (structure IEVal = IEVal val gui_socket_port = 1790 val prover_socket_port = 0);
-  structure Env_Tac_Lib = EnvTacLibFunc (Theory);
-
+  structure Env_Tac_Utils = EnvTacUtilsFunc (structure Theory = Theory val struct_name = "Env_Tac_Utils" );
 (* load the library for term manipulation and goal type predicates *)
   use_file "../simpleGT_lib.ML";
   
 (* top level inteface for pp *)
   use "../pp_intf.ML"; 
    
-  open Env_Tac_Lib PPProver 
+  open Env_Tac_Utils PPProver 
 
 

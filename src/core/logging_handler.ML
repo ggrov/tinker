@@ -9,6 +9,7 @@ struct
     "TACTIC",
     "ENV_DATA",
     "ARG_DATA",
+    "EVAL_ML",
     "SOCKET",
     "GRAPH",
     "HIERARCHY",
