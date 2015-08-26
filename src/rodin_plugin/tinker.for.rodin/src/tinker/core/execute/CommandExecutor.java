@@ -89,7 +89,7 @@ public class CommandExecutor {
 	 * update proof tree immediately when Tinker has instructed an application
 	 * of tactic.
 	 */
-	private static Predicate parseStr(String str, ITypeEnvironment typeEnv) {
+	public static Predicate parseStr(String str, ITypeEnvironment typeEnv) {
 		final FormulaFactory ff = typeEnv.getFormulaFactory();
 		Predicate predicate = DLib.parsePredicate(ff, str);
 		if (predicate == null) {
@@ -447,6 +447,18 @@ public class CommandExecutor {
 		return cmd.toString();
 	}
 
+	private static String handle_HAS_HYP_WITH_TOPSYMBOL(Command command, IProofTreeNode pt, IProofMonitor pm,
+			TinkerConnector tinker, TinkerSession session) throws Exception {
+		String node = command.getParameter("NODE");
+		IProofTreeNode pnode = session.nameToNodeMap.get(node);
+		String termstr = command.getParameter("TERM");
+		Predicate term = parseStr(termstr, pnode.getSequent().typeEnvironment());
+		String tag = SymbolMapping.tagToString(term.getTag());
+
+		Command cmd = (new Command("GET_TOP_SYMBOL_RESULT")).addParamter("TAG", tag);
+		return cmd.toString();
+	}
+	
 	@SuppressWarnings("unchecked")
 	public static String execute(Command command, IProofTreeNode pt, IProofMonitor pm, TinkerConnector tinker,
 			TinkerSession session) throws Exception {

@@ -47,24 +47,7 @@ public class TinkerAutoProveMode extends DefaultTacticProvider {
 
 	@Override
 	public List<ITacticApplication> getPossibleApplications(IProofTreeNode node, Predicate hyp, String globalInput) {
-		System.out.println("-----------------------------------------------------");
-		System.out.println(node.getSequent().goal().getSyntaxTree());
 
-		for (Iterator<Predicate> i = node.getSequent().hypIterable().iterator(); i.hasNext();) {
-			Predicate p=i.next();
-			if (p instanceof QuantifiedPredicate){
-				QuantifiedPredicate q=(QuantifiedPredicate)p;
-				System.out.println(p);
-				for (int k=0;k<q.getBoundIdentDecls().length;k++){
-					System.out.println(q.getBoundIdentDecls()[k].getName());
-					List<String> t=CommandExecutor.getSubterms(p,node);
-					for (String s : t){
-						System.out.println("subterm="+s);
-					}
-				}
-				
-			}
-		}
 		if (node != null && node.isOpen()) {
 			final ITacticApplication appli = new TinkerApplication(hyp);
 			return singletonList(appli);

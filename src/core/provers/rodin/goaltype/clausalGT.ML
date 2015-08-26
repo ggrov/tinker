@@ -33,6 +33,41 @@ structure C = Clause_GT
           )
     end)
             
+  fun has_hyp_with_topsymbol env pnode [C.Name n] = 
+      let
+        val reply = execute ("HAS_HYP_WITH_TOPSYMBOL",[("SYMB",n),("NODE",pnode)])
+        val result= getParam reply "RESULT"
+      in
+        case result of "true" => [env] | _ =>[]
+      end
+      | has_hyp_with_topsymbol _ _ _ = []
+
+            
+  fun no_hyp_with_topsymbol env  (pnode: C.Prover.pnode) [C.Name n] = 
+      let
+        val reply = execute ("HAS_HYP_WITH_TOPSYMBOL",[("SYMB",n),("NODE",#pname pnode)])
+        val result= getParam reply "RESULT"
+      in
+        case result of "false" => [env] | _ =>[]
+      end
+      | no_hyp_with_topsymbol _ _ _ = []
+
+  fun auto_provable env (pnode: C.Prover.pnode) [C.Name bool] = 
+      let
+        val reply = execute ("AUTO_PROVABLE",[("NODE",#pname pnode),("TACTIC","newPP")])
+        val result= getParam reply "RESULT"
+      in
+        if  result = bool then [env] else []
+      end
+      | auto_provable env pnode [C.Name bool, C.Name tactic] = 
+       (let
+        val reply = execute ("AUTO_PROVABLE",[("NODE",#pname pnode),("TACTIC",tactic)])
+        val result= getParam reply "RESULT"
+      in
+        if  result = bool then [env] else []
+      end)
+      | auto_provable _ _ _ = []
+
 
   fun top_symbol env pnode [r,C.Var p] = 
           let 
@@ -56,3 +91,5 @@ structure C = Clause_GT
 
    val data = C.add_atomic "is_top_symbol" is_top_symbol C.default_data; 
    val data = C.add_atomic "top_symbol" top_symbol data; 
+   val data = C.add_atomic "auto_provable" auto_provable data; 
+   val data = C.add_atomic "no_hyp_with_topsymbol" no_hyp_with_topsymbol data; 

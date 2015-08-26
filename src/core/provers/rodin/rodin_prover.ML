@@ -96,7 +96,7 @@ struct
   end
 
   fun get_open_pnode_by_name pplan _ = {pname=(#name pplan),env= (#env pplan) }
-  fun set_pnode_pplan _ = raise error "todo"
+  fun set_pnode_pplan pnode pplan = pplan
 
   fun get_pnode_name pnode = #pname pnode;
   fun get_pnode_env ({env, ...} : pnode) = env;
@@ -140,7 +140,7 @@ struct
        ({pname=init_node,env=StrName.NTab.empty}, {name=init_node, env = StrName.NTab.empty} )
     end;
 
-  fun get_goal_thm pplan = raise Fail "TODO"; 
+  fun get_goal_thm pplan = "dummy"; 
   val prop_of_string = trm_of_string
   fun pretty_env _ _ = Pretty.str "dummy" 
   fun pretty_env_data _ _ = Pretty.str "dummy"
