@@ -23,6 +23,15 @@ struct
    handle _ => (logging "FAILURE" ("Fail to get thm by name: " ^ name); raise tinker_fail true)
   val pretty_trm = Syntax.pretty_term;
 
+  fun antiquto_handler env (typ, content) = 
+   let 
+     val typ' = Symbol.explode typ |> List.filter (not o member (op =) [" ","\n","\t"]) |> String.concat;
+   in
+     case typ' of "term" => "(IsaProver.trm_of_string @{context} \"" ^ content ^ "\")"
+     | "thm" => "(IsaProver.get_thm_by_name @{context} \"" ^ content ^ "\")"
+     | "prop" => "(IsaProver.prop_of_string @{context} \"" ^ content ^ "\")"
+     | _ => (logging "FAILURE" (typ' ^ " is not a supported type for env variable") ; raise (tinker_fail true))
+   end
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
   datatype env_data = 
     E_Str of string | 
