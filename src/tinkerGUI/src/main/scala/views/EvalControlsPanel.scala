@@ -40,7 +40,7 @@ class EvalControlsPanel() {
 		}){
 		enabled = false
 		icon = new ImageIcon(MainGUI.getClass.getResource("eval-finish.png"), "Finish")
-		tooltip = "Finish"
+		tooltip = "Finish the current graph"
 		listenTo(Service.evalCtrl)
 		reactions += {
 			case EnableEvalOptionsEvent(opt) => enabled = opt contains "OPT_EVAL_NEXT"
@@ -56,7 +56,7 @@ class EvalControlsPanel() {
 		}){
 		enabled = false
 		icon = new ImageIcon(MainGUI.getClass.getResource("eval-complete.png"), "Complete")
-		tooltip = "Complete"
+		tooltip = "Complete the whole proof"
 		listenTo(Service.evalCtrl)
 		reactions += {
 			case EnableEvalOptionsEvent(opt) => enabled = opt contains "OPT_EVAL_NEXT"
@@ -214,7 +214,7 @@ class EvalControlsPanel() {
 	}
 
 	val MainEvalToolBar = new ToolBar{
-		contents += (NextButton, UndoButton, StepInButton, StepOverButton, BacktrackButton, CompleteButton, FinishButton, UntilBreakButton)
+		contents += (NextButton, UndoButton, StepInButton, StepOverButton, FinishButton, BacktrackButton, UntilBreakButton, CompleteButton)
 	}
 
 	val SecondaryEvalToolBar = new ToolBar{
