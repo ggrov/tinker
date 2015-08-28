@@ -17,13 +17,15 @@ public class SymbolMapping {
 			return "∀";
 		case Formula.IN:
 			return "∈";
+		case Formula.SETEXT:
+			return "SET";
 		default :
 			return "";
 		}
 	}
 	
 	public static int tagFromString (String str){
-		switch (str) {
+		switch (str.toUpperCase()) {
 		case "AND":
 		case "∧":
 			return Formula.LAND;
@@ -42,6 +44,8 @@ public class SymbolMapping {
 		case "IN":
 		case "∈":
 			return Formula.IN;
+		case "SET":
+			return Formula.SETEXT;
 		default:
 			return -1;
 		}

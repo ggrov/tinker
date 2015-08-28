@@ -8,7 +8,7 @@ struct
     let val i = (!name_count) + 1
         val _ = name_count:= i
         val node=(Int.toString pn, "G"^(Int.toString i)) in
-          node:: nameAfter (pn-1)
+           nameAfter (pn-1) @ [node]
     end
     else []
   fun init () =

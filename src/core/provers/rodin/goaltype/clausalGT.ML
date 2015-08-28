@@ -33,9 +33,10 @@ structure C = Clause_GT
           )
     end)
             
-  fun has_hyp_with_topsymbol env pnode [C.Name n] = 
+  fun has_hyp_with_topsymbol env  (pnode: C.Prover.pnode) [C.Name n] = 
       let
-        val reply = execute ("HAS_HYP_WITH_TOPSYMBOL",[("SYMB",n),("NODE",pnode)])
+      val _ = writeln "has HYP WITH TOPSYMB"
+        val reply = execute ("HAS_HYP_WITH_TOPSYMBOL",[("SYMB",n),("NODE",#pname pnode)])
         val result= getParam reply "RESULT"
       in
         case result of "true" => [env] | _ =>[]
@@ -45,6 +46,7 @@ structure C = Clause_GT
             
   fun no_hyp_with_topsymbol env  (pnode: C.Prover.pnode) [C.Name n] = 
       let
+        val _ = writeln "NO HYP WITH TOPSYMB"
         val reply = execute ("HAS_HYP_WITH_TOPSYMBOL",[("SYMB",n),("NODE",#pname pnode)])
         val result= getParam reply "RESULT"
       in
@@ -68,6 +70,54 @@ structure C = Clause_GT
       end)
       | auto_provable _ _ _ = []
 
+  fun has_simplifable_hyps env (pnode:C.Prover.pnode) _ =
+    let val reply = execute ("CAN_SYMPLIFY_HYPS",[("NODE",#pname pnode)])
+      val result= getParam reply "RESULT"
+      in
+        if result="true" then [env] else []
+      end
+
+    fun no_simplifiable_hyps env (pnode:C.Prover.pnode) _ =
+    let val reply = execute ("CAN_SYMPLIFY_HYPS",[("NODE",#pname pnode)])
+      val result= getParam reply "RESULT"
+      in
+        if result="false" then [env] else []
+    end
+    
+
+  fun has_def_of env (pnode: C.Prover.pnode) [C.Name n] = 
+    let val reply = execute ("HAS_DEF_OF",[("NODE",#pname pnode),("TERM", n)])
+        val result= getParam reply "RESULT"
+    in
+        if result= "true" then [env] else []
+  end
+  | has_def_of _ _ _ =[]
+
+  fun no_def_of env (pnode: C.Prover.pnode) [C.Name n] = 
+    let val reply = execute ("HAS_DEF_OF",[("NODE",#pname pnode),("TERM", n)])
+        val result= getParam reply "RESULT"
+    in
+        if result= "false" then [env] else []
+  end
+  | no_def_of _ _ _ =[]
+
+  fun hys_has_use_of env (pnode: C.Prover.pnode) [C.Name n]=
+  let val reply = execute ("HYPS_HAVE_USE_OF",[("NODE", #pname pnode),("TERM",n)])
+        val result= getParam reply "RESULT"
+    in
+        if result= "true" then [env] else []
+  end
+  | hys_has_use_of env pnode [C.Var n] = hys_has_use_of env pnode [C.Name n]
+  | hys_has_use_of _ _ _ = []
+
+  fun hys_no_use_of env (pnode: C.Prover.pnode) [C.Name n]=
+  let val reply = execute ("HYPS_HAVE_USE_OF",[("NODE", #pname pnode),("TERM",n)])
+        val result= getParam reply "RESULT"
+    in
+        if result= "false" then [env] else []
+  end
+  | hys_no_use_of env pnode [C.Var n] = hys_no_use_of env pnode [C.Name n]
+  | hys_no_use_of _ _ _ = []
 
   fun top_symbol env pnode [r,C.Var p] = 
           let 
@@ -93,3 +143,10 @@ structure C = Clause_GT
    val data = C.add_atomic "top_symbol" top_symbol data; 
    val data = C.add_atomic "auto_provable" auto_provable data; 
    val data = C.add_atomic "no_hyp_with_topsymbol" no_hyp_with_topsymbol data; 
+   val data = C.add_atomic "has_hyp_with_topsymbol" has_hyp_with_topsymbol data;
+   val data = C.add_atomic "has_simplifable_hyps" has_simplifable_hyps data;
+   val data = C.add_atomic "no_simplifiable_hyps" no_simplifiable_hyps data;
+   val data = C.add_atomic "has_def_of" has_def_of data;
+   val data = C.add_atomic "no_def_of" no_def_of data;
+   val data = C.add_atomic "hys_no_use_of" hys_no_use_of data;
+   val data = C.add_atomic "hys_has_use_of" hys_has_use_of data;

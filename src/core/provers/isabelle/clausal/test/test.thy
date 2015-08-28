@@ -73,7 +73,7 @@ ML{*
              if member (op =) tops n then [env] else []
           end
     |  top_symbol env pnode [r,C.PVar p] = 
-          let 
+          let                      
             val tops = C.project_terms env pnode r
                      |> maps top_level_str
           in 

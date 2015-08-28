@@ -23,7 +23,7 @@ import org.eventb.core.ast.SimplePredicate;
 import org.eventb.core.ast.UnaryExpression;
 import org.eventb.core.ast.UnaryPredicate;
 
-//select all predicate
+//filter other and only select all predicate
 public class NaiveFormulaFilter implements IFormulaFilter  {
 	
 	@Override

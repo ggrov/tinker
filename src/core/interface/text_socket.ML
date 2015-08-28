@@ -309,11 +309,11 @@ struct
     end  
   handle exp_text_socket msg => (clear_current_sock0 () ; raise exp_text_socket msg) (* timeout , stop trying *)
         | _                  => (clear_current_sock0 () ;raise exp_text_socket "socket in use")
-
+ 
   fun safe_local_server port = run_in_atomic (safe_local_server0 port)
-
-
-
+    
+  
+   
 end (* struct *)
 
 structure TextSocket : TEXT_SOCKET = TextSocket_DB;

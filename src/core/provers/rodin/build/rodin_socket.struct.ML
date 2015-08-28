@@ -2,7 +2,7 @@ structure RodinSock : WSOCK =
 struct
   open LoggingHandler
   type socket = TextSocket.T
-  val default_port = 1991;
+  val default_port = 1985;
   exception Rodin_cancellation
 
   val sock : (socket option) Synchronized.var = Synchronized.var "rodin socket" NONE;

@@ -122,18 +122,21 @@ ML{*
 *}
 ML{* 
  
-SimpleNamer.init();      
- val path2 =   "F:/Library/Documents/git/tinker/src/tinkerGUI/release/tinker_library/rodin/x_act_021.psgraph" 
- (*     let open RodinHelper in  
+SimpleNamer.init();
+val is_exception = SOME 0;
+ val path2 =   (* "F:/Library/Documents/git/tinker/src/tinkerGUI/release/tinker_library/rodin/x_act_021.psgraph" *) 
+      let open RodinHelper in   
        get_psgraph()   
-    end   *)
+    end     
  val _ = writeln path2    
 val ps = PSGraph.read_json_file (path2)|> PSGraph.set_goaltype_data data ; 
 val _ = (Tinker.start_ieval "" (SOME ps) (SOME []) (SOME ""))
-(*  handle exn =>(    
- finish();   
-TextSocket.safe_close();  
-raise exn);    *)   
-val _ = finish(); 
+  handle exn =>(      
+ finish();    
+TextSocket.safe_close();
+val _ = is_exception := 1;       
+raise exn);    
+val _ = writeln "PROOF DONE"  
+val _ = if is_exception = SOME 0 then finish() else ();    
 
 *} 

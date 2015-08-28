@@ -71,14 +71,29 @@ struct
        val strlist= map arg_data_to_string args
   in strlist end;
 
+  
+
+  fun int_list i = 
+    if i>0 then (int_list (i-1)) @ [i] else []
+
+  fun add_index_to_args args=
+  let val l=List.length args
+      val indices=int_list l                             
+      val result = map (fn x => List.nth (args, x-1) |> (fn b => (Int.toString x,b))) indices
+  in
+    result
+  end
+
   fun apply_tactic args tactic ({pname, env}:pnode, pplan) = 
   let 
-      val (real_args, realtactic) = case tactic of 
-      "on_goal" => ((args_convert args |> List.tl  |> map (fn a =>("", a) )) @ [("TYPE","ON_GOAL")], args_convert args |> List.hd)
-      |"on_hyp" => raise error "todo"
-      |"autoprove" => ([],"autoProver")
+      val (real_args, realtactic, tac_type) = case tactic of 
+      "on_goal" => ((args_convert args |> List.tl  |> add_index_to_args), args_convert args |> List.hd, "ON_GOAL")
+      |"auto_tactic" => ([] ,args_convert args |> List.hd, "AUTO_TACTIC")
+      |"on_hyp" => ([("HYP","FIRST")], args_convert args |> List.hd , "ON_HYP")
+      |"autoprove" => ([],"autoProver", "AUTO_TACTIC")
       | _ => raise error "unknown tac"
-     val rodin_tac= {tac_name = realtactic, tac_type= "AUTO_TACTIC"}
+     val rodin_tac= {tac_name = realtactic, tac_type= tac_type}
+     val _ = writeln ("APPLY TAC ON : "^pname )
       val new_nodes= tpp.apply_tactic real_args rodin_tac pname
   in
      Seq.single (map (fn x=> {pname = x, env = env}) new_nodes ,pplan)
@@ -95,8 +110,9 @@ struct
     Seq.single ([{pname=pname, env=new_env}], pplan)
   end
 
-  fun get_open_pnode_by_name pplan _ = {pname=(#name pplan),env= (#env pplan) }
-  fun set_pnode_pplan pnode pplan = pplan
+  fun get_open_pnode_by_name pplan name = {pname = name , env = #env pplan}(*  {pname=(#name pplan),env= (#env pplan) } *)
+  fun set_pnode_pplan pnode pplan = 
+    (writeln ("USE set_pnode_pplan : " ^ (#pname pnode)) ;pplan)
 
   fun get_pnode_name pnode = #pname pnode;
   fun get_pnode_env ({env, ...} : pnode) = env;
