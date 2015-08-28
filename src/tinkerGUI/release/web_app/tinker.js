@@ -665,16 +665,41 @@ function nextPSGraph(){
     }
 }
 
+// function to read a local file, launches data loaded callback when done
+function loadLocal(evt){
+    var reader = new FileReader();
+    reader.onload = function(e){
+        try{
+            var data = JSON.parse(e.target.result)
+            if(data.info.title && data.psgraphs){
+                dataLoaded(null,data)
+            } else {
+                dataLoaded({status:0,statusText:"Bad data format."},null)
+            }
+        } catch(e) {
+            dataLoaded({status:0,statusText:"Could not parse as Json."},null)
+        }
+    }
+    reader.readAsText(evt.target.files[0])
+}
+
 // callback function when record has been loaded or if error occur
 function dataLoaded(error, data) {
     if (error){
         d3.select("div#content").style("display","none")
-        var errorDiv = d3.select("div#error").style("visibility","visible")
+        var errorDiv = d3.select("div#error").style("visibility","visible").style("display",null)
+        errorDiv.selectAll("h2").remove()
+        errorDiv.selectAll("h3").remove()
+        errorDiv.selectAll("input").remove()
         errorDiv.append("h2").text(error.status)
         errorDiv.append("h3").text(error.statusText)
+        errorDiv.append("input")
+            .attr("id","inputFile")
+            .attr("type","file")
+        document.getElementById('inputFile').addEventListener('change',loadLocal,false)
     } else {
         d3.select("div#error").style("display","none")
-        d3.select("div#content").style("visibility","visible")
+        d3.select("div#content").style("visibility","visible").style("display",null)
         d3.select("span#proofTitle").text(data.info.title)
         if(data.info.author){ d3.select("span#proofAuthor").text("by "+data.info.author) }
         if(data.info.date){d3.select("span#proofDate").text("("+data.info.date+")")}
@@ -687,6 +712,11 @@ if(file != ""){
     d3.json("records/"+file+".json",dataLoaded,function(error){window.alert("Request : "+error.responseURL+"\nStatus : "+error.status+"\nMessage : "+error.statusText);console.log(error)})
 } else {
     d3.select("div#content").style("display","none")
-    d3.select("div#error").style("visibility","visible")
+    d3.select("div#error").style("visibility","visible").style("display",null)
         .append("h2").text("No file specified")
+    d3.select("div#error").append("input")
+        .attr("id","inputFile")
+        .attr("type","file")
+        //.on("change",loadLocal)
+    document.getElementById('inputFile').addEventListener('change',loadLocal,false)
 }

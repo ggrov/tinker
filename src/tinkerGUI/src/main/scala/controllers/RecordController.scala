@@ -56,7 +56,7 @@ class RecordController(model:PSGraph) extends Publisher {
       case None => previousDir
     })
     chooser.fileFilter = new FileNameExtensionFilter("Json File (*.json)", "json")
-    chooser.showOpenDialog(Service.getMainFrame) match {
+    chooser.showSaveDialog(Service.getMainFrame) match {
       case FileChooser.Result.Approve =>
         val p = chooser.selectedFile.getAbsolutePath
         previousDir = chooser.selectedFile

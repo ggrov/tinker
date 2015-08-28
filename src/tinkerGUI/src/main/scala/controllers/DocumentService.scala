@@ -67,7 +67,7 @@ object DocumentService extends Publisher {
 					Service.documentCtrl.recentProofs.push(f.getName,f.getAbsolutePath)
 				}
 				Service.documentCtrl.unsavedChanges = false
-				publish(DocumentChangedEvent(false))
+				Service.documentCtrl.publish(DocumentChangedEvent(false))
 			} catch {
 				case _: IOException => TinkerDialog.openErrorDialog("Error while saving : file unwriteable.")
 				case e: Exception =>

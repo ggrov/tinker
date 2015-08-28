@@ -13,6 +13,7 @@ import java.awt.{Font, Cursor, Insets}
 class GraphInspectorPanel() extends BorderPanel {
 	val tacticNavigation = new BoxPanel(Orientation.Vertical){
 		contents += new FlowPanel(FlowPanel.Alignment.Right)(){
+
 			contents += new Button(new Action("") {
 				def apply() {
 					Service.inspectorCtrl.showPrev()

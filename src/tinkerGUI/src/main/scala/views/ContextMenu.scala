@@ -59,7 +59,7 @@ object ContextMenu extends PopupMenu {
 						//QuantoLibAPI.userAddVertex(new java.awt.Point(x, y), "T_Atomic")
 					}
 				})
-				contents += new MenuItem(new Action("Add a nested tactic node") {
+				contents += new MenuItem(new Action("Add a graph tactic node") {
 					def apply() = {
 						//Service.documentCtrl.registerChanges()
 						Service.editCtrl.createNode("T_Graph",new java.awt.Point(x, y))

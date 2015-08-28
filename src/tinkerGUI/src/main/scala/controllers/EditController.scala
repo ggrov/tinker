@@ -516,7 +516,7 @@ class EditController(model:PSGraph) extends Publisher {
 										confirmDialog.close()
 										model.removeGTOccurrence(tacticValue,nodeId)
 										model.createGT(name,branchType)
-										model.addATOccurrence(name,nodeId)
+										model.addGTOccurrence(name,nodeId)
 										QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
 										Service.recordCtrl.record()
 										publish(GraphTacticListEvent())
@@ -525,7 +525,7 @@ class EditController(model:PSGraph) extends Publisher {
 								val updateAction = new Action("Update all"){
 									def apply() = {
 										confirmDialog.close()
-										model.updateForceGT(tacticValue,name,branchType).foreach(QuantoLibAPI.setVertexLabel(_,values("Name")))
+										model.updateForceGT(tacticValue,name,branchType).foreach(QuantoLibAPI.setVertexValue(_,name))
 										Service.recordCtrl.record()
 										publish(GraphTacticListEvent())
 									}

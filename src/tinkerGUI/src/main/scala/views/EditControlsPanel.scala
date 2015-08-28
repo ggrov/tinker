@@ -50,7 +50,7 @@ class EditControlsPanel() extends Publisher {
 	val AddIDVertexButton = new ToggleButton() {
 		action = new Action(""){def apply()={Service.editCtrl.changeMouseState("addIDVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_id.png"), "Add Vertex")
-		tooltip = "Add an identity vertex"
+		tooltip = "Add an identity tactic node"
 		listenTo(Service.editCtrl)
 		reactions += {
 			case MouseStateChangedEvent(state) => selected = state == "addIDVertex"
@@ -59,7 +59,7 @@ class EditControlsPanel() extends Publisher {
 	val AddATMVertexButton = new ToggleButton() {
 		action = new Action(""){def apply()={Service.editCtrl.changeMouseState("addATMVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_atomic.png"), "Add Vertex")
-		tooltip = "Add an atomic vertex"
+		tooltip = "Add an atomic tactic node"
 		listenTo(Service.editCtrl)
 		reactions += {
 			case MouseStateChangedEvent(state) => selected = state == "addATMVertex"
@@ -68,7 +68,7 @@ class EditControlsPanel() extends Publisher {
 	val AddNSTVertexButton = new ToggleButton() {
 		action = new Action(""){def apply()={Service.editCtrl.changeMouseState("addNSTVertex")}}
 		icon = new ImageIcon(MainGUI.getClass.getResource("draw_nested.png"), "Add Vertex")
-		tooltip = "Add a nested vertex"
+		tooltip = "Add a graph tactic node"
 		listenTo(Service.editCtrl)
 		reactions += {
 			case MouseStateChangedEvent(state) => selected = state == "addNSTVertex"
