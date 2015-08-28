@@ -230,4 +230,9 @@ class DocumentController(model:PSGraph) extends Publisher {
 		publish(DocumentChangedEvent(unsavedChanges))
 		publish(GraphTacticListEvent())
 	}
+
+	listenTo(DocumentService)
+	reactions += {
+		case DocumentChangedEvent(b) => publish(DocumentChangedEvent(b))
+	}
 }
