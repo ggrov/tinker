@@ -108,7 +108,9 @@ case class NodeV(
 
   /** Create a copy of the current vertex with the new value */
   def withLabel(s: String) =
-    copy(data = data.setPath(theory.vertexTypes(typ).value.path, ArgumentParser.separateNameArgs(s)._1).setPath("$.label", s).setPath("$.args",ArgumentParser.argStringToJson(ArgumentParser.separateNameArgs(s)._2)).asObject)
+    copy(data = data.setPath(theory.vertexTypes(typ).value.path, ArgumentParser.separateNameArgs(s)._1)
+      .setPath("$.label", if (s != "") ArgumentParser.separateNameArgs(s)._1+"("+ArgumentParser.separateNameArgs(s)._2+")" else s)
+      .setPath("$.args",ArgumentParser.argStringToJson(ArgumentParser.separateNameArgs(s)._2)).asObject)
   // changed by Pierre Le Bras, uses an argument parser to store only the tactic name in the default field
 
   def isWireVertex = false
