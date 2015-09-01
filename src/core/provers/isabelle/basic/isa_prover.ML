@@ -32,6 +32,7 @@ struct
      | "prop" => "(IsaProver.prop_of_string @{context} \"" ^ content ^ "\")"
      | _ => (logging "FAILURE" (typ' ^ " is not a supported type for env variable") ; raise (tinker_fail true))
    end
+
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
   datatype env_data = 
     E_Str of string | 
