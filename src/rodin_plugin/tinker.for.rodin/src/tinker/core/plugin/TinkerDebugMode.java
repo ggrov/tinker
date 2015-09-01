@@ -24,10 +24,10 @@ import tinker.core.execute.CommandExecutor;
 import tinker.core.socket.TinkerConnector;
 import tinker.core.tactics.TinkerTactic;
 
-public class TinkerTacticProvider extends DefaultTacticProvider {
+public class TinkerDebugMode extends DefaultTacticProvider {
 	public static class TinkerApplication extends DefaultPositionApplication {
 
-		private static final String TACTIC_ID = "org.eventb.ui.tinker";
+		private static final String TACTIC_ID = "org.eventb.ui.tinker.debugprover";
 
 		public TinkerApplication(Predicate hyp) {
 			super(hyp, IPosition.ROOT);
@@ -47,23 +47,12 @@ public class TinkerTacticProvider extends DefaultTacticProvider {
 
 	@Override
 	public List<ITacticApplication> getPossibleApplications(IProofTreeNode node, Predicate hyp, String globalInput) {
-		System.out.println("-----------------------------------------------------");
-		System.out.println(node.getSequent().goal().getSyntaxTree());
-
-		for (Iterator<Predicate> i = node.getSequent().hypIterable().iterator(); i.hasNext();) {
-			Predicate p=i.next();
-			if (p instanceof QuantifiedPredicate){
-				QuantifiedPredicate q=(QuantifiedPredicate)p;
-				System.out.println(p);
-				for (int k=0;k<q.getBoundIdentDecls().length;k++){
-					System.out.println(q.getBoundIdentDecls()[k].getName());
-					List<String> t=CommandExecutor.getSubterms(p,node);
-					for (String s : t){
-						System.out.println("subterm="+s);
-					}
-				}
-				
-			}
+		System.out.println(globalInput);
+		Predicate p =CommandExecutor.parseStr(globalInput,node.getSequent().typeEnvironment());
+		if(p !=null){
+			System.out.println(p.getTag());
+			System.out.println(p.getChild(1).getTag());
+			
 		}
 		if (node != null && node.isOpen()) {
 			final ITacticApplication appli = new TinkerApplication(hyp);

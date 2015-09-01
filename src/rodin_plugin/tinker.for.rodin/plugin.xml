@@ -5,15 +5,26 @@
    <extension
          point="org.eventb.ui.proofTactics">
       <tactic
-            icon="icons/sample.gif"
-            id="org.eventb.ui.tinker"
+            icon="icons/tinker_icon_32_debug.png"
+            id="org.eventb.ui.tinker.debugprover"
             interrupt="true"
             name="tinker"
             priority="20"
-            tacticProvider="tinker.core.plugin.TinkerTacticProvider"
+            tacticProvider="tinker.core.plugin.TinkerDebugMode"
             target="global"
             toolbar="org.eventb.ui.tinkerToolbar"
-            tooltip="tooltip">
+            tooltip="Tinker Debug Mode">
+      </tactic>
+      <tactic
+            icon="icons/tinker_icon_32.png"
+            id="org.eventb.ui.tinker.autoprover"
+            interrupt="true"
+            name="tinker"
+            priority="20"
+            tacticProvider="tinker.core.plugin.TinkerAutoProveMode"
+            target="global"
+            toolbar="org.eventb.ui.tinkerToolbar"
+            tooltip="Auto Prove with Tinker">
       </tactic>
       <toolbar
             id="org.eventb.ui.tinkerToolbar"

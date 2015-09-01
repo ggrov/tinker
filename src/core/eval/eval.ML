@@ -31,7 +31,7 @@ struct
          val ctxt = Prover.get_pnode_ctxt pnode
          val name = (GData.get_nvdata_name (GData.T_Atomic atom))
          val arg_list = (GData.get_nvdata_args (GData.T_Atomic atom)) |> GData.parse_arg_data ctxt
-       in 
+       in  
         if  is_env_tactic_name name 
         then 
         let val env_tac = Prover.EnvTac_ML_Exec.eval_ml name in

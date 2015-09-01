@@ -564,13 +564,17 @@ object QuantoLibAPI extends Publisher{
 			changeGraph(graph.updateEData(EName(e)) { _ => data.withValue(str) })
 			graph.edgesBetween(graph.source(EName(e)), graph.target(EName(e))).foreach { view.invalidateEdge }
 			graph.vdata(graph.source(EName(e))) match {
-				case d:NodeV if d.typ == "G_Break" || d.typ == "G" =>
-					setEdgeValue(graph.inEdges(graph.source(e)).head.s, str)
+				case d:NodeV if d.typ == "G_Break" =>
+					setEdgeValue(graph.inEdges(graph.source(EName(e))).head.s, str)
+				case d:NodeV if d.typ == "G" =>
+					setEdgeValue(graph.inEdges(graph.source(EName(e))).head.s, str)
 				case _ => // do nothing
 			}
 			graph.vdata(graph.target(EName(e))) match {
-				case d:NodeV if d.typ == "G_Break" || d.typ == "G" =>
-					setEdgeValue(graph.outEdges(graph.target(e)).head.s, str)
+				case d:NodeV if d.typ == "G_Break" =>
+					setEdgeValue(graph.outEdges(graph.target(EName(e))).head.s, str)
+				case d:NodeV if d.typ == "G" =>
+					setEdgeValue(graph.outEdges(graph.target(EName(e))).head.s, str)
 				case _ => // do nothing
 			}
 		}

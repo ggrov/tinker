@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.internal.handlers.WizardHandler.New;
+import org.eventb.core.EventBPlugin;
 import org.eventb.core.IPORoot;
 import org.eventb.core.ast.AssociativeExpression;
 import org.eventb.core.ast.AssociativePredicate;
@@ -52,11 +53,14 @@ import org.eventb.core.seqprover.eventbExtensions.AutoTactics;
 import org.eventb.core.seqprover.eventbExtensions.DLib;
 import org.eventb.core.seqprover.eventbExtensions.Lib;
 import org.eventb.core.seqprover.eventbExtensions.Tactics;
+import org.eventb.core.seqprover.eventbExtensions.AutoTactics.TrueGoalTac;
+import org.eventb.internal.core.ast.Position;
 import org.eventb.internal.core.seqprover.eventbExtensions.utils.FreshInstantiation;
 import org.eventb.internal.ui.prooftreeui.ProofTreeUI;
 import org.eventb.internal.ui.prooftreeui.ProofTreeUIPage;
 import org.eventb.internal.ui.prover.tactics.AutoProver.AutoProverApplication;
 import org.eventb.internal.ui.prover.tactics.EqvLR;
+import org.eventb.pp.PPCore;
 import org.eventb.ui.prover.ITacticApplication;
 
 import tinker.core.socket.TinkerConnector;
@@ -86,7 +90,7 @@ public class CommandExecutor {
 	 * update proof tree immediately when Tinker has instructed an application
 	 * of tactic.
 	 */
-	private static Predicate parseStr(String str, ITypeEnvironment typeEnv) {
+	public static Predicate parseStr(String str, ITypeEnvironment typeEnv) {
 		final FormulaFactory ff = typeEnv.getFormulaFactory();
 		Predicate predicate = DLib.parsePredicate(ff, str);
 		if (predicate == null) {
@@ -157,19 +161,33 @@ public class CommandExecutor {
 		return page.getUserSupport();
 	}
 
+	private static List<IProofTreeNode> get_unnamed_open_nodes(IProofTreeNode pt, TinkerSession session) {
+		IProofTreeNode[] opens = pt.getOpenDescendants();
+		List<IProofTreeNode> result = new ArrayList<>();
+		for (IProofTreeNode p : opens) {
+			String name = session.nodeToNameMap.get(p);
+			if (name == null) {
+				result.add(p);
+			}
+		}
+		return result;
+	}
+
 	private static String Handle_NAME_OPEN_NODES(Command command, IProofTreeNode pt, IProofMonitor pm,
 			TinkerConnector tinker, TinkerSession session) throws Exception {
 		Map names = command.getParameters();
-		IProofTreeNode[] nodes = pt.getOpenDescendants();
+		List<IProofTreeNode> nodes = get_unnamed_open_nodes(pt, session);
 		int j = 0;
-		if (nodes.length == names.entrySet().size()) {
+		System.out.println("NAMING, length=" + nodes.size() + ", size=" + names.entrySet().size());
+		if (nodes.size() == names.entrySet().size()) {
 			for (Iterator<Map.Entry<String, String>> i = names.entrySet().iterator(); i.hasNext();) {
+
 				Entry entry = i.next();
 				String name = (String) entry.getValue();
-				session.nameToNodeMap.put(name, nodes[j]);
-				session.nodeToNameMap.put(nodes[j], name);
-
-				System.out.println(nodes[j].toString());
+				session.nameToNodeMap.put(name, nodes.get(j));
+				session.nodeToNameMap.put(nodes.get(j), name);
+				System.out.println("[name=" + name + ", p=" + nodes.get(j).toString() + "]");
+				///System.out.println(nodes.get(j).toString());
 				j++;
 			}
 		}
@@ -275,7 +293,7 @@ public class CommandExecutor {
 			TinkerConnector tinker, TinkerSession session) throws Exception {
 
 		String result;
-		String tactic_type = command.getParameter("TACTIC");
+		String tactic_type = command.getParameter("TYPE").toUpperCase();
 		String targetNode = command.getParameter("NODE");
 		IProofTreeNode target = session.nameToNodeMap.get(targetNode);
 
@@ -283,7 +301,7 @@ public class CommandExecutor {
 		// System.out.println("applying tactic = " + tactic);
 		Object tac_result = null;
 
-		//String[] args = command.getParameter("ARGS").split(",");
+		// String[] args = command.getParameter("ARGS").split(",");
 
 		// Order of arguments are
 		// 0. tactic target = ON_HYP | ON_GOAL
@@ -291,15 +309,14 @@ public class CommandExecutor {
 		// 2. arg 2
 		// 3. arg 3
 		// .. arg ... etc
-		String tac_name = command.getParameter("REALTAC");
+		String tac_name = command.getParameter("TACTIC");
 		if (tactic_type.equals("AUTO_TACTIC")) {
 			tac_result = getAutoTactic(tac_name, target).apply(target, pm);
 		} else if (tactic_type.equals("ON_HYP")) {
 			tac_result = getOnHypTactic(tac_name, command, target).apply(target, pm);
-			
 		} else {
 			tac_result = getOnGoalTactic(tac_name, command, target).apply(target, pm);
-			
+
 		}
 
 		refresh_proofTreeUI(session);
@@ -308,8 +325,8 @@ public class CommandExecutor {
 		// System.out.println("tactic result = " + tac_result);
 		if (tac_result == null) {
 			// null means no error
-			int new_node_num = target.getOpenDescendants().length;
-
+			// int new_node_num = target.getOpenDescendants().length;
+			int new_node_num = get_unnamed_open_nodes(target, session).size();
 			if (target.isOpen()) {
 				// no rule has been applied to the node.
 				result = (new Command("ERROR")).addParamter("ERROR_INFO",
@@ -318,6 +335,14 @@ public class CommandExecutor {
 				// Target node is not open after applying this tactic, this
 				// means it has new child nodes
 				// which needs naming
+
+				// try to discharge dummy
+				IProofTreeNode first = target.getOpenDescendants()[0];
+				if (first.getSequent().goal().equals(DLib.True(first.getSequent().getFormulaFactory()))) {
+					(new AutoTactics.TrueGoalTac()).apply(first, pm);
+				}
+				new_node_num = get_unnamed_open_nodes(target, session).size();
+
 				result = (new Command("NEED_NAMING")).addParamter("PARENT", targetNode)
 						.addParamter("NUM", String.valueOf(new_node_num)).toString();
 			} else if (target.isClosed()) {
@@ -357,56 +382,17 @@ public class CommandExecutor {
 		return resultCmd.toString();
 	}
 
-	private static String tagToString (int tag){
-		switch (tag){
-		case Formula.LAND:
-			return "∧";
-		case Formula.LOR:
-			return "∨";
-		default :
-			return "";
-		}
-	}
-	
-	private static int tagFromString (String str){
-		switch (str) {
-		case "AND":
-		case "∧":
-			return Formula.LAND;
-		case "OR":
-		case "∨":
-			return Formula.LOR;
-		case "NOT":
-		case "¬":
-			return  Formula.NOT;
-		case "FORALL":
-		case "∀":
-			return  Formula.FORALL;
-		case "EXISTS":
-		case "∃":
-			return  Formula.EXISTS;
-		case "IN":
-		case "∈":
-			return Formula.IN;
-		default:
-			return -1;
-		}
-
-	}
-	
 	private static boolean check_top_symbol(String symbol, String pnode, TinkerSession session) {
 		IProofTreeNode pt = session.nameToNodeMap.get(pnode);
 		int tag = pt.getSequent().goal().getTag();
-		return tag==tagFromString(symbol);
+		return tag == SymbolMapping.tagFromString(symbol);
 
 	}
-	
-	
 
 	private static String handle_TOP_SYMBOL_IS(Command command, IProofTreeNode pt, IProofMonitor pm,
 			TinkerConnector tinker, TinkerSession session) throws Exception {
-		String pnode = command.getParameter("CONTEXT");
-		String symbol = command.getParameter("SYMBOL");
+		String pnode = command.getParameter("NODE");
+		String symbol = command.getParameter("SYMB");
 		Command cmd = new Command("TOP_SYMBOL_CHECK_RESULT").addParamter("RESULT",
 				String.valueOf(check_top_symbol(symbol, pnode, session)));
 
@@ -464,7 +450,7 @@ public class CommandExecutor {
 		IProofTreeNode pnode = session.nameToNodeMap.get(node);
 		String termstr = command.getParameter("TERM");
 		Predicate term = parseStr(termstr, pnode.getSequent().typeEnvironment());
-		String tag = String.valueOf(term.getTag());
+		String tag = SymbolMapping.tagToString(term.getTag());
 
 		Command cmd = (new Command("GET_TOP_SYMBOL_RESULT")).addParamter("TAG", tag);
 		return cmd.toString();
@@ -476,6 +462,24 @@ public class CommandExecutor {
 		IProofTreeNode pnode = session.nameToNodeMap.get(node);
 		String term = pnode.getSequent().goal().toString();
 		Command cmd = (new Command("GET_GOAL_TERM_RESULT")).addParamter("TERM", term);
+		return cmd.toString();
+	}
+
+	private static String handle_HAS_HYP_WITH_TOPSYMBOL(Command command, IProofTreeNode pt, IProofMonitor pm,
+			TinkerConnector tinker, TinkerSession session) throws Exception {
+		String node = command.getParameter("NODE");
+		System.out.println("HAS_HYP_WITH TOPSB node=" + node);
+		IProofTreeNode pnode = session.nameToNodeMap.get(node);
+		System.out.println(pnode.toString());
+		String symb = command.getParameter("SYMB");
+		int tag = SymbolMapping.tagFromString(symb);
+		boolean considerNeg = false;
+		if (tag == Formula.IN) {
+			considerNeg = true;
+		}
+		Predicate hyp = find_first_hyp_with_tag(pnode, tag, false);
+
+		Command cmd = (new Command("GET_TOP_SYMBOL_RESULT")).addParamter("RESULT", hyp != null);
 		return cmd.toString();
 	}
 
@@ -533,6 +537,20 @@ public class CommandExecutor {
 			case "ALL_SYMBOL":
 
 				break;
+			case "GET_PSGRAPH":
+				result = handle_GET_PSGRAPH(command, pt, pm, tinker, session);
+				break;
+			case "CAN_SYMPLIFY_HYPS":
+				result = handle_CAN_SIMPLIFY_HYPS(command, pt, pm, tinker, session);
+				break;
+			case "HYPS_HAVE_USE_OF":
+				result= handle_HYPS_HAVE_USE_OF(command, pt, pm, tinker, session);
+				break;
+			case "HAS_HYP_WITH_TOPSYMBOL":
+				result = handle_HAS_HYP_WITH_TOPSYMBOL(command, pt, pm, tinker, session);
+				return result;
+			case "HAS_DEF_OF":
+				result = handle_HAS_DEF_OF(command, pt, pm, tinker, session);
 			default:
 				break;
 			}
@@ -542,25 +560,259 @@ public class CommandExecutor {
 		}
 	}
 
+	private static boolean search_predicate_for_subterm(Predicate p, IProofTreeNode pt, String s){
+		//search subterms of the predicate for a match of the string
+		//Be very careful of using this function. Because the type of the terms are not checked.
+		//Users are supposed to only use it in a naive way, where only some obvious and unambiguous term is being searched
+		List<String> subterms= getSubterms(p,pt);
+		for (String subterm: subterms){
+			if (s.equals(subterm)){
+				return true;
+			}
+		}
+		return false;
+		
+	}
+	
+	private static String handle_HYPS_HAVE_USE_OF(Command command, IProofTreeNode pt, IProofMonitor pm,
+			TinkerConnector tinker, TinkerSession session) {
+		String node = command.getParameter("NODE");
+		IProofTreeNode pnode = session.nameToNodeMap.get(node);
+		String varstr = command.getParameter("TERM");
+		Command result = new Command("HYPS_HAVE_USE_OF");
+		for (Predicate hyp : pnode.getSequent().hypIterable()) {
+			if (search_predicate_for_subterm(hyp, pnode, varstr)){
+				result.addParamter("RESULT", "true");
+				return result.toString();
+			}
+		}
+
+		result.addParamter("RESULT", "false");
+		return result.toString();
+	}
+	
+	private static String handle_HAS_DEF_OF(Command command, IProofTreeNode pt, IProofMonitor pm,
+			TinkerConnector tinker, TinkerSession session) {
+		String node = command.getParameter("NODE");
+		IProofTreeNode pnode = session.nameToNodeMap.get(node);
+		String termstr = command.getParameter("TERM");
+		Command result = new Command("HAS_DEF_RESULT");
+		for (Predicate hyp : pnode.getSequent().hypIterable()) {
+			if (hyp.getTag() == Formula.EQUAL) {
+				if (hyp.getChild(0).toString().equals(termstr) || hyp.getChild(1).toString().equals(termstr)) {
+					result.addParamter("RESULT", "true");
+					return result.toString();
+				}
+			}
+		}
+		result.addParamter("RESULT", "false");
+		return result.toString();
+	}
+
+	private static String handle_CAN_SIMPLIFY_HYPS(Command command, IProofTreeNode pt, IProofMonitor pm,
+			TinkerConnector tinker, TinkerSession session) {
+		String node = command.getParameter("NODE");
+		IProofTreeNode pnode = session.nameToNodeMap.get(node);
+		ITactic t = new AutoTactics.EqHypTac();
+		t.apply(pnode, pm);
+		Command result;
+		if (pnode.hasChildren()) {
+			pnode.pruneChildren();
+			result = new Command("CAN_SYMPIFY_HYPS_RESULT");
+			result = result.addParamter("RESULT", "true");
+		} else {
+			result = new Command("CAN_SYMPIFY_HYPS_RESULT");
+			result = result.addParamter("RESULT", "false");
+		}
+		return result.toString();
+	}
+
+	private static String handle_GET_PSGRAPH(Command command, IProofTreeNode pt, IProofMonitor pm,
+			TinkerConnector tinker, TinkerSession session) {
+		// TODO Auto-generated method stub
+		Command cmd = new Command("PS_GRAPH");
+		cmd.addParamter("PS", session.getPsgraph());
+
+		return cmd.toString();
+	}
+
 	private static ITactic getOnGoalTactic(String tacticName, Command cmd, IProofTreeNode pnode) {
-		switch (tacticName) {
+		switch (tacticName.toUpperCase()) {
 		case "INST":
 			String[] inst_values = cmd.getParameter("PARAM").split(",");
 			return Tactics.exI(inst_values);
+		case "IMPI":
+			return Tactics.impI();
+		case "DO_CASE":
+			String caseterm = cmd.getParameter("1");
+			return Tactics.doCase(caseterm);
 		default:
 			return new Tactics.FailureTactic();
 
 		}
 	}
 
+	private static Predicate get_hyp(String str, IProofTreeNode pnode) {
+		Predicate term = parseStr(str, pnode.getSequent().typeEnvironment());
+		if (term == null)
+			return null;
+		for (Predicate hyp : pnode.getSequent().hiddenHypIterable()) {
+			if (term.equals(hyp)) {
+				return hyp;
+			}
+		}
+		return null;
+	}
+
+	private static List<Integer> get_predicate_tag_in_list(Predicate p) {
+		int size = p.getChildCount();
+		List<Integer> result = new ArrayList<Integer>();
+		if (p instanceof UnaryPredicate) {
+			result.add(p.getTag());
+			List a = get_predicate_tag_in_list((Predicate) p.getChild(0));
+			result.addAll(a);
+		} else if (p instanceof BinaryPredicate) {
+			List a = get_predicate_tag_in_list((Predicate) p.getChild(0));
+			result.addAll(a);
+			result.add(p.getTag());
+			List b = get_predicate_tag_in_list((Predicate) p.getChild(1));
+			result.addAll(b);
+		} else if (p instanceof SimplePredicate) {
+			result.add(p.getTag());
+		} else if (p instanceof QuantifiedPredicate) {
+			result.add(p.getTag());
+			List a = get_predicate_tag_in_list((Predicate) p.getChild(0));
+			result.addAll(a);
+		} else if (p instanceof AssociativePredicate) {
+			List a = get_predicate_tag_in_list((Predicate) p.getChild(0));
+			result.addAll(a);
+			result.add(p.getTag());
+			List b = get_predicate_tag_in_list((Predicate) p.getChild(1));
+			result.addAll(b);
+		}
+		return result;
+	}
+
+	private static Predicate find_first_hyp_with_tag(IProofTreeNode pnode, int tag, boolean considerNeg) {
+		if (pnode.getSequent() != null) {
+			for (Predicate hyp : pnode.getSequent().selectedHypIterable()) {
+				if (hyp.getTag() == tag) {
+					return hyp;
+				} else if (considerNeg && hyp.getTag() == Formula.NOT) {
+					// hypothesis with NOT is also considered
+					// so find (pnode, IN) will return both a∈some_set and
+					// ¬a∈some_set
+					if (hyp.getChild(0).getTag() == tag) {
+						return hyp;
+					}
+				}
+
+			}
+		}
+		return null;
+	}
+
+	private static List<Predicate> find_all_hyp_with_tag(IProofTreeNode pnode, int tag, Iterable<Predicate> hyps) {
+		List<Predicate> result = new ArrayList<Predicate>();
+		for (Predicate hyp : hyps) {
+			if (hyp.getTag() == tag) {
+				result.add(hyp);
+			} else if (hyp.getTag() == Formula.NOT) {
+				// hypothesis with NOT is also considered
+				// so find all (pnode, IN) will add both a∈some_set and
+				// ¬a∈some_set
+				if (hyp.getChild(0).getTag() == tag) {
+					result.add(hyp);
+				}
+			}
+
+		}
+		return result;
+	}
+
+	private static IPosition find_first_position_with_tag(Predicate p, int tag) {
+		List<IPosition> result = p.getPositions(new NaiveFormulaFilter());
+		if (result.size() > 0) {
+			for (IPosition pos : result) {
+				if (p.getSubFormula(pos).getTag() == tag) {
+					return pos;
+				}
+
+			}
+			return null;
+		} else {
+			return null;
+		}
+	}
+
 	private static ITactic getOnHypTactic(String tacticName, Command cmd, IProofTreeNode pnode) {
+		String term = cmd.getParameter("TERM");
+		Predicate hyp;
+		if (term != null) {
+			hyp = get_hyp(term, pnode);
+		} else {
+			hyp = null;
+		}
 		switch (tacticName) {
+		case "simple_split_case":
+			if (hyp != null) {
+				return Tactics.disjE(hyp);
+			} else {
+				hyp = find_first_hyp_with_tag(pnode, Formula.LOR, false);
+				if (hyp != null) {
+					return Tactics.disjE(hyp);
+				} else {
+					return new Tactics.FailureTactic();
+				}
+			}
+
 		case "EqHypTac": // eqvRewrite Equivalent Hypothesis rewrite tactic
-			Predicate hyp = null;
+
 			final ITacticApplication appli = (new EqvLR()).getPossibleApplications(pnode, hyp, null).get(0);
 
 			return appli.getTactic(null, null);
+		case "remove_MEMBERSHIP":
 
+			if (hyp != null) {
+				IPosition pos = find_first_position_with_tag(hyp, Formula.IN);
+				if (pos != null) {
+					return Tactics.removeMembership(hyp, pos);
+				} else {
+					return new Tactics.FailureTactic();
+				}
+
+			} else {
+				hyp = find_first_hyp_with_tag(pnode, Formula.IN, true);
+				if (hyp != null) {
+					IPosition pos = find_first_position_with_tag(hyp, Formula.IN);
+					return Tactics.removeMembership(hyp, pos);
+				} else {
+					return new Tactics.FailureTactic();
+				}
+			}
+		case "eh_SETDEF":
+			List<Predicate> equals = find_all_hyp_with_tag(pnode, Formula.EQUAL, pnode.getSequent()
+					.selectedHypIterable());
+			for (Predicate h : equals) {
+				if (h.getChild(1).getTag() == Formula.SETEXT) {
+					return Tactics.eqE(h);
+				}
+			}
+		case "rewrite_NOT_OR":
+			// Tactics.removeNeg(hyp, position);
+			// rewrite not (a or b) to not a and not b
+			List<Predicate> nots = find_all_hyp_with_tag(pnode, Formula.NOT, pnode.getSequent().selectedHypIterable());
+			for (Predicate h : nots) {
+				System.out.println(h.getSyntaxTree());
+				if (h.getTag() == Formula.NOT) {
+					if (h.getChild(0).getTag() == Formula.LOR) {
+						System.out.println("appying R_NO ON " + h.toString());
+						List<IPosition> t = h.getPositions(new NaiveFormulaFilter());
+
+						return Tactics.removeNeg(hyp, t.get(0));
+					}
+				}
+			}
 		case "INST": // instantiate
 			String termstr = cmd.getParameter("HYP");
 			Predicate selected_hyp = null;
@@ -571,7 +823,7 @@ public class CommandExecutor {
 					break;
 				}
 			}
-			
+
 			String[] inst_values = cmd.getParameter("PARAM").split(",");
 			return Tactics.allD(selected_hyp, inst_values);
 
@@ -596,11 +848,20 @@ public class CommandExecutor {
 			return Tactics.allI();
 		case "hyp":
 			return Tactics.hyp();
-		case "EqHypTac":
+
+		case "equal_hyp_rewrite":
 			return new AutoTactics.EqHypTac();
+		case "partition_rewrite":
+			return new AutoTactics.PartitionRewriteTac();
 		case "symp_rewrite":
 			return (new AutoTactics.AutoRewriteTac());
-		case "default":
+		case "newPP_AL":
+			return Tactics.afterLasoo(PPCore.newPP(true, 2000, 3000));
+		case "newPP_UR":
+			return PPCore.newPP(false, 2000, 3000);
+		case "newPP_R":
+			return PPCore.newPP(true, 2000, 3000);
+		case "autoProver":
 			// Simple copy from the construction of
 			// AutoProver.AutoProverApplication
 			final Object origin = pnode.getProofTree().getOrigin();
@@ -609,8 +870,7 @@ public class CommandExecutor {
 			}
 			final IProofAttempt pa = (IProofAttempt) origin;
 			final IPORoot poRoot = pa.getComponent().getPORoot();
-			final ITacticApplication appli = new AutoProverApplication(poRoot);
-			return appli.getTactic(null, null);
+			return EventBPlugin.getAutoPostTacticManager().getSelectedAutoTactics(poRoot);
 		default:
 			return Tactics.autoRewrite();
 		}

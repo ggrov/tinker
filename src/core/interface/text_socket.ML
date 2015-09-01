@@ -31,12 +31,12 @@ struct
   fun run_in_atomic func = 
    let
     val m = Mutex.mutex ();   
-    val attr = Thread.getAttributes () ; 
+    val attr = Thread.getAttributes () ;     
    in 
     (Thread.setAttributes 
       [Thread.EnableBroadcastInterrupt false, 
        Thread.InterruptState Thread.InterruptDefer];
-    Mutex.lock m;
+    Mutex.lock m;  
     func ())
     |> (fn x => (Mutex.unlock m ; x))
     |> (fn x => (Thread.setAttributes attr; x))
@@ -299,21 +299,21 @@ struct
           accept_until_timeout 8 (* timeout for 8 s *)
         end
       val (sin0, sout0) = make_streams sock0;
-      val _ = 
-        Synchronized.change 
+      val _ =  
+        Synchronized.change    
           current_sock 
           (fn _ =>
             SockData {sock = sock0, passive = SOME passive_sock, sin = sin0, sout = sout0} |> SOME)
     in
       SockData { sock = sock0, passive = SOME passive_sock, sin = sin0, sout = sout0}
-    end
+    end  
   handle exp_text_socket msg => (clear_current_sock0 () ; raise exp_text_socket msg) (* timeout , stop trying *)
         | _                  => (clear_current_sock0 () ;raise exp_text_socket "socket in use")
-
+ 
   fun safe_local_server port = run_in_atomic (safe_local_server0 port)
-
-
-
+    
+  
+   
 end (* struct *)
 
 structure TextSocket : TEXT_SOCKET = TextSocket_DB;

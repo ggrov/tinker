@@ -50,7 +50,7 @@ public class TinkerConnector {
 
 	IProofMonitor monitor;
 	int timeout = 500;
-	int port = 1991;
+	int port = 1985;
 	ServerSocket serverSocket = null;
 	Socket connection = null;
 	BufferedReader input = null;

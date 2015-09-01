@@ -12,9 +12,8 @@ struct
   type thm = string
   type context = string
 
-  type tactic = tpp.tactic
+  type tactic = string
 
-  type pplan = tpp.pplan (* be the latest name of pnode *)
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
  
   
@@ -24,10 +23,14 @@ struct
     E_Thm of thm |
     E_ML of string | 
     E_L of env_data list
-  type env = env_data StrName.NTab.T 
-  type env_tac =  env -> env 
-  type pnode = { pname : string, env : env } 
 
+  type env = env_data StrName.NTab.T 
+
+
+  type pnode = { pname : string, env : env } 
+  type pplan = {name: tpp.pplan, env: env } (* be the latest name of pnode *)
+
+  type env_tac = arg_data list ->env -> string -> env 
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq  
 
   exception env_data_exp
@@ -50,9 +53,10 @@ struct
   
   fun get_open_pnodes pplan = 
   let
-     val nodes = tpp.get_all_open_nodes pplan
+     val name= #name pplan
+     val nodes = tpp.get_all_open_nodes name
   in  
-      map (fn x=> {pname = x, env = StrName.NTab.empty }) nodes  
+      map (fn x=> {pname = x, env = ( (#env pplan) ) }) nodes  
   end;
 
   fun arg_data_to_string arg = case arg of 
@@ -67,16 +71,48 @@ struct
        val strlist= map arg_data_to_string args
   in strlist end;
 
+  
+
+  fun int_list i = 
+    if i>0 then (int_list (i-1)) @ [i] else []
+
+  fun add_index_to_args args=
+  let val l=List.length args
+      val indices=int_list l                             
+      val result = map (fn x => List.nth (args, x-1) |> (fn b => (Int.toString x,b))) indices
+  in
+    result
+  end
+
   fun apply_tactic args tactic ({pname, env}:pnode, pplan) = 
   let 
-      val new_nodes= tpp.apply_tactic (args_convert args) tactic pname
+      val (real_args, realtactic, tac_type) = case tactic of 
+      "on_goal" => ((args_convert args |> List.tl  |> add_index_to_args), args_convert args |> List.hd, "ON_GOAL")
+      |"auto_tactic" => ([] ,args_convert args |> List.hd, "AUTO_TACTIC")
+      |"on_hyp" => ([("HYP","FIRST")], args_convert args |> List.hd , "ON_HYP")
+      |"autoprove" => ([],"autoProver", "AUTO_TACTIC")
+      | _ => raise error "unknown tac"
+     val rodin_tac= {tac_name = realtactic, tac_type= tac_type}
+     val _ = writeln ("APPLY TAC ON : "^pname )
+      val new_nodes= tpp.apply_tactic real_args rodin_tac pname
   in
      Seq.single (map (fn x=> {pname = x, env = env}) new_nodes ,pplan)
   end;
 
 
 
-  fun apply_env_tactic _ _ (pnode, pname)= Seq.single ([pnode], pname);
+  fun update_pnode_env f ({env, pname} : pnode) = {pname = pname, env = f env};
+
+  fun apply_env_tactic args envtac (pnode, pplan)= 
+  let val {pname , env} = pnode 
+      val new_env=  envtac args env pname
+  in 
+    Seq.single ([{pname=pname, env=new_env}], pplan)
+  end
+
+  fun get_open_pnode_by_name pplan name = {pname = name , env = #env pplan}(*  {pname=(#name pplan),env= (#env pplan) } *)
+  fun set_pnode_pplan pnode pplan = 
+    (writeln ("USE set_pnode_pplan : " ^ (#pname pnode)) ;pplan)
 
   fun get_pnode_name pnode = #pname pnode;
   fun get_pnode_env ({env, ...} : pnode) = env;
@@ -95,14 +131,13 @@ struct
   fun get_pnode_hyps  {pname:string, env=_}  = hypUtil.get_hyps pname (*Dummy *)
   val get_pnode_ctxt = get_pnode_name
 
-  fun update_pnode_env f ({env, pname} : pnode) = {pname = pname, env = f env};
   val set_pnode_env = update_pnode_env o K;
 
   val trm_of_string = K I;
   val string_of_trm = K I;
   val encode_gui_to_prover = I;
   val encode_prover_to_gui = I;
-  val pretty_pplan = Pretty.str;
+  fun pretty_pplan pplan = Pretty.str (#name pplan);
   val pretty_pnode = Pretty.str o get_pnode_name;
   val pretty_trm = K Pretty.str
   val pretty_goal = pretty_pnode
@@ -118,10 +153,10 @@ struct
   fun  init _  _ _=  
     let val init_node=tpp.initialise()
     in
-       ({pname=init_node,env=StrName.NTab.empty}, init_node)
+       ({pname=init_node,env=StrName.NTab.empty}, {name=init_node, env = StrName.NTab.empty} )
     end;
 
-  fun get_goal_thm pplan = raise Fail "TODO"; 
+  fun get_goal_thm pplan = "dummy"; 
   val prop_of_string = trm_of_string
   fun pretty_env _ _ = Pretty.str "dummy" 
   fun pretty_env_data _ _ = Pretty.str "dummy"

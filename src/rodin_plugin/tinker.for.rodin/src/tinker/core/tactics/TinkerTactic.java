@@ -1,5 +1,11 @@
 package tinker.core.tactics;
 
+import javax.swing.JFileChooser;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eventb.core.seqprover.IProofMonitor;
@@ -33,15 +39,33 @@ public class TinkerTactic implements ITactic {
 		return windows[0];
 	}
 
+	Shell shell;
+	Display disp;
+
+	public String open_psgraph() {
+		disp=new Display();
+		shell=new Shell(disp);
+		
+		FileDialog dialog = new FileDialog(shell, SWT.OPEN);
+		dialog.setFilterExtensions(new String[] { "*.psgraph" });
+		dialog.setFilterPath("c:\\temp");
+		String result = dialog.open().replace("\\", "/");
+		return result;
+	}
+
 	@Override
 	public Object apply(IProofTreeNode ptNode, IProofMonitor pm) {
+
 		this.session = new TinkerSession(this.getThisWorkBench(), pm);
+
+		String ps = open_psgraph();
+		session.setPsgraph(ps);
 		pm.setTask("Wait for Tinker..");
 
 		TinkerConnector tinker = new TinkerConnector(pm, session);
 		String reply_command = null;
 		String exception_info = null;
-		
+
 		try {
 			// Plugin Listening
 			if (session.getPluginSate() == PluginStates.READY) {
@@ -104,12 +128,13 @@ public class TinkerTactic implements ITactic {
 			session.setPluginSate(PluginStates.DISCONNECTING);
 		} catch (RodinCancelInteruption e1) {
 			// When Cancel Button is clicked
-			if (session.getSocketState() == SocketStates.LISTENING && session.getPluginSate()==PluginStates.CONNECTING) {
+			if (session.getSocketState() == SocketStates.LISTENING
+					&& session.getPluginSate() == PluginStates.CONNECTING) {
 				session.setTacticState(TacticStates.DONE);
 			} else {
 				session.setTacticState(TacticStates.CANCELLING);
 			}
-			System.out.println("Clicked Cancel in Rodin. Set Plugin State="+e1.GetState());
+			System.out.println("Clicked Cancel in Rodin. Set Plugin State=" + e1.GetState());
 			session.setPluginSate(e1.GetState());
 
 		} catch (Exception e) {
@@ -126,7 +151,7 @@ public class TinkerTactic implements ITactic {
 				// before we can tell Tinker to disconnect
 
 				// Receive and ignore
-				
+
 				String dummy = tinker.fromTinker();
 
 				session.setSocketState(SocketStates.SENDING_CANCELLATION);
