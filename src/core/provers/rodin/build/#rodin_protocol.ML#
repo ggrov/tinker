@@ -98,16 +98,16 @@ struct
                        getParamValues reply
                    end
                  | "ERROR" =>
-                    (RodinSock.send (toJson ("DISCONNECT_WITH_ERROR",[("ERROR", getParam reply "ERROR_INFO")]));  
+                    (RodinSock.send (toJson ("ERROR_RECEIVED",[("ERROR", getParam reply "ERROR_INFO")]));  
                     (*  RodinSock.disconnect(); *)
                       raise error (String.concat["Cannot Apply this Tactic: ",tac_name, " ERROR: ", getParam reply "ERROR_INFO"]))
                  | str =>  
-                    (RodinSock.send (toJson ("DISCONNECT_WITH_ERROR",[("ERROR",str)]));  
+                    (RodinSock.send (toJson ("ERROR_RECEIVED",[("ERROR",str)]));  
                     (*  RodinSock.disconnect(); *)
                     raise error (String.concat["Cannot Apply this Tactic: ",tac_name," with instruction:", str]))
   in 
       new_nodes 
-  end;
+  end; 
 
   fun apply_tactic args tactic pnode = 
   let  val c_args =args in

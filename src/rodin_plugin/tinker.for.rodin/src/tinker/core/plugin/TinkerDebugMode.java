@@ -47,13 +47,7 @@ public class TinkerDebugMode extends DefaultTacticProvider {
 
 	@Override
 	public List<ITacticApplication> getPossibleApplications(IProofTreeNode node, Predicate hyp, String globalInput) {
-		System.out.println(globalInput);
-		Predicate p =CommandExecutor.parseStr(globalInput,node.getSequent().typeEnvironment());
-		if(p !=null){
-			System.out.println(p.getTag());
-			System.out.println(p.getChild(1).getTag());
-			
-		}
+		
 		if (node != null && node.isOpen()) {
 			final ITacticApplication appli = new TinkerApplication(hyp);
 			return singletonList(appli);

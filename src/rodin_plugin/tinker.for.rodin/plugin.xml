@@ -32,5 +32,22 @@
             priority="1">
       </toolbar>
    </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="tinker.core.preference.TinkerPreferencePage"
+            id="tinker.core.preference.TinkerPreferencePage"
+            name="Tinker Preference Page">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="tinker.core.preference.PreferenceInitializer">
+      </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+   </extension>
 
 </plugin>

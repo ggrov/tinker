@@ -19,6 +19,7 @@ import tinker.core.execute.TinkerSession;
 import tinker.core.socket.TinkerConnector;
 import tinker.core.socket.TinkerConnector.RodinCancelInteruption;
 import tinker.core.socket.TinkerConnector.TinkerSessionEnd;
+import tinker.core.socket.TinkerConnector.TinkerTacticError;
 import tinker.core.states.PluginStates;
 import tinker.core.states.SocketStates;
 import tinker.core.states.TacticStates;
@@ -48,7 +49,7 @@ public class TinkerTactic implements ITactic {
 		
 		FileDialog dialog = new FileDialog(shell, SWT.OPEN);
 		dialog.setFilterExtensions(new String[] { "*.psgraph" });
-		dialog.setFilterPath("c:\\temp");
+		//dialog.setFilterPath("c:\\temp");
 		String result = dialog.open().replace("\\", "/");
 		return result;
 	}
@@ -90,6 +91,9 @@ public class TinkerTactic implements ITactic {
 				if (cmd.getCommand().equals("SESSION_END")) {
 					throw new TinkerSessionEnd();
 
+				}else if (cmd.getCommand().equals("ERROR_RECEIVED")){
+					//throw new TinkerConnector.TinkerTacticError(cmd.getParameter("ERROR"));
+					continue;
 				}
 				// Set state to RP_STATE_EXECUTING so the command executor can
 				// execute
@@ -126,6 +130,9 @@ public class TinkerTactic implements ITactic {
 
 			}
 			session.setPluginSate(PluginStates.DISCONNECTING);
+		} catch (TinkerTacticError e1){
+			//TO DO
+			
 		} catch (RodinCancelInteruption e1) {
 			// When Cancel Button is clicked
 			if (session.getSocketState() == SocketStates.LISTENING

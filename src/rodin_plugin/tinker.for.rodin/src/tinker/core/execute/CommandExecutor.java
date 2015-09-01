@@ -552,7 +552,7 @@ public class CommandExecutor {
 			case "HAS_DEF_OF":
 				result = handle_HAS_DEF_OF(command, pt, pm, tinker, session);
 			default:
-				break;
+				throw new Exception("Unknown Command: "+ command.getCommand());
 			}
 			return result;
 		} else {

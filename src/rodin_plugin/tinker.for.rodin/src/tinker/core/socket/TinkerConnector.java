@@ -38,6 +38,21 @@ public class TinkerConnector {
 			return s;
 		}
 	}
+	
+	public static class TinkerTacticError extends Exception{
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5502685835415563044L;
+		private String info;
+		public TinkerTacticError(String info){
+			this.info=info;
+		}
+		public String getInfo(){
+			return info;
+		}
+	}
 
 	public static class TinkerSessionEnd extends Exception {
 

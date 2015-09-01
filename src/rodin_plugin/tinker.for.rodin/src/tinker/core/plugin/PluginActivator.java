@@ -1,28 +1,32 @@
 package tinker.core.plugin;
 
 import org.eclipse.core.runtime.Plugin;
+import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceStore;
+import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 /**
  * The activator class controls the plug-in life cycle
  */
-public class Activator extends Plugin {
+public class PluginActivator extends AbstractUIPlugin {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "tinker.for.rodin"; //$NON-NLS-1$
 
 	// The shared instance
-	private static Activator plugin;
+	private static PluginActivator plugin;
 	
 	/**
 	 * The constructor
 	 */
-	public Activator() {
+	public PluginActivator() {
 	}
 	
-	@Override
+	//@Override
 	public void start(BundleContext context) throws Exception {
-		super.start(context);
+		//super.start(context);
 		plugin = this;
 		enableAssertions();
 	}
@@ -34,10 +38,11 @@ public class Activator extends Plugin {
 		getClass().getClassLoader().setDefaultAssertionStatus(true);
 	}
 
-	@Override
+	//@Override
 	public void stop(BundleContext context) throws Exception {
+		
 		plugin = null;
-		super.stop(context);
+		//super.stop(context);
 	}
 
 	/**
@@ -45,8 +50,12 @@ public class Activator extends Plugin {
 	 *
 	 * @return the shared instance
 	 */
-	public static Activator getDefault() {
+	public static PluginActivator getDefault() {
 		return plugin;
 	}
+
+
+
+	
 
 }

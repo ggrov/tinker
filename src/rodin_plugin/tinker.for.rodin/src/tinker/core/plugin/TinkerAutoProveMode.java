@@ -47,11 +47,15 @@ public class TinkerAutoProveMode extends DefaultTacticProvider {
 
 	@Override
 	public List<ITacticApplication> getPossibleApplications(IProofTreeNode node, Predicate hyp, String globalInput) {
-
+		/*
 		if (node != null && node.isOpen()) {
 			final ITacticApplication appli = new TinkerApplication(hyp);
 			return singletonList(appli);
 		}
+		
+		*/
+		//Always return empty, because the functionality of auto prove from Rodin is not 
+		//implemented.
 		return emptyList();
 	}
 

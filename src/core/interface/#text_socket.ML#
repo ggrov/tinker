@@ -302,7 +302,7 @@ struct
       val _ =  
         Synchronized.change    
           current_sock 
-          (fn _ =>
+          (fn _ =>  
             SockData {sock = sock0, passive = SOME passive_sock, sin = sin0, sout = sout0} |> SOME)
     in
       SockData { sock = sock0, passive = SOME passive_sock, sin = sin0, sout = sout0}
@@ -311,7 +311,7 @@ struct
         | _                  => (clear_current_sock0 () ;raise exp_text_socket "socket in use")
  
   fun safe_local_server port = run_in_atomic (safe_local_server0 port)
-     
+  
   
    
 end (* struct *)
