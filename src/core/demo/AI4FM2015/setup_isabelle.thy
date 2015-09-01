@@ -4,14 +4,9 @@ imports
 begin
 
 ML{*
-  val path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/src/core/demo/AdvisoryBoardMeeting2015/" ;
+  val path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/src/core/demo/AI4FM2015/" ;
 *}
-ML{*-
-  val path = "/home/pierre/Documents/Projects/Tinker/tinkerGit/tinker/src/core/demo/AdvisoryBoardMeeting2015/"
-*}
-ML{*-
-  val path = "F:/Library/Documents/git/tinker/src/core/demo/AdvisoryBoardMeeting2015/"
-*}
+
 
 ML{*
 fun rule_tac ctxt i (arg as [IsaProver.A_Str thm_name]) =  rtac (get_thm_by_name ctxt thm_name) i;

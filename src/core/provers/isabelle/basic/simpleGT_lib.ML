@@ -18,7 +18,7 @@ struct
       case top_level_str g of
          NONE => false
        | SOME v => 
-          (let val _ = logging "GOALTYPE" ("top level is: " ^ v ^ " by checking" ^  (ignore_module symbol)) in 
+          (let val _ = logging "GOALTYPE" ("top level is: " ^ v ^ " by checking " ^  (ignore_module symbol)) in 
            v = (ignore_module symbol) end);
     
     fun top_level symbol_list g = map (fn symbol => top_level' symbol g) symbol_list;
