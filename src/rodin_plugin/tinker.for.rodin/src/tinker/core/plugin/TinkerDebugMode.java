@@ -35,7 +35,7 @@ public class TinkerDebugMode extends DefaultTacticProvider {
 
 		@Override
 		public ITactic getTactic(String[] inputs, String globalInput) {
-			return new TinkerTactic();
+			return new TinkerTactic(globalInput);
 		}
 
 		@Override

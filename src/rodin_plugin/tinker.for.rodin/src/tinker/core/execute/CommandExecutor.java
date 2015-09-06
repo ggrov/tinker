@@ -479,7 +479,7 @@ public class CommandExecutor {
 		}
 		Predicate hyp = find_first_hyp_with_tag(pnode, tag, false);
 
-		Command cmd = (new Command("GET_TOP_SYMBOL_RESULT")).addParamter("RESULT", hyp != null);
+		Command cmd = (new Command("HAS_HYP_WITH_TOPSYMBOL_RESULT")).addParamter("RESULT", hyp != null);
 		return cmd.toString();
 	}
 
@@ -534,9 +534,9 @@ public class CommandExecutor {
 			case "GET_GOAL_TERM":
 				result = handle_GET_GOAL_TERM(command, pt, pm, tinker, session);
 				break;
-			case "ALL_SYMBOL":
+			//case "ALL_SYMBOL":
 
-				break;
+				//break;
 			case "GET_PSGRAPH":
 				result = handle_GET_PSGRAPH(command, pt, pm, tinker, session);
 				break;
@@ -551,6 +551,7 @@ public class CommandExecutor {
 				return result;
 			case "HAS_DEF_OF":
 				result = handle_HAS_DEF_OF(command, pt, pm, tinker, session);
+				break;
 			default:
 				throw new Exception("Unknown Command: "+ command.getCommand());
 			}
@@ -579,8 +580,8 @@ public class CommandExecutor {
 		String node = command.getParameter("NODE");
 		IProofTreeNode pnode = session.nameToNodeMap.get(node);
 		String varstr = command.getParameter("TERM");
-		Command result = new Command("HYPS_HAVE_USE_OF");
-		for (Predicate hyp : pnode.getSequent().hypIterable()) {
+		Command result = new Command("RESULT_HYPS_HAVE_USE_OF");
+		for (Predicate hyp : pnode.getSequent().selectedHypIterable()) {
 			if (search_predicate_for_subterm(hyp, pnode, varstr)){
 				result.addParamter("RESULT", "true");
 				return result.toString();

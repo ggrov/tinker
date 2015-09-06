@@ -37,7 +37,7 @@ public class TinkerPreferencePage
 	 */
 	public void createFieldEditors() {
 		addField(new DirectoryFieldEditor(PreferenceConstants.P_PATH, 
-				"&Directory preference:", getFieldEditorParent()));
+				"&Default Directory:", getFieldEditorParent()));
 		/*
 		addField(
 			new BooleanFieldEditor(

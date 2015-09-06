@@ -1,7 +1,10 @@
 package tinker.core.tactics;
 
+import java.io.File;
+
 import javax.swing.JFileChooser;
 
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
@@ -30,8 +33,9 @@ public class TinkerTactic implements ITactic {
 
 	private TinkerSession session;
 
-	public TinkerTactic() {
-
+	public TinkerTactic(String input) {
+		psgraph_filename = input + ".psgraph";
+		psgraph_dir = PluginActivator.getDefault().getPreferenceStore().getString(PreferenceConstants.P_PATH);
 	}
 
 	private IWorkbenchWindow getThisWorkBench() {
@@ -42,34 +46,51 @@ public class TinkerTactic implements ITactic {
 		return windows[0];
 	}
 
-	public static String psgraph_dir = 
-			PluginActivator.
-			getDefault().
-			getPreferenceStore().
-			getString(PreferenceConstants.P_PATH); 
-	;
+	public static String psgraph_dir = PluginActivator.getDefault().getPreferenceStore()
+			.getString(PreferenceConstants.P_PATH);
+
+	public static String psgraph_filename = "";
 
 	public String open_psgraph() {
-		if (psgraph_dir.equals("")){
-		
-		Display.getDefault().syncExec(new Runnable() {
-		    public void run() {
-		    	Shell shell=new Shell(Display.getDefault());
-		    	FileDialog dialog = new FileDialog(shell, SWT.OPEN);
-				dialog.setFilterExtensions(new String[] { "*.psgraph" });
-				//dialog.setFilterPath("c:\\temp");
+		if (psgraph_dir.equals("")) {
 
-				String result = dialog.open().replace("\\", "/");
-				TinkerTactic.psgraph_dir=result;
-				PluginActivator.
-				getDefault().
-				getPreferenceStore().putValue(PreferenceConstants.P_PATH, result);
-		    }
-		});
-		
-		
+			Display.getDefault().syncExec(new Runnable() {
+				public void run() {
+					Shell shell = new Shell(Display.getDefault());
+					FileDialog dialog = new FileDialog(shell, SWT.OPEN);
+					dialog.setFilterExtensions(new String[] { "*.psgraph" });
+					// dialog.setFilterPath("c:\\temp");
+
+					String result = dialog.open();
+					if (result != null) {
+						result = result.replace("\\", "/");
+						int last_slash = result.lastIndexOf("/");
+						String dir = result.substring(0, last_slash + 1);
+						String filename = result.substring(last_slash + 1);
+						TinkerTactic.psgraph_dir = dir;
+						TinkerTactic.psgraph_filename = filename;
+						PluginActivator.getDefault().getPreferenceStore().putValue("LAST_PSGRAPH", filename);
+						PluginActivator.getDefault().getPreferenceStore().putValue(PreferenceConstants.P_PATH, dir);
+					} else {
+
+					}
+				}
+			});
+
 		}
-		return TinkerTactic.psgraph_dir;
+		if (TinkerTactic.psgraph_dir != null && !TinkerTactic.psgraph_dir.equals("")) {
+			return TinkerTactic.psgraph_dir + TinkerTactic.psgraph_filename;
+		} else {
+			return null;
+		}
+	}
+
+	public boolean checkFile(String file) {
+		File f = new File(file);
+		if (f.exists() && !f.isDirectory()) {
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -77,7 +98,23 @@ public class TinkerTactic implements ITactic {
 
 		this.session = new TinkerSession(this.getThisWorkBench(), pm);
 
-		String ps = open_psgraph();
+		String path = psgraph_dir;
+		String ps;
+		if (path == null || path.equals("")) {
+			// open file dialog
+			ps = open_psgraph();
+			// if cancelled open file
+			if (ps == null || ps.equals("")) {
+				return "Tactic cancelled because default psgraph folder is not set.";
+			}
+		}
+
+		ps = psgraph_dir + psgraph_filename;
+		if (!checkFile(ps)) {
+			return "File " + ps + " does not exist!";
+		}
+
+		System.out.println("Use psgraph=" + ps);
 		session.setPsgraph(ps);
 		pm.setTask("Wait for Tinker..");
 
@@ -109,8 +146,9 @@ public class TinkerTactic implements ITactic {
 				if (cmd.getCommand().equals("SESSION_END")) {
 					throw new TinkerSessionEnd();
 
-				}else if (cmd.getCommand().equals("ERROR_RECEIVED")){
-					//throw new TinkerConnector.TinkerTacticError(cmd.getParameter("ERROR"));
+				} else if (cmd.getCommand().equals("ERROR_RECEIVED")) {
+					// throw new
+					// TinkerConnector.TinkerTacticError(cmd.getParameter("ERROR"));
 					continue;
 				}
 				// Set state to RP_STATE_EXECUTING so the command executor can
@@ -148,9 +186,9 @@ public class TinkerTactic implements ITactic {
 
 			}
 			session.setPluginSate(PluginStates.DISCONNECTING);
-		} catch (TinkerTacticError e1){
-			//TO DO
-			
+		} catch (TinkerTacticError e1) {
+			// TO DO
+
 		} catch (RodinCancelInteruption e1) {
 			// When Cancel Button is clicked
 			if (session.getSocketState() == SocketStates.LISTENING
