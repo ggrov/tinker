@@ -16,6 +16,8 @@ import tinker.core.execute.Command;
 import tinker.core.execute.CommandExecutor;
 import tinker.core.execute.CommandParser;
 import tinker.core.execute.TinkerSession;
+import tinker.core.plugin.PluginActivator;
+import tinker.core.preference.PreferenceConstants;
 import tinker.core.socket.TinkerConnector;
 import tinker.core.socket.TinkerConnector.RodinCancelInteruption;
 import tinker.core.socket.TinkerConnector.TinkerSessionEnd;
@@ -40,18 +42,34 @@ public class TinkerTactic implements ITactic {
 		return windows[0];
 	}
 
-	Shell shell;
-	Display disp;
+	public static String psgraph_dir = 
+			PluginActivator.
+			getDefault().
+			getPreferenceStore().
+			getString(PreferenceConstants.P_PATH); 
+	;
 
 	public String open_psgraph() {
-		disp=new Display();
-		shell=new Shell(disp);
+		if (psgraph_dir.equals("")){
 		
-		FileDialog dialog = new FileDialog(shell, SWT.OPEN);
-		dialog.setFilterExtensions(new String[] { "*.psgraph" });
-		//dialog.setFilterPath("c:\\temp");
-		String result = dialog.open().replace("\\", "/");
-		return result;
+		Display.getDefault().syncExec(new Runnable() {
+		    public void run() {
+		    	Shell shell=new Shell(Display.getDefault());
+		    	FileDialog dialog = new FileDialog(shell, SWT.OPEN);
+				dialog.setFilterExtensions(new String[] { "*.psgraph" });
+				//dialog.setFilterPath("c:\\temp");
+
+				String result = dialog.open().replace("\\", "/");
+				TinkerTactic.psgraph_dir=result;
+				PluginActivator.
+				getDefault().
+				getPreferenceStore().putValue(PreferenceConstants.P_PATH, result);
+		    }
+		});
+		
+		
+		}
+		return TinkerTactic.psgraph_dir;
 	}
 
 	@Override
