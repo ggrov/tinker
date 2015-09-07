@@ -36,7 +36,7 @@ struct
         if is_env_tactic_name name 
         then 
         let val env_tac = if Env_Tac_Utils.is_abbrv_env_tac name
-        then Env_Tac_Utils.scan_abbrv_env_tac ctxtname |> K
+        then Env_Tac_Utils.scan_abbrv_env_tac ctxt name |> K
         else Prover.EnvTac_ML_Exec.eval_ml name in
         Prover.apply_env_tactic arg_list env_tac (pnode,pplan) end
         else 
