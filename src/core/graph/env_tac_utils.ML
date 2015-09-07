@@ -30,7 +30,7 @@ sig
     sharing Sharing.PS_Theory = PS_Theory.Sharing
 end
 
-functor EnvTacUtilsFunc (structure Theory : PS_THEORY val struct_name : string) : ENV_TAC_UTILS = 
+functor EnvTacUtilsFunc (structure Theory : PS_THEORY val struct_name : string) (*: ENV_TAC_UTILS *)= 
 struct
   structure PS_Theory = Theory
   structure Prover = PS_Theory.GoalTyp.Prover
@@ -68,6 +68,7 @@ struct
 *)
 
   (* scanner for the easier form of env tactic *)
+    fun filter_blank str = Symbol.explode str |> filter (not o member (op =) [" ", "\t"]) |> String.concat
     fun append_pair (x,y) = x ^ " " ^ y;
     fun scan_ignore_post_blank pre_scan = pre_scan --| (Scan.many (Symbol.is_blank))
     fun scan_ignore_pre_blank post_scan =  (Scan.many ( Symbol.is_blank)) |-- post_scan
@@ -85,14 +86,14 @@ struct
       >> append_pair;
     
     fun scan_antiquto' (handler : ( (string * string) -> string)) = 
-      Scan.this_string "@{" |--  scan_until ($$"\"") --| $$"\"" --  
+      scan_ignore_pre_blank (Scan.this_string "@{") |--  scan_until ($$"\"") --| $$"\"" --  
       scan_until (Scan.this_string "\"}") --| 
       (Scan.this_string "\"}") 
       >> handler;
 
     fun scan_antiquto (handler : ( (string * string) -> string)) src = 
       let 
-       val ((typ, def), src') = (Scan.this_string "@{" |--  scan_until ($$"\"") --| $$"\"" --  
+       val ((typ, def), src') = (scan_ignore_pre_blank (Scan.this_string "@{") |--  scan_until ($$"\"") --| $$"\"" --  
         scan_until (Scan.this_string "\"}") --| 
         (Scan.this_string "\"}")) src 
        val _ = case src' of [] => () | _ => raise Fail "illform"
@@ -122,7 +123,7 @@ struct
       in
          (var, typ, (scan_def (Prover.antiquto_handler env) def_strs))
       end
-     handle _ => (LoggingHandler.logging "Faillure" ("Fail to parse: " ^ input ); 
+     handle _ => (LoggingHandler.logging "FAILURE" ("Fail to parse: " ^ input ); 
     raise LoggingHandler.tinker_fail true);
 
     fun scan_abbrv_env_tac ctxt input env  = 
@@ -134,9 +135,9 @@ struct
         src 
         val (typ, def) = (scan_antiquto ((*Prover.antiquto_handler env*)snd) def_strs)
       in
-        [StrName.NTab.update (var, Prover.parse_env_data ctxt (typ, def)) env]
+        [StrName.NTab.update (filter_blank var, Prover.parse_env_data ctxt (filter_blank typ, def)) env]
       end
-     handle _ => (LoggingHandler.logging "Faillure" ("Fail to parse: " ^ input ); 
+     handle _ => (LoggingHandler.logging "FAILURE" ("Fail to parse: " ^ input ); 
     raise LoggingHandler.tinker_fail true);
 
 

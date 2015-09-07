@@ -357,8 +357,10 @@ struct
        |> map output_subgraph_json) 
     val atomic_tactics =  
       Json.Array 
-       (StrName.NTab.list_of (get_atomic_tactics ps) 
-       |> map output_atomic_json)
+      ((StrName.NTab.list_of (get_atomic_tactics ps) 
+       |> map output_atomic_json) @
+       (StrName.NTab.list_of (get_env_tactics ps) 
+       |> map output_env_json))
     val goaltype_data = Json.String "" 
   in
   Json.mk_object 
@@ -387,7 +389,7 @@ struct
       |> StrName.NTab.of_list
     val env_tactics = 
       JsonInputUtils.get_array object "atomic_tactics"
-      |> filter is_atom_tac(* filter out the ENV tac *)
+      |> filter (not o is_atom_tac)(* filter out the ENV tac *)
       |> map input_env_json
       |> StrName.NTab.of_list
     val occurs = Json.get object "occurrences" |> input_occurs_json
