@@ -1,9 +1,11 @@
-functor PSGraphFun(structure Theory_IO : PSGRAPH_THEORY_IO) : PS_GRAPH  =
+functor PSGraphFun(structure Theory_IO : PSGRAPH_THEORY_IO 
+                   structure Env_Tac_Utils : ENV_TAC_UTILS
+                   sharing Theory_IO.PS_Theory.Sharing = Env_Tac_Utils.Sharing.PS_Theory) : PS_GRAPH =
 struct
-
  structure Theory = Theory_IO.PS_Theory;
  structure Prover = Theory.Data.GoalTyp.Prover;
- structure Theory_IO = Theory_IO
+ structure Theory_IO = Theory_IO;
+ structure Env_Tac_Utils = Env_Tac_Utils;
 
  local open LoggingHandler in
 

@@ -11,14 +11,14 @@ end
 signature PS_GRAPH =
 sig
   structure Theory : PS_THEORY 
+  structure Env_Tac_Utils : ENV_TAC_UTILS
+  sharing Theory.Sharing = Env_Tac_Utils.Sharing.PS_Theory
 
   type T
   type graph_tacs
   type atomic_tacs  
   type occurences
-
   exception tactic_exp of string
-
 
   val empty : T
   val of_graph : StrName.NTab.name -> Theory.Graph.T -> T

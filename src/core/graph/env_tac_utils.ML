@@ -21,7 +21,10 @@ sig
     -> PS_Theory.GoalTyp.Prover.env -> PS_Theory.GoalTyp.Prover.env list
 
   val is_abbrv_env_tac : string -> bool
-  val scan_env_tac : PS_Theory.GoalTyp.Prover.env -> string -> (string * string * string)
+  val scan_abbrv_env_tac : 
+     PS_Theory.GoalTyp.Prover.context
+     -> string 
+     -> PS_Theory.GoalTyp.Prover.env -> PS_Theory.GoalTyp.Prover.env list
 
   structure Sharing : ENV_TAC_UTILS_SHARING
     sharing Sharing.PS_Theory = PS_Theory.Sharing
@@ -108,7 +111,7 @@ struct
     
 (* scan_env_tac' format: ?var_name : type := definition, 
    a more constraint format of scan_env_tac is: ?var_name := @{ type " definition"}*)
-    fun scan_env_tac' env input = 
+    fun scan_abbrv_env_tac' input env = 
       let
        val src = Symbol.explode input
        val ((var, typ), def_strs) = 
@@ -122,19 +125,20 @@ struct
      handle _ => (LoggingHandler.logging "Faillure" ("Fail to parse: " ^ input ); 
     raise LoggingHandler.tinker_fail true);
 
-    fun scan_env_tac env input = 
+    fun scan_abbrv_env_tac ctxt input env  = 
       let
        val src = Symbol.explode input
        val (var, def_strs) = 
         (scan_var (* scan variable name *) --|
         (scan_ignore_pre_blank (Scan.this_string ":=")))
         src 
-        val (typ, def) = (scan_antiquto (Prover.antiquto_handler env) def_strs)
+        val (typ, def) = (scan_antiquto ((*Prover.antiquto_handler env*)snd) def_strs)
       in
-         (var, typ, def)
+        [StrName.NTab.update (var, Prover.parse_env_data ctxt (typ, def)) env]
       end
      handle _ => (LoggingHandler.logging "Faillure" ("Fail to parse: " ^ input ); 
     raise LoggingHandler.tinker_fail true);
+
 
   end (* end of local open *)
 

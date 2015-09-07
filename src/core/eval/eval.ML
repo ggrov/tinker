@@ -5,6 +5,7 @@ struct
  structure EData = EData;
  structure Theory = EData.PSGraph.Theory;
  structure Graph = Theory.Graph;
+ structure Env_Tac_Utils = EData.PSGraph.Env_Tac_Utils;
  structure GoalTyp = EData.PSGraph.Theory.Data.GoalTyp;
  structure Prover = GoalTyp.Prover;
  structure GData = EData.PSGraph.Theory.Data;
@@ -32,9 +33,11 @@ struct
          val name = (GData.get_nvdata_name (GData.T_Atomic atom))
          val arg_list = (GData.get_nvdata_args (GData.T_Atomic atom)) |> GData.parse_arg_data ctxt
        in  
-        if  is_env_tactic_name name 
+        if is_env_tactic_name name 
         then 
-        let val env_tac = Prover.EnvTac_ML_Exec.eval_ml name in
+        let val env_tac = if Env_Tac_Utils.is_abbrv_env_tac name
+        then Env_Tac_Utils.scan_abbrv_env_tac ctxtname |> K
+        else Prover.EnvTac_ML_Exec.eval_ml name in
         Prover.apply_env_tactic arg_list env_tac (pnode,pplan) end
         else 
         let val tac = EData.PSGraph.get_atomic_tac_by_name ps name in

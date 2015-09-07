@@ -4,11 +4,19 @@ imports
   "../build/BIsaP"    
 begin
 
-
 ML{*
-(* only support the following return types: term list, thm list, term, thm *)
-scan_env_tac StrName.NTab.empty "?x := @{term \" x + y  \"}"
+  LoggingHandler.active_all_tags ();
+  LoggingHandler.print_active();
 *}
+
+ML{*  -
+  TextSocket.safe_close();
+*}
+ 
+ML{*     
+Tinker.start_ieval @{context}  NONE (SOME []) (SOME @{prop "(C \<longrightarrow> ((A \<longrightarrow> A) \<and> (B \<longrightarrow> B)))"})
+*}
+
 
 end
 

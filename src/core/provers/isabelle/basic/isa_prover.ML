@@ -70,6 +70,13 @@ struct
   exception env_data_exp
 
   val exec_str = eval_text;
+  
+  fun parse_env_data ctxt (typ,def) = 
+    case typ of "term" => trm_of_string ctxt def |> E_Trm
+    | "prop" => prop_of_string ctxt def |> E_Trm
+    | "thm" => get_thm_by_name ctxt def |> E_Thm
+    | illform => (logging "FAILURE" ("Unsupported env data type: " ^ illform) ;
+    raise tinker_fail true)
 
   structure EnvTac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = env_tac val struct_name = "IsaProver.EnvTac_ML_Exec");
   structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = "IsaProver.Tac_ML_Exec");

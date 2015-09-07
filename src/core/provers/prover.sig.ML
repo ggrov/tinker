@@ -33,10 +33,13 @@ sig
     E_L of env_data list
   val pretty_env_data : context -> env_data -> Pretty.T
 
+  
   type env = env_data StrName.NTab.T 
+  
+  val parse_env_data : context -> (string * string) (* type, def *) -> env_data  
   val pretty_env :  context -> env -> Pretty.T
 
-  type env_tac
+  type env_tac =  arg_data list -> env -> env list
   exception env_data_exp 
 
   type pplan
@@ -44,12 +47,8 @@ sig
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
   (*type gtyp = env -> pnode -> arg_data list -> env list *)
-
-  structure Tac_ML_Exec : ML_EXEC
-  sharing type Tac_ML_Exec.ret_typ = tactic
-  structure EnvTac_ML_Exec : ML_EXEC
-  sharing type EnvTac_ML_Exec.ret_typ = env_tac
-
+  structure Tac_ML_Exec : ML_EXEC  where type ret_typ = tactic
+  structure EnvTac_ML_Exec : ML_EXEC  where type ret_typ = env_tac
   exception gterm_exp
   
   val default_ctxt : context (* used in those places need default general context *)
@@ -115,7 +114,6 @@ sig
     sharing type Sharing.context = context
     sharing type Sharing.tactic = tactic 
     sharing type Sharing.env_data = env_data
-    sharing type Sharing.env_tac = env_tac
     sharing type Sharing.pplan = pplan
     sharing type Sharing.pnode = pnode
 

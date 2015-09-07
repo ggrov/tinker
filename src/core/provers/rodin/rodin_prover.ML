@@ -30,7 +30,7 @@ struct
   type pnode = { pname : string, env : env } 
   type pplan = {name: tpp.pplan, env: env } (* be the latest name of pnode *)
 
-  type env_tac = arg_data list ->env -> string -> env 
+  type env_tac = arg_data list -> env -> env list
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq  
 
   exception env_data_exp
@@ -99,16 +99,7 @@ struct
      Seq.single (map (fn x=> {pname = x, env = env}) new_nodes ,pplan)
   end;
 
-
-
   fun update_pnode_env f ({env, pname} : pnode) = {pname = pname, env = f env};
-
-  fun apply_env_tactic args envtac (pnode, pplan)= 
-  let val {pname , env} = pnode 
-      val new_env=  envtac args env pname
-  in 
-    Seq.single ([{pname=pname, env=new_env}], pplan)
-  end
 
   fun get_open_pnode_by_name pplan name = {pname = name , env = #env pplan}(*  {pname=(#name pplan),env= (#env pplan) } *)
   fun set_pnode_pplan pnode pplan = 
@@ -156,11 +147,20 @@ struct
        ({pname=init_node,env=StrName.NTab.empty}, {name=init_node, env = StrName.NTab.empty} )
     end;
 
+  fun apply_env_tactic args envtac (pnode, pplan) = raise Fail "unsuppported env tac" 
+(*   let val {pname , env} = pnode 
+      val new_env=  envtac args env pname
+  in 
+    Seq.single ([{pname=pname, env=new_env}], pplan)
+  end
+ *)
+
   fun get_goal_thm pplan = "dummy"; 
   val prop_of_string = trm_of_string
   fun pretty_env _ _ = Pretty.str "dummy" 
   fun pretty_env_data _ _ = Pretty.str "dummy"
   fun antiquto_handler _ _ = "dummy"
+  fun parse_env_data _ _  = raise Fail "not supported env data parsing"
   structure Sharing = 
   struct
     type typ = typ

@@ -13,15 +13,14 @@ ML{*
 ML{*-
   TextSocket.safe_close();
 *}    
-  
 
-ML{*-
+ML{* -
 val thm = Tinker.start_ieval @{context} (SOME ps_simple) (SOME []) (SOME @{prop "P  \<longrightarrow>  P"}) (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
 *}
 
 
-ML{* -
+ML{*-   
 val thm = Tinker.start_ieval @{context} (SOME ps_eval) (SOME []) (SOME @{prop "P  \<longrightarrow>   (P \<and>  P \<and> (Q \<longrightarrow> Q))"}) (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
 *}

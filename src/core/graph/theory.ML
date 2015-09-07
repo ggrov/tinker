@@ -278,12 +278,15 @@ struct
 (* environment tactics and variables *)
   fun is_env_tactic_name name = 
   let
-    fun is_env_tactic_name0 name = 
+    fun is_prefix_ENV name = 
     let val _ =  Symbol.explode name |> Scan.this_string "ENV_" in
     true end;
+    fun is_prefix_qmark name = 
+    let val _ =  Symbol.explode name |> $$ "?" in
+    true end;
   in
-    Scan.catch (is_env_tactic_name0) name
-    handle _ => false
+    (Scan.catch (is_prefix_ENV) name handle _ => false) orelse
+    (Scan.catch (is_prefix_qmark) name handle _ => false)
   end
 
  (* is a tactic node and also follows the name convension that has a prefix of ENV *)
