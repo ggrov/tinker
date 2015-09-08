@@ -85,8 +85,8 @@ case class NodeV(
 			case str:JsonString => str.stringValue
 			case _ =>
 				typ match {
-					case "T_Graph"|"T_Atomic" => value.stringValue+"("+ArgumentParser.jsonToArgString(args.asArray)+")"
-					case "G" => (data.getPath(theory.vertexTypes(typ).value.path)) match {
+					case "T_Graph"|"T_Atomic" => if (args!=JsonString("")) value.stringValue+"("+ArgumentParser.jsonToArgString(args.asArray)+")" else value.stringValue
+          case "G" => (data.getPath(theory.vertexTypes(typ).value.path)) match {
 						case obj : JsonObject => obj.getOrElse("name",JsonString("")).stringValue
 						case _ => JsonString("").stringValue
 					}
