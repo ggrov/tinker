@@ -5,5 +5,5 @@
   val ps = PSGraph.read_json_file (path ^"demo.psgraph");
 (* Proofs *)
   PPIntf.set_psg_goal (SOME ([¬B : BOOL®], ¬A ´ (A ± B ± (C ´ C))®)) (SOME ps);
-
+  PPIntf.set_psg_goal (SOME ([¬B : BOOL®], ¬A ´ (A ± B ± (C ´ C))®)) NONE;
   TextSocket.safe_close();

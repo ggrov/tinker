@@ -17,7 +17,7 @@
   use "../../../graph/theory.ML";
   use "../../../graph/theory_io.sig.ML";    
   use "../../../graph/theory_io.ML";
-  use "../../../graph/env_tac_lib.ML";
+  use "../../../graph/env_tac_utils.ML";
 
        
 (* PSGraph *)

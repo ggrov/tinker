@@ -96,7 +96,7 @@ struct
        val ((typ, def), src') = (scan_ignore_pre_blank (Scan.this_string "@{") |--  scan_until ($$"\"") --| $$"\"" --  
         scan_until (Scan.this_string "\"}") --| 
         (Scan.this_string "\"}")) src 
-       val _ = case src' of [] => () | _ => raise Fail "illform"
+       val _ = case src' of [] => () | _ => raise RunCall.Fail "illform"
       in
       (typ, handler (typ,def))
       end

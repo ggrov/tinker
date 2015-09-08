@@ -12,7 +12,7 @@ ML{* -
   TextSocket.safe_close();
 *}
  
-ML{*-   
+ML{* 
 Tinker.start_ieval @{context}  NONE (SOME []) (SOME @{prop "(C \<longrightarrow> ((A \<longrightarrow> A) \<and> (B \<longrightarrow> B)))"})
 *}
 

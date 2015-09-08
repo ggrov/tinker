@@ -1,5 +1,7 @@
 (*TODO: add goal_state in pplan, top_goal_state to save it, drop_main_goal (); push_goal_state to load it when backtracking *)
-structure PPProver (*: PROVER*) =
+(* goal_state, theory_name, pc *)
+
+structure PPProver : PROVER =
 struct
   local open LoggingHandler (*ProverUtils*) in 
   type pos = PPTermLib.pos
@@ -62,7 +64,8 @@ struct
   (* TODO: maybe to add a table to store some meta info, e.g. hints? measures? *)
   type pplan = 
       {opengs : pnode StrName.NTab.T, 
-      usedgs : StrName.NSet.T}
+      usedgs : StrName.NSet.T,
+      gstate: GOAL_STATE (* used for backtracking *)}
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq (* in pp, tactic is deteminted, seq is always singleton *)
    
   (* get_current_pc () open_theory, set_pc *)
@@ -73,7 +76,11 @@ struct
 
   structure EnvTac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = env_tac val struct_name = "PPProver.EnvTac_ML_Exec");
   structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = "PPProver.Tac_ML_Exec");
-
+  structure Thm_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = thm val struct_name = "PPProver.Thm_ML_Exec");
+  
+  fun get_thm_by_name _ str = Thm_ML_Exec.eval_ml str
+   handle _ => (logging "FAILURE" ("Fail to get thm by name: " ^ str); raise tinker_fail true);
+  
   exception gterm_exp
   
   val typ_of = type_of
@@ -97,6 +104,23 @@ struct
 (* TODO: how to print those fancy symbols in proofpower ?*)
   fun string_of_trm _ = fn trm => PrettyPrinter.format_term true trm |> String.concat
 
+  fun antiquto_handler env (typ, content) = 
+   let 
+     val typ' = Symbol.explode typ |> List.filter (not o member (op =) [" ","\n","\t"]) |> String.concat;
+   in
+(*   case typ' of "term" => "(PPProver.trm_of_string @{context} \"" ^ content ^ "\")"
+     | "thm" => "(IsaProver.get_thm_by_name @{context} \"" ^ content ^ "\")"
+     | "prop" => "(IsaProver.prop_of_string @{context} \"" ^ content ^ "\")"
+     | _ =>  *)
+     (logging "FAILURE" (typ' ^ " is not a supported type for env variable") ; raise (tinker_fail true))
+   end
+
+  fun parse_env_data ctxt (typ,def) = 
+    case typ of "term" => trm_of_string ctxt def |> E_Trm
+    | "prop" => prop_of_string ctxt def |> E_Trm
+    | "thm" => get_thm_by_name ctxt def |> E_Thm
+    | illform => (logging "FAILURE" ("Unsupported env data type: " ^ illform) ;
+    raise tinker_fail true)
 
   fun get_all_assms (pnode : pnode)  = (#g pnode) 
   			      |> fst (* a list of term *)
@@ -108,7 +132,7 @@ struct
   fun get_open_pnodes (pplan:pplan) = StrName.NTab.list_of (#opengs pplan) |> map snd (* should return some goals as top_goals () *)
   fun get_open_pnode_by_name (pplan : pplan) name = StrName.NTab.get (#opengs pplan) name
 
-  fun set_open_goals_pplan (pplan : pplan) ogs  = {opengs = ogs, usedgs = #usedgs pplan}
+  fun set_open_goals_pplan (pplan : pplan) ogs  = {opengs = ogs, usedgs = #usedgs pplan, gstate = #gstate pplan}
   fun set_pnode_pplan pnode (pplan : pplan) = 
    let
     val _ = get_open_pnode_by_name pplan (get_pnode_name pnode)
@@ -121,7 +145,6 @@ struct
    (logging "FAILURE" ("Can not find the pnode of open goal for " ^ n ^ " to update") ;
     raise tinker_fail true)
 
-
   fun get_pnode_env (pnode:pnode) = #env pnode;
   fun update_pnode_env f {pname,g,pctxt,global,env}  = 
     {pname = pname, g = g, pctxt = pctxt, global = global, env = f env};
@@ -131,15 +154,8 @@ struct
     case get_pnode_env_data pnode name of (E_ML ml_code) => ml_code
     | _ => raise env_data_exp 
     
-  structure THM_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = thm val struct_name = "PPProver.THM_ML_Exec");
-  fun get_thm_by_name _ str = THM_ML_Exec.eval_ml str
-   handle _ => (logging "FAILURE" ("Fail to get thm by name: " ^ str); raise tinker_fail true);
-  
   exception atomic_exp of string
-  val psgraph_prover_i = "proofpower";
-  (* there is no interface to init a pnode and pplan ?*)
-  (* if paralle evalation then it would be problematic*)
-  
+
   fun init ctxt asms_trms concl_trm : (pnode * pplan) =
     let
       val (pcs, thy) = ctxt
@@ -149,7 +165,8 @@ struct
       val name = StrName.NSet.new StrName.NSet.empty "g"
       val pnode = {pname = name, g = goal,  pctxt = ctxt', global = [], env = StrName.NTab.empty};
       val pplan = {opengs = StrName.NTab.of_list [((#pname pnode), pnode)],
-      			 usedgs = StrName.NSet.add name StrName.NSet.empty}
+      			 usedgs = StrName.NSet.add name StrName.NSet.empty,
+      			 gstate = top_goal_state()}
     in
       (pnode, pplan)
     end;
@@ -157,7 +174,7 @@ struct
   (*val update : TACTIC -> (pnode * pplan) -> (pnode list * pplan) *)
   fun update  (tac : TACTIC) (env_tac : env -> env list) (pnode : pnode, pplan : pplan)  : (pnode list * pplan) list = 
     let 
-      val debug = true;
+      val debug = false;
       fun gen_fresh_psgname nset (g : (string list * GOAL)) = 
         if (fst g) = [""] (* the case of single goal *)
         then 
@@ -181,7 +198,7 @@ struct
     in
       if (List.length sgs) = 0 (* no sgs *) 
       then 
-        [([], {opengs = StrName.NTab.empty, usedgs = (#usedgs pplan)})]
+        [([], {opengs = StrName.NTab.empty, usedgs = (#usedgs pplan), gstate = top_goal_state()})]
       else((* a list of sgs *)
         let
           val sgs' = map (gen_fresh_psgname (#usedgs pplan)) sgs 
@@ -221,7 +238,8 @@ struct
 	           |> Pretty.chunks |> Pretty.writeln else ()
          in
           {opengs = mk_new_opengs new_pnodel, (* get all current sgs name *)
-           usedgs = StrName.NSet.add_list (map fst sgs') (#usedgs pplan)}
+           usedgs = StrName.NSet.add_list (map fst sgs') (#usedgs pplan),
+           gstate = top_goal_state()}
           end
 
      in
