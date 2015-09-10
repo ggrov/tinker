@@ -53,8 +53,7 @@ struct
       val _ = 
        if StrName.NTab.contains env (parse_env_var_name' name) then ()
        else logging "ENV_DATA" ("The env variable name to be deleted doesn't exist " ^ name) in
-
-   [StrName.NTab.delete (parse_env_var_name' name) env] end
+    [StrName.NTab.delete (parse_env_var_name' name) env] end
 
   fun ENV_update_var f name arg env = 
     let val _ = 
@@ -72,14 +71,17 @@ struct
     fun append_pair (x,y) = x ^ " " ^ y;
     fun scan_ignore_post_blank pre_scan = pre_scan --| (Scan.many (Symbol.is_blank))
     fun scan_ignore_pre_blank post_scan =  (Scan.many ( Symbol.is_blank)) |-- post_scan
-    fun scan_until scan =  (Scan.repeat (Scan.unless (scan) (Scan.one Symbol.not_eof))) >> String.concat
-    
+    fun scan_until scan =  
+    (Scan.repeat (Scan.unless (scan) (Scan.one Symbol.not_eof))
+    |> Scan.finite Symbol.stopper) >> String.concat;
+ 
   (* detecting by checking if start with ? *)
     fun is_abbrv_env_tac str = 
       (Scan.catch ($$ "?"|> scan_ignore_pre_blank) (Symbol.explode str); true) 
     handle _ => false
 
     val scan_var = $$ "?" |-- (Scan.many (not o Symbol.is_blank) >> String.concat);
+    val scan_var' = Scan.finite Symbol.stopper ( $$ "?" -- (Scan.many (not o Symbol.is_blank) >> String.concat) |> scan_until)
     val scan_type = (scan_ignore_post_blank (Scan.this_string "term" || Scan.this_string "thm") -- 
       (Scan.finite Symbol.stopper (Scan.repeat (Scan.this_string "list" |> scan_ignore_pre_blank) >> str_blocks " "))
       |> scan_ignore_pre_blank)
@@ -104,12 +106,39 @@ struct
     fun scan_def0 handler = 
       Scan.finite Symbol.stopper (Scan.this_string "@{" |> scan_until) -- 
       (fn [] =>  (fn x => ("", x)) []| l => scan_antiquto' handler l ) >> append_pair;
+    (* val scan_env_var0 =  *)
+
     
     fun scan_all _ [] = []
       | scan_all scan xs = let val (ret, res) = scan xs in ret :: scan_all scan res end 
     
     fun scan_def handler src = scan_all (scan_def0 handler) src |> String.concat;
+ 
+    fun scan_until scan =  
+      (Scan.repeat (Scan.unless (scan) (Scan.one Symbol.not_eof))
+      |> Scan.finite Symbol.stopper) >> String.concat;
+  
+     fun scan_rest_name [] = ([],[])
+     |   scan_rest_name (x :: xs) = 
+          if (Symbol.is_blank x) then ([x],xs)
+          else let val (a,b) = scan_rest_name xs in (x :: a, b) end;
     
+    val scan_env_var = 
+      ($$ "?" -- Scan.one (Symbol.is_letter) -- scan_rest_name)
+      >> (fn ((x,y), l) => [x,y] @ l |> String.concat |> filter_blank) (* collapse the parsed string as a var name *)      ;
+ 
+    fun scan_env_vars0 [] = []
+      | scan_env_vars0 xs = 
+        let 
+          val (_, res) = scan_until scan_env_var xs 
+        in
+          case res of [] => []
+          | _ =>
+            let val (var, rest) =  scan_env_var res in
+              case rest of [] => [var]
+              | _ => var :: (scan_env_vars0 rest) end 
+        end
+    fun scan_env_vars args = scan_env_vars0 args |> StrName.NSet.of_list |> StrName.NSet.list_of
 (* scan_env_tac' format: ?var_name : type := definition, 
    a more constraint format of scan_env_tac is: ?var_name := @{ type " definition"}*)
     fun scan_abbrv_env_tac' input env = 
@@ -139,7 +168,6 @@ struct
       end
      handle _ => (LoggingHandler.logging "FAILURE" ("Fail to parse: " ^ input ); 
     raise LoggingHandler.tinker_fail true);
-
 
   end (* end of local open *)
 

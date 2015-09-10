@@ -41,7 +41,6 @@ struct
 
   type env = env_data StrName.NTab.T
   
-  
   fun pretty_env ctxt env = 
     let fun pretty_pair (n, env_data) = String.concat [n, ": ", pretty_env_data ctxt env_data |> Pretty.string_of] in
     StrName.NTab.list_of env
