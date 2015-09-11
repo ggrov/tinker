@@ -148,6 +148,7 @@ struct
     end;
 
   fun apply_env_tactic args envtac (pnode, pplan) = raise Fail "unsuppported env tac" 
+  fun subst_trm_vars x y = raise Fail "unsuppported env tac"
 (*   let val {pname , env} = pnode 
       val new_env=  envtac args env pname
   in 

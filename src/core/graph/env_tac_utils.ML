@@ -96,8 +96,8 @@ struct
     fun scan_antiquto (handler : ( (string * string) -> string)) src = 
       let 
        val ((typ, def), src') = (scan_ignore_pre_blank (Scan.this_string "@{") |--  scan_until ($$"\"") --| $$"\"" --  
-        scan_until (Scan.this_string "\"}") --| 
-        (Scan.this_string "\"}")) src 
+        scan_until ($$ "\"") --| 
+        (scan_ignore_post_blank ($$ "\"")) --| $$"}") src 
        val _ = case src' of [] => () | _ => raise RunCall.Fail "illform"
       in
       (typ, handler (typ,def))
@@ -163,8 +163,14 @@ struct
         (scan_ignore_pre_blank (Scan.this_string ":=")))
         src 
         val (typ, def) = (scan_antiquto ((*Prover.antiquto_handler env*)snd) def_strs)
+        val _ = writeln "a"
+        val env_vars = 
+         scan_env_vars ( Symbol.explode def)
+         |> map (fn n => (n, StrName.NTab.get env (String.extract (n,1,NONE))))
+         handle StrName.Tab.UNDEF n => 
+         (logging "FAILURE" ("the env var " ^ n ^ " does not exist."); raise tinker_fail true)
       in
-        [StrName.NTab.update (filter_blank var, Prover.parse_env_data ctxt (filter_blank typ, def)) env]
+        [StrName.NTab.update (filter_blank var, Prover.parse_env_data ctxt (filter_blank typ, def) env_vars) env]
       end
      handle _ => (LoggingHandler.logging "FAILURE" ("Fail to parse: " ^ input ); 
     raise LoggingHandler.tinker_fail true);

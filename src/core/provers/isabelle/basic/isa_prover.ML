@@ -23,6 +23,13 @@ struct
    handle _ => (logging "FAILURE" ("Fail to get thm by name: " ^ name); raise tinker_fail true)
   val pretty_trm = Syntax.pretty_term;
 
+  fun subst_trm_vars vts trm = 
+   let
+     val vts' = map (fn (n, trm) => ((String.extract (n,1,NONE), 0), trm)) vts
+   in
+     Term.subst_Vars vts' trm 
+   end
+
   fun antiquto_handler env (typ, content) = 
    let 
      val typ' = Symbol.explode typ |> List.filter (not o member (op =) [" ","\n","\t"]) |> String.concat;
@@ -71,12 +78,17 @@ struct
 
   val exec_str = eval_text;
   
-  fun parse_env_data ctxt (typ,def) = 
-    case typ of "term" => trm_of_string ctxt def |> E_Trm
+  fun parse_env_data ctxt (typ,def) vts = 
+    let val vts' = map (fn (n, E_Trm t) => (n,t) | (n, _) 
+      => (logging "FAILURE" ("Only E_trm is supported as args, in parsing env var: " ^ n) ;
+      raise tinker_fail true)) vts in
+    case typ of "term" => trm_of_string ctxt def 
+      |> subst_trm_vars vts' |> Syntax.check_term ctxt |> E_Trm
     | "prop" => prop_of_string ctxt def |> E_Trm
     | "thm" => get_thm_by_name ctxt def |> E_Thm
     | illform => (logging "FAILURE" ("Unsupported env data type: " ^ illform) ;
     raise tinker_fail true)
+    end
 
   structure EnvTac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = env_tac val struct_name = "IsaProver.EnvTac_ML_Exec");
   structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = "IsaProver.Tac_ML_Exec");

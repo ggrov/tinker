@@ -36,7 +36,10 @@ sig
   
   type env = env_data StrName.NTab.T 
   
-  val parse_env_data : context -> (string * string) (* type, def *) -> env_data  
+  val parse_env_data : 
+    context -> (string * string) (* type, def *) 
+    -> (string * env_data) list (* env args *)
+    -> env_data  
   val pretty_env :  context -> env -> Pretty.T
 
   type env_tac =  arg_data list -> env -> env list
@@ -64,6 +67,8 @@ sig
 
   val concl_of_thm : thm -> term
   val asms_of_thm : thm -> term list
+
+  val subst_trm_vars : (string * term) list -> term -> term
 
   val init : context -> term list -> term -> pnode * pplan
 

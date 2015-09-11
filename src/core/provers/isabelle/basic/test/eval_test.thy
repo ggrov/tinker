@@ -5,29 +5,31 @@ imports
 begin
 
 ML{*
-
 Env_Tac_Utils.scan_env_vars  (Symbol.explode "this is a string ?y star ?x ? z ?y s ?z");
 
-*}
+Term.subst_Vars;
 
-ML{*-
-Env_Tac_Utils.scan_env_vars;
- (Symbol.explode "this is a string ?y star ?x s");
+val t = IsaProver.trm_of_string @{context} "?x + 1 + ?y";
 
-(* pattern space ? letter space \<longrightarrow> remove space *)
-val scan_letter = Scan.one Symbol.is_ascii_identifier;
-
-fun scan_def0 handler = 
-      Scan.finite Symbol.stopper (Scan.this_string "@{" |> scan_until) -- 
-      (fn [] =>  (fn x => ("", x)) []| l => scan_antiquto' handler l ) >> append_pair;
+subst_trm_vars [("?x", @{term "3"}), ("?y", @{term "4"})] t |> Syntax.check_term @{context}
+|> Syntax.pretty_term @{context} |> Pretty.writeln;
 *}
 
 ML{*
-val t = IsaProver.trm_of_string @{context} "?x + ?y + 1";
-Term.subst_Vars [(("x",0), @{term "3"})] t |> Syntax.pretty_term @{context} |> Pretty.writeln;
-
-IsaProver.trm_of_string @{context} "x + 1";
+LoggingHandler.logging "FAILURE" "this";
 *}
+ML{*
+
+val env = StrName.NTab.ins ("x", IsaProver.E_Trm @{term "5 :: nat"}) StrName.NTab.empty
+  |> StrName.NTab.ins ("y", IsaProver.E_Trm @{term "6 :: nat"});
+IsaProver.pretty_env @{context} env |> Pretty.writeln;
+
+val abbrv = "?z := @{term \"1 + 3  + 4 + ?x + 5 + ?y + ?x\" }";
+
+val env = Env_Tac_Utils.scan_abbrv_env_tac @{context} abbrv env |> hd;
+IsaProver.pretty_env @{context} env |> Pretty.writeln;
+*}
+
 ML{*
   LoggingHandler.active_all_tags ();
   LoggingHandler.print_active();
