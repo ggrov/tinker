@@ -106,4 +106,5 @@ val local_logging_debug = true
 val _ = LoggingHandler.set_logging_handler 
   (fn tag => fn msg => ( if local_logging_debug then LoggingHandler.logging_handler_print tag msg else (); 
     LoggingHandler.logging_handler_gui tag msg));
+val _ = LoggingHandler.active_all_tags ();
 

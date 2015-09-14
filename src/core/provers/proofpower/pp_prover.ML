@@ -1,7 +1,7 @@
 (*TODO: add goal_state in pplan, top_goal_state to save it, drop_main_goal (); push_goal_state to load it when backtracking *)
 (* goal_state, theory_name, pc *)
 
-structure PPProver : PROVER =
+structure PPProver (*: PROVER *) (* has to be commented out, as Term_ML_exec need to be accessible *) =
 struct
   local open LoggingHandler (*ProverUtils*) in 
   type pos = PPTermLib.pos
@@ -17,6 +17,7 @@ struct
     of (SOME str') => str'
       | NONE => (String.str c);
     
+   
   fun pretty_trm _ trm = 
    String.concat (PrettyPrinter.format_term true trm) 
    |> String.translate decode_str 
@@ -76,6 +77,8 @@ struct
   structure EnvTac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = env_tac val struct_name = "PPProver.EnvTac_ML_Exec");
   structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = "PPProver.Tac_ML_Exec");
   structure Thm_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = thm val struct_name = "PPProver.Thm_ML_Exec");
+  structure Term_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = TERM val struct_name = "PPProver.Term_ML_Exec");
+  
   
   fun get_thm_by_name _ str = Thm_ML_Exec.eval_ml str
    handle _ => (logging "FAILURE" ("Fail to get thm by name: " ^ str); raise tinker_fail true);
@@ -97,11 +100,13 @@ struct
   val concl_of_thm = concl
   val asms_of_thm =  asms
   (* get asm of thm - asms*)
-  fun trm_of_string _ = mk_string 
+  fun trm_of_string _ str = Term_ML_Exec.eval_ml ("%<%"^str^"%>%")
+   handle _ => (logging "FAILURE" ("Fail to parse strin to term: " ^ str); raise tinker_fail true);
+   
   val prop_of_string = trm_of_string
   
 (* TODO: how to print those fancy symbols in proofpower ?*)
-  fun string_of_trm _ = fn trm => PrettyPrinter.format_term true trm |> String.concat
+  fun string_of_trm _ = fn trm => PrettyPrinter.format_term true trm |> String.concat 
 
   fun antiquto_handler env (typ, content) = 
    let 
@@ -114,12 +119,25 @@ struct
      (logging "FAILURE" (typ' ^ " is not a supported type for env variable") ; raise (tinker_fail true))
    end
 
-  fun parse_env_data ctxt (typ,def) = 
-    case typ of "term" => trm_of_string ctxt def |> E_Trm
+  fun parse_env_data ctxt (typ,def) vts = 
+   let 
+    val vts0 = map (fn (n, E_Trm t) => (n,t) 
+      | (n, _) => (logging "FAILURE" ("Only E_trm is supported as args, in parsing env var: " ^ n) ;
+   	  raise tinker_fail true)) vts 
+    val vts' = 
+     map (fn (n, t) => (t, 
+      trm_of_string ctxt 
+       ("(" ^ n ^") : " ^
+        (fn str => String.extract (str, 1, SOME (String.size str - 2))) (* to strip the bracket annotation*)
+         ((string_of_type o typ_of) t)))) 
+     vts0;
+   in
+    case typ of "term" => trm_of_string ctxt def |> subst vts' |> E_Trm
     | "prop" => prop_of_string ctxt def |> E_Trm
     | "thm" => get_thm_by_name ctxt def |> E_Thm
     | illform => (logging "FAILURE" ("Unsupported env data type: " ^ illform) ;
     raise tinker_fail true)
+   end
 
   fun get_all_assms (pnode : pnode)  = (#g pnode) 
   			      |> fst (* a list of term *)

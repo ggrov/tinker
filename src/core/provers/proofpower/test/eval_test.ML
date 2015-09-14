@@ -1,35 +1,34 @@
-  val path = "/Users/yuhuilin/Desktop/psgraph/" ;
-  set_flag ("output_in_utf8", true);
-  set_flag ("input_in_utf8", true);
-  set_flag ("output_in_utf8", false);
-  set_flag ("input_in_utf8", false);
+  use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
+
+  val env = StrName.NTab.ins ("x", PPProver.E_Trm ¬5®) StrName.NTab.empty |> StrName.NTab.ins ("y", PPProver.E_Trm ¬6®);
+
+  PPProver.pretty_env PPProver.default_ctxt env |> Pretty.writeln;
+
+  val abbrv = "?z := @{term \"1 + 3  + 4 + ?x + 5 + ?y + ?x\" }";
+
+  val env = Env_Tac_Utils.scan_abbrv_env_tac PPProver.default_ctxt abbrv env |> hd;
+
+  PPProver.pretty_env () env |> Pretty.writeln;
+
+  val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
+  val path = tinker_path ^ "src/dev/psgraph/";
+  val guiPath = tinker_path ^ "src/tinkerGUI/release/";
+  val sys = "osx_64";
+  
+  set_guiPath guiPath sys;
+  open_gui_single();
 
 
-  init_symbol_table [];
+  fun rule_tac (arg as [PPProver.A_Str pretty]) = (LoggingHandler.logging "TACTIC" pretty; step_strip_tac);
+  fun impI_tac _ = step_strip_tac;
+  fun conjI_tac _ = step_strip_tac;
+  fun assm_tac  _ = step_strip_tac;
+
 
 (* read and load a psgraph created by gui *)
-  val ps = PSGraph.read_json_file (path^"demo_unicode.psgraph");
-  use_utf8_string "tacâ¤–;" (*unicode*);
-val tac = 1; (*pp char*);
-tac;
-ReaderWriter.ask_at_terminal "tacâ¤–";
-  File_Io.read_string (path^"demo_unicode.psgraph"); 
-  filter_empty_brk it;
-  Json.of_string it;
-  |> input_json
+  val ps = PSGraph.read_json_file (path^"demo.psgraph");
+  val ps = PSGraph.read_json_file (path^"demo_env.psgraph");
 
- fun filter_empty_brk0 (x::xs) = 
-  if x = #"(" then 
-   case xs 
-     of (y :: ys) => if y = #")" then (filter_empty_brk0 ys) else  x :: (filter_empty_brk0 xs)
-     | [] =>  x :: (filter_empty_brk0 xs)
-  else x :: (filter_empty_brk0 xs)
-  |filter_empty_brk0 [] = []
+  PPIntf.set_psg_goal ([¬B : BOOL®], ¬A ´ (A ± B ± (C ´ C))®) (SOME ps);
 
- fun filter_empty_brk str = 
-  String.explode str
-  |> filter_empty_brk0
-  |> String.implode;
-
-
-unicode_to_pp;
+  TextSocket.safe_close();

@@ -9,7 +9,7 @@
   structure Theory_IO = PSGraph_Theory_IOFun(structure PSTheory = Theory)
   structure Env_Tac_Utils = EnvTacUtilsFunc (structure Theory = Theory val struct_name = "Env_Tac_Utils" );
   structure PSGraph = PSGraphFun(structure Theory_IO = Theory_IO structure Env_Tac_Utils = Env_Tac_Utils);
-(*   structure PSComb = PSCombFun (structure PSGraph = PSGraph) *)
+(* structure PSComb = PSCombFun (structure PSGraph = PSGraph) *)
   structure EData =  EDataFun( PSGraph);
   structure EVal = EValFun(EData);
   structure IEVal = InteractiveEvalFun (EVal);

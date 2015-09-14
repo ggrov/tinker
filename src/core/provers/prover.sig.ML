@@ -68,7 +68,7 @@ sig
   val concl_of_thm : thm -> term
   val asms_of_thm : thm -> term list
 
-  val subst_trm_vars : (string * term) list -> term -> term
+ (* val subst_trm_vars : (string * term) list -> term -> term*)
 
   val init : context -> term list -> term -> pnode * pplan
 

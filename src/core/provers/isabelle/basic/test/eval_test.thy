@@ -35,7 +35,7 @@ ML{*
   LoggingHandler.print_active();
 *}
 
-ML{* 
+ML{* -
   TextSocket.safe_close();
 *}
  
