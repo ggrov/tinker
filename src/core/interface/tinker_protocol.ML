@@ -1,4 +1,7 @@
-functor TinkerProtocol (structure IEVal : IEVAL val gui_socket_port : int val prover_socket_port: int)=
+functor TinkerProtocol (structure IEVal : IEVAL 
+                        structure TextSocket : TEXT_SOCKET
+                        val gui_socket_port : int 
+                        val prover_socket_port: int)=
 struct
   open JsonControllerUtil LoggingHandler
 
@@ -7,6 +10,8 @@ struct
 
   structure IEVal = IEVal
   structure EData = IEVal.EData
+  structure Prover = EData.PSGraph.Theory.GoalTyp.Prover
+  structure TextSocket = TextSocket
 
 (* if 0 then invalid *)
   val gui_sicket_port = gui_socket_port
@@ -69,7 +74,8 @@ struct
       (SOME assms) => assms
     | NONE => JsonInputUtils.get_array obj "goal" |> tl |> hd 
        |> (fn (Json.Array arr) => 
-            map (fn (Json.String str) => EData.PSGraph.Theory.GoalTyp.Prover.prop_of_string ctxt str) arr) 
+            map (fn (Json.String str) => EData.PSGraph.Theory.GoalTyp.Prover.prop_of_string ctxt str)
+            arr) 
     val _ = logging "EVAL" ("With assms: " ^ (str_blocks " " (map (EData.PSGraph.Theory.GoalTyp.Prover.string_of_trm ctxt) assms)))
     val ps = case (#4 init_data) of 
       (SOME ps) => ps
@@ -194,11 +200,12 @@ struct
   fun run_in_textstreams (instream, outstream) init_json =
   let
     fun send_msg str =
-      (TextIO.output (outstream, str  ^ " \n"); TextIO.flushOut outstream)
+     (TextIO.output (outstream, str  ^ " \n"); TextIO.flushOut outstream) 
     val _ = Json.encode init_json |> send_msg 
     fun protocol_loop src =
     let
       val (json_list, src') = RawSource.get src
+      (* a bit hacky *)
       val json = case json_list of [x] => x | _ =>
         raise protocol_exn "Expected: exactly one JSON object"
       val _ = (logging_handler_print "JSON_GUI" ("JSON IN: " ^ (Json.encode json)))
@@ -228,7 +235,7 @@ struct
 ****************************************************)
   fun start_ieval ctxt ps_opt assms_opt g_opt = 
     let
-     val s = TextSocket.safe_local_client gui_socket_port;
+     val _ = TextSocket.safe_local_client gui_socket_port;
      val (SOME (ins, outs)) = TextSocket.get_current_stream (); (* should always be something *)
      val _  = (reset_data ();set_init_data (SOME ctxt, g_opt, assms_opt, ps_opt))
      val init_json = Json.mk_object[

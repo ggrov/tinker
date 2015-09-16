@@ -1,10 +1,11 @@
   use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
 
-  val env = StrName.NTab.ins ("x", PPProver.E_Trm ¬5®) StrName.NTab.empty |> StrName.NTab.ins ("y", PPProver.E_Trm ¬6®);
+
+  val env = StrName.NTab.ins ("x", PPProver.E_Trm ¬111®) StrName.NTab.empty |> StrName.NTab.ins ("y", PPProver.E_Trm ¬222®);
 
   PPProver.pretty_env PPProver.default_ctxt env |> Pretty.writeln;
 
-  val abbrv = "?z := @{term \"1 + 3  + 4 + ?x + 5 + ?y + ?x\" }";
+  val abbrv = "?z := @{term \"1 + 3  + 4 + ?x + 5 + ?y + ?x\"}";
 
   val env = Env_Tac_Utils.scan_abbrv_env_tac PPProver.default_ctxt abbrv env |> hd;
 
@@ -23,6 +24,9 @@
   fun impI_tac _ = step_strip_tac;
   fun conjI_tac _ = step_strip_tac;
   fun assm_tac  _ = step_strip_tac;
+
+
+  val ps = PSGraph.read_json_file (path^"scratch.psgraph");
 
 
 (* read and load a psgraph created by gui *)

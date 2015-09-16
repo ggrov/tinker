@@ -406,10 +406,12 @@ struct
   end
  | input_json _ = raise Json.parse_exn "unexcepted json structure in input_json"
 
- fun write_json_file path ps =  File_Io.write_string path (output_json ps |> Json.encode);
+ fun write_json_file path ps = 
+  File_Io.write_string path (output_json ps |> Json.encode |> Theory.GoalTyp.Prover.encode_unicode);
 
  fun read_json_file path = 
   File_Io.read_string path 
+  |> Theory.GoalTyp.Prover.decode_unicode
   |> Json.of_string 
   |> input_json
 

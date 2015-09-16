@@ -5,19 +5,26 @@ imports
 begin
 
 ML{*
-Env_Tac_Utils.scan_env_vars  (Symbol.explode "this is a string ?y star ?x ? z ?y s ?z");
+  val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
+  val path = tinker_path ^ "src/dev/psgraph/";
+  val guiPath = tinker_path ^ "src/tinkerGUI/release/";
+  val sys = "osx_32"
+*}
+ 
+ML{*-
 
-Term.subst_Vars;
+val test = Json.mk_object [("symbol", Json.String "\<longrightarrow>help \<in>")]|> Json.encode 
+|> IsaProver.encode_unicode |> IsaProver.decode_unicode;
 
-val t = IsaProver.trm_of_string @{context} "?x + 1 + ?y";
+ File_Io.write_string (path^"test.psgraph") test;
 
-subst_trm_vars [("?x", @{term "3"}), ("?y", @{term "4"})] t |> Syntax.check_term @{context}
-|> Syntax.pretty_term @{context} |> Pretty.writeln;
+  File_Io.read_string (path^"scratch.psgraph") |> IsaProver.encode_unicode; 
+
+  val ps = PSGraph.read_json_file (path^"scratch.psgraph");
+
 *}
 
-ML{*
-LoggingHandler.logging "FAILURE" "this";
-*}
+
 ML{*
 
 val env = StrName.NTab.ins ("x", IsaProver.E_Trm @{term "5 :: nat"}) StrName.NTab.empty
@@ -35,11 +42,20 @@ ML{*
   LoggingHandler.print_active();
 *}
 
+
+ML{*
+  RawSource.source Symbol.stopper
+    (Parser.p_top_level >> single) NONE
+      (RawSource.raw_stream (fn c => c = "}" orelse c = "]") instream)
+  |> RawSource.set_prompt ""
+*}
+
+
 ML{* -
   TextSocket.safe_close();
 *}
  
-ML{*  -
+ML{*-    
 Tinker.start_ieval @{context}  NONE (SOME []) (SOME @{prop "(C \<longrightarrow> ((A \<longrightarrow> A) \<and> (B \<longrightarrow> B)))"})
 *}
 

@@ -23,9 +23,10 @@ sig
   val get_current_socket : unit -> Socket.active INetSock.stream_sock option
 end
  
-structure TextSocket_DB (*: TEXT_SOCKET*) =
+functor TextSocket_FUN  (structure Prover : PROVER) : TEXT_SOCKET =
 struct
   exception Fail = RunCall.Fail
+  structure Prover = Prover
 (* the func is generutee to compute without interruption,
   a way to prevernt isabelle from interrupt a thread, *)
   fun run_in_atomic func = 
@@ -175,9 +176,9 @@ struct
 
   fun local_server port  = run_in_atomic (local_server0 port)
 
-  fun write s_data msg = TextIO.output (get_outstream s_data, msg);
+  fun write s_data msg = TextIO.output (get_outstream s_data, Prover.encode_unicode msg);
   fun flushOut s_data = TextIO.flushOut (get_outstream s_data);
-  fun read s_data = TextIO.input (get_instream s_data);
+  fun read s_data = TextIO.input (get_instream s_data) |> Prover.decode_unicode;
 
   fun close0 s_data _ =
     (TextIO.closeOut (get_outstream s_data) handle _ => warning ("can't close output stream");
@@ -315,6 +316,4 @@ struct
   
    
 end (* struct *)
-
-structure TextSocket : TEXT_SOCKET = TextSocket_DB;
 

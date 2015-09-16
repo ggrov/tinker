@@ -16,8 +16,11 @@
   structure EData =  EDataFun( PSGraph);
   structure EVal = EValFun(EData);
   structure IEVal = InteractiveEvalFun (EVal);
-  structure Tinker = TinkerProtocol (structure IEVal = IEVal val gui_socket_port = 1790 val prover_socket_port = 0);
-
+  structure TextSocket = TextSocket_FUN (structure Prover = PPProver);
+  structure Tinker = TinkerProtocol (structure IEVal = IEVal 
+                                     structure TextSocket = TextSocket
+                                     val gui_socket_port = 1790
+                                     val prover_socket_port = 0);
 (* load the library for term manipulation and goal type predicates *)
   use_file "../clasueGT_lib.ML";
 

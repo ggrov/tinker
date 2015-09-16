@@ -126,8 +126,8 @@ struct
 
   val trm_of_string = K I;
   val string_of_trm = K I;
-  val encode_gui_to_prover = I;
-  val encode_prover_to_gui = I;
+  val encode_unicode = I;
+  val decode_unicode = I;
   fun pretty_pplan pplan = Pretty.str (#name pplan);
   val pretty_pnode = Pretty.str o get_pnode_name;
   val pretty_trm = K Pretty.str

@@ -25,7 +25,11 @@ ML{*
   structure EData =  EDataFun( PSGraph);
   structure EVal = EValFun(EData);
   structure IEVal = InteractiveEvalFun (EVal);
-  structure Tinker = TinkerProtocol (structure IEVal = IEVal val gui_socket_port = 1790 val prover_socket_port = 0);
+  structure TextSocket = TextSocket_FUN (structure Prover = IsaProver);
+  structure Tinker = TinkerProtocol (structure IEVal = IEVal 
+                                     structure TextSocket = TextSocket
+                                     val gui_socket_port = 1790
+                                     val prover_socket_port = 0);
  *}
 
 ML{*  open Env_Tac_Utils  *}

@@ -295,9 +295,38 @@ struct
                   |> map TermFeatures.ignore_module;
   fun top_symbol trm = the (TermFeatures.top_level_str trm );*)
 
+  val unicode_symb = [
+   ("\\\<nat>", "\\u2115"),
+
+   ( "\\\<not>" ,"\\u00AC"),
+   ("\\\<and>", "\\u2227"),
+   ("\\\<or>", "\\u2228"),
+   ("\\\<longrightarrow>", "\\u27F6"),
+
+   ("\\\<forall>", "\\u2200"),
+   ("\\\<exists>", "\\u2203"),
+
+   ("\\\<noteq>", "\\u2260"),
+
+   ("\\\<union>", "\\u222A"),
+   ("\\\<inter>", "\\u2229"),
+   ("\\\<in>", "\\u2208"),
+   ("\\\<notin>", "\\u2209"),
+   ("\\\<subset>", "\\u2282"),
+   ("\\\<supset>", "\\u2283"),
+   ("\\\<subseteq>", "\\u2286"),
+   ("\\\<supseteq>", "\\u2287"),
+   ("\\\<lhd>", "\\u22B2"),
+   ("\\\<rhd>", "\\u22B3"),
+   
+   ("\\\<Longrightarrow>", "\\u27F9"),
+   ("\\\<lambda>", "\\u03BB")
+  ];
   
-  val encode_prover_to_gui = I;
-  val encode_gui_to_prover = I;
+  structure unicode_helper = UnicodeHelperFUN (val unicode_symb  = unicode_symb);
+
+  val encode_unicode = unicode_helper.encode;
+  val decode_unicode = unicode_helper.decode;
 
   (* END goal type *)
   end (* end of local open *)
