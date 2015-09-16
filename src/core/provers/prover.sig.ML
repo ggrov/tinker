@@ -108,9 +108,11 @@ sig
   val pretty_pnode : pnode -> Pretty.T
   val pretty_goal : pnode -> Pretty.T
 
-  (* for display spec symbol in gui *)
-  val encode_unicode : string -> string
-  val decode_unicode : string -> string
+  (* for display spec symbol *)
+  val encoding_from_prover : string -> string
+  val encoding_to_prover : string -> string
+  val encoding_from_gui : string -> string
+  val encoding_to_gui : string -> string
   
   structure Sharing : PROVER_SHARING
     sharing type Sharing.typ = typ

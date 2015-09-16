@@ -33,6 +33,19 @@
   val ps = PSGraph.read_json_file (path^"demo.psgraph");
   val ps = PSGraph.read_json_file (path^"demo_env.psgraph");
 
-  PPIntf.set_psg_goal ([¬B : BOOL®], ¬A ´ (A ± B ± (C ´ C))®) (SOME ps);
+  PPIntf.set_psg_goal (SOME ([¬B : BOOL®], ¬A ´ (A ± B ± (C ´ C))®)) (NONE);
 
   TextSocket.safe_close();
+
+======
+  val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
+  val path = tinker_path ^ "src/dev/psgraph/";
+val ps = File_Io.read_string (path^"scratch.psgraph");
+PPProver.encoding_from_gui ps |>
+PPProver.encoding_to_prover |>
+PPProver.encoding_from_prover |>
+PPProver.encoding_to_gui;
+PSGraph.read_json_file (path^"scratch.psgraph");
+
+"\<impl>";
+Json.string_of (Json.String "\\<impl>");

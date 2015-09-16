@@ -11,6 +11,10 @@ ML{*
   val sys = "osx_32"
 *}
  
+ML{*
+
+  File_Io.read_string (path^"scratch.psgraph") |> IsaProver.encoding_from_gui
+*}
 ML{*-
 
 val test = Json.mk_object [("symbol", Json.String "\<longrightarrow>help \<in>")]|> Json.encode 
@@ -55,7 +59,7 @@ ML{* -
   TextSocket.safe_close();
 *}
  
-ML{*-    
+ML{*-
 Tinker.start_ieval @{context}  NONE (SOME []) (SOME @{prop "(C \<longrightarrow> ((A \<longrightarrow> A) \<and> (B \<longrightarrow> B)))"})
 *}
 

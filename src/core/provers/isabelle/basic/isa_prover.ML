@@ -296,12 +296,13 @@ struct
   fun top_symbol trm = the (TermFeatures.top_level_str trm );*)
 
   val unicode_symb = [
+   ("\\\<longrightarrow>", "<_uni_symb_implies_>"),
+  
    ("\\\<nat>", "\\u2115"),
 
    ( "\\\<not>" ,"\\u00AC"),
    ("\\\<and>", "\\u2227"),
    ("\\\<or>", "\\u2228"),
-   ("\\\<longrightarrow>", "\\u27F6"),
 
    ("\\\<forall>", "\\u2200"),
    ("\\\<exists>", "\\u2203"),
@@ -323,10 +324,12 @@ struct
    ("\\\<lambda>", "\\u03BB")
   ];
   
-  structure unicode_helper = UnicodeHelperFUN (val unicode_symb  = unicode_symb);
+  structure unicode_helper = UnicodeHelperFUN (val symb_tab  = unicode_symb);
 
-  val encode_unicode = unicode_helper.encode;
-  val decode_unicode = unicode_helper.decode;
+  val encoding_from_prover = unicode_helper.encode_prover_json;
+  val encoding_to_prover = unicode_helper.decode_prover_json;
+  val encoding_from_gui = unicode_helper.encode_gui_json;
+  val encoding_to_gui = unicode_helper.decode_gui_json;
 
   (* END goal type *)
   end (* end of local open *)

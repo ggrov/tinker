@@ -197,17 +197,17 @@ struct
 
   val version_string = Json.String gui_version 
 
-  fun run_in_textstreams (instream, outstream) init_json =
+  fun run_in_textstreams s init_json =
   let
     fun send_msg str =
-     (TextIO.output (outstream, str  ^ " \n"); TextIO.flushOut outstream) 
+     (TextSocket.write s ( str  ^ " \n"); TextSocket.flushOut s) 
     val _ = Json.encode init_json |> send_msg 
     fun protocol_loop src =
     let
-      val (json_list, src') = RawSource.get src
+      val str = TextSocket.read s
       (* a bit hacky *)
-      val json = case json_list of [x] => x | _ =>
-        raise protocol_exn "Expected: exactly one JSON object"
+      val json = Json.of_string str
+        handle _ => raise protocol_exn ("Fail to parse str as json: " ^ str)
       val _ = (logging_handler_print "JSON_GUI" ("JSON IN: " ^ (Json.encode json)))
       val json_output = dispatch json (* this output is always a json object *)
       val _ =  logging_handler_print "JSON_GUI" ("JSON OUT: " ^ ( Json.encode json_output))
@@ -217,17 +217,17 @@ struct
           | "CMD_END_EVAL_SESSION" => send_msg (Json.encode json_output) (* send to stop cmd and quit *)
           | "RSP_EXCEPTION" => send_msg (Json.encode json_output) (* end session and flash out the exception string*)
           | "RSP_MESSAGE_ERROR" => ()
-          | "Dummy_RSP" => ((); protocol_loop src')
+          | "Dummy_RSP" => ((); protocol_loop s)
           | "PRINT_ONLY_RSP" => 
             ((get_print_only_msg  json_output
             (*|> (fn x => logging "JSON_GUI" ("PRINT_RSP: " ^ x))*));
-             protocol_loop src')
+             protocol_loop src)
           | _ =>
              (send_msg (Json.encode json_output);
-             protocol_loop src')
+             protocol_loop s)
       )
     end
-  in protocol_loop (Json.json_source instream)
+  in protocol_loop s
   end
 
 (****************************************************
@@ -235,8 +235,8 @@ struct
 ****************************************************)
   fun start_ieval ctxt ps_opt assms_opt g_opt = 
     let
-     val _ = TextSocket.safe_local_client gui_socket_port;
-     val (SOME (ins, outs)) = TextSocket.get_current_stream (); (* should always be something *)
+     val s = TextSocket.safe_local_client gui_socket_port;
+     (* val (SOME (ins, outs)) = TextSocket.get_current_stream ();  should always be something *)
      val _  = (reset_data ();set_init_data (SOME ctxt, g_opt, assms_opt, ps_opt))
      val init_json = Json.mk_object[
       ("cmd", Json.String "CMD_INIT_PSGRAPH"),
@@ -246,7 +246,7 @@ struct
       val _ = logging_handler_print "JSON_GUI" ("JSON OUT: " ^ (Json.encode init_json))
       val _ = reset_data ()
     in
-      run_in_textstreams (ins, outs) init_json;
+      run_in_textstreams s init_json;
       get_data () |> (fn x => (reset_data () ; reset_init_data (); Option.valOf x))
     end
 end

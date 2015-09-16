@@ -176,9 +176,9 @@ struct
 
   fun local_server port  = run_in_atomic (local_server0 port)
 
-  fun write s_data msg = TextIO.output (get_outstream s_data, Prover.encode_unicode msg);
+  fun write s_data msg = TextIO.output (get_outstream s_data, Prover.encoding_to_gui msg);
   fun flushOut s_data = TextIO.flushOut (get_outstream s_data);
-  fun read s_data = TextIO.input (get_instream s_data) |> Prover.decode_unicode;
+  fun read s_data = TextIO.input (get_instream s_data) |> Prover.encoding_from_gui;
 
   fun close0 s_data _ =
     (TextIO.closeOut (get_outstream s_data) handle _ => warning ("can't close output stream");

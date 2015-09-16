@@ -321,6 +321,20 @@ struct
      |> Json.mk_object)]
    |> Json.mk_object;
 
+ fun to_prover_json (Json.String s) = Theory.GoalTyp.Prover.encoding_to_prover s |> Json.String
+ | to_prover_json (Json.Array arr) = map to_prover_json arr |> Json.Array
+ | to_prover_json (Json.Object obj) = 
+    Json.fold (fn (n,j) => Json.update (n, to_prover_json j)) obj Json.empty_obj
+    |> Json.Object
+ | to_prover_json x = x
+
+ fun from_prover_json (Json.String s) = Theory.GoalTyp.Prover.encoding_from_prover s |> Json.String
+ | from_prover_json (Json.Array arr) = map from_prover_json arr |> Json.Array
+ | from_prover_json (Json.Object obj) = 
+    Json.fold (fn (n,j) => Json.update (n, from_prover_json j)) obj Json.empty_obj
+    |> Json.Object
+ | from_prover_json x = x
+
 
  fun output_json ps = 
   let 
@@ -347,7 +361,7 @@ struct
       ("atomic_tactics", atomic_tactics),
       ("goal_types", goaltype_data),
       ("occurrences", occ)
-    ]
+    ] |> from_prover_json
   end
 
  fun output_eval_json name_current index_current ps = 
@@ -372,7 +386,7 @@ struct
     ("atomic_tactics", atomic_tactics),
     ("goal_types", goaltype_data),
     ("occurrences", output_occurs_json (get_occurs ps))
-  ]
+  ] |> from_prover_json
   end
 
 (* expect to out put as an eval field *)
@@ -407,12 +421,13 @@ struct
  | input_json _ = raise Json.parse_exn "unexcepted json structure in input_json"
 
  fun write_json_file path ps = 
-  File_Io.write_string path (output_json ps |> Json.encode |> Theory.GoalTyp.Prover.encode_unicode);
+  File_Io.write_string path (output_json ps |> Json.encode |> Theory.GoalTyp.Prover.encoding_to_gui);
 
  fun read_json_file path = 
   File_Io.read_string path 
-  |> Theory.GoalTyp.Prover.decode_unicode
+  |> Theory.GoalTyp.Prover.encoding_from_gui
   |> Json.of_string 
+  |> to_prover_json
   |> input_json
 
 (*

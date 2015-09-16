@@ -299,16 +299,18 @@ struct
   fun pretty_goal pnode = pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode)
   fun pretty_pplan pnode = Pretty.str "Pretty PPLAN TOTO";
   
-(*  
-  val encode_gui_to_prover = implode o map unicode_to_pp o utf8_string_to_unicode;
-  fun encode_prover_to_gui str =
-   (set_flag ("output_in_utf8", true);
-    ReaderWriter.translate_for_output str)
-   |> (fn x => (set_flag ("output_in_utf8", false); x));
-*)   
+  val unicode_symb = [
+   ("%implies%", "<_uni_symb_implies_>")
+  ];
 
-  val encode_prover_to_gui = I;
-  val encode_gui_to_prover = I;
+  
+  structure unicode_helper = UnicodeHelperFUN (val symb_tab  = unicode_symb);
+
+  val encoding_from_prover = unicode_helper.encode_prover_json;
+  val encoding_to_prover = unicode_helper.decode_prover_json;
+  val encoding_from_gui = unicode_helper.encode_gui_json;
+  val encoding_to_gui = unicode_helper.decode_gui_json;
+
   fun get_goal_thm pplan = raise RunCall.Fail "TODO"; 
   
 

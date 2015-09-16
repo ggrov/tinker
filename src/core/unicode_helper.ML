@@ -1,18 +1,21 @@
-functor UnicodeHelperFUN (val unicode_symb : (string * string) list) =
+functor UnicodeHelperFUN (val symb_tab : (string * string) list) =
 struct
+(* symbols and unicodes, as a intermidiate coding to avoid parsing those non-ascii symbols in Json
+  this is a translation between PSGraph and GUI *)
+  val gui_uni : (string * string) list = [
+     ("⟶", "<_uni_symb_implies_>")
+    ]
+  val prover_uni = symb_tab
 
-  fun toUnEscape str = 
-   case StrName.NTab.lookup (StrName.NTab.of_list unicode_symb) str of
+  fun toUnEscape tab str = 
+   case StrName.NTab.lookup (StrName.NTab.of_list tab) str of
     (SOME x) => x
    | NONE => str
   
-  fun toEscape str = 
-    case StrName.NTab.lookup (StrName.NTab.of_list (map (fn (x,y)=> (y,x)) unicode_symb)) str of
+  fun toEscape tab str = 
+    case StrName.NTab.lookup (StrName.NTab.of_list (map (fn (x,y)=> (y,x)) tab)) str of
     (SOME x) => x
    | NONE => str
-  
-  val unilist = map fst unicode_symb
-  val codlist = map snd unicode_symb
   
   fun index str substr = let
     val (pref, suff) = Substring.position substr (Substring.full str)
@@ -28,42 +31,47 @@ struct
       filterf ((NONE,_,_)::xs)=filterf xs |
       filterf [] = (NONE, 0,"")
   
-  fun findUC str =filterf  ( map ( index str) unilist)
-  fun findEUC str=filterf  ( map ( index str) codlist) 
+  fun findUC tab str =filterf  ( map ( index str) (map fst tab))
+  fun findEUC tab str=filterf  ( map ( index str) (map snd tab)) 
   (* To Escape *)
-  fun encode str = let
-    val k = findUC str;
+  fun encode tab str = let
+    val k = findUC tab str;
     val (start, len, uc) = case k of (NONE, _,_ ) => (0, 0, "")
                         |  (SOME i, j, unichar) => (i, j, unichar);
     val head= String.substring(str, 0, start);
-    val mid = toUnEscape uc;
+    val mid = toUnEscape tab uc;
     val tail = String.extract(str, start+len, NONE); 
     val result= String.concat [head, mid, tail];
-    val hasmore = case findUC result of (NONE,_,_) => false | _ => true
+    val hasmore = case findUC tab result of (NONE,_,_) => false | _ => true
   in
     if hasmore then
-     encode result
+     encode tab result
     else
      result
   end;
   
   (* To Unescape *)
-  fun decode str = let
-    val k = findEUC str;
+  fun decode tab str = let
+    val k = findEUC tab str;
     val (start, len, uc) = case k of (NONE, _,_ ) => (0, 0, "")
                         |  (SOME i, j, unichar) => (i, j, unichar);
     val head= String.substring(str, 0, start);
-    val mid = toEscape uc;
+    val mid = toEscape tab uc;
     val tail = String.extract(str, start+len, NONE); 
     val result= String.concat [head, mid, tail];
-    val hasmore = case findEUC result of (NONE,_,_) => false | _ => true
+    val hasmore = case findEUC tab result of (NONE,_,_) => false | _ => true
   in
     if hasmore then
      (* replaceEUC result *)
-     decode result
+     decode tab result
     else
      (* result *)
      result
   end;
 
+  val encode_gui_json = encode gui_uni (* encode gui symbol to unicode string*)
+  val decode_gui_json = decode gui_uni (* decode unicode string to gui symbol *)
+
+  val encode_prover_json = encode prover_uni (* encode prover symbol to unicode string*)
+  val decode_prover_json = decode prover_uni (* decode unicode string to prover symbol *)
 end
