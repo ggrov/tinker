@@ -89,7 +89,27 @@ ML{*
 *}
 
 ML{*
-   val data = C.add_atomic "top_symbol" top_symbol C.default_data; 
+fun strip_trueprop (A $ B) = B;
+
+  fun is_goal env pnode [C.PVar p] =
+     (case StrName.NTab.lookup (C.Prover.get_pnode_env pnode) p of
+               NONE => []
+             | SOME (C.Prover.E_Trm t) => if t = (C.Prover.get_pnode_concl pnode |> strip_trueprop) then [env] else []
+             | SOME _ => [])
+  | is_goal _ _ _ = []
+
+  fun is_not_goal env pnode [C.PVar p] =
+     (case StrName.NTab.lookup (C.Prover.get_pnode_env pnode) p of
+               NONE => []
+             | SOME (C.Prover.E_Trm t) => if not(t = (C.Prover.get_pnode_concl pnode |> strip_trueprop)) then [env] else []
+             | SOME _ => [])
+  | is_not_goal _ _ _ = []
+*}
+
+ML{*
+   val data = C.add_atomic "top_symbol" top_symbol C.default_data
+   |> C.add_atomic "is_goal" is_goal
+   |> C.add_atomic "is_not_goal" is_not_goal; 
    val scan_def = C.scan_data @{context};
    val def1 = "topconcl(Z) :- top_symbol(concl,Z).";
    val pdef1 = scan_def def1;
@@ -99,6 +119,18 @@ ML{*
 ML{* 
    val t = @{prop "A \<Longrightarrow> B \<Longrightarrow> A \<and> B \<Longrightarrow> B \<longrightarrow> A"}; 
    val (pnode,pplan) = IsaProver.init @{context} [] t;                         
+*}
+
+ML{*
+val t = C.Prover.get_pnode_concl pnode |> strip_trueprop;
+val t2 = @{term "B \<longrightarrow> A"};
+t = t2;
+*}
+ML{*
+val env = (IsaProver.get_pnode_env pnode)
+  |> StrName.NTab.ins ("g", C.Prover.E_Trm @{term "B \<longrightarrow> A"});
+C.match data pnode (C.scan_goaltyp @{context} "is_goal(?g)") env;
+
 *}
 
 ML{* 
@@ -125,11 +157,11 @@ ML{*
    |> PSGraph.set_goaltype_data data;       
 *}
 
-ML{* 
+ML{*- 
   TextSocket.safe_close();
 *}
 
-ML{*  
+ML{*-
 Tinker.start_ieval @{context} ps [] @{prop "A \<longrightarrow> A \<longrightarrow> A"};
 *}
 

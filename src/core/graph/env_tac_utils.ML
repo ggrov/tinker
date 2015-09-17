@@ -8,23 +8,23 @@ sig
   structure PS_Theory : PS_THEORY
   val ENV_new_var : 
     string (* var name *) 
-    -> PS_Theory.GoalTyp.Prover.env_data  
-    -> PS_Theory.GoalTyp.Prover.env 
-    -> PS_Theory.GoalTyp.Prover.env list
+    -> PS_Theory.Data.GoalTyp.Prover.env_data  
+    -> PS_Theory.Data.GoalTyp.Prover.env 
+    -> PS_Theory.Data.GoalTyp.Prover.env list
   val ENV_del_var : 
     string (* var name *) 
-    -> PS_Theory.GoalTyp.Prover.env  
-    -> PS_Theory.GoalTyp.Prover.env list
+    -> PS_Theory.Data.GoalTyp.Prover.env  
+    -> PS_Theory.Data.GoalTyp.Prover.env list
   val ENV_update_var : 
-    ('a -> PS_Theory.GoalTyp.Prover.env_data -> PS_Theory.GoalTyp.Prover.env_data list) 
+    ('a -> PS_Theory.Data.GoalTyp.Prover.env_data -> PS_Theory.Data.GoalTyp.Prover.env_data list) 
     -> string -> 'a
-    -> PS_Theory.GoalTyp.Prover.env -> PS_Theory.GoalTyp.Prover.env list
+    -> PS_Theory.Data.GoalTyp.Prover.env -> PS_Theory.Data.GoalTyp.Prover.env list
 
   val is_abbrv_env_tac : string -> bool
   val scan_abbrv_env_tac : 
-     PS_Theory.GoalTyp.Prover.context
+     PS_Theory.Data.GoalTyp.Prover.context
      -> string 
-     -> PS_Theory.GoalTyp.Prover.env -> PS_Theory.GoalTyp.Prover.env list
+     -> PS_Theory.Data.GoalTyp.Prover.env -> PS_Theory.Data.GoalTyp.Prover.env list
 
   structure Sharing : ENV_TAC_UTILS_SHARING
     sharing Sharing.PS_Theory = PS_Theory.Sharing
@@ -33,7 +33,7 @@ end
 functor EnvTacUtilsFunc (structure Theory : PS_THEORY val struct_name : string) (*: ENV_TAC_UTILS *)= 
 struct
   structure PS_Theory = Theory
-  structure Prover = PS_Theory.GoalTyp.Prover
+  structure Prover = PS_Theory.Data.GoalTyp.Prover
   local open LoggingHandler in 
     val env_var_prefix = "PSGRAPH_ENV_VAR_";
 

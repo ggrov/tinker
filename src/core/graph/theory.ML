@@ -6,7 +6,6 @@ end
 signature PS_THEORY = 
 sig
   structure Data : PSGRAPH_DATA
-  structure GoalTyp : BASIC_GOALTYPE
   structure Theory : GRAPHICAL_THEORY
   structure PSDataIO : GRAPH_COMPONENT_DATA_IO
   include GRAPHICAL_THEORY
@@ -20,8 +19,8 @@ sig
     val edge_dest : Graph.T -> E.name -> V.name
     val edge_src : Graph.T -> E.name -> V.name 
     val get_vertex_list : Graph.T -> V.NSet.name list
-    val gnode_of : Graph.T -> V.name -> GoalTyp.gnode
-    val goaltype_of : Graph.T -> E.name -> GoalTyp.T
+    val gnode_of : Graph.T -> V.name -> Data.GoalTyp.gnode
+    val goaltype_of : Graph.T -> E.name -> Data.GoalTyp.T
     val in_edges : Graph.T -> V.name -> E.NSet.name list
     val input_boundary : Graph.T -> (V.name * (E.name * Graph.edata) * V.name) list
     val insert_node_on_edge : Graph.nvdata -> E.name -> Graph.T -> E.name * E.name * Graph.T
@@ -29,17 +28,19 @@ sig
     val is_gtyp : Graph.T -> E.name -> bool
     val is_hgragh_with_graph_name : Graph.T -> string -> V.name -> bool
     val is_tactic : Graph.T -> V.name -> bool
-    val lookup_gnode : Graph.T -> V.name -> GoalTyp.gnode option 
+    val lookup_gnode : Graph.T -> V.name -> Data.GoalTyp.gnode option 
     val lookup_hgragh_by_graph_name : Graph.T -> string -> V.name
     val lookup_ivertex_data : Graph.T -> V.name -> Graph.nvdata option
     val match_lhs : Graph.T -> Graph.T -> (Graph.subst * (Graph.subst * Graph.T)) Seq.seq
     val matched_lhs : Graph.T -> V.name -> (Graph.subst * (Graph.subst * Graph.T)) Seq.seq
     val mk_binput : Graph.edata -> V.name -> Graph.T -> Graph.T 
     val mk_boutput : Graph.edata -> V.name -> Graph.T -> Graph.T
-    val mk_gnode : GoalTyp.gnode -> Data.nvdata 
+    val mk_gnode : Data.GoalTyp.gnode -> Data.nvdata 
     val mk_lhs : Graph.T -> V.name -> Graph.T list
     val out_edges : Graph.T -> V.name -> E.NSet.name list
     val output_boundary : Graph.T -> (V.name * (E.name * Graph.edata) * V.name) list
+    val parse_arg_data : Data.GoalTyp.Prover.context -> Data.GoalTyp.Prover.env 
+        -> Data.arg_typ -> Data.GoalTyp.Prover.arg_data list
     val rewrite : Rule.T -> Graph.T -> Graph.T list 
     val rewrite_lazy : Rule.T -> Graph.T -> Graph.T Seq.seq
     val symmetric_rule : Rule.T -> Rule.T
@@ -56,7 +57,6 @@ sig
   sharing type PSDataIO.edata = Data.edata
   sharing type Theory.Graph.Sharing.nvdata = Data.nvdata
   sharing type Theory.Graph.Sharing.edata = Data.edata
-  sharing GoalTyp.BasicSharing = Data.Sharing.GoalTyp
 
   structure Sharing : PS_THEORY_SHARING
     sharing Sharing.Data = Data.Sharing
@@ -64,13 +64,11 @@ sig
 
 end (* signature *)
 
-functor PSGraph_TheoryFun (structure GoalTyp : BASIC_GOALTYPE
-                           structure  Data : PSGRAPH_DATA
-                           sharing GoalTyp.BasicSharing = Data.Sharing.GoalTyp ) : PS_THEORY=
+functor PSGraph_TheoryFun ( structure  Data : PSGRAPH_DATA ) : PS_THEORY=
 struct
   exception Fail = RunCall.Fail;
 
-  structure GoalTyp = GoalTyp;
+  structure GoalTyp = Data.GoalTyp;
 
   (* may need some sharing stuff here *)
   structure Data = Data (*PSGraphDataFun(GoalTyp);*);
@@ -313,6 +311,24 @@ struct
     Scan.catch (get_env_arg_name0) str
     handle Fail _ => NONE
   end
+  
+  fun parse_arg_data ctxt env args = 
+    map 
+    (fn arg (* [def, type] / [?env_var]*) 
+      => if List.length arg = 1  (* env var *)
+         then  StrName.NTab.get env (Option.valOf (parse_env_var_name (hd arg))) |> GoalTyp.Prover.env_to_arg
+         else 
+          case List.nth (arg, 1) 
+            of "term" => hd arg |> GoalTyp.Prover.trm_of_string ctxt |> GoalTyp.Prover.A_Trm
+            | "thm" => hd arg |> GoalTyp.Prover.get_thm_by_name ctxt |> GoalTyp.Prover.A_Thm
+            | "string" => hd arg |> GoalTyp.Prover.A_Str
+            | x => (logging "FAILURE" ("Unknown arg data typ in : " ^ x); raise tinker_fail true)
+
+    )
+    args 
+    
+
+
   end (* end of local open *)
   end (* structure Util *)
 

@@ -14,7 +14,7 @@ ML{*-
 *}
 
 ML{*
-fun rule_tac ctxt i (arg as [IsaProver.A_Str thm_name]) =  rtac (get_thm_by_name ctxt thm_name) i;
+fun rule_tac ctxt i (arg as [IsaProver.A_Thm thm]) =  rtac thm i;
 fun assm_tac  _ i _ =  atac i;
 *}
 

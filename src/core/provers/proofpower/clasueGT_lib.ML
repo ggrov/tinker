@@ -43,6 +43,27 @@ struct
   | top_symbol _ _ [_,_] = []
   | top_symbol env pnode (x::xs) =
       maps (fn r => top_symbol env pnode [x,r]) xs;
+      
+  
+  fun is_goal env pnode [ClauseGoalTyp.PVar p] =
+     (case StrName.NTab.lookup (PPProver.get_pnode_env pnode) p of
+               NONE => []
+             | SOME (PPProver.E_Trm t) => if t = (PPProver.get_pnode_concl pnode) then [env] else []
+             | SOME _ => [])
+  | is_goal _ _ _ = [];
+
+  fun is_not_goal env pnode [ClauseGoalTyp.PVar p] =
+     (case StrName.NTab.lookup (PPProver.get_pnode_env pnode) p of
+               NONE => []
+             | SOME (PPProver.E_Trm t) => if not(t = (PPProver.get_pnode_concl pnode)) then [env] else []
+             | SOME _ => [])
+  | is_not_goal _ _ _ = [];
+  
+  val default_gt_data = 
+   ClauseGoalTyp.add_atomic "top_symbol" top_symbol ClauseGoalTyp.default_data
+   |> ClauseGoalTyp.add_atomic "is_goal" is_goal
+   |> ClauseGoalTyp.add_atomic "is_not_goal" is_not_goal;
+   
    
 end (* end of local *)
 end;

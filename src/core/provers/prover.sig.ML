@@ -23,7 +23,9 @@ sig
   type tactic 
 
   (* arguments for atomic goal types and tactics *)
-  datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
+  datatype arg_data =  
+      A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string 
+      | A_L of arg_data list
  
   datatype env_data = 
     E_Str of string | 
@@ -33,6 +35,7 @@ sig
     E_L of env_data list
   val pretty_env_data : context -> env_data -> Pretty.T
 
+  val env_to_arg : env_data -> arg_data
   
   type env = env_data StrName.NTab.T 
   

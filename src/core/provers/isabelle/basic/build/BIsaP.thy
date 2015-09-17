@@ -46,8 +46,7 @@ ML{*
   structure SimpleGoalType : BASIC_GOALTYPE = SimpleGoalType_Fun(structure Prover = IsaProver val struct_name = "SimpleGoalType");
   structure Data = PSGraphDataFun(SimpleGoalType);
   structure PSDataIO = PSGraphIOFun(structure Data = Data);
-  structure Theory = PSGraph_TheoryFun(structure GoalTyp = SimpleGoalType  
-                                     structure Data = Data);
+  structure Theory = PSGraph_TheoryFun( structure Data = Data);
   structure Theory_IO = PSGraph_Theory_IOFun(structure PSTheory = Theory)
   structure Env_Tac_Utils = EnvTacUtilsFunc (structure Theory = Theory val struct_name = "Env_Tac_Utils" );
   structure PSGraph = PSGraphFun(structure Theory_IO = Theory_IO structure Env_Tac_Utils = Env_Tac_Utils);

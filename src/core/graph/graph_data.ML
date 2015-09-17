@@ -4,9 +4,7 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
   structure GoalTyp = GoalTyp;
 
   type arg_typ = string list list
-  
-  fun parse_arg_data ctxt args = 
-    map (fn ls => hd ls |> GoalTyp.Prover.A_Str)  args 
+
   (* FIXME: need a proper parse, currently only support ML *)
 
   datatype nvdata = T_Atomic of (string * arg_typ)

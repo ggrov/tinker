@@ -15,7 +15,7 @@ sig
     this should be parsed into the arg_data in prover, which is [A_Trm trm, A_ML ml_str]*)
   val arg_typ_to_json : arg_typ -> Json.json 
   val arg_typ_from_json : Json.json -> arg_typ
-  val parse_arg_data : GoalTyp.Prover.context -> arg_typ -> GoalTyp.Prover.arg_data list
+
 
 (* note: variables only for evaluation! *)
   datatype nvdata =  T_Atomic of  (string * arg_typ)

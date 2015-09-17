@@ -29,9 +29,10 @@ struct
          val ps = EData.get_psgraph edata
          val pplan = EData.get_pplan edata
          val pnode = Prover.get_open_pnode_by_name pplan  (GoalTyp.goal_name gnode)
+         val env = Prover.get_pnode_env pnode
          val ctxt = Prover.get_pnode_ctxt pnode
          val name = (GData.get_nvdata_name (GData.T_Atomic atom))
-         val arg_list = (GData.get_nvdata_args (GData.T_Atomic atom)) |> GData.parse_arg_data ctxt
+         val arg_list = (GData.get_nvdata_args (GData.T_Atomic atom)) |> parse_arg_data ctxt env
        in  
         if is_env_tactic_name name 
         then 

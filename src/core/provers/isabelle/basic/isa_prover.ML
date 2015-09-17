@@ -7,6 +7,8 @@ struct
   type thm = Thm.thm
   type context = Proof.context
 
+  val default_ctxt = @{context}
+
   fun term_to_string ctxt t =
    let
     val ctxt' = Config.put show_markup false ctxt;
@@ -41,11 +43,14 @@ struct
    end
 
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
+      | A_L of arg_data list
+ 
   datatype env_data = 
     E_Str of string | 
     E_Trm of term | E_Thm of thm |
     E_ML of string | 
     E_L of env_data list
+
 
   fun pretty_env_data _ (E_Str str) =  [ "E_Str(", str, ")"] |> String.concat |> Pretty.str
   |   pretty_env_data ctxt (E_Trm trm) = [ "E_Trm(", string_of_trm ctxt trm,  ")"] |> String.concat |> Pretty.str
@@ -55,6 +60,11 @@ struct
         Pretty.str (String.concat [ "E_L(",
                       str_chunks (map (Pretty.string_of o pretty_env_data ctxt) l),
                        ")"]);
+  fun env_to_arg (E_Str str) = A_Str str
+  |   env_to_arg (E_Trm trm) = A_Trm trm
+  |   env_to_arg (E_Thm thm) = A_Thm thm
+  |   env_to_arg env = (logging "FAILURE" ("Do not suppport the conversion from env to arg: " ^ (pretty_env_data default_ctxt env|> Pretty.string_of)) ;
+      raise tinker_fail true)
 
   type env = env_data StrName.NTab.T
   
@@ -111,7 +121,6 @@ struct
  
   exception gterm_exp
 
-  val default_ctxt = @{context}
   val typ_of = Term.type_of
   fun match ctxt = Pattern.matches (Context.Proof_Context.theory_of ctxt)
 

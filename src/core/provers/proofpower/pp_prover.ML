@@ -23,7 +23,7 @@ struct
    |> String.translate decode_str 
    |> Pretty.str
 
-  datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
+  datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string | A_L of arg_data list
   
   datatype env_data = 
     E_Str of string | 
@@ -39,6 +39,12 @@ struct
         Pretty.str (String.concat [ "E_L(",
                       str_chunks (map (Pretty.string_of o pretty_env_data ctxt) l),
                        ")"]);
+
+  fun env_to_arg (E_Str str) = A_Str str
+  |   env_to_arg (E_Trm trm) = A_Trm trm
+  |   env_to_arg (E_Thm thm) = A_Thm thm
+  |   env_to_arg env = (logging "FAILURE" ("Do not suppport the conversion from env to arg: " ^ (pretty_env_data default_ctxt env|> Pretty.string_of)) ;
+      raise tinker_fail true)
 
   type env = env_data StrName.NTab.T
   
@@ -58,7 +64,7 @@ struct
       {pname : string (* goal ref in psg *), 
        g: GOAL (* ([ams], concl ) *), 
        pctxt : context,
-       global : string list (* referece used in subgoal system in pp, it's defnied as string list, but only the first one is used *),
+       global : string list (* referece used in subgoal system in pp, it's defnied as string list, this list is used to keep track of duplicated goals, which is a problem for us *),
        env : env} 
   
   (* TODO: maybe to add a table to store some meta info, e.g. hints? measures? *)
@@ -101,7 +107,7 @@ struct
   val asms_of_thm =  asms
   (* get asm of thm - asms*)
   fun trm_of_string _ str = Term_ML_Exec.eval_ml ("%<%"^str^"%>%")
-   handle _ => (logging "FAILURE" ("Fail to parse strin to term: " ^ str); raise tinker_fail true);
+   handle _ => (logging "FAILURE" ("Fail to parse string to term: " ^ str); raise tinker_fail true);
    
   val prop_of_string = trm_of_string
   
@@ -223,7 +229,7 @@ struct
           val _ = if debug then  [Pretty.str "all new open sg list: ["] @ (map (Pretty.str o get_pnode_name) all_pnodel) @ [Pretty.str "]"] 
           	   |> Pretty.chunks |> Pretty.writeln else ()
           (* filter out new goals *)
-          val used_names = (StrName.NSet.list_of (#usedgs pplan));
+          val used_names = (StrName.NSet.list_of (StrName.NSet.delete (get_pnode_name pnode)(#usedgs pplan))); (* remove the current pnode, because the tactic might change nothing *)
           val _ = if debug then  [Pretty.str "list of used name in ori pp: ["] @ (map (Pretty.str) used_names ) @ [Pretty.str "]"] 
             |> Pretty.chunks |> Pretty.writeln else ()
           val new_pnodel_l0 = 
@@ -300,6 +306,7 @@ struct
   fun pretty_pplan pnode = Pretty.str "Pretty PPLAN TOTO";
   
   val unicode_symb = [
+   ("±","<_uni_symb_land_>"),
    ("¥", "<_uni_symb_implies_>"),
    ("ç", "<_uni_symb_in_>"),
    ("«", "<_uni_symb_gammar_>"),
