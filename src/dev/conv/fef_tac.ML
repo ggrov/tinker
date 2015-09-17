@@ -1,4 +1,4 @@
-  use (OS.FileSys.getDir() ^ "/psgraph/src/core/dev/fef_setup");
+  use (OS.FileSys.getDir() ^ "/psgraph/src/dev/conv/fef_setup.ML");
 (******************************************)
 (* definitions for tactics *)
 (******************************************)
@@ -7,7 +7,7 @@
   fun conjI_tac _ = step_strip_tac;
   fun assm_tac  _ = step_strip_tac;
 (******************************************)
-(* definitions for GT *)
+(* definitions for goaltypes *)
 (******************************************)
   val data = ClauseGoalTyp.add_atomic "top_symbol" top_symbol ClauseGoalTyp.default_data; 
   val scan_def = ClauseGoalTyp.scan_data PPProver.default_ctxt;
@@ -16,7 +16,8 @@
   val data = ClauseGoalTyp.update_data_defs (K pdef1) data;
    
 (* read and load a psgraph created by gui *)
-  val ps = PSGraph.read_json_file (pspath^"clause_demo.psgraph")|> PSGraph.set_goaltype_data data; 
+  val ps_tac1 = PSGraph.read_json_file (pspath^"fef_tac1.psgraph");
+|> PSGraph.set_goaltype_data data; 
 
 (******************************************)
 (* definition of tac1 - tac 4 *)

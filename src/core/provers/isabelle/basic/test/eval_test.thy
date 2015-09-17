@@ -13,7 +13,7 @@ ML{*
  
 ML{*
 
-  File_Io.read_string (path^"scratch.psgraph") |> IsaProver.encoding_from_gui
+val ps = PSGraph.read_json_file (path^"scratch.psgraph");
 *}
 ML{*-
 
