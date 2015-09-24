@@ -23,7 +23,8 @@ struct
    |> String.translate decode_str 
    |> Pretty.str
 
-  datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string | A_L of arg_data list
+  datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string 
+| A_L_Thm of thm list | A_L_Trm of term list | A_L of arg_data list
   
   datatype env_data = 
     E_Str of string | 
@@ -310,6 +311,7 @@ struct
    ("¥", "<_uni_symb_implies_>"),
    ("ç", "<_uni_symb_in_>"),
    ("«", "<_uni_symb_gammar_>"),
+   ("»", "<_uni_symb_eta_>"),
    ("¨", "<_uni_symb_left_corner_>"),
    ("Æ", "<_uni_symb_right_corner_>")
   ];

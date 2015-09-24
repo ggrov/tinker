@@ -316,7 +316,8 @@ struct
     map 
     (fn arg (* [def, type] / [?env_var]*) 
       => if List.length arg = 1  (* env var *)
-         then  StrName.NTab.get env (Option.valOf (parse_env_var_name (hd arg))) |> GoalTyp.Prover.env_to_arg
+         then  (StrName.NTab.get env (Option.valOf (parse_env_var_name (hd arg))) |> GoalTyp.Prover.env_to_arg
+         handle _ => (logging "FAILURE" ("fail to parse arg: " ^ (hd arg)); raise tinker_fail true))
          else 
           case List.nth (arg, 1) 
             of "term" => hd arg |> GoalTyp.Prover.trm_of_string ctxt |> GoalTyp.Prover.A_Trm

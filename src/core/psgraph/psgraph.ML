@@ -31,7 +31,7 @@ struct
 
   datatype env_tacs = Env_Tacs of {
      name : string, 
-     tactic: string (* actual ml code of the tactic *)
+     tactic: Prover.env_tac (* actual ml code of the tactic *)
      (*args : Theory.Data.arg_typ*)
   }
 
@@ -63,6 +63,9 @@ struct
 
  fun get_atomic_tac_by_name (PSGraph rep) name = 
   StrName.NTab.get (#atomic_tactics rep) name |> (fn Atomic_Tacs {tactic,...} => tactic)
+  
+ fun get_atomic_env_tac_by_name (PSGraph rep) name = 
+  StrName.NTab.get (#env_tactics rep) name |> (fn Env_Tacs {tactic,...} => tactic)
   
  exception tactic_exp of string
  fun update_graph_tactics f (PSGraph rep) = 
@@ -240,11 +243,22 @@ struct
 
  fun input_env_json (Json.Object jobj) = 
   let
+    fun eval_ml ml_str = 
+      let
+       val _ = logging "TACTIC" (
+         "eval env_tac_code [" ^ ml_str ^ "] ") 
+      in
+        Prover.EnvTac_ML_Exec.eval_ml ml_str
+      end
     val name = JsonInputUtils.get_string jobj "name"
-    val tactic = ""
+    val tactic = 
+      case JsonInputUtils.get_string jobj "tactic" 
+      of "" =>  eval_ml name 
+      | x => eval_ml x
    in
     (name, Env_Tacs { name = name, tactic = tactic(*, args = args*)})
    end
+ | input_env_json _ = raise Json.parse_exn "unexcepted json strcure in input_env_json"
 
  fun input_atomic_json (Json.Object jobj) = 
   let
@@ -444,6 +458,7 @@ struct
   type T = T
   type graph_tacs = graph_tacs
   type atomic_tacs = atomic_tacs
+  type env_tacs = env_tacs
   type occurences = occurences 
   structure Theory = Theory.Sharing
  end

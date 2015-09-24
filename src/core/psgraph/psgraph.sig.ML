@@ -3,6 +3,7 @@ sig
   type T
   type graph_tacs
   type atomic_tacs
+  type env_tacs
   type occurences
   structure Theory: PS_THEORY_SHARING
 end
@@ -17,6 +18,7 @@ sig
   type T
   type graph_tacs
   type atomic_tacs  
+  type env_tacs
   type occurences
   exception tactic_exp of string
 
@@ -27,7 +29,7 @@ sig
   val get_top_graph : T -> Theory.Graph.T
   val get_graph_tactics : T -> graph_tacs StrName.NTab.T
   val get_atomic_tactics : T -> atomic_tacs StrName.NTab.T
-  (* val get_tactics : T -> Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T *)
+  val get_env_tactics : T -> env_tacs StrName.NTab.T
   val get_graph : T -> StrName.NTab.name -> int -> Theory.Graph.T
   val get_graphs : T -> StrName.NTab.name -> Theory.Graph.T list
   val get_goaltype_data:  T ->  Theory.Data.GoalTyp.data
@@ -42,11 +44,12 @@ sig
   val get_occurs : T -> occurences
   val get_main : T -> StrName.NTab.name
   val get_atomic_tac_by_name : T -> StrName.NTab.name -> Theory.Data.GoalTyp.Prover.tactic
- (* set methods *)
+  val get_atomic_env_tac_by_name : T -> StrName.NTab.name -> Theory.Data.GoalTyp.Prover.env_tac
+(* set methods *)
   val set_top_graph : Theory.Graph.T -> T -> T
   val set_graph_tactics : graph_tacs StrName.NTab.T -> T -> T
   val set_atomic_tactics : atomic_tacs StrName.NTab.T  -> T -> T  
- (* val set_tactics : Theory.Data.GoalTyp.Prover.tactic StrName.NTab.T -> T -> T *)
+  val set_env_tactics : env_tacs StrName.NTab.T  -> T -> T  
   val set_graph :  StrName.NTab.name -> int -> Theory.Graph.T -> T -> T
   val set_occurs : occurences -> T -> T
   val set_goaltype_data: Theory.Data.GoalTyp.data -> T -> T
@@ -83,6 +86,7 @@ sig
     sharing type Sharing.T = T
     sharing type Sharing.graph_tacs = graph_tacs
     sharing type Sharing.atomic_tacs = atomic_tacs
+    sharing type Sharing.env_tacs = env_tacs
     sharing type Sharing.occurences = occurences
     sharing Sharing.Theory = Theory.Sharing
 end

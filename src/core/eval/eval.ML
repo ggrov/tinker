@@ -38,7 +38,7 @@ struct
         then 
         let val env_tac = if Env_Tac_Utils.is_abbrv_env_tac name
         then Env_Tac_Utils.scan_abbrv_env_tac ctxt name |> K
-        else Prover.EnvTac_ML_Exec.eval_ml name in
+        else EData.PSGraph.get_atomic_env_tac_by_name ps name in
         Prover.apply_env_tactic arg_list env_tac (pnode,pplan) end
         else 
         let val tac = EData.PSGraph.get_atomic_tac_by_name ps name in

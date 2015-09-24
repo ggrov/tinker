@@ -43,7 +43,7 @@ struct
    end
 
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
-      | A_L of arg_data list
+      | A_L_Thm of thm list | A_L_Trm of term list | A_L of arg_data list
  
   datatype env_data = 
     E_Str of string | 

@@ -149,8 +149,15 @@ struct
   fun CMD_CHANGE_PSGRAH (Json.Object obj)  = 
    let 
     val new_eval_json = JsonInputUtils.get obj "eval_psgraph" 
-    val new_psgraph = IEVal.EVal.EData.PSGraph.input_json new_eval_json
     val (SOME edata) = get_data() 
+    (* keep current tactic field *)
+    val cur_ps = IEVal.EVal.EData.get_psgraph edata
+    val atom_tacs = IEVal.EVal.EData.PSGraph.get_atomic_tactics cur_ps
+    val env_tacs = IEVal.EVal.EData.PSGraph.get_env_tactics cur_ps
+    val new_psgraph = 
+      IEVal.EVal.EData.PSGraph.input_json new_eval_json
+      |> IEVal.EVal.EData.PSGraph.set_atomic_tactics atom_tacs
+      |> IEVal.EVal.EData.PSGraph.set_env_tactics env_tacs
     val edata1 = IEVal.EVal.EData.set_psgraph new_psgraph edata
    in
     (set_data edata1;
