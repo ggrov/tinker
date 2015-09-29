@@ -78,7 +78,9 @@ sig
   val output_eval_json : StrName.NTab.name list -> int -> T -> Json.json
   val input_json : Json.json -> T
   val write_json_file : string -> T -> unit
-  val read_json_file: string -> T
+  val read_json_file : string -> T
+  val from_prover_json : Json.json -> Json.json
+  val to_prover_json : Json.json -> Json.json
 
   val validate_psgraph : T -> bool (* type checking, see issue #44 in the repo *)
 

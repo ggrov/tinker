@@ -13,6 +13,7 @@ struct
   structure Prover = EData.PSGraph.Theory.Data.GoalTyp.Prover
   structure TextSocket = TextSocket
 
+  val buffer_to_json' = EData.PSGraph.from_prover_json o buffer_to_json
 (* if 0 then invalid *)
   val gui_sicket_port = gui_socket_port
   val prover_socket_port = prover_socket_port
@@ -138,7 +139,7 @@ struct
           (IEVal.eval_until_break edata0 |> make_ret_reuslt
           handle tinker_fail b => raise tinker_fail b)
         | "OPT_EVAL_STOP" =>
-           (Json.mk_object[("cmd", Json.String  "CMD_END_EVAL_SESSION"), ("log_info", buffer_to_json ())])
+           (Json.mk_object[("cmd", Json.String  "CMD_END_EVAL_SESSION"), ("log_info", buffer_to_json' ())])
         | x => raise protocol_exn ("ERR: protocol unkown option: " ^ x)
     end
     | RSP_UPDATE_PSGRAPH _ = raise user_exn "wrong json type in RSP_UPDATE_PSGRAPH"
@@ -189,11 +190,11 @@ struct
     handle tinker_fail b => 
       Json.mk_object[
       ("cmd", Json.String "RSP_EXCEPTION"),
-      ("log_info", buffer_to_json ()),
+      ("log_info", buffer_to_json' ()),
       ("if_interrupt", Json.Bool b)]
     | _ => Json.mk_object[
       ("cmd", Json.String "RSP_EXCEPTION"),
-      ("log_info", buffer_to_json ()),
+      ("log_info", buffer_to_json' ()),
       ("if_interrupt", Json.Bool true)]
 
   end
@@ -249,7 +250,7 @@ struct
       ("cmd", Json.String "CMD_INIT_PSGRAPH"),
       ("psgraph", Json.Bool (Option.isSome ps_opt)),
       ("goal", Json.Bool (Option.isSome g_opt)),
-      ("log_info", buffer_to_json ())]
+      ("log_info", buffer_to_json' ())]
       val _ = logging_handler_print "JSON_GUI" ("JSON OUT: " ^ (Json.encode init_json))
       val _ = reset_data ()
     in

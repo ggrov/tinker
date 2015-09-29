@@ -309,11 +309,25 @@ struct
   val unicode_symb = [
    ("±","<_uni_symb_land_>"),
    ("¥", "<_uni_symb_implies_>"),
+   ("µ", "<_uni_symb_forall_>"),
+   ("∂", "<_uni_symb_exists_>"),
+   ("Ω", "<_uni_symb_neq_>"),
+
+   ("∑","<_uni_symb_blackdot_>"),
    ("ç", "<_uni_symb_in_>"),
+   ("ß", "<_uni_symb_l_angle_brk_>"),
+   ("¢", "<_uni_symb_r_angle_brk_>"),
+
+   ("”", "<_uni_symb_sigma_>"),
    ("«", "<_uni_symb_gammar_>"),
    ("»", "<_uni_symb_eta_>"),
+   ("â", "<_uni_symb_down_corner_>"),
+
    ("¨", "<_uni_symb_left_corner_>"),
-   ("Æ", "<_uni_symb_right_corner_>")
+   ("Æ", "<_uni_symb_right_corner_>"),
+
+   ("Ò", "<_uni_symb_left_z_corner_>"),
+   ("¶", "<_uni_symb_left_z_assign_>")
   ];
 
   

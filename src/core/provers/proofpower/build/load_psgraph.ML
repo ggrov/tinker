@@ -44,5 +44,6 @@
   use "../termlib/term_features.ML";  
   use "../../prover.sig.ML";
   use_file "../pp_prover.ML";
+  use_file "../pp_utils.ML"
 
 

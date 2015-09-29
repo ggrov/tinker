@@ -5,10 +5,25 @@ struct
   val gui_uni : (string * string) list = [
      ("∧", "<_uni_symb_land_>"),
      ("⟶", "<_uni_symb_implies_>"),
+     ("∀", "<_uni_symb_forall_>"),
+     ("∃", "<_uni_symb_exists_>"),
+     ("≠", "<_uni_symb_neq_>"),
+     
      ("∈", "<_uni_symb_in_>"),
+     ("·","<_uni_symb_blackdot_>"),
+     ("⟨", "<_uni_symb_l_angle_brk_>"),
+     ("⟩", "<_uni_symb_r_angle_brk_>"),
+     
+     ("σ", "<_uni_symb_sigma_>"),
      ("γ", "<_uni_symb_gammar_>"),
+     ("η", "<_uni_symb_eta_>"),
+     
+     ("⋎", "<_uni_symb_down_corner_>"),
      ("⌜","<_uni_symb_left_corner_>"),
-     ("⌝", "<_uni_symb_right_corner_>")
+     ("⌝", "<_uni_symb_right_corner_>"),
+
+     ("ⓩ", "<_uni_symb_left_z_corner_>"),
+     ("≜", "<_uni_symb_left_z_assign_>")
     ]
   val prover_uni = symb_tab
 

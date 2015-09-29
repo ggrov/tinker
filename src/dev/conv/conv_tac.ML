@@ -1,32 +1,7 @@
-(* an simple example for conv tac *)
-fun thm_conv thm = 
-  (fn trm =>
-   pure_once_rewrite_conv [thm] trm);
-
-val land_comm_thm =  (
-  push_goal ([],¬µ x y · (x ± y) = (y ± x)®);
-  a (prove_tac []); 
-  pop_thm ()
-);
-val land_comm_conv = thm_conv land_comm_thm;
-
-val land_F_abs_thm = (
-  push_goal ([],¬µ x · (F ± x) = F®);
-  a (prove_tac []); 
-  pop_thm ()
-);
-
-val land_F_abs_conv = thm_conv land_F_abs_thm;
-
-val rec demo_rec_conv = (fn trm => ((land_comm_conv THEN_C ((LEFT_C demo_rec_conv) ORELSE_C id_conv) THEN_C land_F_abs_conv) trm));
-
-set_goal ([],¬ c ± (b ± (a ± F))®);
-a (conv_tac  demo_rec_conv);
-drop_main_goal();
-
-
   val cur_path = OS.FileSys.getDir();  
-  use (cur_path ^ "/psgraph/src/build/proofpower/tinker.ML");
+  use (cur_path ^ "/psgraph/src/core/build/proofpower/tinker.ML");
+
+  open ListUtilities; (* this structure is from pp, and it is overrideed by psgraph*)
 
   use_file1 (cur_path ^ "/psgraph/src/dev/conv/wrk083.sml");
 
@@ -62,3 +37,5 @@ val rec rec_conv =
 			(parametrized_conv THEN_C RIGHT_C (TRY_C rec_conv)))
 				AND_OR_C simp_conv) t
 		);
+
+

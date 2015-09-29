@@ -136,7 +136,7 @@ struct
                     (EData.get_index_current edata) 
                     e)
            ),
-      ("log_info", buffer_to_json ())
+      ("log_info", buffer_to_json () |> EData.PSGraph.from_prover_json)
     ]
 
   fun mk_cmd_str_arg_json args_str_list = 

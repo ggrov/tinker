@@ -272,7 +272,7 @@ struct
     val name = JsonInputUtils.get_string jobj "name"
     val tactic = 
       case JsonInputUtils.get_string jobj "tactic" 
-      of "" =>  eval_ml name 
+      of "" =>  eval_ml ("K " ^ name) 
       | x => eval_ml x
  
     (* val args = (arg_typ_from_json (Json.get jobj "args"))*)
