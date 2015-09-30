@@ -4,13 +4,13 @@ imports
 begin 
  
 (* read and load a psgraph created by gui *)
- 
-ML{*
+  
+ML{* 
   val ps_simple = PSGraph.read_json_file (path ^"demo_simple.psgraph");   
   val ps_eval = PSGraph.read_json_file (path ^"demo_eval.psgraph");
 *}
  
-ML{*-
+ML{* -
   TextSocket.safe_close();
 *}    
 

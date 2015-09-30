@@ -6,7 +6,7 @@ struct
   local open LoggingHandler in 
 
   val DEBUG_ON = true;
-  val if_gui_mode = false;
+  val if_gui_mode = true;
 
   val tab = Unsynchronized.ref 0;
   fun inctab() = (tab := !tab +1);

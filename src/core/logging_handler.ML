@@ -4,7 +4,7 @@ struct
   exception logging_exp of string
 
   val logging_tags = [ 
-    "BASIC_INFO",
+    "GOAL",
     "GOALTYPE",
     "TACTIC",
     "ENV_DATA",
@@ -25,7 +25,7 @@ struct
   fun get_active_tags _ = !active_tags;
   val set_active_tags = fn x => active_tags := x;
 
-  val if_debug = true
+  val if_debug = false
   val logging_handler_print = 
    if if_debug then
    (fn tag => (fn msg =>  
@@ -102,7 +102,7 @@ struct
   
 end
 
-val local_logging_debug = true
+val local_logging_debug = false
 val _ = LoggingHandler.set_logging_handler 
   (fn tag => fn msg => ( if local_logging_debug then LoggingHandler.logging_handler_print tag msg else (); 
     LoggingHandler.logging_handler_gui tag msg));

@@ -3,6 +3,7 @@ struct
 (* symbols and unicodes, as a intermidiate coding to avoid parsing those non-ascii symbols in Json
   this is a translation between PSGraph and GUI *)
   val gui_uni : (string * string) list = [
+     ("¬", "_uni_symb_lnot_"),
      ("∧", "<_uni_symb_land_>"),
      ("⟶", "<_uni_symb_implies_>"),
      ("∀", "<_uni_symb_forall_>"),
@@ -13,6 +14,10 @@ struct
      ("·","<_uni_symb_blackdot_>"),
      ("⟨", "<_uni_symb_l_angle_brk_>"),
      ("⟩", "<_uni_symb_r_angle_brk_>"),
+     ("×", "<_uni_symb_cross_>"),
+     ("→", "<_uni_symb_fun_>"),
+     ("𝕌", "<_uni_symb_bbU_>"),
+     ("Z", "<_uni_symb_bbZ_>"),
      
      ("σ", "<_uni_symb_sigma_>"),
      ("γ", "<_uni_symb_gammar_>"),

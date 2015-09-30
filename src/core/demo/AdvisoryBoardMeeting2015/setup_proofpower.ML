@@ -11,6 +11,7 @@
   (*LoggingHandler.clear_active_tags ();*)
 
   fun rule_tac (arg as [PPProver.A_Str pretty]) = (LoggingHandler.logging "TACTIC" pretty; step_strip_tac);
+  fun rule_tac _ = step_strip_tac;
   fun impI_tac _ = step_strip_tac;
   fun conjI_tac _ = step_strip_tac;
   fun assm_tac  _ = step_strip_tac;

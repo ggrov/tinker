@@ -14,8 +14,8 @@ ML{*-
 *}
 
 ML{*
-fun rule_tac ctxt i (arg as [IsaProver.A_Thm thm]) =  rtac thm i;
-fun assm_tac  _ i _ =  atac i;
+fun rule_tac (arg as [IsaProver.A_Thm thm]) ctxt i =  rtac thm i;
+fun assm_tac _ i =  atac i;
 *}
 
 (* choose which logging info do we want *)

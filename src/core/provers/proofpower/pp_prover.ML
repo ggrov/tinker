@@ -307,6 +307,7 @@ struct
   fun pretty_pplan pnode = Pretty.str "Pretty PPLAN TOTO";
   
   val unicode_symb = [
+   ("≥", "_uni_symb_lnot_"),
    ("±","<_uni_symb_land_>"),
    ("¥", "<_uni_symb_implies_>"),
    ("µ", "<_uni_symb_forall_>"),
@@ -317,6 +318,11 @@ struct
    ("ç", "<_uni_symb_in_>"),
    ("ß", "<_uni_symb_l_angle_brk_>"),
    ("¢", "<_uni_symb_r_angle_brk_>"),
+   ("≠", "<_uni_symb_fun_>"),
+   ("∏", "<_uni_symb_cross_>"),
+   ("É", "<_uni_symb_bbU_>"),
+   ("˙", "<_uni_symb_bbZ_>"),
+
 
    ("”", "<_uni_symb_sigma_>"),
    ("«", "<_uni_symb_gammar_>"),

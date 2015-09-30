@@ -81,7 +81,7 @@ struct
 
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term, env : env } 
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
-  type tactic =  Proof.context -> int -> arg_data list -> Tactical.tactic
+  type tactic =  arg_data list  -> Proof.context -> int -> Tactical.tactic
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
 
   exception env_data_exp
@@ -254,14 +254,14 @@ struct
      [ "[ Goal ",
      (get_pnode_name pnode),
       " : ",
-     pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode) |> Pretty.string_of,
+     term_to_string (get_pnode_ctxt pnode) (get_pnode_concl pnode),
      " ]"] |> Pretty.str
 
   fun pretty_pplan _ = Pretty.str "Pretty PPLAN TOTO";
    
   fun apply_tactic args (tac : tactic) (pnode,pplan) = 
     (*let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in*)
-    tac (#pctxt pnode) (get_index pnode pplan) args (#goal pplan)
+    tac args (#pctxt pnode) (get_index pnode pplan)  (#goal pplan)
     (*|> (fn x =>( writeln "DEBUG: ";Seq.list_of x |> map Thm.prop_of|> map (pretty_trm (#pctxt pnode)) |>map  Pretty.writeln ;x))*)
     |> Seq.maps (update (fn x => [x]) (pnode,pplan))
     |> (fn x => 

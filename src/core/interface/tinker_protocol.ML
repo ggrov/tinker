@@ -12,6 +12,8 @@ struct
   structure EData = IEVal.EData
   structure Prover = EData.PSGraph.Theory.Data.GoalTyp.Prover
   structure TextSocket = TextSocket
+  
+  val if_gui_dbg_mode = true
 
   val buffer_to_json' = EData.PSGraph.from_prover_json o buffer_to_json
 (* if 0 then invalid *)
@@ -20,7 +22,8 @@ struct
   
   type T = ((Json.json -> Json.json) * string) Symtab.table
 
-  fun pp_goal edata =  (fn x => ((EData.pretty_goals edata |> Pretty.writeln) ; x))
+  fun pp_goal edata =  (fn x => ((EData.pretty_goals edata 
+    |> (if if_gui_dbg_mode then (logging "GOAL") o Pretty.string_of else Pretty.writeln)) ; x))
 
   fun get_cmd_name (Json.Object obj) =  
     JsonInputUtils.get_string obj "cmd" 
