@@ -258,6 +258,7 @@ struct
      " ]"] |> Pretty.str
 
   fun pretty_pplan _ = Pretty.str "Pretty PPLAN TOTO";
+  fun restore_pplan _ = ();
    
   fun apply_tactic args (tac : tactic) (pnode,pplan) = 
     (*let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in*)

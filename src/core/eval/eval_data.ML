@@ -215,7 +215,7 @@ local open LoggingHandler in
 
   fun pretty_goals edata = 
     str_chunks
-      ([ "Open goals in the current psgraph :{"] @
+      ([ "Open goals :{"] @
       ((get_pplan edata |> Prover.get_open_pnodes |> map Prover.pretty_pnode) |> map Pretty.string_of) @
       [ "}"]) |> Pretty.str        
 

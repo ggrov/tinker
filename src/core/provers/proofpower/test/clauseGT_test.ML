@@ -29,3 +29,30 @@
   PPIntf.set_psg_goal (SOME ([], ¬A%and%A%and%A®)) (SOME ps);
 
   TextSocket.safe_close();
+
+drop_main_goal();
+val g1 = ([ ¬A®, ¬A%implies%A®], ¬A%and%A%and%A®);
+val g2= ([ ¬A®, ¬A%and%A®], ¬A%and%A%and%A®);
+val g3 = ([ ¬A%and%A%and%A®, ¬A%implies%A®], ¬A%and%A%and%A®);
+
+
+
+val ctxt = PPProver.default_ctxt;
+
+(ClauseGoalTyp.scan_data PPProver.default_ctxt "c(Z) :- top_symbol(concl,Z).");
+
+default_gt_data;
+
+val data = 
+default_gt_data
+|> ClauseGoalTyp.update_data_defs (fn x => (ClauseGoalTyp.scan_data PPProver.default_ctxt "c(Z) :- top_symbol(concl,Z).") @ x)
+|> ClauseGoalTyp.update_data_defs (fn x => (ClauseGoalTyp.scan_data PPProver.default_ctxt "h(Z) :- top_symbol(hyps,Z).") @ x);
+
+ClauseGoalTyp.update_data_defs;
+
+val (pnode,pplan) = PPProver.init PPProver.default_ctxt (fst g2) (snd g2);
+
+ClauseGoalTyp.scan_goaltyp ctxt "c(conj)";
+default_gt_data;
+ClauseGoalTyp.type_check data pnode ("h",[ClauseGoalTyp.Name "conj"]);
+

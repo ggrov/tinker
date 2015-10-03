@@ -60,6 +60,7 @@ sig
   val default_ctxt : context (* used in those places need default general context *)
   val typ_of : term -> typ
   val match : context -> (term * term) -> bool
+  val restore_pplan : pplan -> unit
 
   val get_thm_by_name : context -> string -> thm
   val trm_of_string : context -> string -> term

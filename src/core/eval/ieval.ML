@@ -19,15 +19,19 @@ struct
 
   fun update_branches edata branches = 
    let 
-    val _ = case branches of [] => logging "EVAL" "Err: No new branch is successful, backtrack" | _ => ();
+    val if_backtrack = 
+      case branches of [] => (logging "EVAL" "Err: No new branch is successful, backtrack";true) 
+                      | _ => false;
     val new_branches = branches @ (EData.get_branches edata) 
    in
     case new_branches of 
-      [] => Bad (* this is because tactic fails szx *)
+      [] => Bad (* no more branches *)
       | (x::xs) => (* fixme: this should be based on the search strategy *)
-          Cont (edata 
+          ((if if_backtrack then EData.PSGraph.Theory.Data.GoalTyp.Prover.restore_pplan (EData.get_bpplan x) 
+            else ());
+           Cont (edata 
                 |> EData.set_current x 
-                |> EData.set_branches xs)
+                |> EData.set_branches xs))
    end
 
   fun eval_goal0 if_debug node_name edata = 
