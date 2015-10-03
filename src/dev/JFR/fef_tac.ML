@@ -1,4 +1,4 @@
-use (OS.FileSys.getDir() ^ "/psgraph/src/dev/conv/fef_setup.ML");
+use (OS.FileSys.getDir() ^ "/psgraph/src/dev/JFR/fef_setup.ML");
 (******************************************)
 (* definitions for tactics *)
 (******************************************)

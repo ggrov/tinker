@@ -150,18 +150,16 @@ top_symbol(IsaProver.get_pnode_env pnode) pnode [C.Var "X", C.Name "implies"];
 
 
 ML{*  
-  fun rule_tac ctxt i (arg as [IsaProver.A_Str thm_name]) =  rtac (IsaProver.get_thm_by_name ctxt thm_name) i;
-  fun id_tac  _ _ _  = all_tac;
-  val ps =
-   PSGraph.read_json_file (path^"clause_demo.psgraph")
+  val ps = 
+   PSGraph.read_json_file (path^"test.psgraph")
    |> PSGraph.set_goaltype_data data;       
 *}
 
-ML{*- 
+ML{* -
   TextSocket.safe_close();
 *}
 
 ML{*-
-Tinker.start_ieval @{context} ps [] @{prop "A \<longrightarrow> A \<longrightarrow> A"};
+Tinker.start_ieval @{context} (SOME ps) (SOME []) (SOME @{prop "A \<longrightarrow> A \<longrightarrow> A"});
 *}
 

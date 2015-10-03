@@ -3,7 +3,7 @@
 
   open ListUtilities; (* this structure is from pp, and it is overrideed by psgraph*)
 
-  use_file1 (cur_path ^ "/psgraph/src/dev/conv/wrk083.sml");
+  use_file1 (cur_path ^ "/psgraph/src/dev/JFR/wrk083.sml");
 
   fun lift_conv_tac (conv : CONV) (conv_args : CONV) TACTIC = 
     (fn (assms, g) => 
