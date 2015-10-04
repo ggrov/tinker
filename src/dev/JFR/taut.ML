@@ -1,3 +1,6 @@
+open_theory "z_library";
+set_pc "z_library1";
+
 (* load the definition of taut_tac *) 
   use_file1 (OS.FileSys.getDir()  ^ "/psgraph/src/dev/JFR/pp_taut.sml");
 
@@ -15,13 +18,10 @@
   PPIntf.set_psg_goal (SOME ([],¬(A ± B) ´ (B ± A)®)) (SOME taut_v1);
 
 (* Version 3, add goaltype *)
-
  val data = 
   default_gt_data
   |> ClauseGoalTyp.update_data_defs (fn x => (ClauseGoalTyp.scan_data PPProver.default_ctxt "c(Z) :- top_symbol(concl,Z).") @ x)
   |> ClauseGoalTyp.update_data_defs (fn x => (ClauseGoalTyp.scan_data PPProver.default_ctxt "h(Z) :- top_symbol(hyps,Z).") @ x);
-
-
 
 (* read and load a psgraph created by gui *)
   val ps = PSGraph.read_json_file (path^"clause_demo.psgraph")|> PSGraph.set_goaltype_data data; 
@@ -29,18 +29,24 @@
 ±_tac;
 
 get_pcs ();
-open_theory "z_library";
- set_pc "z_library1";
+
+
+PPProver.init ;
+val (pnode,pplan) = 
+PPProver.init PPProver.default_ctxt (fst g1) (snd g1);
+
+val g1 : GOAL = ([],¬(A ± T)®);
 set_goal ([],¬(A ± B) ´ (T)®);
 a (step_strip_tac);
 a t_tac;
 a ±_tac;
 
 
-val ps = PSGraph.read_json_file (pspath^"test.psgraph");
+val ps = PSGraph.read_json_file (pspath^"branching.psgraph");
 
-PPIntf.set_psg_goal (SOME ([],¬(A ± T)®)) (SOME ps);
+PPIntf.set_psg_goal (SOME g1) (SOME ps);
 TextSocket.safe_close();
 
 use_string "±_tac";
 Seq.empty;
+true;

@@ -75,7 +75,7 @@ struct
       gstate: GOAL_STATE (* used for backtracking *)}
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq (* in pp, tactic is deteminted, seq is always singleton *)
    
-   fun restore_pplan (pplan : pplan) = (drop_main_goal (); push_goal_state (#gstate pplan))
+   fun restore_pplan (pplan : pplan) = (logging "FAILURE" "Restoring pplan for backtracking" ; drop_main_goal (); push_goal_state (#gstate pplan))
   
   exception env_data_exp
   val exec_str = use_string;
@@ -288,7 +288,7 @@ struct
     |> Seq.of_list 
     handle BasicError.Fail msg => 
       (logging "FAILURE" ("In pnode " ^ get_pnode_name pnode ^ ":" ^ BasicError.get_message msg); 
-               raise tinker_fail false)(* Seq.empty *);
+               (*raise tinker_fail false*) Seq.empty );
     (*end*)
 
   (* Update the env and then apply a dummy id tac in isabelle *)

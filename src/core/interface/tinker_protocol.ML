@@ -13,7 +13,7 @@ struct
   structure Prover = EData.PSGraph.Theory.Data.GoalTyp.Prover
   structure TextSocket = TextSocket
   
-  val if_gui_dbg_mode = false
+  val if_gui_dbg_mode = true
 
   val buffer_to_json' = EData.PSGraph.from_prover_json o buffer_to_json
 (* if 0 then invalid *)
