@@ -5,7 +5,11 @@ struct
   val gui_uni : (string * string) list = [
      ("¬", "_uni_symb_lnot_"),
      ("∧", "<_uni_symb_land_>"),
+     ("∨","<_uni_symb_lor_>"),
      ("⟶", "<_uni_symb_implies_>"),
+     ("⇒", "<_uni_symb_implies2_>"),
+     ("⟷", "<_uni_symb_equiv_>"),
+     ("⇔", "<_uni_symb_equiv2_>"),
      ("∀", "<_uni_symb_forall_>"),
      ("∃", "<_uni_symb_exists_>"),
      ("≠", "<_uni_symb_neq_>"),

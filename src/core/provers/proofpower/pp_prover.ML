@@ -106,7 +106,12 @@ struct
   val concl_of_thm = concl
   val asms_of_thm =  asms
   (* get asm of thm - asms*)
-  fun trm_of_string _ str = Term_ML_Exec.eval_ml ("%<%"^str^"%>%")
+  fun trm_of_string _ str = 
+    let val str' = case str 
+    of "true" => "T"
+     | "false" => "F"
+     | _ => str in 
+    Term_ML_Exec.eval_ml ("%<%"^str'^"%>%") end
    handle _ => (logging "FAILURE" ("Fail to parse string to term: " ^ str); raise tinker_fail true);
    
   val prop_of_string = trm_of_string
@@ -308,7 +313,9 @@ struct
   val unicode_symb = [
    ("³", "_uni_symb_lnot_"),
    ("±","<_uni_symb_land_>"),
-   ("´", "<_uni_symb_implies_>"),
+   ("²","<_uni_symb_lor_>"),
+   ("´", "<_uni_symb_implies2_>"),
+   ("¤", "<_uni_symb_equiv2_>"),
    ("µ", "<_uni_symb_forall_>"),
    ("¶", "<_uni_symb_exists_>"),
    ("½", "<_uni_symb_neq_>"),

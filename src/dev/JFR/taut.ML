@@ -1,6 +1,3 @@
-open_theory "z_library";
-set_pc "z_library1";
-
 (* load the definition of taut_tac *) 
   use_file1 (OS.FileSys.getDir()  ^ "/psgraph/src/dev/JFR/pp_taut.sml");
 
@@ -9,8 +6,27 @@ set_pc "z_library1";
   val tinker_path = OS.FileSys.getDir()  ^ "/psgraph/";
   val pspath = tinker_path ^ "src/dev/psgraph/";
 
+ open_theory "hol";
+ set_pc "hol";
+
 (* open the definition of taut *) 
   open PP_Taut;
+
+(* Setup GoalType and Tac def *)
+ val data = 
+  default_gt_data
+  |> ClauseGoalTyp.update_data_defs (fn x => (ClauseGoalTyp.scan_data PPProver.default_ctxt "c(Z) :- top_symbol(concl,Z).") @ x)
+  |> ClauseGoalTyp.update_data_defs (fn x => (ClauseGoalTyp.scan_data PPProver.default_ctxt "h(Z) :- top_symbol(hyps,Z).") @ x)
+  |>  ClauseGoalTyp.update_data_defs (fn x => (ClauseGoalTyp.scan_data PPProver.default_ctxt "c_and_rand_not_var(Z) :- c(Z), rand_trm(concl, X), is_not_trm_var(X).") @ x);
+
+fun taut_strip_concl thm_l = 
+  conv_tac (eqn_cxt_conv (map thm_eqn_cxt thm_l));
+val strip_²_concl_tac = taut_strip_concl [a_²_³b_thm, ³a_²_b_thm, a_²_b_thm];
+val strip_¤_concl_tac = taut_strip_concl [´_thm, ¤_thm]
+val strip_³_concl_tac = taut_strip_concl [³_³_thm, ³_±_thm, ³_²_thm, ³_´_thm, ³_¤_thm, ³_t_thm, ³_f_thm, ³_if_thm];
+val strip_if_concl_tac = taut_strip_concl [local_if_thm];
+val strip_´_concl_tac = (´_T (asm_tac));
+
 
 (* Version 1, just a loop *)
  val taut_v1 = PSGraph.read_json_file (pspath ^"simple_taut_tac_V1.psgraph");
@@ -18,35 +34,44 @@ set_pc "z_library1";
   PPIntf.set_psg_goal (SOME ([],¬(A ± B) ´ (B ± A)®)) (SOME taut_v1);
 
 (* Version 3, add goaltype *)
- val data = 
-  default_gt_data
-  |> ClauseGoalTyp.update_data_defs (fn x => (ClauseGoalTyp.scan_data PPProver.default_ctxt "c(Z) :- top_symbol(concl,Z).") @ x)
-  |> ClauseGoalTyp.update_data_defs (fn x => (ClauseGoalTyp.scan_data PPProver.default_ctxt "h(Z) :- top_symbol(hyps,Z).") @ x);
+ val taut_v3 = PSGraph.read_json_file (pspath ^"simple_taut_tac_V3.psgraph") |> PSGraph.set_goaltype_data data; 
 
-(* read and load a psgraph created by gui *)
-  val ps = PSGraph.read_json_file (path^"clause_demo.psgraph")|> PSGraph.set_goaltype_data data; 
-
-±_tac;
-
-get_pcs ();
+ PPIntf.set_psg_goal (SOME g3) (SOME taut_v3);
 
 
-PPProver.init ;
-val (pnode,pplan) = 
-PPProver.init PPProver.default_ctxt (fst g1) (snd g1);
 
-val g1 : GOAL = ([],¬(A ± T)®);
-set_goal ([],¬(A ± B) ´ (T)®);
-a (step_strip_tac);
-a t_tac;
-a ±_tac;
 
 
 val ps = PSGraph.read_json_file (pspath^"branching.psgraph");
 
-PPIntf.set_psg_goal (SOME g1) (SOME ps);
+PPIntf.set_psg_goal (SOME g1) (SOME a);
 TextSocket.safe_close();
 
-use_string "±_tac";
-Seq.empty;
-true;
+val (pnode,pplan) = PPProver.init PPProver.default_ctxt (fst g1) (snd g1);
+val g1 : GOAL = ([],¬(A ± T)´B®);
+val g2 : GOAL = ([¬B±A®],¬A ± B®);
+val g3 : GOAL = ([],¬B±A´A ± B®);
+val g4 : GOAL = ([],¬A´B®);
+val g5 : GOAL = ([],¬³ (B)®);
+
+val ctxt = PPProver.default_ctxt;
+ClauseGoalTyp.scan_goaltyp ctxt "c(?X)";
+
+"c(conj)";
+default_gt_data;
+data;
+
+ClauseGoalTyp.type_check data pnode ("c_and_rand_not_var",[ClauseGoalTyp.Name "not"]);
+
+ClauseGoalTyp.type_check data pnode ("rand_trm",[ClauseGoalTyp.Concl, ClauseGoalTyp.Var "X"]);
+
+
+  val data = ClauseGoalTyp.add_atomic "rand_trm" rand_trm ClauseGoalTyp.default_data; 
+
+set_goal g4;
+a simple_taut_tac;
+
+asm_tac;
+dest_app ¬³(F)® |> snd |> not o is_var;
+is_const;
+is_var;
