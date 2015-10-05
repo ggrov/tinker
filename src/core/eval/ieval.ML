@@ -53,13 +53,15 @@ struct
        raise tinker_fail true)
   
   val eval_goal = eval_goal0 false;
+  
 (* need to restore pom depends on provers *)
   fun eval_backtrack edata = 
    case EData.get_branches edata  
-   of [] => Bad
+   of [] => (logging "FAILURE" "No branch available for backtracking" ; Bad)
     | branch  => 
+        (EData.PSGraph.Theory.Data.GoalTyp.Prover.restore_pplan (EData.get_bpplan (hd branch));
         Cont( EData.set_current (hd branch) edata 
-              |> EData.set_branches (tl branch)) 
+              |> EData.set_branches (tl branch)))
 
   fun eval_any0 if_debug edata = 
    let 

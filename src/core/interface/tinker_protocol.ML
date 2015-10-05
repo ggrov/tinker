@@ -126,6 +126,9 @@ struct
         of "OPT_EVAL_NEXT" => 
           (eval_fn gnode edata0 |> make_ret_reuslt
           handle tinker_fail _ => raise tinker_fail true)
+        | "OPT_EVAL_BACKTRACK" => 
+          (IEVal.eval_backtrack edata0 |> make_ret_reuslt
+          handle tinker_fail _ => raise tinker_fail true)
         | "OPT_EVAL_STEP_INTO" => 
           (eval_fn gnode edata0 |> make_ret_reuslt
            handle tinker_fail _ => raise tinker_fail true)
@@ -226,7 +229,7 @@ struct
       (case get_cmd_name json_output
          of "CMD_CLOSE_CONNECT" => () (* do nothing and exit: need to be consider what to do *)
           | "CMD_END_EVAL_SESSION" => send_msg (Json.encode json_output) (* send to stop cmd and quit *)
-          | "RSP_EXCEPTION" => send_msg (Json.encode json_output) (* end session and flash out the exception string*)
+        (*  | "RSP_EXCEPTION" => send_msg (Json.encode json_output) *)(* end session and flash out the exception string*)
           | "RSP_MESSAGE_ERROR" => ()
           | "Dummy_RSP" => ((); protocol_loop s)
           | "PRINT_ONLY_RSP" => 

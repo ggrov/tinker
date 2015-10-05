@@ -288,7 +288,7 @@ struct
     |> Seq.of_list 
     handle BasicError.Fail msg => 
       (logging "FAILURE" ("In pnode " ^ get_pnode_name pnode ^ ":" ^ BasicError.get_message msg); 
-               (*raise tinker_fail false*) Seq.empty );
+               raise tinker_fail false (*Seq.empty*) );
     (*end*)
 
   (* Update the env and then apply a dummy id tac in isabelle *)
