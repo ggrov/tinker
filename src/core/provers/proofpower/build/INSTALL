@@ -1,58 +1,46 @@
-**** INSTALLATION *****
------------------------------------
-Downloading and Installing ProofPower
------------------------------------
+1）assume that the quantomatics repo and the psgraph are cloned in the same folder, for example,
+ 
+   $SOME_PATH/tinker 
 
-Go to 
+we can check the readme file to make sure the path is correct, e.g. the readme for quantomatoics repo will be
 
- http://www.lemma-one.com/ProofPower/getting/versions/
+   $SOME_PATH/tinker/quantomatic/README
 
-and install ProofPower
+similarly, the readme for the psgtarph repo will be 
 
-------------------------------------
-Downloading and Installing Quantomatic
------------------------------------
-get the quantomatic library (requires git)
+   $SOME_PATH/tinker/psgraph/Readme
 
-  git clone git://github.com/Quantomatic/quantomatic.git
-  cd quantomatic
-  git checkout integration
-  git pull
-  
+Note that both repo need to be latest version.
 
-------------------------------------
-Building quanto + psgraph on the top of pp
------------------------------------  
+2) go to the tinker folder by
 
-Create a pp db/heap based on zed theory
-  pp_make_database -p zed $PPHOME/db/zed_psgraph
+	cd $SOME_PATH/tinker 
 
-clean up previous bulid
-  find . -type d -name .polysave | xargs rm -rf
-  find . -type f -name *.heap | xargs rm -rf
-  
-go to the build direcory:
-  cd PSGRAPHDIR/src/provers/proofpower/build
+ then to make the psgraph db, using 
 
-start pp with the fresh empty db
-  xpp -d zed_psgraph
+	pp_make_database -p zed psgraph
 
-in the poly ml interface: 
-build quanto + psgraph
-  use "install.ml";
+3) then to open the psgraph db in the same directory, i.e.
 
-  
-------------------------------------
-Building PSGraph
------------------------------------  
-now the db zed_psgraph should contain the quantomatic library, 
-load this db directly
+ 	xpp -d psgraph
 
-  xpp -d zed_psgraph
+4) in the cpp, to open the install file in
 
-to build PSGraph
+	$SOME_PATH/tinker/psgraph/src/core/provers/proofpower/build/install.ML
 
-  use "build_psgraph.ml";
+then to run this run to compile the required library into the psgraph db. 
+
+5) now the psgraph db should be ok to load psgraph and run and run some experiments, no need to do steps 1 - 4 from this point.
+
+6) to run some examples, open the psgraph db under
+	$SOME_PATH/tinker 
+by
+	xpp -d psgraph
+
+then open the following demo file in the pp to see if the tool can run correctly
+	$SOME_PATH/tinker /psgraph/src/core/demo/AdvisoryBoardMeeting2015/tinker_proofpower
 
 
-
+The line 
+	PPIntf.set_psg_goal
+is to ask pp to connect gui for proofs. Note that to enable gui to accept the connection from pp.
