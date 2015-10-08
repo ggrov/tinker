@@ -22,6 +22,7 @@
                                      val prover_socket_port = 0);
 (* load the library for term manipulation and goal type predicates *)
   use_file "../clasueGT_lib.ML";
+  use_file "../env_tac_lib.ML";
 
   use "../pp_intf.ML"; 
 

@@ -23,6 +23,16 @@ ML{*-
   val sys = "linux"
 *}
 
+
+
+ML{*   -
+  TextSocket.safe_close();
+*}
+ML{* -
+Tinker.start_ieval @{context} (NONE) (SOME []) (SOME @{prop "P\<longrightarrow> P"});
+*}
+
+
 ML{*
   set_guiPath guiPath sys;
 *}
@@ -160,6 +170,6 @@ ML{* -
 *}
 
 ML{*-
-Tinker.start_ieval @{context} (SOME ps) (SOME []) (SOME @{prop "A \<longrightarrow> A \<longrightarrow> A"});
+Tinker.start_ieval @{context} (NONE) (SOME []) (SOME @{prop "A \<longrightarrow> A \<longrightarrow> A"});
 *}
 

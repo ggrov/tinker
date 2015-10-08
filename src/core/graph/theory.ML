@@ -39,7 +39,7 @@ sig
     val mk_lhs : Graph.T -> V.name -> Graph.T list
     val out_edges : Graph.T -> V.name -> E.NSet.name list
     val output_boundary : Graph.T -> (V.name * (E.name * Graph.edata) * V.name) list
-    val parse_arg_data : Data.GoalTyp.Prover.context -> Data.GoalTyp.Prover.env 
+    val parse_arg_data : Data.GoalTyp.Prover.context -> Data.GoalTyp.Prover.pnode 
         -> Data.arg_typ -> Data.GoalTyp.Prover.arg_data list
     val rewrite : Rule.T -> Graph.T -> Graph.T list 
     val rewrite_lazy : Rule.T -> Graph.T -> Graph.T Seq.seq
@@ -312,21 +312,27 @@ struct
     handle Fail _ => NONE
   end
   
-  fun parse_arg_data ctxt env args = 
+  fun parse_arg_data ctxt pnode args = 
+    let val env = GoalTyp.Prover.get_pnode_env pnode in
     map 
     (fn arg (* [def, type] / [?env_var]*) 
-      => if List.length arg = 1  (* env var *)
-         then  (StrName.NTab.get env (Option.valOf (parse_env_var_name (hd arg))) |> GoalTyp.Prover.env_to_arg
-         handle _ => (logging "FAILURE" ("fail to parse arg: " ^ (hd arg)); raise tinker_fail true))
+      => if List.length arg = 1  (* env var or predefine antiqunto, e.g. Hyps, Concl *)
+         then case (hd arg) 
+           of "Concl" => GoalTyp.Prover.get_pnode_concl pnode |> GoalTyp.Prover.A_Trm
+           |  "Hyps" => GoalTyp.Prover.get_pnode_hyps pnode |> GoalTyp.Prover.A_L_Trm
+           |  _ =>
+            (StrName.NTab.get env (Option.valOf (parse_env_var_name (hd arg))) |> GoalTyp.Prover.env_to_arg
+             handle _ => (logging "FAILURE" ("fail to parse arg: " ^ (hd arg)); raise tinker_fail true))
          else 
           case List.nth (arg, 1) 
             of "term" => hd arg |> GoalTyp.Prover.trm_of_string ctxt |> GoalTyp.Prover.A_Trm
             | "thm" => hd arg |> GoalTyp.Prover.get_thm_by_name ctxt |> GoalTyp.Prover.A_Thm
             | "string" => hd arg |> GoalTyp.Prover.A_Str
+            | "var" => hd arg |> GoalTyp.Prover.A_Var
             | x => (logging "FAILURE" ("Unknown arg data typ in : " ^ x); raise tinker_fail true)
 
     )
-    args 
+    args end
     
 
 

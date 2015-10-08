@@ -38,19 +38,15 @@ val strip_´_concl_tac = (´_T (asm_tac));
 
  PPIntf.set_psg_goal (SOME g3) (SOME taut_v3);
 
-
-
-
-
 val ps = PSGraph.read_json_file (pspath^"branching.psgraph");
 
 PPIntf.set_psg_goal (SOME g1) (SOME a);
 TextSocket.safe_close();
 
-val (pnode,pplan) = PPProver.init PPProver.default_ctxt (fst g1) (snd g1);
+val (pnode,pplan) = PPProver.init PPProver.default_ctxt (fst g3) (snd g3);
 val g1 : GOAL = ([],¬(A ± T)´B®);
-val g2 : GOAL = ([¬B±A®],¬A ± B®);
-val g3 : GOAL = ([],¬B±A´A ± B®);
+val g2 : GOAL = ([¬B ± A®],¬A ± B®);
+val g3 : GOAL = ([],¬if a then F else T®);
 val g4 : GOAL = ([],¬A´B®);
 val g5 : GOAL = ([],¬³ (B)®);
 
@@ -63,7 +59,7 @@ data;
 
 ClauseGoalTyp.type_check data pnode ("c_and_rand_not_var",[ClauseGoalTyp.Name "not"]);
 
-ClauseGoalTyp.type_check data pnode ("rand_trm",[ClauseGoalTyp.Concl, ClauseGoalTyp.Var "X"]);
+ClauseGoalTyp.type_check data pnode ("c",[ClauseGoalTyp.Name "Cond"]);
 
 
   val data = ClauseGoalTyp.add_atomic "rand_trm" rand_trm ClauseGoalTyp.default_data; 
@@ -72,6 +68,11 @@ set_goal g4;
 a simple_taut_tac;
 
 asm_tac;
-dest_app ¬³(F)® |> snd |> not o is_var;
+dest_simple_term ¬if a then b else c® ;
+dest_%implies% ¬a %implies% b® ;
+
+
+(* arg_data list -> env -> env list *)
+
 is_const;
 is_var;

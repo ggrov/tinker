@@ -32,7 +32,7 @@ struct
          val env = Prover.get_pnode_env pnode
          val ctxt = Prover.get_pnode_ctxt pnode
          val name = (GData.get_nvdata_name (GData.T_Atomic atom))
-         val arg_list = (GData.get_nvdata_args (GData.T_Atomic atom)) |> parse_arg_data ctxt env
+         val arg_list = (GData.get_nvdata_args (GData.T_Atomic atom)) |> parse_arg_data ctxt pnode
        in  
         if is_env_tactic_name name 
         then 
