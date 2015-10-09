@@ -1,10 +1,26 @@
-  use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
-  val tinker_path = OS.FileSys.getDir()  ^ "/psgraph/";
-  val pspath = tinker_path ^ "src/dev/psgraph/";
+ use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
+ val tinker_path = OS.FileSys.getDir()  ^ "/psgraph/";
+ val pspath = tinker_path ^ "src/dev/psgraph/";
 
  open_theory "hol";
  set_pc "hol";
 
+(* definitions for gts in basic prove exists *)
+ fun is_pair_in_exists env pnode _ = 
+  let val _ = PPProver.get_pnode_concl pnode in [env]
+ handle Fail _ => [] end;
+
+
+ val data = 
+  default_gt_data
+  |> ClauseGoalTyp.add_atomic "is_pair_in_exists" is_pair_in_exists
+;
+(*  |> ClauseGoalTyp.update_data_defs (fn x => (ClauseGoalTyp.scan_data PPProver.default_ctxt "c(Z) :- top_symbol(concl,Z).") @ x) *)
+
+
+ val ps = PSGraph.read_json_file (pspath ^"basic_prove_exists_tac.psgraph") |>   PSGraph.set_goaltype_data data; 
+
+ PPIntf.set_psg_goal (SOME g) (SOME ps);
 
 if snd(dest_¤(concl s1)) =$ mk_t
 	then accept_tac (¤_t_elim s1) 

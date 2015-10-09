@@ -107,15 +107,15 @@ struct
       fun make_ret_reuslt edata_result = 
        case edata_result 
         of (IEVal.Cont edata1) => 
-             (set_data edata1;
+             (set_data edata1;pp_goal edata1 ();
               IEVal.output_json "CMD_UPDATE_PSGRAPH" 
                (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
-               edata1) |> pp_goal edata1
+               edata1) 
         | (IEVal.Good edata1) => 
-            (set_data edata1;
+            (set_data edata1;pp_goal edata1 ();
              IEVal.output_json "CMD_UPDATE_PSGRAPH" 
               (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
-              edata1) |> pp_goal edata1
+              edata1)
         |(IEVal.Bad) => 
             (logging "EVAL" "No subsequent eval status: Bad";
             IEVal.output_json "CMD_UPDATE_PSGRAPH" 
