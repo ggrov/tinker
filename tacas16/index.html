@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Tinker - TACAS 16 paper ressources</title>
+
+	<link rel=stylesheet href="style/main.css">
+</head>
+<body>
+	<header id="header" class="">
+	<div>
+		
+		<h1>Tinker - TACAS 16 paper ressources</h1>
+		<h3>Authors : Y. Lin, P. Le Bras and G. Grov</h3>
+	</div>
+	</header><!-- /header -->
+	<div class="container">
+		<div class="section" id="intro">
+			<h2>Foreword</h2>
+			<hr>
+			<p>This webpage aims to present ressources used for our tool presentation.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+		</div>
+		<div class="section" id="proof">
+			<h2>Proof recording</h2>
+			<hr>
+			<div>
+				
+			</div>
+		</div>
+		<div class="section" id="demo">
+			<h2>Tool demo</h2>
+			<hr>
+			<ul>
+			    <li><a onclick="changeVideoSource(0)">Video 1</a></li>
+			    <li><a onclick="changeVideoSource(1)">Video 2</a></li>
+			    <li><a onclick="changeVideoSource(2)">Video 3</a></li>
+			</ul>
+			<div id="vidContainer">
+				<iframe id="vid" width="680" height="390" src="">
+				</iframe>
+			</div>
+			<script>
+				var videosSource = ["https://www.youtube.com/embed/pztDbROyspk","https://www.youtube.com/embed/rug2I4Is7ms","https://www.youtube.com/embed/CMVSyxU1SdE"]
+				function changeVideoSource(index){
+					document.getElementById("vid").setAttribute("src",videosSource[index])
+				}
+				document.getElementById("vid").setAttribute("src",videosSource[0])
+			</script>
+		</div>
+		<div class="section" id="ressources">
+			<h2>Example files</h2>
+			<hr>
+			<p>PP file can be found <a href="ressources/dummy1.txt" title="">here</a>. Psgraph file <a href="ressources/dummy2.txt" title="">here</a>.</p>
+		</div>
+	</div>
+</body>
+</html>
