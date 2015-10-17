@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Tinker - user guide</title>
+	<link rel="stylesheet" type="text/css" href="main.css">
+</head>
+<body>
+	<header id="header" class="">
+	<div>
+		<h1>Tinker - user guide</h1>
+	</div>
+	</header>
+	<div class="container">
+		<div class="section" id="toc">
+			<h2>Contents</h2>
+			<hr>
+			<ul>
+				<!-- <li><a href="#preamble">Preamble</a></li> -->
+				<li><a href="#getStart">Getting started</a>
+					<ul>
+						<li><a href="#install">Installation</a></li>
+						<li><a href="#interface">The interface</a></li>
+					</ul>
+				</li>
+				<li><a href="#edition">PSGraph edition</a>
+					<ul>
+						<li><a href="#graphDrawing">Drawing a graph</a>
+							<ul>
+								<li><a href="#editControls">Controls</a></li>
+								<li><a href="#nodeTac">Nodes and tactics</a></li>
+								<li><a href="#edge">Edges</a></li>
+								<li><a href="#psgraphLib">PSGraphs library</a></li>
+								<li><a href="#unicode">Using unicode characters</a></li>
+							</ul>
+						</li>
+						<li><a href="#hierarchy">Hierarchies</a></li>
+					</ul>
+				</li>
+				<li><a href="#evaluation">PSGraph evaluation</a>
+					<ul>
+						<li><a href="#evalSetup">Evaluation setup</a>
+							<ul>
+								<li><a href="#evalSetupGUI">GUI</a></li>
+								<li><a href="#evalSetupProver">Prover</a></li>
+							</ul>
+						</li>
+						<li><a href="#evalStart">Starting the evaluation</a></li>
+						<li><a href="#evalRun">Running the evaluation</a>
+							<ul>
+								<li><a href="#evalOption">Evaluation options</a></li>
+								<li><a href="#evalLog">Evaluation log</a></li>
+							</ul>
+						</li>
+						<li><a href="#editEval">Editing while evaluating</a></li>
+					</ul>
+				</li>
+				<li><a href="#saveExport">Saving and exporting psgraphs</a></li>
+				<li><a href="#webapp">Web application</a>
+				</li>
+			</ul>
+		</div>
+
+		<div class="section" id="getStart">
+			<h2>Getting started</h2>
+			<hr>
+			<div class="subsection" id="install">
+				<h3>Installation</h3>
+				<hr>
+				<p>Download the archive file on the <a href="../">website</a> and extract it.</p>
+				<p style="color:red;">intalling prover</p>
+				<p>Under the directory <i>tinkerGUI</i> you will find the files for the GUI :</p>
+				<ul>
+				    <li><i>tinkerGUI-[version].jar</i> the jar file actually running the GUI (a Java Virtual Machine is necessary to run it) ;</li>
+				    <li><i>guiLauncher_[os-version].so/dll</i> a C library allowing the GUI to be launched from a prover ;</li>
+				    <li><i>unicodeConfig</i> a Json file listing customisable shortcuts for unicode characters ;</li>
+				    <li><i>web app</i> a directory containing template files to build a tinker web application.</li>
+				</ul>
+				<p>To run the GUI the <i>.jar</i> should have the permission to be executed, then a double-click will launched it. Alternatively it can be launched by opening a console and entering the following commands :
+				</p>
+				<p class="code">
+					$ cd path/to/tinkerGUI <br>
+					$ java -jar tinker-[version].jar
+				</p>
+			</div>
+			<div class="subsection" id="interface">
+				<h3>The interface</h3>
+				<hr>
+				<div class="imgContainer">
+					<img src="img/fullAppStartup.png" alt="" width="500">
+					<img src="img/fullAppSchema.png" alt="" width="500">
+					<br>
+					<p class="legend">Fig.1 Tinker GUI on start (left) and Tinker GUI explained (right).</p>
+				</div>
+				<p>Figure 1 (left) presents the interface on its startup, i.e. with an empty project. The interface is divided in different parts (see figure 1 right) :</p>
+				<ul>
+				    <li>a menu bar on the top ;</li>
+				    <li>library panels (one file tree and one preview panel) on the left ;</li>
+				    <li>a central graph editing area ;</li>
+				    <li>drawing and evaluation controls on top of the editing area as well as hierarchy utilities ;</li>
+				    <li>a hierarchical node inspector on the right ;</li>
+				    <li>an information panel (for node or edges) below.</li>
+				</ul>
+			</div>
+		</div>
+
+		<div class="section" id="edition">
+			<h2>PSGraph edition</h2>
+			<hr>
+			<div class="subsection" id="graphDrawing">
+				<h3>Drawing a graph</h3>
+				<hr>
+
+				<h4 id="editControls">Controls</h4>
+				<div class="imgContainer">
+					<img src="img/appDrawControls.png" alt="" width="500">
+					<p class="legend">Fig.2 Drawing controls buttons.</p>
+				</div>
+				<p>On top of the main graph area five drawing modes can be selected :</p>
+				<ul>
+					<li>the <b>Select</b> mode (<img src="img/appIcons/selectMode.png" alt="">) allows you to select a node on the graph, to display its information, move it on the graph (by dragging it) or even edit the tactic it is linked to (double click). You can also select multiple nodes at the same time by dragging a selection box around them or holding the <i>Shift</i> key while clicking on them. This mode can also be selected by pressing the <i>S</i> key ;</li>
+					<li>the <b>Draw identity tactic</b> mode (<img src="img/appIcons/drawIdMode.png" alt="">) allows you to add an identity tactic node on the graph. This can also be done via the context menu (right-click on a empty area in the graph), selecting the <i>Add an identity node</i> option. This mode can also be selected by pressing the <i>I</i> key ;</li>
+					<li>the <b>Draw atomic tactic</b> mode (<img src="img/appIcons/drawAtmMode.png" alt="">) allows you to add an atomic tactic node on the graph. This can also be done via the context menu (right-click on a empty area in the graph), selecting the <i>Add an atomic tactic node</i> option. This mode can also be selected by pressing the <i>A</i> key ;</li>
+					<li>the <b>Draw graph tactic</b> mode (<img src="img/appIcons/drawNstMode.png" alt="">) allows you to add a graph tactic node on the graph. This can also be done via the context menu (right-click on a empty area in the graph), selecting the <i>Add a graph tactic node</i> option. This mode can also be selected by pressing the <i>N</i> key ;</li>
+					<li>the <b>Draw edge</b> mode (<img src="img/appIcons/drawEdgeMode.png" alt="">) allows you to add an edge on the graph. This mode can also be selected by pressing the <i>E</i> key.</li>
+				</ul>
+				<p>Also note that you can :</p>
+				<ul>
+					<li>copy and paste nodes using <i>Ctrl+C</i> and <i>Ctrl+V</i> ;</li>
+					<li>delete a selected node by pressing the <i>Delete</i> key ;</li>
+					<li>undo and redo actions using <i>Ctrl+Z</i> and <i>Ctrl+Shift+Z</i>.</li>
+				</ul>
+
+				<h4 id="nodeTac">Nodes and tactics</h4>
+				<div class="imgContainer">
+					<img src="img/tacticCreation.png" alt="" width="250">
+					<img src="img/sameNameConfirm.png" alt="" width="400">
+					<br>
+					<p class="legend">Fig.3 Creating a graph tactic named nested (left) and Confirmation dialog in case a name is already taken (right).</p>
+				</div>
+				<p>To use a tactic in a psgraph you should first draw a tactic node on the graph area. Drawing an atomic or graph tactic node will launch a dialog where can edit the name of your tactic and, in the case of graph tactics, specify the branching type, i.e. <i>OR</i> or <i>ORELSE</i> (see figure 3 left). In the case that this name is already taken by another tactic of the same type, another dialog will ask your confirmation to link this node with this existing tactic (see figure 3 right).</p>
+				<p>Each node can also take arguments. To specify arguments insert them between parenthesis after the tactic name. Arguments are linked to nodes therefore for the same tactic <i>A</i> there can be two nodes : one taking an argument <i>x</i> (write <i>A(x)</i> in the name field when creating the tactic) and one taking two arguments <i>y</i> and <i>z</i> (write <i>A(y,z)</i>). Arguments are separated by commas.</p>
+				<div class="imgContainer">
+					<img src="img/appNodeInfoPanel.png" alt="" width="400">
+					<br>
+					<p class="legend">Fig.4 Node Information Panel.</p>
+				</div>
+				<p>You can check the informations of a node by selecting it, these information will appear in the <i>Node Information</i> panel (see figure 4). The informations displayed in this panel will depend on the type of node selected. Also this panel offers a range of actions, again depending on the type of node selected.</p>
+				<p>To update a tactic name or the arguments used by a node : double click on the node (in selection mode) or right-click on it and select the <i>Edit node</i> option or in the node information panel select the edit icon (<img src="img/appIcons/edit.png">). A dialog will then appear, similar to the node creation dialog. If a duplicated tactic (i.e. linked to more than one node) is updated, there can be two options : either create an entirely new tactic, or update all the nodes linked to it.</p>
+				<p>You can write a definition for an atomic tactic directly in the GUI (if it is not already done in the core). To do so : open the menu <i>Edit</i> in the menu bar and select <i>Open tactic editor</i> and write your definition. The syntax used to make tactic definition is as follow :</p>
+				<p class="code">
+					tactic [name] := [definition];
+				</p>
+				<p>When done, click <i>Submit</i> or close the window.</p>
+				<p>To delete a node, select it and press the <i>Delete</i> key or click the delete icon in the node information panel (<img src="img/appIcons/deleteId.png">, <img src="img/appIcons/deleteAtm.png"> or <img src="img/appIcons/deleteNst.png">). This can also be done by right-clicking on the node and select <i>Delete node</i> in the context menu.</p>
+
+				<h4 id="edge">Edges</h4>
+				<p>To draw an edge select the draw edge mode, click on the graph where to start the edge and drag it to its destination. Clicking on a node will start the edge from this node, clicking on an empty space will create a boundary node to start the edge from it. Dragging to a node will set it as the edge destination, dragging to an empty space will create a boundary node and set it as the edge destination.</p>
+				<p>There are few rules when it comes to drawing edges :</p>
+				<ul>
+					<li>one cannot draw an edge between two boundary nodes (i.e. between two empty spaces) ;</li>
+					<li>one cannot draw an edge to or from a boundary node ;</li>
+					<li>one cannot draw an edge to or from a breakpoint ;</li>
+					<li>one cannot draw an edge to or from a goal node.</li>
+				</ul>
+				<div class="imgContainer">
+					<img src="img/appEdgeInfoPanel.png" alt="" width="400">
+					<br>
+					<p class="legend">Fig.5 Edge Information panel.</p>
+				</div>
+				<p>You can view the informations associated with an edge by selecting it and it will appear in the <i>Node information</i> panel (renamed <i>Edge information</i>), along with buttons to edit this edge (see figure 5).</p>
+				<p>You can modify the source and target of an edge by clicking on the edge next to the node and dragging it to the new source / target. Note That the previous rules about drawing an edge will still apply along with the following rule : one cannot modify the source / target of an edge if this source / target is a breakpoint or a goal node.</p>
+				<div class="imgContainer">
+					<img src="img/edgeEdit.png" alt="" width="300">
+					<br>
+					<p class="legend">Fig.6 Edge update dialog.</p>
+				</div>
+				<p>To change the goaltype of an edge, double click on the edge or click on the edit icon in the <i>Edge Information</i> panel (<img src="img/appIcons/edit.png">). A dialog will then appearwhere the edge goaltype can be edited, along with the id of the source and target nodes (see figure 6). This dialog can also be launched by right-clicking on the edge and selecting the <i>Edit edge</i> option.</p>
+				<p>To insert a breakpoint on a edge, you can click on the insert breakpoint icon (<img src="img/appIcons/addBreak.png">) in the <i>Edge Information</i> panel, or right-click on the edge and select the <i>Add breakpoint</i> option in the context menu. Although it appears that it became two edges with a breakpoint node in between, it is really a single edge, therefore the only option regarding breakpoints on this edge is to remove the one previously created by right-clicking on any part of the edge or the breakpoint and selecting the <i>remove breakpoint</i> option in the context menu, or selecting the edge or the breakpoint and clicking on the remove breakpoint icon (<img src="img/appIcons/rmBreak.png">) in the <i>Edge Information</i> panel.</p>
+				<p>Deleting an edge can be done by selecting it and pressing the <i>Delete</i> key, right-clicking on it and selecting the <i>Delete edge</i> option in the context menu, or clicking on the delete edge icon (<img src="img/appIcons/deleteEdge.png">) in the <i>Edge Information</i> panel.</p>
+
+				<h4 id="psgraphLib">PSGraphs library</h4>
+				<p>The left side of the interface contains two panels dedicated to a PSGraph library. The purpose of this library is to introduce reusability of psgraphs. This directory will contain many templates that can be easily inserted in your graph.</p>
+				<div class="imgContainer">
+					<img src="img/appLib.png" alt="" width="300">
+					<br>
+					<p class="legend">Fig.7 The Library panels.</p>
+				</div>
+				<p>Figure 7 presents the panels to make use of this library. On the top a file tree allows you to navigate through it. On the bottom a preview panel will present the psgraph that would have been selected in the file tree. This preview is fully navigable, i.e. any graph tactic in the hierarchy can be inspected (using the dropdown selection) and all their subgraph viewed (using the navigation icons <img src="img/appIcons/prev.png"> <img src="img/appIcons/next.png">).</p>
+				<p>To import a psgraph from the library to the graph area click on the import icon (<img src="img/appIcons/import.png">). The psgraph will then be directly added to your current graph. All the graph tactic that would be present in the psgraph from the library will then be renamed <i>[file name]-[tactic name]</i> (note that an index might be appended in case this name is already taken), and their subgraph imported as well. The atomic tactic will also be imported, if they append to be existing in your psgraph (i.e. if your psgraph contains an atomic tactic with the same name), their definition will be merged, the definition you provided being prioritised.</p>
+				<p>To use your own psgraphs in the library, simply save them under the folder named <i>tinker_library</i>, that should remain under the same directory as the <i>tinkerGUI-[version].jar</i> file.</p>
+
+				<h4 id="unicode">Using unicode characters</h4>
+				<p>As the prover from which you are using tinker might be using mathematical symbols (e.g. &#955;, &#8744;, &#8594;), you might want to use them in the GUI as well (e.g. defining goal types). To do so tinker allows you to define your own shortcuts to write them. In the file named <i>unicodeConfig</i> (which already contains a set of shortcuts), you can edit them in the json format (key-value pair) :</p>
+				<p class="code">
+					...,<br>
+					"your_shorcut " : "the_unicode_character_code ",<br>
+					...
+				</p>
+				<p>Note that if you wish to start your shorcut with <span class="code">\</span> it should be escaped, using another <span class="code">\</span> before. The space after the shortcuts is preferable in order to avoid mixing them. The unicode character code should start with a <span class="code">\u</span>, completed with 4 digits. For example to use the shortcut <span class="code">\implies</span> with <span class="code">&#8594;</span> :</p>
+				<p class="code">
+					... ,<br>
+					"\\implies " : "\u21D2 ",<br>
+					...
+				</p>
+				<p>The characters will be printed as you type them.</p>
+
+			</div>
+			<div class="subsection" id="hierarchy">
+				<h3>Hierarchies</h3>
+				<hr>
+				<p>To start using hierarchies in PSGraph you will first need to create a graph tactic. Then you will have to insert a first subgraph in this tactic, to do so : right-click on a node linked to this tactic and select the <i>Add subgraph</i> option in the context menu, you can also click on the add subgraph icon (<img src="img/appIcons/add.png">) in the <i>Node Information</i> panel. You will then have an empty subgraph in the graph area, that can be edited.</p>
+				<div class="imgContainer">
+					<img src="img/appHierarControls.png" alt="" width="400">
+					<img src="img/appHierarTree.png" alt="" width="200">
+					<br>
+					<p class="legend">Fig.8 Hierarchy controls (left) and Hierarchy tree (right).</p>
+				</div>
+				<p>There are many tools to easily follow on which graph you are actually working on. Figure 8 (left) presents three of them, on top of the graph area :</p>
+				<ul>
+					<li>the icon <img src="img/appIcons/hierarTree.png"> will open a hierarchy tree window (figure 8 (right)), displaying a tree showing the hierarchy, and highlighting the graph tactic currently edited. Clicks on the tree nodes will switch the currently edited graph tactic ;</li>
+					<li>next to this icon are <i>breadcrumbs</i> showing a path, from the root graph tactic  to the currently edited graph tactic. All the labels displayed in blue are clickable, and will switch the currently edited graph tactic ;</li>
+					<li>finally on the right, icons will help you switch between subgraphs of the same graph tactic (<img src="img/appIcons/prev.png"> <img src="img/appIcons/next.png">), the add icon (<img src="img/appIcons/add.png">) will append a new subgraph to the graph tactic, the delete icon (<img src="img/appIcons/delete.png">) will remove the currently displayed subgraph, finally the zoom-in/out icons (<img src="img/appIcons/zoom-in.png"> <img src="img/appIcons/zoom-out.png">) will increase/decrease the zoom level of the graph.</li>
+				</ul>
+				<div class="imgContainer">
+					<img src="img/appTacInspect.png" alt="" width="300">
+					<br>
+					<p class="legend">Fig.9 Tactic inspector.</p>
+				</div>
+				<p>If you just need to see what is the subgraphs of a graph tactic, you can use the tactic inspector (see figure 9). From this panel you can select any graph tactic in your psgraph using the dropdown list. Once it is selected, it will display a preview of its subgraph, which can again be change using the navigation icons, the add, delete, zoom-in and zoom-out icons also have the same purpose (note that the add icon will switch the currently edited graph tactic). The edit icon (<img src="img/appIcons/edit.png">) will switch the currently edited graph tactic, and set the current subgraph to the one you were previewing. Apart from the dropdown list, you can also inspect a graph tactic by selecting a node linked to it, right-click on this node and select the <i>Inspect</i> option in the context menu, or click on the inspect icon (<img src="img/appIcons/inspect.png">) in the <i>Node Information</i> panel.</p>
+				<p>Another way to make hierarchies is to merge nodes on a graph into a graph tactic. To do so, select many nodes (using a selection box or pressing <i>Shift</i> while selecting them), then click the <i>Merge nodes</i> button in the <i>Node Information</i> panel, or the option with the same name in the context menu, once you right-click on them. A dialog will then appear to set up the name of the graph tactic in which those node will be merged.</p>
+				<p>To set the top-level graph tactic name (its default value is <i>scratch</i>), go to the <i>Edit</i> menu in the menu bar, and select the <i>Change proof name</i> option, which will display a dialog from which you can perform the operation.</p>
+			</div>
+		</div>
+		<div class="section" id="evaluation">
+			<h2>PSGraph evaluation</h2>
+			<hr>
+			<div class="subsection" id="evalSetup">
+				<h3>Evaluation setup</h3>
+				<hr>
+				<p>To start the evaluation, you will first need to specify a psgraph and goal. This can be done in GUI and/or in the prover.</p>
+
+				<h4 id="evalSetupGUI">GUI</h4>
+				<div class="imgContainer">
+					<img src="img/appGoalEdit.png" alt="" width="300">
+					<br>
+					<p class="legend">Fig.10 Editing a goal in the interface.</p>
+				</div>
+				<p>If a psgraph has been opened or edited in the GUI, there is nothing else to do regarding it. To specify a goal, you will need to edit it : click on the goal icon (<img src="img/appIcons/editGoal.png">) next to the drawing mode icons, on top of the graph. This will trigger a dialog (see figure 10) where you can edit two fields :</p>
+				<ul>
+					<li>the assumptions you are making ;</li>
+					<li>the actual goal.</li>
+				</ul>
+				<p>From there this psgraph and this goal will be used for evaluation, provided that there are not define in the prover. The evaluation protocol will always prioritize the fields specified in the prover. For instance if there are psgraphs define in the prover and in the GUI, the psgraph that will be evaluated is the one in the prover. The same applies for goals.</p>
+
+				<h4 id="evalSetupProver">Prover</h4>
+				<p style="color: red;">todo</p>
+			</div>
+			<div class="subsection" id="evalStart">
+				<h3>Starting the  evaluation</h3>
+				<hr>
+				<div class="imgContainer">
+					<img src="img/appEvalControls.png" alt="" width="300">
+					<br>
+					<p class="legend">Fig.11 Evaluation controls.</p>
+				</div>
+				<p>The GUI controls for the evaluation are located on top of the graph, see figure 11.</p>
+				<p>You will first need to instantiate socket ports in the GUI. Click on the connection icon (<img src="img/appIcons/evalDisconnected.png">). After that the GUI will enter a listening mode and wait for a connection from the prover.</p>
+				<p style="color: red;">todo : eval start on prover</p>
+				<p>When the connection is established the evaluation protocol will start automatically. The connection icon should be two full arrows (<img src="img/appIcons/evalConnected.png">), some evaluation options should become available and the psgraph with a first goal on it should be displayed. Check the evaluation log if you do not get the graph you expected, an error might have occur in the initiation process.</p>
+			</div>
+			<div class="subsection" id="evalRun">
+				<h3>Running the evaluation</h3>
+				<hr>
+
+				<h4 id="evalOption">Evaluation options</h4>
+				<p>The evaluation process is done step by step, for each of them you can choose an evaluation option. Tinker has 9 options :</p>
+				<ul>
+					<li><i>next</i> (<img src="img/appIcons/evalNext.png">) : the most common option, will process one goal, the first of the default order or the one that has been selected ;</li>
+					<li><i>undo</i> (<img src="img/appIcons/evalUndo.png">) : goes back to the state before the last evaluation options was selected ;</li>
+					<li><i>step into</i> (<img src="img/appIcons/evalStepInto.png">) : if a goal is selected and before a graph tactic, will force the goal to go inside it ;</li>
+					<li><i>step over</i> (<img src="img/appIcons/evalStepOver.png">) : if a goal is selected and before a graph tactic, will ignore the steps inside the graph tactic and directly give its output ;</li>
+					<li><i>finish</i> (<img src="img/appIcons/evalFinish.png">) : will automatically run the evaluation until there are no more goals in the current graph tactic ;</li>
+					<li><i>backtrack</i> (<img src="img/appIcons/evalBacktrack.png">) : will switch branches in the evaluation ;</li>
+					<li><i>until break</i> (<img src="img/appIcons/evalDebug.png">) : will automatically run the evaluation until one goal finds itself on an edge with a breakpoint ;</li>
+					<li><i>complete</i> (<img src="img/appIcons/evalComplete.png">) : will automatically run the evaluation until there are no more goals or all remaining goals are on the output edges of the top-level graph ;</li>
+					<li><i>stop</i> (<img src="img/appIcons/evalStop.png">) : will stop the evaluation, but keep the connection between the prover and the GUI alive.</li>
+				</ul>
+				<p>If an evaluation has been stopped (with the connection still alive), it can be restarted the same way you started it in the prover.</p>
+
+				<h4 id="evalLog">Evaluation log</h4>
+				<div class="imgContainer">
+					<img src="img/appEvalLog.png" alt="" width="300">
+					<br>
+					<p class="legend">Fig.12 Evaluation log.</p>
+				</div>
+				<p>To follow informations given by the prover on the evaluation (e.g. goal remaining), consult the evaluation log (figure 11). It can be accessed via the <i>Debug</i> menu, selecting the <i>Open eval log window</i> option.</p>
+				<p>A filter list on the left will allow you to only print the type of information that you want. You can also clear the messages received via the <i>Options</i> menu.</p>
+			</div>
+			<div class="subsection" id="editEval">
+				<h3>Editing while evaluating</h3>
+				<hr>
+				<p>As you might want to correct things while evaluating a psgraph, Tinker allows you to make changes on it without having to stop and restart the evaluation. Although most of the edit option are available, there are restrictions (regarding graph tactics hierarchies mainly).</p>
+				<p>In any case a message will automatically appear on the top left-hand corner of the graph area informing you that evaluation may not be sound anymore (for instance after update a tactic that has already processed goals). This message will be disable when you stop evaluation.</p>
+				<p>After changes are made, you will notice that the only option available to you is to push your changes to the prover (<img src="img/appIcons/push.png">). If the changes fail on the prover, you will be able to retrieve a working psgraph by pulling it (<img src="img/appIcons/pull.png">). Otherwise the proof will continue as normal.</p>
+			</div>
+		</div>
+		<div class="section" id="saveExport">
+			<h2>Saving and exporting psgraphs</h2>
+			<hr>
+			<div class="subsection">
+				<p>When saving a psgraph for the first time, use the <i>Save as</i> option in the <i>File</i> menu. You will be able to select a directory in which to save the psgraph, as well as a file name. Please note that <i>Tinker</i> will only the extension <i>.psgraph</i> when opening it back.</p>
+				<p>To save changes on a psgraph you already opened in <i>Tinker</i>, you can use the <i>Save</i> option (again in the <i>File</i> menu), which would rewrite the file from which it was opened from. This option is also accessible using the <i>Ctrl+s</i> shortcut.</p>
+				<p>You can open a psgraph from <i>Tinker</i> using the <i>Open</i> option in the <i>File</i> menu. Note that this will overwrite the psgraph you were probably working, therefore you should make sure it is saved before-hand. You can also access the previous psgraphs you were working on quickly, in the <i>Recent files</i> submenu.</p>
+				<p>Tinker also allows you to export the current graph in a SVG image file, select the <i>Export in SVG</i> option. It will trigger a save dialog, from which you can select the destination file.</p>
+			</div>
+		</div>
+		<div class="section" id="webapp">
+			<h2>Web application</h2>
+			<hr>
+			<div class="subsection">
+				<p>In order to easily present your proof to a larger audience, <i>Tinker</i> allows you to perform recordings on a psgraph edition an evaluation, recordings which can then be visualized via a dedicated web application.</p>
+
+				<h4>Recordings</h4>
+				<p>All of the recording action are made through the <i>Recording</i> menu in the menu bar. The following steps explain how to perform a recording :</p>
+				<ul>
+					<li>you will first need to select on which file to perform the recordings : select the <i>Set up file for recording</i> option, and using the triggered dialog, choose a directory and file name (records will be made on json files) ;</li>
+					<li>once the file is correctly setted up, you will be able to start your recording, select the <i>Start recording</i> option, this will start writing on a file by taking a snapshot of the current psgraph ;</li>
+					<li>from then every action modifying the psgraph (an edit action or an evaluation step) will append the new model in the file ;</li>
+					<li>you can pause the recording by selecting the <i>Pause recording</i> option, no modification will then be recorded in the file ;</li>
+					<li>at any moment the recording can be resumed, by selecting the <i>Resume recording</i> option ;</li>
+					<li>when the recording is being paused, you can set up a new file on which to record.</li>
+				</ul>
+				<p>The resulting json file can then be read by the web application.</p>
+
+				<h4>Generating the web application</h4>
+				<p>If you wish to host the web application on your own website, you can generate the needed HTML, CSS and JavaScript files from the desktop GUI. Select the <i>Generate web app</i> option in the <i>Recording</i> menu and choose a directory in which to copy the files. The default name of the HTML file is <i>index.html</i>, make sure no file with the same name are in the same directory. If the files were directly copied on a server, the web application should be accessible through the following address :</p>
+				<p class="code">
+					yourDomainName[:thePortNumber]/path/to/the/webApp/
+				</p>
+
+				<h4>Using the web application</h4>
+				<p>The generated web application should contain a directory named <i>records</i>. This directory is meant to receive the recording files you previously created. They can then be accessed through the web application by appending <i>?fileName</i> to the URL.</p>
+				<p>For example you generated the web application and copied it in your server, in a directory named <i>tinker</i>. Assuming your server is at the address <i>mydomain.com</i>, to access the web application, you will need to enter the following URL in a web browser :</p>
+				<p class="code">
+					myDomain.com/tinker
+				</p>
+				<p>Now you made a recording of your proof in a file named <i>myRecording1.json</i>. To make it accessible directly from the web application, copy the recording file into the <i>records</i> directory in the web application. From now, <i>myRecording1.json</i> can be visualise via the web application by entering the following URL :</p>
+				<p class="code">
+					myDomain.com/tinker?myRecording1
+				</p>
+				<p>You can also directly access a certain step in the proof recording by appending the step number (starting with 0) as follow :</p>
+				<p class="code">
+					myDomain.com/tinker?myRecording1#3
+				</p>
+				<div class="imgContainer">
+					<img src="img/webAppMain.png" alt="" width="400">
+					<br>
+					<p class="legend">Fig.13 File upload on the web application</p>
+				</div>
+				<p>If you do not wish to host recordings, local files can be loaded from the main page. This can also be done if cannot host the web application on a server, in that case you can use our website : <a href="http://ggrov.github.io/tinker/tinkerViz">ggrov.github.io/tinker/tinkerViz</a>. Press the <i>choose file button</i> and select the file to load (see figure 13).</p>
+				<div class="imgContainer">
+					<img src="img/webApp.png" alt="" width="400">
+					<br>
+					<p class="legend">Fig.14 The web application.</p>
+				</div>
+				<p>Figure 14 presents the web application interface. The main part is the graph itself, that can be scaled and dragged. All of its nodes are also draggable and the goal and moving the mouse over goal and tactic nodes will display informations about them.</p>
+				<p>Directly on top of the graph, on the left-hand side, the evaluation path (i.e. the path to the graph that was being evaluated or edited during recording) is shown. On the right-hand side, a drop-down list allows you to access all the graph tactics in the proof, and navigation buttons will enable you to go through all the subgraphs.</p>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
