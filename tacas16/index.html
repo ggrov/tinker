@@ -65,54 +65,100 @@
 			<link rel=stylesheet href="style/graph.css">
 			<h2>Proof recording</h2>
 			<hr>
-			<div id="graphContent" style="visibility:hidden">
-				<div class="line">
-					<div id="proofInfo" class="content">
-						<span id="proofTitle"></span>
-						<span id="proofAuthor"></span>
-						<span id="proofDate"></span>
-					</div>
-					<div class="line content">
-						<span>Evaluation Step : </span>
-						<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
-						<span id="vizIndices"></span>
-						<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
-						<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
-					</div>
-				</div>
-				<div id="mainArea">
-					<div class="line content">
-						<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
-						<div>
-							<select id="tacticList" class=""></select>
-							<span>Subgraphs : </span>
-							<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
-							<span id="graphIndices"></span>
-							<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
-						</div>
-					</div>
-					<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
-				</div>
-				<div id="graphError" style="visibility:hidden"></div>
-			</div>
 			<script src="script/d3.min.js"></script>
 			<script src="script/d3-tip.min.js"></script>
 			<script src="script/tinker.js"></script>
+			<div id="record1">
+				<div id="graphContent" style="visibility:hidden">
+					<div class="line">
+						<div id="proofInfo" class="content">
+							<span id="proofTitle"></span>
+							<span id="proofAuthor"></span>
+							<span id="proofDate"></span>
+						</div>
+						<div class="line content">
+							<span>Evaluation Step : </span>
+							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
+							<span id="vizIndices"></span>
+							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
+							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
+						</div>
+					</div>
+					<div id="mainArea">
+						<div class="line content">
+							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
+							<div>
+								<select id="tacticList" class=""></select>
+								<span>Subgraphs : </span>
+								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
+								<span id="graphIndices"></span>
+								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
+							</div>
+						</div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+					</div>
+					<div id="graphError" style="visibility:hidden"></div>
+				</div>
+			</div>
+			<div id="record2">
+				<div id="graphContent" style="visibility:hidden">
+					<div class="line">
+						<div id="proofInfo" class="content">
+							<span id="proofTitle"></span>
+							<span id="proofAuthor"></span>
+							<span id="proofDate"></span>
+						</div>
+						<div class="line content">
+							<span>Evaluation Step : </span>
+							<button id="previousPSGraph">&#9664;</button>
+							<span id="vizIndices"></span>
+							<button id="nextPSGraph">&#9654;</button>
+							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
+						</div>
+					</div>
+					<div id="mainArea">
+						<div class="line content">
+							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
+							<div>
+								<select id="tacticList" class=""></select>
+								<span>Subgraphs : </span>
+								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
+								<span id="graphIndices"></span>
+								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
+							</div>
+						</div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+					</div>
+					<div id="graphError" style="visibility:hidden"></div>
+				</div>
+			</div>
+			<script>
+				makeViz("record1","ressources/flat.json")
+				makeViz("record2","ressources/demo.json")
+			</script>
 		</div>
 		<div class="section" id="demo">
 			<h2>Tool demo</h2>
 			<hr>
 			<ul>
-			    <li><a onclick="changeVideoSource(0)">Video 1</a></li>
-			    <li><a onclick="changeVideoSource(1)">Video 2</a></li>
-			    <li><a onclick="changeVideoSource(2)">Video 3</a></li>
+			    <li><a onclick="changeVideoSource(0)">Basic Drag and Drawing Editing</a></li>
+			    <li><a onclick="changeVideoSource(1)">Supports for Hierarchy</a></li>
+			    <li><a onclick="changeVideoSource(2)">PSGraph Library</a></li>
+			    <li><a onclick="changeVideoSource(3)">Evaluation and Debugging</a></li>
+			    <li><a onclick="changeVideoSource(4)">Breakpoint</a></li>
 			</ul>
 			<div id="vidContainer">
 				<iframe id="vid" width="680" height="390" src="">
 				</iframe>
 			</div>
 			<script>
-				var videosSource = ["https://www.youtube.com/embed/pztDbROyspk","https://www.youtube.com/embed/rug2I4Is7ms","https://www.youtube.com/embed/CMVSyxU1SdE"]
+				var videosSource = [
+					"https://www.youtube.com/embed/Rll0NH4MFiI",
+					"https://www.youtube.com/embed/LTyAH9IJbfU",
+					"https://www.youtube.com/embed/soAA3pSUTAI",
+					"https://www.youtube.com/embed/L-RHYPXI4Ws",
+					"https://www.youtube.com/embed/JSLqI9dBaq4"
+					]
 				function changeVideoSource(index){
 					document.getElementById("vid").setAttribute("src",videosSource[index])
 				}

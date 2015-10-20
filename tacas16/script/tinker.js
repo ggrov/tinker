@@ -1,3 +1,7 @@
+function makeViz(divId,dataFile){
+
+var rootDivSelection = d3.select("div#"+divId)
+
 // global psgraph variables
 var psgraphs, // records array
     currentPSGraphIndex, // index of the record currently used
@@ -7,8 +11,8 @@ var psgraphs, // records array
 	tacticList; // list of the graph tactics defined for the current psgraph
 
 // svg width & height
-var width = d3.select("div#graph").node().getBoundingClientRect().width,
-	height = d3.select("div#graph").node().getBoundingClientRect().height;
+var width = rootDivSelection.select("div#graph").node().getBoundingClientRect().width,
+	height = rootDivSelection.select("div#graph").node().getBoundingClientRect().height;
 
 // data arrays for the graph (different than the one found in records)
 var nodes = [],
@@ -75,7 +79,7 @@ var tip = d3.tip()
     })
     
 // svg setup
-var svg = d3.select("div#graph").append("svg")
+var svg = rootDivSelection.select("div#graph").append("svg")
 	.attr("width","100%")
 	.attr("height","100%")
 	.append("g")
@@ -542,15 +546,15 @@ function loadNewGraph(graphData){
 
 // function updating the graph navigation
 function updateGraphNav(){
-    d3.select("button#previousSubGraph").attr("disabled",null)
-    d3.select("button#nextSubGraph").attr("disabled",null)
+    rootDivSelection.select("button#previousSubGraph").attr("disabled",null)
+    rootDivSelection.select("button#nextSubGraph").attr("disabled",null)
     if(currentIndex <= 0){
-        d3.select("button#previousSubGraph").attr("disabled",true)
+        rootDivSelection.select("button#previousSubGraph").attr("disabled",true)
     }
     if(currentIndex >= currentTactic.graphs.length-1){
-        d3.select("button#nextSubGraph").attr("disabled",true)
+        rootDivSelection.select("button#nextSubGraph").attr("disabled",true)
     }
-    d3.select("span#graphIndices").text((currentIndex+1) + " / " + currentTactic.graphs.length)
+    rootDivSelection.select("span#graphIndices").text((currentIndex+1) + " / " + currentTactic.graphs.length)
 }
 
 // function changing the currently displayed tactic
@@ -564,6 +568,9 @@ function changeTactic(tacticName){
 	loadNewGraph(currentTactic.graphs[currentIndex])
     updateGraphNav()
 }
+
+rootDivSelection.select("button#nextSubGraph").on("click",nextSubGraph)
+rootDivSelection.select("button#previousSubGraph").on("click",previousSubGraph)
 
 // function switching the current graph to the previous in the current tactic
 function previousSubGraph(){
@@ -592,7 +599,7 @@ function loadPSGraph(p){
 	for(var i=1; i < path.length; i++){
 		pathString += " > "+path[i]
 	}
-    d3.select("span#graphTactic").text(pathString)
+    rootDivSelection.select("span#graphTactic").text(pathString)
     
 	tacticList = []
     
@@ -607,7 +614,7 @@ function loadPSGraph(p){
     
     updateGraphNav()
     
-	var tacticSelection = d3.select("select#tacticList").selectAll("option").data(tacticList,function(d){return d})
+	var tacticSelection = rootDivSelection.select("select#tacticList").selectAll("option").data(tacticList,function(d){return d})
 	tacticSelection.attr("selected",null)
 	tacticSelection.enter()
 		.append("option")
@@ -615,7 +622,7 @@ function loadPSGraph(p){
 		.text(function(d){return d==psgraph.main?d+" - (root)":d})
 	tacticSelection.attr("selected",function(d){return currentTactic.name == d?true:null})
 	tacticSelection.exit().remove()
-	d3.select("select#tacticList")
+	rootDivSelection.select("select#tacticList")
 		.on("change",function(){
 			changeTactic(d3.event.target.value)
 		})
@@ -626,24 +633,27 @@ function visualiseProof(data,index){
     currentPSGraphIndex = (typeof index === 'undefined') ? 0 : index
     psgraphs = data
     if(currentPSGraphIndex == 0){
-        d3.select("button#previousPSGraph").attr("disabled",true)
+        rootDivSelection.select("button#previousPSGraph").attr("disabled",true)
     }
     if(currentPSGraphIndex == psgraphs.length-1){
-        d3.select("button#nextPSGraph").attr("disabled",true)
+        rootDivSelection.select("button#nextPSGraph").attr("disabled",true)
     }
-    d3.select("span#vizIndices").text((currentPSGraphIndex+1) + " / " + psgraphs.length)
+    rootDivSelection.select("span#vizIndices").text((currentPSGraphIndex+1) + " / " + psgraphs.length)
     loadPSGraph(psgraphs[currentPSGraphIndex])
 }
+
+rootDivSelection.select("button#nextPSGraph").on("click",nextPSGraph)
+rootDivSelection.select("button#previousPSGraph").on("click",previousPSGraph)
 
 // function to switch to the previous psgraph in the record array
 function previousPSGraph(){
     if(currentPSGraphIndex > 0){
-        d3.select("button#nextPSGraph").attr("disabled",null)
+        rootDivSelection.select("button#nextPSGraph").attr("disabled",null)
         currentPSGraphIndex -= 1
         if(currentPSGraphIndex == 0){
-            d3.select("button#previousPSGraph").attr("disabled",true)
+            rootDivSelection.select("button#previousPSGraph").attr("disabled",true)
         }
-        d3.select("span#vizIndices").text((currentPSGraphIndex+1) + " / " + psgraphs.length)
+        rootDivSelection.select("span#vizIndices").text((currentPSGraphIndex+1) + " / " + psgraphs.length)
         loadPSGraph(psgraphs[currentPSGraphIndex])
     }
 }
@@ -651,12 +661,12 @@ function previousPSGraph(){
 // function to switch to the next psgraph in the record array
 function nextPSGraph(){
     if(currentPSGraphIndex < psgraphs.length-1){
-        d3.select("button#previousPSGraph").attr("disabled",null)
+        rootDivSelection.select("button#previousPSGraph").attr("disabled",null)
         currentPSGraphIndex += 1
         if(currentPSGraphIndex == psgraphs.length-1){
-            d3.select("button#nextPSGraph").attr("disabled",true)
+            rootDivSelection.select("button#nextPSGraph").attr("disabled",true)
         }
-        d3.select("span#vizIndices").text((currentPSGraphIndex+1) + " / " + psgraphs.length)
+        rootDivSelection.select("span#vizIndices").text((currentPSGraphIndex+1) + " / " + psgraphs.length)
         loadPSGraph(psgraphs[currentPSGraphIndex])
     }
 }
@@ -682,8 +692,8 @@ function loadLocal(evt){
 // callback function when record has been loaded or if error occur
 function dataLoaded(error, data) {
     if (error){
-        d3.select("div#graphContent").style("display","none")
-        var errorDiv = d3.select("div#graphError").style("visibility","visible").style("display",null)
+        rootDivSelection.select("div#graphContent").style("display","none")
+        var errorDiv = rootDivSelection.select("div#graphError").style("visibility","visible").style("display",null)
         errorDiv.selectAll("h2").remove()
         errorDiv.selectAll("h3").remove()
         errorDiv.selectAll("input").remove()
@@ -694,17 +704,17 @@ function dataLoaded(error, data) {
             .attr("type","file")
         document.getElementById('inputFile').addEventListener('change',loadLocal,false)
     } else {
-        d3.select("div#graphError").style("display","none")
-        d3.select("div#graphContent").style("visibility","visible").style("display",null)
-        d3.select("span#proofTitle").text(data.info.title)
-        if(data.info.author){ d3.select("span#proofAuthor").text("by "+data.info.author) }
-        if(data.info.date){d3.select("span#proofDate").text("("+data.info.date+")")}
+        rootDivSelection.select("div#graphError").style("display","none")
+        rootDivSelection.select("div#graphContent").style("visibility","visible").style("display",null)
+        rootDivSelection.select("span#proofTitle").text(data.info.title)
+        if(data.info.author){ rootDivSelection.select("span#proofAuthor").text("by "+data.info.author) }
+        if(data.info.date){rootDivSelection.select("span#proofDate").text("("+data.info.date+")")}
         visualiseProof(data.psgraphs,0)
     }
 }
 
 // code executed on script load
-d3.json("ressources/record.json",dataLoaded,function(error){window.alert("Request : "+error.responseURL+"\nStatus : "+error.status+"\nMessage : "+error.statusText);console.log(error)})
+d3.json(dataFile,dataLoaded,function(error){window.alert("Request : "+error.responseURL+"\nStatus : "+error.status+"\nMessage : "+error.statusText);console.log(error)})
 /*if(file != ""){
 } else {
     d3.select("div#content").style("display","none")
@@ -716,3 +726,4 @@ d3.json("ressources/record.json",dataLoaded,function(error){window.alert("Reques
         //.on("change",loadLocal)
     document.getElementById('inputFile').addEventListener('change',loadLocal,false)
 }*/
+}

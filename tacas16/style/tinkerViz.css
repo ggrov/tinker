@@ -39,7 +39,7 @@ select {
 }
 
 div#proofInfo {
-    font-size: 1.8em;
+    font-size: 1.3em;
 }
 div#proofInfo > span#proofTitle {
     font-weight: bold;
