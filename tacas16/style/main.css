@@ -23,7 +23,7 @@ div.container{
 }
 div.section{
 	margin: 10px 0px;
-	padding: 10px;
+	padding: 50px;
 	background-color: #ffffff;
 	border-radius: 4px;
 }
@@ -37,4 +37,9 @@ a {
 }
 div#vidContainer {
 	text-align: center;
+}
+p.code {
+	font-family: monospace;
+	color: darkred;
+	margin-left: 20px;
 }
