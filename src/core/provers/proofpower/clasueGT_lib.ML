@@ -6,7 +6,7 @@ struct
  fun init_symbol_table l = symbol_table := StrName.NTab.of_list l; 
  
  fun decode_str str = case StrName.NTab.lookup (!symbol_table) str of (SOME str') => str' | _ => str;
-
+ 
  fun top_level_str' trm = 
   case top_level_str trm of
      NONE => []
@@ -138,6 +138,6 @@ end;
 open ClauseGT_Lib;
 val _ = init_symbol_table 
 [("%and%", "conj"), ("%or%", "disj"),
- ("%implies%", "implies"), ("%not%", "not"),
+ ("%implies%", "implies"), ("%not%", "not"), ("%forall%", "forall"), ("%exists%", "exists"),
  ("%equiv%", "equiv")];
 

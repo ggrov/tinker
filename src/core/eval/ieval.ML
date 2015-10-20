@@ -42,11 +42,14 @@ struct
    in
      if EVal.has_psgraph_terminated edata then Good edata
      else
-     (* todo: hierichecal one *)
-       EVal.eval_goal_goalname if_debug g edata
-       |> Seq.list_of (* get a list of eval results *)
-       (*|> map fst  map out branches *)
-       |> update_branches edata
+      (* do nothing, if reaching the top level and the current goal is on edge *)
+       if EVal.is_top_level_psgraph edata andalso EVal.is_gnode_on_output_edge edata g 
+       then Cont edata
+       else
+         EVal.eval_goal_goalname if_debug g edata
+         |> Seq.list_of (* get a list of eval results *)
+         (*|> map fst  map out branches *)
+         |> update_branches edata
    end
    handle EVal.EData.PSGraph.Theory.Graph.no_such_vertex_exp (f, v, _) => 
      (logging "FAILURE" ("Exception in " ^ f ^ " for node " ^ (V.string_of_name v) ^ ": no such vertex");
@@ -82,6 +85,10 @@ struct
               (map (fn y => Pretty.block [Pretty.str y, Pretty.str " "] ) x)) |> Pretty.block 
               |> Pretty.str_of |> logging "EVAL");
             x))
+       |> (fn gl => (* filter out those on the edges when at the top level,shoule never reach here if the current graph is finished *)
+           if EVal.is_top_level_psgraph edata 
+           then (filter (fn g => (not (EVal.is_gnode_on_output_edge edata g)))gl) 
+           else gl)
        |> hd(* pick the first one *)
        |> (fn g => EVal.eval_goal_goalname if_debug g edata
                        |> Seq.list_of

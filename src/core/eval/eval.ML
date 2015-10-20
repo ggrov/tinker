@@ -117,13 +117,27 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
       | [e] => try_get_in graph (Util.edge_src graph e) (* gnode or  *)
       |  _  => NONE (* many outputs (shouldn't happen) *);
 *)
+  fun is_top_level_psgraph edata = 
+   (EData.get_parent edata |> StrName.NTab.list_of) = []
+  
+  fun is_gnode_on_output_edge edata goal_name =
+   let
+    val graph = EData.get_graph edata
+    val gnode = Util.all_gnodes graph
+               |> filter (fn gn => goal_name = GoalTyp.goal_name (Util.gnode_of graph gn))
+               |> (fn [x] => x) (* raise exception: log if not singleton list *)
+   in
+     (is_some o try_get_out graph) gnode
+   end
   fun has_current_graph_terminated edata = 
     Util.all_gnodes (EData.get_graph edata)
     |> forall (is_some o (try_get_out (EData.get_graph edata)));
+    
 
   fun has_psgraph_terminated edata = 
     has_current_graph_terminated edata andalso (* current graph is terminated *)
-    (EData.get_parent edata |> StrName.NTab.list_of) = []
+    is_top_level_psgraph edata
+  
 
 (*  (* assume exact same boundary *)
   fun move_gnode from' v to' =

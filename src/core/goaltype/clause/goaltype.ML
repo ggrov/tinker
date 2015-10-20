@@ -4,7 +4,7 @@ struct
 
   structure Prover = Prover;
   local open LoggingHandler in 
-
+(* note that this has to turned off in isabelle, as pretty printing contains some non-standard chars which breaks the protocal *)
   val DEBUG_ON = true;
   val if_gui_mode = true;
 

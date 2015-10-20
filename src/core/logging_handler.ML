@@ -25,7 +25,7 @@ struct
   fun get_active_tags _ = !active_tags;
   val set_active_tags = fn x => active_tags := x;
 
-  val if_debug = true
+  val if_debug = false
   val logging_handler_print = 
    if if_debug then
    (fn tag => (fn msg =>  

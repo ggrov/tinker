@@ -13,6 +13,8 @@ sig
 
   val has_current_graph_terminated : EData.T -> bool
   val has_psgraph_terminated : EData.T -> bool
+  val is_top_level_psgraph : EData.T -> bool
+  val is_gnode_on_output_edge : EData.T -> string -> bool
 
   val apply_atomic : 
         EData.T 
