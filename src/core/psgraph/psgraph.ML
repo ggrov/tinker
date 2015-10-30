@@ -251,12 +251,16 @@ struct
         Prover.EnvTac_ML_Exec.eval_ml ml_str
       end
     val name = JsonInputUtils.get_string jobj "name"
-    val tactic = 
+    fun tactic _ = 
       case JsonInputUtils.get_string jobj "tactic" 
       of "" =>  eval_ml name 
       | x => eval_ml x
+    val dummy_env  = K (K [])
    in
-    (name, Env_Tacs { name = name, tactic = tactic(*, args = args*)})
+   if Env_Tac_Utils.is_abbrv_env_tac name then 
+    (name, Env_Tacs {name = name, tactic = dummy_env})
+   else
+    (name, Env_Tacs {name = name, tactic = tactic ()(*, args = args*)})
    end
  | input_env_json _ = raise Json.parse_exn "unexcepted json strcure in input_env_json"
 
