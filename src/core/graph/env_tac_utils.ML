@@ -36,6 +36,7 @@ struct
   structure Prover = PS_Theory.Data.GoalTyp.Prover
   local open LoggingHandler in 
     val env_var_prefix = "PSGRAPH_ENV_VAR_";
+    val if_local_debug = true;
 
     fun parse_env_var_name' name (* raise exception*) =
        case PS_Theory.Graph_Utils.parse_env_var_name name 
@@ -68,6 +69,7 @@ struct
 
   (* scanner for the easier form of env tactic *)
     fun filter_blank str = Symbol.explode str |> filter (not o member (op =) [" ", "\t"]) |> String.concat
+    fun filter_blank' str_l =  str_l |> filter (not o member (op =) [" ", "\t"])
     fun append_pair (x,y) = x ^ " " ^ y;
     fun scan_ignore_post_blank pre_scan = pre_scan --| (Scan.many (Symbol.is_blank))
     fun scan_ignore_pre_blank post_scan =  (Scan.many ( Symbol.is_blank)) |-- post_scan
@@ -76,9 +78,10 @@ struct
     |> Scan.finite Symbol.stopper) >> String.concat;
  
   (* detecting by checking if start with ? *)
-    fun is_abbrv_env_tac str = 
-      (Scan.catch ($$ "?"|> scan_ignore_pre_blank) (Symbol.explode str); true) 
+    fun is_start_with symb  str = 
+      (Scan.catch ($$ symb |> scan_ignore_pre_blank) (Symbol.explode str); true) 
     handle _ => false
+    val is_abbrv_env_tac = is_start_with "?";
 
     val scan_var = $$ "?" |-- (Scan.many (not o Symbol.is_blank) >> String.concat);
     val scan_var' = Scan.finite Symbol.stopper ( $$ "?" -- (Scan.many (not o Symbol.is_blank) >> String.concat) |> scan_until)
@@ -162,9 +165,24 @@ struct
         (scan_var (* scan variable name *) --|
         (scan_ignore_pre_blank (Scan.this_string ":=")))
         src 
-        val (typ, def) = (scan_antiquto ((*Prover.antiquto_handler env*)snd) def_strs)
-        val _ = writeln "a"
+       val def_strs = filter_blank' def_strs
+        val (typ, def) = 
+          if (is_start_with "?" (String.concat def_strs)) 
+          (* start with ?, so must be assiging to another env var *)
+          then
+           scan_env_var def_strs |> fst (* get the name of the var *)
+           |> (fn x => (StrName.NTab.get env (String.extract (x, 1, NONE)); ("dummy", String.concat def_strs)))
+           handle StrName.Tab.UNDEF n => 
+           (logging "FAILURE" ("the env var " ^ (String.concat def_strs)  ^ " does not exist."); 
+            raise tinker_fail true)
+          else if  (is_start_with "\"" (String.concat def_strs)) then
+           ("string", (String.concat def_strs))
+          else (* otherwise, scan as the antiquto format*)
+          (scan_antiquto ((*Prover.antiquto_handler env*)snd) def_strs)
+        (*val _ = writeln "a"*)
         val env_vars = 
+         if (typ = "string") then []
+         else
          scan_env_vars ( Symbol.explode def)
          |> map (fn n => (n, StrName.NTab.get env (String.extract (n,1,NONE))))
          handle StrName.Tab.UNDEF n => 
@@ -172,7 +190,8 @@ struct
       in
         [StrName.NTab.update (filter_blank var, Prover.parse_env_data ctxt (filter_blank typ, def) env_vars) env]
       end
-     handle _ => (LoggingHandler.logging "FAILURE" ("Fail to parse: " ^ input ); 
+     handle _ => (if if_local_debug then writeln ("Fail to parse: " ^ input )
+      else (LoggingHandler.logging "FAILURE" ("Fail to parse: " ^ input )); 
     raise LoggingHandler.tinker_fail true);
 
   end (* end of local open *)

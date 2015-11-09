@@ -5,10 +5,19 @@ begin
 section "Atomic tactics"
 
 -- "witness tactic"
-ML{*
+ML{*-
  fun witness [Prover.E_Trm t] ctxt n =
   res_inst_tac ctxt  [(("x",0), Prover.string_of_trm ctxt t)] @{thm exI} n;
 *} 
+ML{*
+ fun witness [Prover.A_Trm t] ctxt n =
+  res_inst_tac ctxt  [(("x",0), Prover.string_of_trm ctxt t)] @{thm exI} n;
+*} 
+
+ML{*
+(* TODO: to provide the definition of subs here *)
+ fun subst _ _ _ = all_tac;
+*}
 
 -- "find and bind existential"
 ML{*
@@ -52,7 +61,7 @@ ML{*
 
 -- "unbinds given variables from env"
 ML{*
-  fun unbind xs env = 
+  fun ENV_unbind xs env = 
    let
      fun unb (Prover.A_Var t) env = StrName.NTab.delete t env
       |  unb _ env = env
@@ -102,7 +111,15 @@ ML{*
   val prj_path = tinker_path ^ "src/dev/ai4fm/" (* the project file *)
 *}
 
+
 ML{*
+  (* change this to the location of your local copy *)
+  val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/" 
+  val pspath = tinker_path ^ "src/dev/psgraph/"; (* where all psgraph under dev are located here *)
+  val prj_path = tinker_path ^ "src/dev/ai4fm/" (* the project file *)
+*}
+
+ML{*-
   val trm = @{term "\<exists> x y z. P \<and> 0 = z"};
  
  fun witness (Prover.E_Str s) ctxt n =
@@ -120,6 +137,7 @@ lemma "\<exists> x y z. P \<and> 0 = z"
  apply (rule_tac x=0 in exI)
  oops
 thm ex_comm
+
 
 (* a quick test *)
 ML{* val ps = PSGraph.read_json_file (prj_path ^"witnessing.psgraph") *} 

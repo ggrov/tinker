@@ -319,7 +319,9 @@ struct
       => if List.length arg = 1  (* env var or predefine antiqunto, e.g. Hyps, Concl *)
          then case (hd arg) 
            of "Concl" => GoalTyp.Prover.get_pnode_concl pnode |> GoalTyp.Prover.A_Trm
+           | "concl" => GoalTyp.Prover.get_pnode_concl pnode |> GoalTyp.Prover.A_Trm
            |  "Hyps" => GoalTyp.Prover.get_pnode_hyps pnode |> GoalTyp.Prover.A_L_Trm
+           |  "hyps" => GoalTyp.Prover.get_pnode_hyps pnode |> GoalTyp.Prover.A_L_Trm
            |  _ =>
             (StrName.NTab.get env (Option.valOf (parse_env_var_name (hd arg))) |> GoalTyp.Prover.env_to_arg
              handle _ => (logging "FAILURE" ("fail to parse arg: " ^ (hd arg)); raise tinker_fail true))
