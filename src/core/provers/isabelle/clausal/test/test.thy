@@ -24,30 +24,8 @@ ML{*-
 *}
 
 
-
-ML{*   -
-  TextSocket.safe_close();
-*}
-ML{* -
-Tinker.start_ieval @{context} (NONE) (SOME []) (SOME @{prop "P\<longrightarrow> P"});
-*}
-
-
-ML{*
-  set_guiPath guiPath sys;
-*}
-
-ML{*-
-  open_gui_single();
-*}
-
 ML{*-
  close_gui_single ();
-*}
-
-ML{*
-  LoggingHandler.active_all_tags ();
-  LoggingHandler.print_active();
 *}
 
 ML{*structure C = Clause_GT*}
@@ -161,7 +139,7 @@ top_symbol(IsaProver.get_pnode_env pnode) pnode [C.Var "X", C.Name "implies"];
 
 ML{*  
   val ps = 
-   PSGraph.read_json_file (path^"test.psgraph")
+   PSGraph.read_json_file (path^"clause_demo.psgraph")
    |> PSGraph.set_goaltype_data data;       
 *}
 
@@ -169,7 +147,7 @@ ML{* -
   TextSocket.safe_close();
 *}
 
-ML{*-
-Tinker.start_ieval @{context} (NONE) (SOME []) (SOME @{prop "A \<longrightarrow> A \<longrightarrow> A"});
+ML{* -
+Tinker.start_ieval @{context} (SOME ps) (SOME []) (SOME @{prop "A \<longrightarrow> A \<longrightarrow> A"});
 *}
 
