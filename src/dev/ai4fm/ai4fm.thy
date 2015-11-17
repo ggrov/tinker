@@ -201,29 +201,34 @@ ML{*
   val pspath = tinker_path ^ "src/dev/ai4fm/"; (* where all psgraph under dev are located here *)
   val prj_path = tinker_path ^ "src/dev/ai4fm/" (* the project file *)
 *}
-
 ML{*-
   (* change this to the location of your local copy *)
   val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/" 
   val pspath = tinker_path ^ "src/dev/ai4fm/"; (* where all psgraph under dev are located here *)
+  val pspath = tinker_path ^ "src/dev/psgraph/";
   val prj_path = tinker_path ^ "src/dev/ai4fm/" (* the project file *)
 *}
-
-ML{* val ps = PSGraph.read_json_file (prj_path ^"hiddenCase.psgraph"); 
+   
+ML{*
+(* need to support this in the parser of the clause goaltype *)
+C.scan_goaltyp @{context} "shape(concl,?P \<or> ?Q).";
+*}
+ML{*  
+val ps = PSGraph.read_json_file (prj_path ^"hiddenCase.psgraph"); 
      val prop = @{prop "P"};
 *} 
-
+  
 ML{* val ps = PSGraph.read_json_file (prj_path ^"witnessing.psgraph"); 
      val prop = @{prop "\<exists> x y z. P \<and> 0 = z"};
-*} 
+*}  
 
-ML{*   
+ML{*-
 Tinker.start_ieval @{context} (SOME ps) (SOME []) (SOME prop);    
 *}
-ML{* 
+
+ML{*-
   TextSocket.safe_close();  
 *}
-
 
 end
 

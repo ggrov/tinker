@@ -25,7 +25,7 @@ struct
   fun get_active_tags _ = !active_tags;
   val set_active_tags = fn x => active_tags := x;
 
-  val if_debug = false
+  val if_debug = true (* to enable local print, i.e. for JSON I/O *)
   val logging_handler_print = 
    if if_debug then
    (fn tag => (fn msg =>  
@@ -102,7 +102,7 @@ struct
   
 end
 
-val local_logging_debug = false
+val local_logging_debug = false (* to print all logging info in the prover side *)
 val _ = LoggingHandler.set_logging_handler 
   (fn tag => fn msg => ( if local_logging_debug then LoggingHandler.logging_handler_print tag msg else (); 
     LoggingHandler.logging_handler_gui tag msg));

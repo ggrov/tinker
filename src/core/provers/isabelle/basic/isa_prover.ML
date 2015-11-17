@@ -311,30 +311,30 @@ struct
   val unicode_symb = [
    ("\\\<longrightarrow>", "<_uni_symb_implies_>"),
   
-   ("\\\<nat>", "\\u2115"),
+   ("\\\<nat>", "<_uni_symb_bbN_>"),
 
-   ( "\\\<not>" ,"\\u00AC"),
-   ("\\\<and>", "\\u2227"),
-   ("\\\<or>", "\\u2228"),
+   ( "\\\<not>" ,"<_uni_symb_lnot_>"),
+   ("\\\<and>", "<_uni_symb_land_>"),
+   ("\<or>", "<_uni_symb_lor_>"),
 
-   ("\\\<forall>", "\\u2200"),
-   ("\\\<exists>", "\\u2203"),
+   ("\\\<forall>", "<_uni_symb_forall_>"),
+   ("\\\<exists>", "<_uni_symb_exists_>"),
 
-   ("\\\<noteq>", "\\u2260"),
+   ("\\\<noteq>", "<_uni_symb_neq_>"),
 
-   ("\\\<union>", "\\u222A"),
-   ("\\\<inter>", "\\u2229"),
-   ("\\\<in>", "\\u2208"),
-   ("\\\<notin>", "\\u2209"),
-   ("\\\<subset>", "\\u2282"),
-   ("\\\<supset>", "\\u2283"),
-   ("\\\<subseteq>", "\\u2286"),
-   ("\\\<supseteq>", "\\u2287"),
-   ("\\\<lhd>", "\\u22B2"),
-   ("\\\<rhd>", "\\u22B3"),
+   ("\\\<union>", "<_uni_symb_union_>"),
+   ("\\\<inter>", "_uni_symb_inter_"),
+   ("\\\<in>", "<_uni_symb_in_>"),
+   ("\\\<notin>", "<_uni_symb_notin_>"),
+   ("\\\<subset>", "<_uni_symb_lsubset_>"),
+   ("\\\<supset>", "<_uni_symb_rsubset_>"),
+   ("\\\<subseteq>", "<_uni_symb_lsubseteq_>"),
+   ("\\\<supseteq>", "<_uni_symb_rsubseteq_>"),
+   ("\\\<lhd>", "<_uni_symb_domres_>"),
+   ("\\\<rhd>", "<_uni_symb_ranres_>"),
    
-   ("\\\<Longrightarrow>", "\\u27F9"),
-   ("\\\<lambda>", "\\u03BB")
+   ("\\\<Longrightarrow>", "<_uni_symb_metaimpies_>"),
+   ("\\\<lambda>", "<_uni_symb_lambda_>")
   ];
   
   structure unicode_helper = UnicodeHelperFUN (val symb_tab  = unicode_symb);

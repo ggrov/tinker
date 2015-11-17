@@ -73,7 +73,7 @@ struct
       (SOME g0) => g0
      | NONE => JsonInputUtils.get_array obj "goal" |> hd 
       |> (fn (Json.String str) => EData.PSGraph.Theory.Data.GoalTyp.Prover.prop_of_string ctxt str)
-    val _ = logging "EVAL" ("TO prove goal:" ^ (EData.PSGraph.Theory.Data.GoalTyp.Prover.string_of_trm ctxt g))
+    val _ = logging "EVAL" ("To prove goal:" ^ (EData.PSGraph.Theory.Data.GoalTyp.Prover.string_of_trm ctxt g))
     val assms = case (#3 init_data) of 
       (SOME assms) => assms
     | NONE => JsonInputUtils.get_array obj "goal" |> tl |> hd 
@@ -230,7 +230,8 @@ struct
          of "CMD_CLOSE_CONNECT" => () (* do nothing and exit: need to be consider what to do *)
           | "CMD_END_EVAL_SESSION" => send_msg (Json.encode json_output) (* send to stop cmd and quit *)
         (*  | "RSP_EXCEPTION" => send_msg (Json.encode json_output) *)(* end session and flash out the exception string*)
-          | "RSP_MESSAGE_ERROR" => ()
+          | "RSP_MESSAGE_ERROR" => 
+            raise RunCall.Fail "\n Error: Received RSP_MESSAGE_ERROR from GUI. \n Please set the variable if_debug in the logging_handler to see more debugging info for this failure" 
           | "Dummy_RSP" => ((); protocol_loop s)
           | "PRINT_ONLY_RSP" => 
             ((get_print_only_msg  json_output
