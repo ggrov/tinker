@@ -39,6 +39,22 @@ struct
      | SOME (ClauseGoalTyp.Prover.E_Str s) => if member (op =) tops s then [env] else []
      | SOME _ => [])
   end
+ | top_symbol env pnode [r, ClauseGoalTyp.Var n, ClauseGoalTyp.Var p] =
+  let 
+    val tops = ClauseGoalTyp.project_terms env pnode r
+             |> map (fn x => (x, top_level_str' x))
+             |> filter (fn (_, []) => false | (_,_) => true)
+             |> map (fn (a,l) => (a, hd l)) 
+  in 
+    (case StrName.NTab.lookup env n of
+      SOME (ClauseGoalTyp.Prover.E_Str name) =>           
+       (case (filter (fn (a, s) => (s = name)) tops)
+        of [] => []
+         | l => map fst l |> map ClauseGoalTyp.Prover.E_Trm 
+                |> ClauseGoalTyp.Prover.E_L
+                |> (fn x => [StrName.NTab.ins (p,x) env]))
+     | _ => [])
+  end 
  | top_symbol _ _ [] = []
  | top_symbol _ _ [_,_] = []
  | top_symbol env pnode (x::xs) =
@@ -76,7 +92,6 @@ struct
       else []
   | is_not_goal _ _ _ = [];
   
-  
  fun has_hyp env pnode [ClauseGoalTyp.PVar p] = 
   (case StrName.NTab.lookup env p 
     of NONE => []
@@ -97,6 +112,25 @@ struct
   then [env] else []  
  | has_hyp _ _ _ = []
  
+ fun has_no_hyp env pnode [ClauseGoalTyp.PVar p] = 
+  (case StrName.NTab.lookup env p 
+    of NONE => []
+    |  SOME (PPProver.E_Trm t) => 
+     if member (op =) (PPProver.get_pnode_hyps pnode) t then [] else [env]
+    |  SOME _ => [])
+ | has_no_hyp env pnode [ClauseGoalTyp.Var p] =
+  (case StrName.NTab.lookup (PPProver.get_pnode_env pnode) p 
+    of NONE => []
+    |  SOME (PPProver.E_Trm t) => 
+     if member (op =) (PPProver.get_pnode_hyps pnode) t then [] else [env]
+    |  SOME _ => [])
+ | has_no_hyp env pnode [ClauseGoalTyp.Concl] =
+  if member (op =) (PPProver.get_pnode_hyps pnode)(PPProver.get_pnode_concl pnode) 
+  then [] else [env]    
+ | has_no_hyp env pnode [ClauseGoalTyp.Name str] = 
+  if member (op =) (PPProver.get_pnode_hyps pnode)(PPProver.trm_of_string PPProver.default_ctxt str)
+  then [] else [env]  
+ | has_no_hyp _ _ _ = []
  
  fun rand_trm env pnode [ClauseGoalTyp.Concl, ClauseGoalTyp.Var p] = 
   let 
@@ -106,31 +140,98 @@ struct
        NONE => [StrName.NTab.ins (p,ClauseGoalTyp.Prover.E_Trm trm) env]
      | SOME _ => [])
   end
+  | rand_trm env pnode [ClauseGoalTyp.Term t, ClauseGoalTyp.Var p] = 
+   let 
+    val trm = dest_app t |> snd
+   in 
+    (case StrName.NTab.lookup env p of
+       NONE => [StrName.NTab.ins (p,ClauseGoalTyp.Prover.E_Trm trm) env]
+     | SOME _ => [])
+   end
+  | rand_trm env pnode [ClauseGoalTyp.Var input, ClauseGoalTyp.Var p] = 
+   (case StrName.NTab.lookup env input of
+       NONE => []
+     | SOME (PPProver.E_Trm t) => 
+      [StrName.NTab.ins (p,ClauseGoalTyp.Prover.E_Trm (snd (dest_app t))) env]
+     | SOME (PPProver.E_L l) =>
+      map (fn (PPProver.E_Trm t) => t) l
+      |> map (ClauseGoalTyp.Prover.E_Trm o snd o dest_app)
+      |> (fn x => [StrName.NTab.ins (p,ClauseGoalTyp.Prover.E_L x) env])  
+     | _ => [])
   | rand_trm _ _ _ = []
   
- fun is_trm_var env pnode [ClauseGoalTyp.Var p] = 
+ fun trm_const env pnode [ClauseGoalTyp.Var p] = 
+   (case StrName.NTab.lookup env p 
+    of NONE => []
+    |  SOME (PPProver.E_Trm t) => if is_const t then [env] else []
+    |  SOME (PPProver.E_L l) => 
+        (map (fn (PPProver.E_Trm t) => t) l 
+        |> filter (is_const) 
+        |> (fn x => case x of [] => [] | _ => [env]))
+    |  SOME _ => [])
+  | trm_const _ _ _ = []
+  
+ fun not_trm_const env pnode [ClauseGoalTyp.Var p] = 
+   (case StrName.NTab.lookup env p 
+    of NONE => []
+    |  SOME (PPProver.E_Trm t) => if (not o is_const) t then [env] else []
+    |  SOME (PPProver.E_L l) => map (fn (PPProver.E_Trm t) => t) l 
+        |> filter (not o is_const) |> (fn x => case x of [] => [] | _ => [env])
+    |  SOME _ => [])
+  | not_trm_const _ _ _ = []
+
+  
+ fun trm_var env pnode [ClauseGoalTyp.Var p] = 
    (case StrName.NTab.lookup env p 
     of NONE => []
     |  SOME (PPProver.E_Trm t) => if is_var t then [env] else []
+    |  SOME (PPProver.E_L l) => map (fn (PPProver.E_Trm t) => t) l 
+        |> filter (is_var) |> (fn x => case x of [] => [] | _ => [env])
     |  SOME _ => [])
-  | is_trm_var _ _ _ = []
+  | trm_var _ _ _ = []
  
-  fun is_not_trm_var env pnode [ClauseGoalTyp.Var p] = 
+  fun not_trm_var env pnode [ClauseGoalTyp.Var p] = 
    (case StrName.NTab.lookup env p 
     of NONE => []
     |  SOME (PPProver.E_Trm t) => if (not o is_var) t then [env] else []
+    |  SOME (PPProver.E_L l) => map (fn (PPProver.E_Trm t) => t) l 
+        |> filter (not o is_var) |> (fn x => case x of [] => [] | _ => [env])
     |  SOME _ => [])
-  | is_not_trm_var _ _ _ = []
+  | not_trm_var _ _ _ = []
 
+  fun trm_var_or_const env pnode [ClauseGoalTyp.Var p] = 
+   (case StrName.NTab.lookup env p 
+    of NONE => []
+    |  SOME (PPProver.E_Trm t) => if (is_var t orelse is_const t) then [env] else []
+    |  SOME (PPProver.E_L l) => map (fn (PPProver.E_Trm t) => t) l 
+        |> filter (fn t => (is_var t orelse is_const t))  
+        |> (fn x => case x of [] => [] | _ => [env])
+    |  SOME _ => [])
+  | trm_var_or_const _ _ _ = []
+ 
+  fun not_trm_var_nor_const env pnode [ClauseGoalTyp.Var p] = 
+   (case StrName.NTab.lookup env p 
+    of NONE => []
+    |  SOME (PPProver.E_Trm t) => if ((not o is_var) t andalso (not o is_const) t) then [env] else []
+    |  SOME (PPProver.E_L l) => map (fn (PPProver.E_Trm t) => t) l 
+        |> filter (fn t => ((not o is_var) t andalso (not o is_const) t))
+        |> (fn x => case x of [] => [] | _ => [env])
+    |  SOME _ => [])
+  | not_trm_var_nor_const _ _ _ = []
   
   val default_gt_data = 
    ClauseGoalTyp.add_atomic "top_symbol" top_symbol ClauseGoalTyp.default_data
    |> ClauseGoalTyp.add_atomic "is_goal" is_goal
    |> ClauseGoalTyp.add_atomic "is_not_goal" is_not_goal
    |> ClauseGoalTyp.add_atomic "has_hyp" has_hyp
+   |> ClauseGoalTyp.add_atomic "has_no_hyp" has_no_hyp
    |> ClauseGoalTyp.add_atomic "rand_trm" rand_trm
-   |> ClauseGoalTyp.add_atomic "is_trm_var" is_trm_var
-   |> ClauseGoalTyp.add_atomic "is_not_trm_var" is_not_trm_var
+   |> ClauseGoalTyp.add_atomic "trm_var" trm_var
+   |> ClauseGoalTyp.add_atomic "not_trm_var" not_trm_var
+   |> ClauseGoalTyp.add_atomic "trm_const" trm_const
+   |> ClauseGoalTyp.add_atomic "not_trm_const" not_trm_const 
+   |> ClauseGoalTyp.add_atomic "trm_var_or_const" trm_var_or_const
+   |> ClauseGoalTyp.add_atomic "not_trm_var_nor_const" not_trm_var_nor_const
    
    
 end (* end of local *)
@@ -139,5 +240,5 @@ open ClauseGT_Lib;
 val _ = init_symbol_table 
 [("%and%", "conj"), ("%or%", "disj"),
  ("%implies%", "implies"), ("%not%", "not"), ("%forall%", "forall"), ("%exists%", "exists"),
- ("%equiv%", "equiv")];
+ ("%equiv%", "equiv"),("Cond", "if_then_else")];
 

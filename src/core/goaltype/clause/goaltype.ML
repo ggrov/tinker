@@ -135,6 +135,7 @@ struct
    **********************)
 
   fun project_env_terms (Prover.E_Trm t) = [t]
+   |  project_env_terms (Prover.E_Thm t) = [Prover.concl_of_thm t]
    |  project_env_terms (Prover.E_L xs) = maps project_env_terms xs
    |  project_env_terms _ = []
 

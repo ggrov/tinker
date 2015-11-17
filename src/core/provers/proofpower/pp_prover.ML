@@ -44,6 +44,7 @@ struct
   fun env_to_arg (E_Str str) = A_Str str
   |   env_to_arg (E_Trm trm) = A_Trm trm
   |   env_to_arg (E_Thm thm) = A_Thm thm
+  |   env_to_arg (E_L data) = A_L (map env_to_arg data)
   |   env_to_arg env = (logging "FAILURE" ("Do not suppport the conversion from env to arg: " ^ (pretty_env_data default_ctxt env|> Pretty.string_of)) ;
       raise tinker_fail true)
 
@@ -131,24 +132,31 @@ struct
    end
 
   fun parse_env_data ctxt (typ,def) vts = 
-   let 
-    val vts0 = map (fn (n, E_Trm t) => (n,t) 
-      | (n, _) => (logging "FAILURE" ("Only E_trm is supported as args, in parsing env var: " ^ n) ;
-   	  raise tinker_fail true)) vts 
-    val vts' = 
-     map (fn (n, t) => (t, 
-      trm_of_string ctxt 
-       ("(" ^ n ^") : " ^
-        (fn str => String.extract (str, 1, SOME (String.size str - 2))) (* to strip the bracket annotation*)
-         ((string_of_type o typ_of) t)))) 
-     vts0;
-   in
-    case typ of "term" => trm_of_string ctxt def |> subst vts' |> E_Trm
+    case typ of "term" => 
+      trm_of_string ctxt def 
+      |> (let 
+           val vts0 = 
+            map (fn (n, E_Trm t) => (n,t) 
+             | (n, _) => 
+             (logging "FAILURE" ("Only E_trm is supported as args, in parsing env var: " ^ n) ;
+             raise tinker_fail true)) 
+            vts; 
+           val vts' = 
+            map (fn (n, t) => (t, 
+             trm_of_string ctxt 
+              ("(" ^ n ^") : " ^
+               (fn str => String.extract (str, 1, SOME (String.size str - 2))) (* to strip the bracket annotation*)
+               ((string_of_type o typ_of) t)))) 
+            vts0
+          in
+         subst vts' end)
+      |> E_Trm 
     | "prop" => prop_of_string ctxt def |> E_Trm
     | "thm" => get_thm_by_name ctxt def |> E_Thm
+    | "dummy" => snd (hd vts)
     | illform => (logging "FAILURE" ("Unsupported env data type: " ^ illform) ;
     raise tinker_fail true)
-   end
+  
 
   fun get_all_assms (pnode : pnode)  = (#g pnode) 
   			      |> fst (* a list of term *)
