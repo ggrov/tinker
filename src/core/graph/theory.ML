@@ -323,14 +323,15 @@ struct
            |  "Hyps" => GoalTyp.Prover.get_pnode_hyps pnode |> GoalTyp.Prover.A_L_Trm
            |  "hyps" => GoalTyp.Prover.get_pnode_hyps pnode |> GoalTyp.Prover.A_L_Trm
            |  _ =>
-            (StrName.NTab.get env (Option.valOf (parse_env_var_name (hd arg))) |> GoalTyp.Prover.env_to_arg
-             handle _ => (logging "FAILURE" ("fail to parse arg: " ^ (hd arg)); raise tinker_fail true))
+            ((StrName.NTab.get env (Option.valOf (parse_env_var_name (hd arg)))
+            handle _ => (logging "FAILURE" ("fail to get arg: " ^ (hd arg) ^ "from env"); raise tinker_fail true))
+            |> GoalTyp.Prover.env_to_arg)
          else 
           case List.nth (arg, 1) 
             of "term" => hd arg |> GoalTyp.Prover.trm_of_string ctxt |> GoalTyp.Prover.A_Trm
             | "thm" => hd arg |> GoalTyp.Prover.get_thm_by_name ctxt |> GoalTyp.Prover.A_Thm
             | "string" => hd arg |> GoalTyp.Prover.A_Str
-            | "var" => hd arg |> GoalTyp.Prover.A_Var
+            | "var" => Option.valOf (parse_env_var_name (hd arg)) |> GoalTyp.Prover.A_Var
             | x => (logging "FAILURE" ("Unknown arg data typ in : " ^ x); raise tinker_fail true)
 
     )

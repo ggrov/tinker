@@ -301,7 +301,12 @@ struct
     |> Seq.of_list 
     handle BasicError.Fail msg => 
       (logging "FAILURE" ("In pnode " ^ get_pnode_name pnode ^ ":" ^ BasicError.get_message msg); 
-               raise tinker_fail false (*Seq.empty*) );
+               raise tinker_fail false (*Seq.empty*) )
+    |  BasicError.Error msg => 
+      (logging "FAILURE" ("In pnode " ^ get_pnode_name pnode ^ ":" ^ BasicError.get_message msg); 
+               raise tinker_fail false) 
+    | _ => (logging "FAILURE" ("In pnode " ^ get_pnode_name pnode ^ ":" ^ "Tactic fails"); 
+               raise tinker_fail false) ;
     (*end*)
 
   (* Update the env and then apply a dummy id tac in isabelle *)
@@ -312,7 +317,12 @@ struct
     |> Seq.of_list
     handle BasicError.Fail msg => 
       (logging "FAILURE" ("In pnode " ^ get_pnode_name pnode ^ ":" ^ BasicError.get_message msg); 
-               raise tinker_fail false) ;
+               raise tinker_fail false) 
+    |  BasicError.Error msg => 
+      (logging "FAILURE" ("In pnode " ^ get_pnode_name pnode ^ ":" ^ BasicError.get_message msg); 
+               raise tinker_fail false) 
+    | _ => (logging "FAILURE" ("In pnode " ^ get_pnode_name pnode ^ ":" ^ "ENV Tactic fails"); 
+               raise tinker_fail false);
     (*end*)  
   
   fun pretty_goal pnode = pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode)
