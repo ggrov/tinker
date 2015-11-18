@@ -152,10 +152,11 @@ struct
    (case StrName.NTab.lookup env input of
        NONE => []
      | SOME (PPProver.E_Trm t) => 
-      [StrName.NTab.ins (p,ClauseGoalTyp.Prover.E_Trm (snd (dest_app t))) env]
+      ([StrName.NTab.ins (p,ClauseGoalTyp.Prover.E_Trm (snd (dest_app t))) env]
+       handle _ => [])
      | SOME (PPProver.E_L l) =>
       map (fn (PPProver.E_Trm t) => t) l
-      |> map (ClauseGoalTyp.Prover.E_Trm o snd o dest_app)
+      |> maps (fn x => (dest_app x |> snd |> (fn y => ClauseGoalTyp.Prover.E_Trm y :: []) handle _ => []))
       |> (fn x => [StrName.NTab.ins (p,ClauseGoalTyp.Prover.E_L x) env])  
      | _ => [])
   | rand_trm _ _ _ = []
@@ -180,7 +181,6 @@ struct
     |  SOME _ => [])
   | not_trm_const _ _ _ = []
 
-  
  fun trm_var env pnode [ClauseGoalTyp.Var p] = 
    (case StrName.NTab.lookup env p 
     of NONE => []
@@ -219,6 +219,31 @@ struct
     |  SOME _ => [])
   | not_trm_var_nor_const _ _ _ = []
   
+  fun literal env pnode args = 
+   let 
+    fun is_literal trm = 
+     is_var trm orelse is_const trm orelse 
+     (((dest_app trm |> fst) =$ %<% $%not% %>%) andalso (is_var (snd (dest_app trm)))) orelse
+     (((dest_app trm |> fst) =$ %<% $%not% %>%) andalso (is_const (snd (dest_app trm))))
+     handle _ => false
+    fun is_all_literal trm_l = 
+     filter (not o is_literal) trm_l |> List.null
+   in
+    case args 
+    of [ClauseGoalTyp.Concl] => 
+        if is_literal (PPProver.get_pnode_concl pnode) then [env]
+        else []
+     | [ClauseGoalTyp.Hyps] => 
+        if is_all_literal (PPProver.get_pnode_hyps pnode) then [env]
+        else []
+     | _ => []
+   end
+   
+  fun is_empty env pnode [ClauseGoalTyp.Hyps] = 
+   if List.null  (PPProver.get_pnode_hyps pnode) then [env]
+   else []
+  | is_empty _ _ _ = []
+  
   val default_gt_data = 
    ClauseGoalTyp.add_atomic "top_symbol" top_symbol ClauseGoalTyp.default_data
    |> ClauseGoalTyp.add_atomic "is_goal" is_goal
@@ -232,6 +257,8 @@ struct
    |> ClauseGoalTyp.add_atomic "not_trm_const" not_trm_const 
    |> ClauseGoalTyp.add_atomic "trm_var_or_const" trm_var_or_const
    |> ClauseGoalTyp.add_atomic "not_trm_var_nor_const" not_trm_var_nor_const
+   |> ClauseGoalTyp.add_atomic "literal" literal
+   |> ClauseGoalTyp.add_atomic "is_empty" is_empty 
    
    
 end (* end of local *)
