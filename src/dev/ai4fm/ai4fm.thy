@@ -14,9 +14,9 @@ subsection "Atomic tactics"
 
 ML{*
  fun mk_disj A B = Const ("HOL.disj", @{typ "bool \<Rightarrow> bool \<Rightarrow> bool"}) $ A $ B; 
- fun disj_subgoal [Prover.E_Trm A,Prover.E_Trm B] ctxt n = 
+ fun disj_subgoal [Prover.A_Trm A,Prover.A_Trm B] ctxt n = 
    subgoal_tac ctxt (Prover.string_of_trm ctxt (mk_disj A B)) n;
- fun cases [Prover.E_Trm A,Prover.E_Trm B] ctxt n =
+ fun cases [Prover.A_Trm A,Prover.A_Trm B] ctxt n =
   res_inst_tac ctxt  [(("P",0), Prover.string_of_trm ctxt A),(("Q",0), Prover.string_of_trm ctxt B)] @{thm disjE} n; 
 *}
 
@@ -74,7 +74,7 @@ fun contains env pnode [parg,targs] =
 
 section "Witnessing"
 
-lemma "\<exists> x y z. P \<and> 0 = z"
+lemma "\<exists> x y z. P & 0 = z"
  apply (subst ex_comm)
  back
  apply (subst ex_comm)
@@ -208,26 +208,33 @@ ML{*-
   val pspath = tinker_path ^ "src/dev/psgraph/";
   val prj_path = tinker_path ^ "src/dev/ai4fm/" (* the project file *)
 *}
-   
+
+(* TO DO: 
+   - fix handling of terms at goal type level
+   - fix support for goal type definitions.
+   - fix nested terms (e.g. not(bla()).)
+*)
 ML{*
 (* need to support this in the parser of the clause goaltype *)
-C.scan_goaltyp @{context} "shape(concl,?P \<or> ?Q).";
+C.scan_goaltyp @{context} "test(t).";
 *}
-ML{*  
+
+ML{*       
 val ps = PSGraph.read_json_file (prj_path ^"hiddenCase.psgraph"); 
-     val prop = @{prop "P"};
+     val prop = @{prop "P"};         
 *} 
   
-ML{* val ps = PSGraph.read_json_file (prj_path ^"witnessing.psgraph"); 
+ML{*- val ps = PSGraph.read_json_file (prj_path ^"witnessing.psgraph"); 
      val prop = @{prop "\<exists> x y z. P \<and> 0 = z"};
 *}  
 
-ML{*-
-Tinker.start_ieval @{context} (SOME ps) (SOME []) (SOME prop);    
-*}
+ML{*       
+Tinker.start_ieval @{context} (SOME ps) (SOME []) (SOME prop);         
+*} 
 
-ML{*-
-  TextSocket.safe_close();  
+
+ML{*       
+  TextSocket.safe_close();    
 *}
 
 end
