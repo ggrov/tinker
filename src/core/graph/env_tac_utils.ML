@@ -36,7 +36,7 @@ struct
   structure Prover = PS_Theory.Data.GoalTyp.Prover
   local open LoggingHandler in 
     val env_var_prefix = "PSGRAPH_ENV_VAR_";
-    val if_local_debug = true;
+    val if_local_debug = false;
 
     fun parse_env_var_name' name (* raise exception*) =
        case PS_Theory.Graph_Utils.parse_env_var_name name 
@@ -165,20 +165,20 @@ struct
         (scan_var (* scan variable name *) --|
         (scan_ignore_pre_blank (Scan.this_string ":=")))
         src 
-       val def_strs = filter_blank' def_strs
-        val (typ, def) = 
-          if (is_start_with "?" (String.concat def_strs)) 
-          (* start with ?, so must be assiging to another env var *)
-          then
-           scan_env_var def_strs |> fst (* get the name of the var *)
-           |> (fn x => (StrName.NTab.get env (String.extract (x, 1, NONE)); ("dummy", String.concat def_strs)))
-           handle StrName.Tab.UNDEF n => 
-           (logging "FAILURE" ("the env var " ^ (String.concat def_strs)  ^ " does not exist."); 
-            raise tinker_fail true)
-          else if  (is_start_with "\"" (String.concat def_strs)) then
-           ("string", (String.concat def_strs))
-          else (* otherwise, scan as the antiquto format*)
-          (scan_antiquto ((*Prover.antiquto_handler env*)snd) def_strs)
+       (*val def_strs = filter_blank' def_strs*)
+       val (typ, def) = 
+        if (is_start_with "?" (String.concat def_strs)) 
+        (* start with ?, so must be assiging to another env var *)
+        then
+         scan_env_var def_strs |> fst (* get the name of the var *)
+         |> (fn x => (StrName.NTab.get env (String.extract (x, 1, NONE)); ("dummy", String.concat def_strs)))
+         handle StrName.Tab.UNDEF n => 
+         (logging "FAILURE" ("the env var " ^ (String.concat def_strs)  ^ " does not exist."); 
+          raise tinker_fail true)
+        else if  (is_start_with "\"" (String.concat def_strs)) then
+         ("string", (String.concat def_strs))
+        else (* otherwise, scan as the antiquto format*)
+        (scan_antiquto ((*Prover.antiquto_handler env*)snd) def_strs)
         (*val _ = writeln "a"*)
         val env_vars = 
          if (typ = "string") then []
