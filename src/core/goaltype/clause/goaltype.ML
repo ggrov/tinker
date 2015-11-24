@@ -5,7 +5,7 @@ struct
   structure Prover = Prover;
   local open LoggingHandler in 
 (* note that this has to turned off in isabelle, as pretty printing contains some non-standard chars which breaks the protocal *)
-  val DEBUG_ON = true;
+  val DEBUG_ON = false;
   val if_gui_mode = false;
 
   val tab = Unsynchronized.ref 0;
@@ -423,6 +423,7 @@ struct
   | gnode_from_json _ = raise gt_exp "gnode_from_json: ill-formed json structure"
 
  (* JSON for data (definitions *)
+(*
   fun data_to_json gn = 
      Json.mk_object [("type", Json.String "GT_Data"), 
                      ("gt_data", Json.String (Pretty.str_of (pretty_data gn)))]; 
@@ -433,7 +434,17 @@ struct
         |> scan_data Prover.default_ctxt
         |> (fn defs => set_data_defs defs default_data)
   | data_from_json _ = raise gt_exp "from_json: ill-formed json structure"
+*)
+  fun data_to_json gn = Json.String (Pretty.str_of (pretty_data gn)); 
 
+  fun data_from_json (Json.String str) = 
+         scan_data Prover.default_ctxt str
+        |> (fn defs => set_data_defs defs default_data)
+  | data_from_json _ = raise gt_exp "from_json: ill-formed json structure"
+
+(* TODO: need a proper fix, only merge def here *)
+  fun merge_data src dest =  update_data_defs (fn x => (get_data_defs src) @ x) dest
+  
  end (* end of local open *)
   structure BasicSharing =
   struct

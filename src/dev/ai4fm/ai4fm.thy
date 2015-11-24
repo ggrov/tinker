@@ -220,11 +220,11 @@ C.scan_goaltyp @{context} "test(t).";
 *}
 
 ML{*       
-val ps = PSGraph.read_json_file (prj_path ^"hiddenCase.psgraph"); 
+val ps = PSGraph.read_json_file (SOME data) (prj_path ^"hiddenCase.psgraph"); 
      val prop = @{prop "P"};         
 *} 
   
-ML{*- val ps = PSGraph.read_json_file (prj_path ^"witnessing.psgraph"); 
+ML{*- val ps = PSGraph.read_json_file (SOME data) (prj_path ^"witnessing.psgraph"); 
      val prop = @{prop "\<exists> x y z. P \<and> 0 = z"};
 *}  
 

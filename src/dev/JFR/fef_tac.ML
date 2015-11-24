@@ -13,7 +13,7 @@ use (OS.FileSys.getDir() ^ "/psgraph/src/dev/JFR/fef_setup.ML");
   val data = ClauseGoalTyp.update_data_defs (K pdef1) default_gt_data;
    
 (* read and load a psgraph created by gui *)
-  val ps_tac1 = PSGraph.read_json_file (pspath^"fef_tac.psgraph");
+  val ps_tac1 = PSGraph.read_json_file NONE (pspath^"fef_tac.psgraph");
 |> PSGraph.set_goaltype_data data; 
 
 (******************************************)
@@ -63,7 +63,7 @@ val tac4 = REPEAT strip_tac THEN
 (******************************************)
 (* experiments*)
 (******************************************)
-  val ps = PSGraph.read_json_file (pspath^"scratch.psgraph") |> PSGraph.set_goaltype_data default_gt_data; 
+  val ps = PSGraph.read_json_file NONE (pspath^"scratch.psgraph") |> PSGraph.set_goaltype_data default_gt_data; 
   PPIntf.set_psg_goal (SOME ([], ¬B%and%A®)) (SOME ps);
 
   fun drop_asm_tac ast = DROP_ASM_T ast (fn _ => id_tac);
@@ -83,14 +83,14 @@ fn ([PPProver.A_Str str, PPProver.A_Trm def1, PPProver.A_Trm def2]) => PC_T1 str
 (******************************************)
 open_theory "fef032";
 (* 1, test is goal and is not goal *)
-  val ps = PSGraph.read_json_file (pspath^"scratch.psgraph") |> PSGraph.set_goaltype_data default_gt_data; 
+  val ps = PSGraph.read_json_file NONE (pspath^"scratch.psgraph") |> PSGraph.set_goaltype_data default_gt_data; 
 
   PPIntf.set_psg_goal (SOME ([], ¬B%and%A®)) (SOME ps);
 
   TextSocket.safe_close();
 
 (* 2, tac with arg parsing *)
-  val ps = PSGraph.read_json_file (pspath^"toy.psgraph") |> PSGraph.set_goaltype_data default_gt_data; 
+  val ps = PSGraph.read_json_file NONE (pspath^"toy.psgraph") |> PSGraph.set_goaltype_data default_gt_data; 
 
   PPIntf.set_psg_goal (SOME ([], ¬B%and%A®)) (SOME ps);
 

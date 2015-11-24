@@ -9,7 +9,7 @@ ML{*
   val prj_path = tinker_path ^ "src/dev/ai4fm/" (* the project file *)
 *}
     
-ML{* val ps = PSGraph.read_json_file (prj_path ^"demo.psgraph"); 
+ML{* val ps = PSGraph.read_json_file NONE (prj_path ^"demo.psgraph"); 
      val prop = @{prop "\<exists> x y z. P \<and> 0 = z"};
 *}  
   

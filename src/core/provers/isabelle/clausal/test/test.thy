@@ -134,14 +134,22 @@ top_symbol(IsaProver.get_pnode_env pnode) pnode [C.Var "X", C.Name "implies"];
 
 *}      
 
-(* TODO:  1)fix any,2) combinator, e.g. not *)
-
-
-ML{*  
-  val ps = 
-   PSGraph.read_json_file (path^"clause_demo.psgraph")
-   |> PSGraph.set_goaltype_data data;       
+ML{*
+   val def1 = "c(Z) :- top_symbol(concl,Z).";
+   val pdef1 = scan_def def1;
+   val data1 = C.update_data_defs (K pdef1) data;
 *}
+
+ML{*
+
+C.imatch data1 pnode (C.scan_goaltyp @{context} "c(implies)") ;
+C.scan_goaltyp @{context} ;
+*}
+ 
+ML{* 
+  val ps = PSGraph.read_json_file (SOME data) (path^"clause_demo.psgraph");
+*}
+
 
 ML{* -
   TextSocket.safe_close();

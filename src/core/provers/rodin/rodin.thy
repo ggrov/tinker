@@ -130,7 +130,7 @@ fun EVAL_RODIN () =
            get_psgraph()   
         end;
     val _ = writeln path2;
-    val ps = PSGraph.read_json_file (path2)|> PSGraph.set_goaltype_data data ; 
+    val ps = PSGraph.read_json_file NONE (path2)|> PSGraph.set_goaltype_data data ; 
     val _ = (Tinker.start_ieval "" (SOME ps) (SOME []) (SOME ""))
     handle exn =>(      
     finish();    

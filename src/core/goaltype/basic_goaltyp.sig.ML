@@ -31,6 +31,7 @@ sig
   val gnode_to_json : gnode -> Json.json 
   val gnode_from_json : Json.json -> gnode 
 
+  val merge_data : data -> data -> data
   val data_to_json : data -> Json.json
   val data_from_json : Json.json -> data
 

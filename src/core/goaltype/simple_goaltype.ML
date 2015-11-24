@@ -33,7 +33,8 @@ struct
   | gnode_from_json _ = raise gt_exp "gnode_from_json: ill-formed json structure"
 
   fun data_to_json _ = Json.String "";
-  fun data_from_json _ = ()
+  fun data_from_json _ = ();
+  fun merge_data _ _ = default_data;
 
 (*
   val to_json = Json.String;

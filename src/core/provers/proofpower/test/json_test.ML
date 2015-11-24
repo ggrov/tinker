@@ -18,8 +18,8 @@
 
 
 (* read and load a psgraph created by gui *)
-  val ps = PSGraph.read_json_file (path^"demo.psgraph");
-  val ps = PSGraph.read_json_file (path^"demo_env.psgraph");
+  val ps = PSGraph.read_json_file NONE (path^"demo.psgraph");
+  val ps = PSGraph.read_json_file NONE (path^"demo_env.psgraph");
 
   PPIntf.set_psg_goal ([¬B : BOOL®], ¬A ´ (A ± B ± (C ´ C))®) (SOME ps);
 
@@ -27,7 +27,7 @@
 
 ======
 
-  val ps = PSGraph.read_json_file (path^"nonascii_tac.psgraph");
+  val ps = PSGraph.read_json_file NONE (path^"nonascii_tac.psgraph");
   PPIntf.set_psg_goal ([],¬µx· x = x®) ps;
 
 

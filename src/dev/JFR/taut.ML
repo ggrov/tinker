@@ -12,7 +12,7 @@
  val g8 : GOAL = ([],¬(A ± B ± C) ´ (C ± B ± A)®);
  val g9 : GOAL = ([¬A : BOOL®,¬(B ± C)®],¬(C ± B ± A)®);
 (* Version 1, just a loop *)
- val taut_v1 = PSGraph.read_json_file (pspath ^"simple_taut_tac_V1.psgraph");
+ val taut_v1 = PSGraph.read_json_file NONE (pspath ^"simple_taut_tac_V1.psgraph");
  PPIntf.set_psg_goal (SOME ([],¬(A ± B) ´ (B ± A)®)) (SOME taut_v1);
 
 (* Version 2, only arbitrary goaltype, i.e. any *)
@@ -20,7 +20,7 @@
 (* Version 4, better hierachicy *)
 (* Version 5, the loop error *)
 (* Version 6, the skip error, the final version *)
- val taut_v6 = PSGraph.read_json_file (pspath ^"simple_taut_tac_V6.psgraph") |> PSGraph.set_goaltype_data data; 
+ val taut_v6 = PSGraph.read_json_file NONE (pspath ^"simple_taut_tac_V6.psgraph") |> PSGraph.set_goaltype_data data; 
 
  PPIntf.set_psg_goal (SOME g8) (SOME taut_v6);
 

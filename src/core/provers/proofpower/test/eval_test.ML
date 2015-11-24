@@ -26,12 +26,12 @@
   fun assm_tac  _ = step_strip_tac;
 
 
-  val ps = PSGraph.read_json_file (path^"scratch.psgraph");
+  val ps = PSGraph.read_json_file NONE (path^"scratch.psgraph");
 
 
 (* read and load a psgraph created by gui *)
-  val ps = PSGraph.read_json_file (path^"demo.psgraph");
-  val ps = PSGraph.read_json_file (path^"demo_env.psgraph");
+  val ps = PSGraph.read_json_file NONE (path^"demo.psgraph");
+  val ps = PSGraph.read_json_file NONE (path^"demo_env.psgraph");
 
   PPIntf.set_psg_goal (SOME ([¬B : BOOL®], ¬A ´ (A ± B ± (C ´ C))®)) (NONE);
 
@@ -45,7 +45,7 @@ PPProver.encoding_from_gui ps |>
 PPProver.encoding_to_prover |>
 PPProver.encoding_from_prover |>
 PPProver.encoding_to_gui;
-PSGraph.read_json_file (path^"scratch.psgraph");
+PSGraph.read_json_file NONE (path^"scratch.psgraph");
 
 "\<impl>";
 Json.string_of (Json.String "\\<impl>");

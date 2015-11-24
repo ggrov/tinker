@@ -408,8 +408,11 @@ struct
   end
 
 (* expect to out put as an eval field *)
- fun input_json (Json.Object object) = 
+ fun input_json  (Json.Object object) = 
   let
+    val gt_data = 
+      Json.get object "goal_types"
+      |> Theory.Data.GoalTyp.data_from_json
     val graph_tactics = 
       JsonInputUtils.get_array object "graphs"
       |> map input_subgraph_json
@@ -429,6 +432,7 @@ struct
     val main = JsonInputUtils.get_string object "main" 
   in
     default_psgraph
+    |> set_goaltype_data gt_data
     |> set_graph_tactics graph_tactics
     |> set_atomic_tactics atomic_tactics
     |> set_env_tactics env_tactics
@@ -441,12 +445,22 @@ struct
  fun write_json_file path ps = 
   File_Io.write_string path (output_json ps |> Json.encode |> Theory.Data.GoalTyp.Prover.encoding_to_gui);
 
- fun read_json_file path = 
-  File_Io.read_string path 
-  |> Theory.Data.GoalTyp.Prover.encoding_from_gui
-  |> Json.of_string 
-  |> to_prover_json
-  |> input_json
+ fun read_json_file data path = 
+  let 
+   val ps = File_Io.read_string path 
+   |> Theory.Data.GoalTyp.Prover.encoding_from_gui
+   |> Json.of_string 
+   |> to_prover_json
+   |> input_json
+  in
+   case data of NONE => ps
+   | (SOME gt_data) => 
+    get_goaltype_data ps 
+    |> (fn x => Theory.Data.GoalTyp.merge_data x gt_data)
+    |> (fn x => set_goaltype_data x ps )
+  end
+
+
 
 (*
   fun weak_validate ?

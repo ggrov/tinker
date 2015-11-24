@@ -2,7 +2,7 @@
  use ( OS.FileSys.getDir() ^ "/psgraph/src/core/demo/AdvisoryBoardMeeting2015/setup_proofpower");
 
 (* Load the proof strategy *)
-  val ps = PSGraph.read_json_file (path ^"demo_pp.psgraph");
+  val ps = PSGraph.read_json_file NONE (path ^"demo_pp.psgraph");
 
 
  fun to_prover_json (Json.String s) = Theory.Data.GoalTyp.Prover.encoding_to_prover s |> Json.String

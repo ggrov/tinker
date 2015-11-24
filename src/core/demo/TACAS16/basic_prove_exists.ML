@@ -50,7 +50,7 @@
 val g : GOAL= ([],¬¶ (x,y) · (x:î) = (1:î)®);
 val g1 : GOAL= ([],¬¶ x y · (x:î) = (1:î)®);
 
- val ps = PSGraph.read_json_file (pspath ^"basic_prove_exists_tac.psgraph") |>   PSGraph.set_goaltype_data data; 
+ val ps = PSGraph.read_json_file NONE (pspath ^"basic_prove_exists_tac.psgraph") |>   PSGraph.set_goaltype_data data; 
 
  PPIntf.set_psg_goal (SOME g) (SOME ps);
  TextSocket.safe_close();

@@ -61,7 +61,7 @@ fun test_true1 _ _ _ = true
 *}
 (* read and load a psgraph created by gui *)
 ML{*
-  val ps = PSGraph.read_json_file (path^"demo.psgraph");
+  val ps = PSGraph.read_json_file NONE (path^"demo.psgraph");
 *}
 
 ML{*

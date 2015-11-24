@@ -24,7 +24,7 @@
   val data = ClauseGoalTyp.update_data_defs (K pdef1) data;
    
 (* read and load a psgraph created by gui *)
-  val ps = PSGraph.read_json_file (path^"clause_demo.psgraph")|> PSGraph.set_goaltype_data data; 
+  val ps = PSGraph.read_json_file NONE (path^"clause_demo.psgraph")|> PSGraph.set_goaltype_data data; 
 
   PPIntf.set_psg_goal (SOME ([], ¬A%and%A%and%A®)) (SOME ps);
 

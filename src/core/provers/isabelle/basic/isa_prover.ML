@@ -315,7 +315,7 @@ struct
 
    ( "\\\<not>" ,"<_uni_symb_lnot_>"),
    ("\\\<and>", "<_uni_symb_land_>"),
-   ("\<or>", "<_uni_symb_lor_>"),
+   ("\\\<or>", "<_uni_symb_lor_>"),
 
    ("\\\<forall>", "<_uni_symb_forall_>"),
    ("\\\<exists>", "<_uni_symb_exists_>"),

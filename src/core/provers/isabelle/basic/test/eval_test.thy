@@ -13,7 +13,7 @@ ML{*
  
 ML{*
 
-val ps = PSGraph.read_json_file (path^"scratch.psgraph");
+val ps = PSGraph.read_json_file NONE (path^"scratch.psgraph");
 *}
 ML{*-
 
@@ -24,7 +24,7 @@ val test = Json.mk_object [("symbol", Json.String "\<longrightarrow>help \<in>")
 
   File_Io.read_string (path^"scratch.psgraph") |> IsaProver.encode_unicode; 
 
-  val ps = PSGraph.read_json_file (path^"scratch.psgraph");
+  val ps = PSGraph.read_json_file NONE (path^"scratch.psgraph");
 
 *}
 
