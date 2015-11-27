@@ -7,7 +7,7 @@
  val g4 : GOAL = ([¬F®],¬A ´ B´A®);
  val g5 : GOAL = ([],¬³ (B)®);
  
- val g6 : GOAL = ([],¬(A ± B) ´ (B ± A)®);
+ val g6 : GOAL = ([],¬(A ± B ± C) ´ (C ± B ± A)®);
  val g7 : GOAL = ([],¬ A ´ (A ± A)®);
  val g8 : GOAL = ([],¬(A ± B ± C) ´ (C ± B ± A)®);
  val g9 : GOAL = ([¬A : BOOL®,¬(B ± C)®],¬(C ± B ± A)®);
@@ -19,10 +19,14 @@
 (* Version 3, add goaltype *)
 (* Version 4, better hierachicy *)
 (* Version 5, the loop error *)
-(* Version 6, the skip error, the final version *)
- val taut_v6 = PSGraph.read_json_file NONE (pspath ^"simple_taut_tac_V6.psgraph") |> PSGraph.set_goaltype_data data; 
+ val taut_v5_pre = PSGraph.read_json_file (SOME data) (pspath ^"simple_taut_tac_V5_pre.psgraph"); 
 
- PPIntf.set_psg_goal (SOME g8) (SOME taut_v6);
+ PPIntf.set_psg_goal (SOME g6) (SOME taut_v5_pre);
+
+(* Version 6, the skip error, the final version *)
+ val taut_v6_pre = PSGraph.read_json_file (SOME data) (pspath ^"simple_taut_tac_V6_pre.psgraph"); 
+
+ PPIntf.set_psg_goal (SOME g7) (SOME taut_v6_pre);
 
  TextSocket.safe_close();
 
