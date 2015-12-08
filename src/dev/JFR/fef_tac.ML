@@ -9,14 +9,12 @@ val pspath = tinker_path ^ "src/dev/psgraph/";
 (******************************************)
 (* definitions for goaltypes *)
 (******************************************)
-  val scan_def = ClauseGoalTyp.scan_data PPProver.default_ctxt;
+(*val scan_def = ClauseGoalTyp.scan_data PPProver.default_ctxt;*)
   val def1 = "topconcl(Z) :- top_symbol(concl,Z).";
-  val pdef1 = scan_def def1;
-  val data = ClauseGoalTyp.update_data_defs (K pdef1) default_gt_data;
+  val data = default_gt_data;
    
 (* read and load a psgraph created by gui *)
-  val ps_tac1 = PSGraph.read_json_file NONE (pspath^"fef_tac.psgraph");
-|> PSGraph.set_goaltype_data data; 
+  val ps_tac1 = PSGraph.read_json_file (SOME data) (pspath^"fef_tac.psgraph");
 
 (******************************************)
 (* definition of tac1 - tac 4 *)
@@ -65,7 +63,7 @@ val tac4 = REPEAT strip_tac THEN
 (******************************************)
 (* experiments*)
 (******************************************)
-  val ps = PSGraph.read_json_file NONE (pspath^"scratch.psgraph") |> PSGraph.set_goaltype_data default_gt_data; 
+  val ps = PSGraph.read_json_file (SOME data) (pspath^"fef_tac.psgraph");
   PPIntf.set_psg_goal (SOME ([], ¬B%and%A®)) (SOME ps);
 
   fun drop_asm_tac ast = DROP_ASM_T ast (fn _ => id_tac);
