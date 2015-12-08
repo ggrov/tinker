@@ -3,11 +3,13 @@
   fun K x = fn _ => x;
   fun x |> f = f x;
 
-(* basic goaltype *)
-  use_file "../../../unicode_helper.ML";
-  use "../../../psgraph_names.ML"; 
-  use "../../../logging_handler.ML";
-  use "../../../ml_exec.ML";
+(* some utilities *)
+  use_file "../../../utils/unicode_helper.ML";
+  use "../../../utils/psgraph_names.ML"; 
+  use "../../../utils/logging_handler.ML";
+  use "../../../utils/ml_exec.ML";
+
+(* basic goaltype *)  
   use "../../prover.sig.ML";   
   use "../../../goaltype/basic_goaltyp.sig.ML";
 (* graph *)
@@ -44,6 +46,6 @@
   use "../termlib/term_features.ML";  
   use "../../prover.sig.ML";
   use_file "../pp_prover.ML";
-  use_file "../pp_utils.ML"
+  (*use_file "../pp_utils.ML"*)
 
 

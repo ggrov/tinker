@@ -320,12 +320,18 @@ struct
          then case (hd arg) 
            of "Concl" => GoalTyp.Prover.get_pnode_concl pnode |> GoalTyp.Prover.A_Trm
            | "concl" => GoalTyp.Prover.get_pnode_concl pnode |> GoalTyp.Prover.A_Trm
-           |  "Hyps" => GoalTyp.Prover.get_pnode_hyps pnode |> GoalTyp.Prover.A_L_Trm
-           |  "hyps" => GoalTyp.Prover.get_pnode_hyps pnode |> GoalTyp.Prover.A_L_Trm
-           |  _ =>
-            ((StrName.NTab.get env (Option.valOf (parse_env_var_name (hd arg)))
-            handle _ => (logging "FAILURE" ("fail to get arg: " ^ (hd arg) ^ "from env"); raise tinker_fail true))
-            |> GoalTyp.Prover.env_to_arg)
+           | "Hyps" => GoalTyp.Prover.get_pnode_hyps pnode |> GoalTyp.Prover.A_L_Trm
+           | "hyps" => GoalTyp.Prover.get_pnode_hyps pnode |> GoalTyp.Prover.A_L_Trm
+           |  x =>
+            if ((String.explode x |> hd) = #"\"" andalso (String.explode x |> List.last) = #"\"" ) (* see if it is a string *)
+            then
+             String.substring (x, 1, size x - 2) 
+             |> (fn x => (writeln x; x)) 
+             |> GoalTyp.Prover.A_Str
+            else
+             ((StrName.NTab.get env (Option.valOf (parse_env_var_name (hd arg)))
+             handle _ => (logging "FAILURE" ("fail to get arg: " ^ (hd arg) ^ " from env"); raise tinker_fail true))
+             |> GoalTyp.Prover.env_to_arg)
          else 
           case List.nth (arg, 1) 
             of "term" => hd arg |> GoalTyp.Prover.trm_of_string ctxt |> GoalTyp.Prover.A_Trm

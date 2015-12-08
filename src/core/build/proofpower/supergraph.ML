@@ -7,6 +7,9 @@
 
   use "load_psgraph";
   use "build_clause_GT.ML"; 
+  
+  use_file "../pp_utils.ML"
+
   (*use "build_simple_GT.ML";*) 
 
   use_file (supergraph_path ^ "open_struct/open_struct.ML");

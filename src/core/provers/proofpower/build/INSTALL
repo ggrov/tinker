@@ -6,7 +6,7 @@ we can check the readme file to make sure the path is correct, e.g. the readme f
 
    $SOME_PATH/tinker/quantomatic/README
 
-similarly, the readme for the psgtarph repo will be 
+similarly, the readme for the psgraph repo will be 
 
    $SOME_PATH/tinker/psgraph/Readme
 

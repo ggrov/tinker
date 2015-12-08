@@ -1,4 +1,6 @@
 use (OS.FileSys.getDir() ^ "/psgraph/src/dev/JFR/fef_setup.ML");
+val pspath = tinker_path ^ "src/dev/psgraph/";
+
 (******************************************)
 (* definitions for tactics *)
 (******************************************)
@@ -22,9 +24,9 @@ use (OS.FileSys.getDir() ^ "/psgraph/src/dev/JFR/fef_setup.ML");
 (*
 THEN1 apply the 1st subgoal to tac2, others to id
 LEMMA_T applies the 1st arg as subgoal, and then using the 1st arg as thm with the 2sn fn to apply to the orginal goal
-POP_ASM_T remove the 1st asm and use it as a thm to snd fn
-
+POP_ASM_T remove the 1st asm and use it as a thm to snd fns
 *)
+
 open_theory "fef032";
 map get_spec [¬Elems®, ¬OK_VC‰d®];
 

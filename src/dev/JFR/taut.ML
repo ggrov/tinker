@@ -6,11 +6,11 @@
  val g3 : GOAL = ([],¬if a then F else T®);
  val g4 : GOAL = ([¬F®],¬A ´ B´A®);
  val g5 : GOAL = ([],¬³ (B)®);
- 
  val g6 : GOAL = ([],¬(A ± B ± C) ´ (C ± B ± A)®);
  val g7 : GOAL = ([],¬ A ´ (A ± A)®);
  val g8 : GOAL = ([],¬(A ± B ± C) ´ (C ± B ± A)®);
  val g9 : GOAL = ([¬A : BOOL®,¬(B ± C)®],¬(C ± B ± A)®);
+
 (* Version 1, just a loop *)
  val taut_v1 = PSGraph.read_json_file NONE (pspath ^"simple_taut_tac_V1.psgraph");
  PPIntf.set_psg_goal (SOME ([],¬(A ± B) ´ (B ± A)®)) (SOME taut_v1);
@@ -25,8 +25,11 @@
 
 (* Version 6, the skip error, the final version *)
  val taut_v6_pre = PSGraph.read_json_file (SOME data) (pspath ^"simple_taut_tac_V6_pre.psgraph"); 
-
  PPIntf.set_psg_goal (SOME g7) (SOME taut_v6_pre);
+
+ val taut_v6 = PSGraph.read_json_file (SOME data) (pspath ^"simple_taut_tac_V6.psgraph"); 
+ PPIntf.set_psg_goal (SOME g8) (SOME taut_v6);
+
 
  TextSocket.safe_close();
 
