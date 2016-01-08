@@ -18,6 +18,9 @@ var width = rootDivSelection.select("div#graph").node().getBoundingClientRect().
 var nodes = [],
     edges = [];
 
+// focus flag, prevents zooming when area not selected
+var focused = false;
+
 // zoom/pan function
 function zoomed(){
 	graph.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
@@ -84,8 +87,22 @@ var svg = rootDivSelection.select("div#graph").append("svg")
 	.attr("height","100%")
 	.append("g")
 	.attr("transform", "translate(" + width/2 + "," + height/2 + ")")
-	.call(zoom)
-    .call(tip);
+    .call(tip)
+    .on("click",function(){
+    	// adding zoom behavior to graph area only when requested
+    	svg.call(zoom)
+    })
+
+// the following removes all zoom behavior from graph area when it's out of screen view
+window.addEventListener("scroll",function(){
+    var docViewTop = window.scrollY;
+    var docViewBottom = docViewTop + window.innerHeight;
+    var elemTop = rootDivSelection[0][0].offsetTop;
+    var elemBottom = elemTop + height;
+    if((elemBottom <= docViewTop) || (elemTop >= docViewBottom)){
+		svg.on(".zoom",null);
+    }
+})
 
 // dummy rect to catch zoom/pan action on graph 
 var rect = svg.append("rect")
