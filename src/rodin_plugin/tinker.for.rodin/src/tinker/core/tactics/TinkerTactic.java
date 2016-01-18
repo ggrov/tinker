@@ -34,7 +34,9 @@ public class TinkerTactic implements ITactic {
 	private TinkerSession session;
 
 	public TinkerTactic(String input) {
-		psgraph_filename = input + ".psgraph";
+		if (input != null && !input.equals("")) {
+			psgraph_filename = input + ".psgraph";
+		}
 		psgraph_dir = PluginActivator.getDefault().getPreferenceStore().getString(PreferenceConstants.P_PATH);
 	}
 
@@ -49,7 +51,7 @@ public class TinkerTactic implements ITactic {
 	public static String psgraph_dir = PluginActivator.getDefault().getPreferenceStore()
 			.getString(PreferenceConstants.P_PATH);
 
-	public static String psgraph_filename = "";
+	public static String psgraph_filename = PluginActivator.getDefault().getPreferenceStore().getString("LAST_PSGRAPH");
 
 	public String open_psgraph() {
 		if (psgraph_dir.equals("")) {

@@ -6,13 +6,14 @@ begin
 ML_file "../../goaltype/clause/goaltype.sig.ML"                                                                                                                      
 ML_file "../../goaltype/clause/goaltype.ML"   
 
+ML_file "build/rodin_text_socket.ML"
 ML_file "../../interface/text_socket.ML"
 
 ML_file "./interface/wsock.sig.ML"
 ML_file "./interface/json_protocol.sig.ML"
 ML_file "./interface/tpp_protocol.sig.ML"
 
-ML_file "../../unicode_helper.ML"
+ML_file "./unicode_helper.ML"
 
 
 
@@ -43,7 +44,11 @@ structure Env_Tac_Utils = EnvTacUtilsFunc (structure Theory = Theory val struct_
   structure EData =  EDataFun( PSGraph);
   structure EVal = EValFun(EData);
   structure IEVal = InteractiveEvalFun (EVal);
-  structure Tinker = TinkerProtocol (structure IEVal = IEVal val gui_socket_port = 1790 val prover_socket_port = 0);
+  structure TextSocket = TextSocket_FUN (structure Prover = RodinProver);
+  structure Tinker = TinkerProtocol (structure IEVal = IEVal 
+                                     structure TextSocket = TextSocket
+                                     val gui_socket_port = 1790
+                                     val prover_socket_port = 0);;
 (*   structure Env_Tac_Lib = EnvTacLibFunc (Theory); *)
 *}
 

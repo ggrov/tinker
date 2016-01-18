@@ -17,16 +17,12 @@ ML{*
 LoggingHandler.active_all_tags ();
 LoggingHandler.print_active();
 
-
-
-(*   val path2 = "F:/Library/Documents/git/tinker/src/tinkerGUI/release/tinker_library/rodin/"; *)
-(*             F:\Library\Documents\git\tinker\src\tinkerGUI\release\tinker_library\rodin *)
 *}
 ML{*
   open RodinHelper
-     val on_hyp= "on_hyp"
-     val on_goal= "on_goal"
-     val auto_tactic="auto_tactic"
+     val on_hyp="on_hyp"
+     val on_goal=  "on_goal"
+     val auto_tactic=  "auto_tactic" 
 (* 
      val ENV_left ="ENV_left"
      val ENV_hyps="ENV_hyps"
@@ -111,13 +107,13 @@ end
 
 *}
 ML{*-
-   RodinSock.disconnect ();
+   RodinSock.disconnect (); 
 *}
 ML{*-
   TextSocket.safe_close();    
 *}
  
-ML{*
+ML{*-
   TextSocket.close ;   
 *}
 ML{* 
@@ -145,8 +141,8 @@ fun EVAL_RODIN () =
 
 *} 
 
-ML{*-
-   EVAL_RODIN ();
+ML{*
+   EVAL_RODIN ();  
 *}
 
 end
