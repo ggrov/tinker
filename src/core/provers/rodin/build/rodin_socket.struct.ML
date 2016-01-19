@@ -3,8 +3,8 @@ struct
   open LoggingHandler
   type socket = TextSocket.T
   val default_port = 1985;
-  exception Rodin_cancellation
-
+  exception Prover_cancellation
+  exception Prover_exit
   val sock : (socket option) Synchronized.var = Synchronized.var "rodin socket" NONE;
   (* val sock : (socket option) Unsynchronized.ref = Unsynchronized.ref NONE  *)
 
@@ -54,8 +54,10 @@ struct
   let val str=TextSocket.read (getInstance())
     in
        if str="RODIN_CANCEL" then
-        raise Rodin_cancellation
-      else 
+        raise Prover_cancellation
+      else if str="RODIN_EXIT" then
+        raise Prover_exit
+      else
         str
   end
 

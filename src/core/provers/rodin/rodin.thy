@@ -117,21 +117,24 @@ ML{*-
   TextSocket.close ;   
 *}
 ML{* 
- 
+
 fun EVAL_RODIN () = 
     let 
     val _ = SimpleNamer.init();
     val path2 =    
         let open RodinHelper in   
-           get_psgraph()   
+           get_psgraph() 
+           handle RodinSock.Prover_exit => raise RodinSock.Prover_exit
         end;
     val _ = writeln path2;
     val ps = PSGraph.read_json_file NONE (path2)|> PSGraph.set_goaltype_data data ; 
     val _ = (Tinker.start_ieval "" (SOME ps) (SOME []) (SOME ""))
-    handle exn =>(      
-    finish();    
-    TextSocket.safe_close(); 
-    raise exn);    
+      handle exn => 
+      (
+        finish();
+        TextSocket.safe_close(); 
+        raise exn
+      )
     val _ = writeln "PROOF DONE"
     in 
       PolyML.print "Tinkering Rodin...Done";
@@ -142,7 +145,14 @@ fun EVAL_RODIN () =
 *} 
 
 ML{*
-   EVAL_RODIN ();  
+fun Tinker_Main () = 
+  (
+    EVAL_RODIN()
+    handle RodinSock.Prover_exit => ()
+    handle _ => (
+      Tinker_Main ()
+    )
+  )
 *}
 
 end
