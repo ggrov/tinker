@@ -15,7 +15,7 @@ struct
   type tactic = string
 
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string
- 
+      | A_L_Thm of thm list | A_L_Trm of term list | A_L of arg_data list
   
  datatype env_data = 
     E_Str of string | 
@@ -39,6 +39,10 @@ struct
   val default_ctxt = this_name^" ctxt"
   val exec_str = eval_text;
 
+  fun env_to_arg (E_Str str) = A_Str str
+  |   env_to_arg (E_Trm trm) = A_Trm trm
+  |   env_to_arg (E_Thm thm) = A_Thm thm
+  |   env_to_arg env = raise (error "")
 
   structure EnvTac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = env_tac val struct_name = this_name^".EnvTac_ML_Exec");
   structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = this_name^".Tac_ML_Exec");
@@ -65,6 +69,11 @@ struct
   | A_Trm str => str
   | A_Thm str => str
   | A_Str str =>str
+  | A_L_Thm str => raise error "dummy"
+  | A_L_Trm str => raise error "dummy"
+  | A_L str => raise error "dummy"
+  
+
 
   fun args_convert (args:arg_data list)  = 
   let
@@ -155,6 +164,45 @@ struct
     Seq.single ([{pname=pname, env=new_env}], pplan)
   end
  *)
+
+
+  val unicode_symb = [
+   ("\\\<longrightarrow>", "<_uni_symb_implies_>"),
+  
+   ("\\\<nat>", "<_uni_symb_bbN_>"),
+
+   ( "\\\<not>" ,"<_uni_symb_lnot_>"),
+   ("\\\<and>", "<_uni_symb_land_>"),
+   ("\\\<or>", "<_uni_symb_lor_>"),
+
+   ("\\\<forall>", "<_uni_symb_forall_>"),
+   ("\\\<exists>", "<_uni_symb_exists_>"),
+
+   ("\\\<noteq>", "<_uni_symb_neq_>"),
+
+   ("\\\<union>", "<_uni_symb_union_>"),
+   ("\\\<inter>", "_uni_symb_inter_"),
+   ("\\\<in>", "<_uni_symb_in_>"),
+   ("\\\<notin>", "<_uni_symb_notin_>"),
+   ("\\\<subset>", "<_uni_symb_lsubset_>"),
+   ("\\\<supset>", "<_uni_symb_rsubset_>"),
+   ("\\\<subseteq>", "<_uni_symb_lsubseteq_>"),
+   ("\\\<supseteq>", "<_uni_symb_rsubseteq_>"),
+   ("\\\<lhd>", "<_uni_symb_domres_>"),
+   ("\\\<rhd>", "<_uni_symb_ranres_>"),
+   
+   ("\\\<Longrightarrow>", "<_uni_symb_metaimpies_>"),
+   ("\\\<lambda>", "<_uni_symb_lambda_>")
+  ];
+  
+  structure unicode_helper = UnicodeHelperFUN (val symb_tab  = unicode_symb);
+
+  val encoding_from_prover = unicode_helper.encode_prover_json;
+  val encoding_to_prover = unicode_helper.decode_prover_json;
+  val encoding_from_gui = unicode_helper.encode_gui_json;
+  val encoding_to_gui = unicode_helper.decode_gui_json;
+
+  fun restore_pplan _ = () (* dummy  *) 
 
   fun get_goal_thm pplan = "dummy"; 
   val prop_of_string = trm_of_string

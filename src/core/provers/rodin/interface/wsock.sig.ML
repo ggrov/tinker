@@ -9,7 +9,8 @@
 signature WSOCK=
 sig
   type socket
-
+  exception Prover_cancellation
+  exception Prover_exit
   (* Default port for the prover that uses this socket wrapper *)
   val default_port : int
 

@@ -642,7 +642,7 @@ public class CommandExecutor {
 		case "INST":
 			String[] inst_values = cmd.getParameter("PARAM").split(",");
 			return Tactics.exI(inst_values);
-		case "IMPI":
+		case "IMPL":
 			return Tactics.impI();
 		case "DO_CASE":
 			String caseterm = cmd.getParameter("1");

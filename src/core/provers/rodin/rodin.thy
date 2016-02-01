@@ -17,16 +17,12 @@ ML{*
 LoggingHandler.active_all_tags ();
 LoggingHandler.print_active();
 
-
-
-(*   val path2 = "F:/Library/Documents/git/tinker/src/tinkerGUI/release/tinker_library/rodin/"; *)
-(*             F:\Library\Documents\git\tinker\src\tinkerGUI\release\tinker_library\rodin *)
 *}
 ML{*
   open RodinHelper
-     val on_hyp= "on_hyp"
-     val on_goal= "on_goal"
-     val auto_tactic="auto_tactic"
+     val on_hyp="on_hyp"
+     val on_goal=  "on_goal"
+     val auto_tactic=  "auto_tactic" 
 (* 
      val ENV_left ="ENV_left"
      val ENV_hyps="ENV_hyps"
@@ -111,31 +107,34 @@ end
 
 *}
 ML{*-
-   RodinSock.disconnect ();
+   RodinSock.disconnect (); 
 *}
 ML{*-
   TextSocket.safe_close();    
 *}
  
-ML{*
+ML{*-
   TextSocket.close ;   
 *}
 ML{* 
- 
+
 fun EVAL_RODIN () = 
     let 
     val _ = SimpleNamer.init();
     val path2 =    
         let open RodinHelper in   
-           get_psgraph()   
+           get_psgraph() 
+           handle RodinSock.Prover_exit => raise RodinSock.Prover_exit
         end;
     val _ = writeln path2;
     val ps = PSGraph.read_json_file NONE (path2)|> PSGraph.set_goaltype_data data ; 
     val _ = (Tinker.start_ieval "" (SOME ps) (SOME []) (SOME ""))
-    handle exn =>(      
-    finish();    
-    TextSocket.safe_close(); 
-    raise exn);    
+      handle exn => 
+      (
+        finish();
+        TextSocket.safe_close(); 
+        raise exn
+      )
     val _ = writeln "PROOF DONE"
     in 
       PolyML.print "Tinkering Rodin...Done";
@@ -145,8 +144,15 @@ fun EVAL_RODIN () =
 
 *} 
 
-ML{*-
-   EVAL_RODIN ();
+ML{*
+fun Tinker_Main () = 
+  (
+    EVAL_RODIN()
+    handle RodinSock.Prover_exit => ()
+    handle _ => (
+      Tinker_Main ()
+    )
+  )
 *}
 
 end
