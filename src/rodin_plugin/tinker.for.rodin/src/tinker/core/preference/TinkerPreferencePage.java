@@ -26,7 +26,7 @@ public class TinkerPreferencePage
 	public TinkerPreferencePage() {
 		super(GRID);
 		setPreferenceStore(PluginActivator.getDefault().getPreferenceStore());
-		setDescription("A demonstration of a preference page implementation");
+		setDescription("Tinker Preference");
 	}
 	
 	/**
@@ -38,6 +38,11 @@ public class TinkerPreferencePage
 	public void createFieldEditors() {
 		addField(new DirectoryFieldEditor(PreferenceConstants.P_PATH, 
 				"&Default Directory:", getFieldEditorParent()));
+		addField(new FileFieldEditor(PreferenceConstants.TINKER_PATH, 
+				"&Tinker Directory:", getFieldEditorParent()));
+		addField(new FileFieldEditor(PreferenceConstants.GUI_PATH, 
+				"Tinker &GUI Directory:", getFieldEditorParent()));
+		
 		/*
 		addField(
 			new BooleanFieldEditor(

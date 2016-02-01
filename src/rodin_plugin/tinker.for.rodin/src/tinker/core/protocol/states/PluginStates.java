@@ -1,4 +1,4 @@
-package tinker.core.states;
+package tinker.core.protocol.states;
 
 public class PluginStates {
 	public static int READY=0;
@@ -8,5 +8,6 @@ public class PluginStates {
 	public static int CANCELLATION_ORDERED=4;
 	public static int CANCELLATION_IN_PROGRESS=5;
 	public static int DISCONNECTING=6;
-	
+	public static int TIMEOUT=10;
+
 }

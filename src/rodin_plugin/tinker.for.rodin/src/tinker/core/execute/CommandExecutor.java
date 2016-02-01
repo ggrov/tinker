@@ -63,8 +63,9 @@ import org.eventb.internal.ui.prover.tactics.EqvLR;
 import org.eventb.pp.PPCore;
 import org.eventb.ui.prover.ITacticApplication;
 
+import tinker.core.protocol.session.TinkerSession;
+import tinker.core.protocol.states.PluginStates;
 import tinker.core.socket.TinkerConnector;
-import tinker.core.states.PluginStates;
 
 @SuppressWarnings("restriction")
 public class CommandExecutor {

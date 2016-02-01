@@ -1,5 +1,4 @@
 
-
 (* Predicate Tags in Rodin *)
 structure PredicateTag = 
 struct

@@ -6,6 +6,8 @@ package tinker.core.preference;
 public class PreferenceConstants {
 
 	public static final String P_PATH = "pathPreference";
+	public static final String TINKER_PATH = "tinkerPath";
+	public static final String GUI_PATH = "GUIPath";
 
 	
 }

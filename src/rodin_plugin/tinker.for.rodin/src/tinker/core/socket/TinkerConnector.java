@@ -6,9 +6,10 @@ import java.io.ObjectInputStream.GetField;
 
 import org.eventb.core.seqprover.IProofMonitor;
 
-import tinker.core.execute.TinkerSession;
-import tinker.core.states.PluginStates;
-import tinker.core.states.SocketStates;
+import tinker.core.process.TinkerProcess;
+import tinker.core.protocol.session.TinkerSession;
+import tinker.core.protocol.states.PluginStates;
+import tinker.core.protocol.states.SocketStates;
 
 public class TinkerConnector {
 
@@ -156,7 +157,10 @@ public class TinkerConnector {
 				if (session.getPluginSate() != PluginStates.CANCELLATION_ORDERED)
 					break;
 			}
-
+			if (!TinkerProcess.getInstance().isRunning()){
+				throw new RodinCancelInteruption(PluginStates.TIMEOUT);
+			}
+			
 			try {
 
 				String result = (input.readLine());
@@ -178,6 +182,8 @@ public class TinkerConnector {
 				}
 			} catch (Exception e) {
 				if (e instanceof SocketTimeoutException) {
+					
+					
 					continue;
 				} else if (e instanceof SocketException) {
 

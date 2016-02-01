@@ -7,6 +7,8 @@ import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import tinker.core.process.TinkerProcess;
+
 /**
  * The activator class controls the plug-in life cycle
  */
@@ -40,7 +42,7 @@ public class PluginActivator extends AbstractUIPlugin {
 
 	//@Override
 	public void stop(BundleContext context) throws Exception {
-		
+	    TinkerProcess.getInstance().Shutdown();
 		plugin = null;
 		//super.stop(context);
 	}

@@ -116,43 +116,65 @@ ML{*-
 ML{*-
   TextSocket.close ;   
 *}
-ML{* 
+
+ML{*
+
 
 fun EVAL_RODIN () = 
     let 
+    val _ = writeln "eval_ start"
     val _ = SimpleNamer.init();
     val path2 =    
-        let open RodinHelper in   
+        let open RodinHelper in
+           writeln "getting psgraph";
            get_psgraph() 
-           handle RodinSock.Prover_exit => raise RodinSock.Prover_exit
+           handle exn => 
+           case exn of RodinSock.Prover_exit => raise RodinSock.Prover_exit
+               | a => (writeln "Waiting for Rodin to connect"; raise a)
+           
         end;
+    val _= writeln "got psgraph";
     val _ = writeln path2;
+    val _ =  writeln "read psgraph";
     val ps = PSGraph.read_json_file NONE (path2)|> PSGraph.set_goaltype_data data ; 
+    val _ =  writeln "starting eval";
     val _ = (Tinker.start_ieval "" (SOME ps) (SOME []) (SOME ""))
       handle exn => 
       (
-        finish();
+         writeln " eval exn";
+        (* finish(); *)
         TextSocket.safe_close(); 
+        writeln " socket close";
         raise exn
       )
-    val _ = writeln "PROOF DONE"
+    
     in 
       PolyML.print "Tinkering Rodin...Done";
       finish();
+       writeln " finishe";
       ()
     end;
 
-*} 
-
-ML{*
-fun Tinker_Main () = 
+fun Tinker_Main () repeat  = 
   (
     EVAL_RODIN()
-    handle RodinSock.Prover_exit => ()
-    handle _ => (
-      Tinker_Main ()
-    )
-  )
-*}
+    handle exn => (
+        case exn of RodinSock.Prover_exit => 
+            ( writeln "Rodin Exit";
+            finish();
+            disconn_gui();
+            TextSocket.safe_close(); 
+            (OS.Process.exit OS.Process.success))
+        | RodinSock.Prover_cancellation => 
+          ( writeln "Rodin Cancelled"; 
+            finish();
+            ())
+        | e => ()
+    ); 
+    if repeat<100 then
+    Tinker_Main () (repeat+1)
+    else
+    ()
+  );
 
-end
+*}

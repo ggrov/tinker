@@ -1,4 +1,4 @@
-package tinker.core.states;
+package tinker.core.protocol.states;
 
 public class TacticStates {
 	public static int NOT_APPLICABLE=0;

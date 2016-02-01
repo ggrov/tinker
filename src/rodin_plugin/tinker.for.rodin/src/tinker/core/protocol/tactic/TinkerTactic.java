@@ -1,6 +1,7 @@
-package tinker.core.tactics;
+package tinker.core.protocol.tactic;
 
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JFileChooser;
 
@@ -18,16 +19,18 @@ import org.eventb.core.seqprover.ITactic;
 import tinker.core.execute.Command;
 import tinker.core.execute.CommandExecutor;
 import tinker.core.execute.CommandParser;
-import tinker.core.execute.TinkerSession;
 import tinker.core.plugin.PluginActivator;
 import tinker.core.preference.PreferenceConstants;
+import tinker.core.process.TinkerGUIProcess;
+import tinker.core.process.TinkerProcess;
+import tinker.core.protocol.session.TinkerSession;
+import tinker.core.protocol.states.PluginStates;
+import tinker.core.protocol.states.SocketStates;
+import tinker.core.protocol.states.TacticStates;
 import tinker.core.socket.TinkerConnector;
 import tinker.core.socket.TinkerConnector.RodinCancelInteruption;
 import tinker.core.socket.TinkerConnector.TinkerSessionEnd;
 import tinker.core.socket.TinkerConnector.TinkerTacticError;
-import tinker.core.states.PluginStates;
-import tinker.core.states.SocketStates;
-import tinker.core.states.TacticStates;
 
 public class TinkerTactic implements ITactic {
 
@@ -95,6 +98,35 @@ public class TinkerTactic implements ITactic {
 		return false;
 	}
 
+	private String  initiateTinker(){
+		String tinkerPath = PluginActivator.getDefault().getPreferenceStore().getString(PreferenceConstants.TINKER_PATH);
+		String guiPath= PluginActivator.getDefault().getPreferenceStore().getString(PreferenceConstants.GUI_PATH);
+		if (!checkFile(tinkerPath)){
+			return "The path of Tinker Core is not properly set.";
+		}
+		if (!checkFile(guiPath)){
+			return "The path of Tinker GUI is not properly set.";
+		}
+		TinkerProcess tp=TinkerProcess.getInstance();
+		try {
+			Process p=tp.getProcess();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return e.getMessage();
+		}
+		TinkerGUIProcess tgp=TinkerGUIProcess.getInstance();
+		try {
+			Process p=tgp.getProcess();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return e.getMessage();
+		}
+		return "";
+	}
+	
 	@Override
 	public Object apply(IProofTreeNode ptNode, IProofMonitor pm) {
 
@@ -115,11 +147,19 @@ public class TinkerTactic implements ITactic {
 		if (!checkFile(ps)) {
 			return "File " + ps + " does not exist!";
 		}
-
+		
+		//start tinker process and gui, if not already started
+		//also check if process is actually running 
+		
+		String initResult=initiateTinker();
+		if (!initResult.equals("")){
+			return initResult;
+		}
+		
 		System.out.println("Use psgraph=" + ps);
 		session.setPsgraph(ps);
 		pm.setTask("Wait for Tinker..");
-
+		
 		TinkerConnector tinker = new TinkerConnector(pm, session);
 		String reply_command = null;
 		String exception_info = null;
@@ -207,7 +247,7 @@ public class TinkerTactic implements ITactic {
 			exception_info = e.getMessage();
 
 		}
-
+		boolean timeout=false;
 		try {
 			if (session.getPluginSate() == PluginStates.CANCELLATION_ORDERED) {
 				// Being cancelled while waiting command will result plugin
@@ -235,6 +275,13 @@ public class TinkerTactic implements ITactic {
 
 			}
 
+			if (session.getPluginSate() == PluginStates.TIMEOUT) {
+				tinker.close();
+				session.setTacticState(TacticStates.DONE);
+				session.setPluginSate(PluginStates.READY);
+				timeout=true;
+			}
+			
 			if (session.getPluginSate() == PluginStates.DISCONNECTING) {
 				tinker.close();
 				session.setTacticState(TacticStates.DONE);
@@ -250,6 +297,9 @@ public class TinkerTactic implements ITactic {
 			// handle finishing after possible cancellation
 			System.out.println("Disconnected. Tinker Tactics complete.");
 			// pm.setCanceled(true);
+			if (timeout){
+				return "Connecting Tinker Timeout. Please Try again.";
+			}
 			return null;
 		} else {
 			exception_info = "Tactic finished with error state";

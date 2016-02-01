@@ -1,4 +1,4 @@
-package tinker.core.execute;
+package tinker.core.protocol.session;
 
 import java.util.HashMap;
 
@@ -6,9 +6,9 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eventb.core.seqprover.IProofMonitor;
 import org.eventb.core.seqprover.IProofTreeNode;
 
-import tinker.core.states.PluginStates;
-import tinker.core.states.SocketStates;
-import tinker.core.states.TacticStates;
+import tinker.core.protocol.states.PluginStates;
+import tinker.core.protocol.states.SocketStates;
+import tinker.core.protocol.states.TacticStates;
 
 public class TinkerSession {
 

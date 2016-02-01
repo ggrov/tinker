@@ -1,4 +1,4 @@
-package tinker.core.states;
+package tinker.core.protocol.states;
 
 public class SocketStates {
 	public static int LISTENING=0;

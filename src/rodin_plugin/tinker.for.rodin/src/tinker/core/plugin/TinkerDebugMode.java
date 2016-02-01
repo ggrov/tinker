@@ -21,8 +21,8 @@ import org.eventb.ui.prover.DefaultTacticProvider;
 import org.eventb.ui.prover.ITacticApplication;
 
 import tinker.core.execute.CommandExecutor;
+import tinker.core.protocol.tactic.TinkerTactic;
 import tinker.core.socket.TinkerConnector;
-import tinker.core.tactics.TinkerTactic;
 
 public class TinkerDebugMode extends DefaultTacticProvider {
 	public static class TinkerApplication extends DefaultPositionApplication {
