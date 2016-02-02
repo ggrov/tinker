@@ -36,7 +36,7 @@ public class TinkerPreferencePage
 	 * restore itself.
 	 */
 	public void createFieldEditors() {
-		addField(new DirectoryFieldEditor(PreferenceConstants.P_PATH, 
+		addField(new DirectoryFieldEditor(PreferenceConstants.DEFUALT_PATH, 
 				"&Default Directory:", getFieldEditorParent()));
 		addField(new FileFieldEditor(PreferenceConstants.TINKER_PATH, 
 				"&Tinker Directory:", getFieldEditorParent()));
