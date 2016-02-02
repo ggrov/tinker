@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eventb.ui.proofTactics">
+      <tactic
+            icon="icons/tinker_icon_32_debug.png"
+            id="org.eventb.ui.tinker.debugprover"
+            interrupt="true"
+            name="tinker"
+            priority="20"
+            tacticProvider="tinker.core.plugin.TinkerDebugMode"
+            target="global"
+            toolbar="org.eventb.ui.tinkerToolbar"
+            tooltip="Tinker Debug Mode">
+      </tactic>
+      <tactic
+            icon="icons/tinker_icon_32.png"
+            id="org.eventb.ui.tinker.autoprover"
+            interrupt="true"
+            name="tinker"
+            priority="20"
+            tacticProvider="tinker.core.plugin.TinkerAutoProveMode"
+            target="global"
+            toolbar="org.eventb.ui.tinkerToolbar"
+            tooltip="Auto Prove with Tinker">
+      </tactic>
+      <toolbar
+            id="org.eventb.ui.tinkerToolbar"
+            name="tinkertoolbar"
+            priority="1">
+      </toolbar>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="tinker.core.preference.TinkerPreferencePage"
+            id="tinker.core.preference.TinkerPreferencePage"
+            name="Tinker Preference Page">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="tinker.core.preference.PreferenceInitializer">
+      </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+   </extension>
+
+</plugin>

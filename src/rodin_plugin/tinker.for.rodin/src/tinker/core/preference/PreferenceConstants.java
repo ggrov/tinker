@@ -6,6 +6,7 @@ package tinker.core.preference;
 public class PreferenceConstants {
 	
 	public static final String DEFUALT_PATH = "defaultPath";
+	public static final String DEFAULT_PSGRAPH="defaultPSGRAPH";
 	public static final String TINKER_PATH = "tinkerPath";
 	public static final String GUI_PATH = "GUIPath";
 

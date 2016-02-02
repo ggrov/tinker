@@ -54,10 +54,12 @@ public class TinkerTactic implements ITactic {
 	public static String psgraph_dir = PluginActivator.getDefault().getPreferenceStore()
 			.getString(PreferenceConstants.DEFUALT_PATH);
 
-	public static String psgraph_filename = PluginActivator.getDefault().getPreferenceStore().getString("LAST_PSGRAPH");
+	public static String psgraph_filename = PluginActivator.getDefault().getPreferenceStore().getString(PreferenceConstants.DEFAULT_PSGRAPH);
 
 	public String open_psgraph() {
-		if (psgraph_dir.equals("")) {
+		String psgraph_filename=PluginActivator.getDefault().getPreferenceStore()
+				.getString(PreferenceConstants.DEFAULT_PSGRAPH);
+		if (psgraph_dir.equals("") || psgraph_filename==null || psgraph_filename.equals("")) {
 
 			Display.getDefault().syncExec(new Runnable() {
 				public void run() {
@@ -65,7 +67,6 @@ public class TinkerTactic implements ITactic {
 					FileDialog dialog = new FileDialog(shell, SWT.OPEN);
 					dialog.setFilterExtensions(new String[] { "*.psgraph" });
 					// dialog.setFilterPath("c:\\temp");
-
 					String result = dialog.open();
 					if (result != null) {
 						result = result.replace("\\", "/");
@@ -74,7 +75,7 @@ public class TinkerTactic implements ITactic {
 						String filename = result.substring(last_slash + 1);
 						TinkerTactic.psgraph_dir = dir;
 						TinkerTactic.psgraph_filename = filename;
-						PluginActivator.getDefault().getPreferenceStore().putValue("LAST_PSGRAPH", filename);
+						PluginActivator.getDefault().getPreferenceStore().putValue(PreferenceConstants.DEFAULT_PSGRAPH, filename);
 						PluginActivator.getDefault().getPreferenceStore().putValue(PreferenceConstants.DEFUALT_PATH, dir);
 					} else {
 
@@ -132,17 +133,23 @@ public class TinkerTactic implements ITactic {
 
 		this.session = new TinkerSession(this.getThisWorkBench(), pm);
 
-		String path = psgraph_dir;
+		String psgraph_path = psgraph_dir;
+		String psgraph_filename =  PluginActivator.getDefault().getPreferenceStore().getString(PreferenceConstants.DEFAULT_PSGRAPH);
 		String ps;
-		if (path == null || path.equals("")) {
+		System.out.println("a:"+psgraph_filename+","+(psgraph_filename==null || psgraph_filename.equals("")));
+		if (psgraph_path == null || psgraph_path.equals("") 
+				|| psgraph_filename==null || psgraph_filename.equals("")) {
 			// open file dialog
+			System.out.println("ahh");
 			ps = open_psgraph();
+			System.out.println("ahh open!"+ps);
 			// if cancelled open file
 			if (ps == null || ps.equals("")) {
 				return "Tactic cancelled because default psgraph folder is not set.";
 			}
 		}
-
+		psgraph_filename =  PluginActivator.getDefault().getPreferenceStore().getString(PreferenceConstants.DEFAULT_PSGRAPH);
+		System.out.println("b:"+psgraph_filename);
 		ps = psgraph_dir + psgraph_filename;
 		if (!checkFile(ps)) {
 			return "File " + ps + " does not exist!";

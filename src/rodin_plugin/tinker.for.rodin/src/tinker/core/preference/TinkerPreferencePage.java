@@ -38,10 +38,15 @@ public class TinkerPreferencePage
 	public void createFieldEditors() {
 		addField(new DirectoryFieldEditor(PreferenceConstants.DEFUALT_PATH, 
 				"&Default Directory:", getFieldEditorParent()));
+		
+		addField(new StringFieldEditor(PreferenceConstants.DEFAULT_PSGRAPH, 
+				"Default &PSGraph file:", getFieldEditorParent()));
+		
 		addField(new FileFieldEditor(PreferenceConstants.TINKER_PATH, 
-				"&Tinker Directory:", getFieldEditorParent()));
+				"&Tinker Executable:", getFieldEditorParent()));
+		
 		addField(new FileFieldEditor(PreferenceConstants.GUI_PATH, 
-				"Tinker &GUI Directory:", getFieldEditorParent()));
+				"Tinker &GUI executable .jar file:", getFieldEditorParent()));
 		
 		/*
 		addField(

@@ -825,10 +825,18 @@ public class CommandExecutor {
 					break;
 				}
 			}
-
+			
 			String[] inst_values = cmd.getParameter("PARAM").split(",");
 			return Tactics.allD(selected_hyp, inst_values);
+		//two on hyp auto tactics
 
+		case "simp_rewrite":
+			return (new AutoTactics.AutoRewriteTac());
+		case "equal_hyp_rewrite":
+			return new AutoTactics.EqHypTac();
+		case "partition_rewrite":
+			return new AutoTactics.PartitionRewriteTac();
+			
 		default:
 			return new Tactics.FailureTactic();
 		}
@@ -850,13 +858,6 @@ public class CommandExecutor {
 			return Tactics.allI();
 		case "hyp":
 			return Tactics.hyp();
-
-		case "equal_hyp_rewrite":
-			return new AutoTactics.EqHypTac();
-		case "partition_rewrite":
-			return new AutoTactics.PartitionRewriteTac();
-		case "symp_rewrite":
-			return (new AutoTactics.AutoRewriteTac());
 		case "newPP_AL":
 			return Tactics.afterLasoo(PPCore.newPP(true, 2000, 3000));
 		case "newPP_UR":
