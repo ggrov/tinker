@@ -1,5 +1,5 @@
 /.idea
-.metadata
+
 *.class
 
 # Package Files #
@@ -8,3 +8,8 @@
 *.ear
 *.*~
 \#*.*\# 
+
+
+# Rodin Source #
+/src/rodin_plugin/*
+!/src/rodin_plugin/tinker.for.rodin
