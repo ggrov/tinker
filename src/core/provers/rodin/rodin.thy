@@ -105,58 +105,56 @@ let open Json;
 end
 
 
-*}
-ML{*-
-   RodinSock.disconnect (); 
-*}
-ML{*-
-  TextSocket.safe_close();    
-*}
- 
-ML{*-
-  TextSocket.close ;   
-*}
 
-ML{*
+fun run_withTimeout timeout f = 
+let val startt=Time.now();
+    fun looprun start timeout f =
+		let val past=Time.now()-start;
+		in
+			if (past < timeout) then 
+				(f;
+				looprun start timeout f)
+			else
+				()
+		end
+in
+	(looprun startt timeout f;
+	())
+end;
 
 
 fun EVAL_RODIN () = 
     let 
-    val _ = writeln "eval_ start"
     val _ = SimpleNamer.init();
     val path2 =    
         let open RodinHelper in
-           writeln "getting psgraph";
+           writeln "getting psgraph" ;
            get_psgraph() 
            handle exn => 
            case exn of RodinSock.Prover_exit => raise RodinSock.Prover_exit
                | a => (writeln "Waiting for Rodin to connect"; raise a)
-           
         end;
-    val _= writeln "got psgraph";
     val _ = writeln path2;
-    val _ =  writeln "read psgraph";
     val ps = PSGraph.read_json_file NONE (path2)|> PSGraph.set_goaltype_data data ; 
-    val _ =  writeln "starting eval";
     val _ = (Tinker.start_ieval "" (SOME ps) (SOME []) (SOME ""))
       handle exn => 
       (
-         writeln " eval exn";
         (* finish(); *)
         TextSocket.safe_close(); 
-        writeln " socket close";
         raise exn
       )
     
     in 
       PolyML.print "Tinkering Rodin...Done";
       finish();
-       writeln " finishe";
       ()
     end;
 
-fun Tinker_Main () repeat  = 
+
+
+fun start () repeat = 
   (
+    writeln "start";
     EVAL_RODIN()
     handle exn => (
         case exn of RodinSock.Prover_exit => 
@@ -170,11 +168,15 @@ fun Tinker_Main () repeat  =
             finish();
             ())
         | e => ()
-    ); 
-    if repeat<100 then
-    Tinker_Main () (repeat+1)
-    else
+    );
+    writeln (Int.toString repeat);
+    if repeat<15 then
+        (run_withTimeout (seconds 1.0) (writeln "Retrying..");
+        start () (repeat +1))
+    else 
     ()
   );
+
+fun Tinker_Main () = start () 0;
 
 *}

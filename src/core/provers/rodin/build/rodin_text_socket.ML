@@ -152,6 +152,7 @@ struct
         |> Option.valOf |>  NetHostDB.addr;
       val addr = INetSock.toAddr(localhost, port)
       val sock = INetSock.TCP.socket()
+      (* val _ = Socket.select{rds = [Socket.sockDesc sock], wrs=[], exs=[], timeOut=SOME(Time.fromSeconds 10)} *)
       (*val _ = Socket.Ctl.setREUSEADDR (sock, true);*)
       (*val _ = Socket.bind (sock, addr); *)
       val _ = Socket.connect(sock, addr)
