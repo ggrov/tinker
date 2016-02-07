@@ -18,7 +18,7 @@
 		<div class="section" id="intro">
 			<h2>Foreword</h2>
 			<hr>
-			<p>This webpage aims to present resources used for our tool presentation. </p>
+			<p>This webpage aims to present resources used for our tool presentation. For detailed manual, please see <a href="./manual.pdf">here</a> </p>
 			<p>To use those resources, first please download the independent compilation of Tinker Core from one of the following links</p>
 			<ul>
 				<li>
@@ -155,7 +155,26 @@
 				makeViz("record2","ressources/x21chg.json")
 			</script>
 		</div>
-		
+		<div class="section" id="demo">
+			<h2>Tool demo</h2>
+			<hr>
+			<ul>
+			    <li><a onclick="changeVideoSource(0)">Tinker For Rodin Demo</a></li>
+			</ul>
+			<div id="vidContainer">
+				<iframe id="vid" width="680" height="390" src="">
+				</iframe>
+			</div>
+			<script>
+				var videosSource = [
+					"https://www.youtube.com/watch?v=fJRUh9Coa5c"
+					]
+				function changeVideoSource(index){
+					document.getElementById("vid").setAttribute("src",videosSource[index])
+				}
+				document.getElementById("vid").setAttribute("src",videosSource[0])
+			</script>
+		</div>
 	</div>
 </body>
 </html>
