@@ -1,37 +1,45 @@
 use (OS.FileSys.getDir() ^ "/psgraph/src/dev/JFR/fef_setup.ML");
-val pspath = tinker_path ^ "src/dev/psgraph/";
 
-(******************************************)
-(* definitions for tactics *)
-(******************************************)
-  fun rule_tac (arg as [PPProver.A_Str pretty]) = (LoggingHandler.logging "TACTIC" pretty; step_strip_tac);
+(*=====  quick test *)
+(* test if the fef theory is loaded *)
+map get_spec [¬Elems®, ¬OK_VC‰d®];
 
-(******************************************)
-(* definitions for goaltypes *)
-(******************************************)
-(*val scan_def = ClauseGoalTyp.scan_data PPProver.default_ctxt;*)
-  val def1 = "topconcl(Z) :- top_symbol(concl,Z).";
-  val data = default_gt_data;
-   
-(* read and load a psgraph created by gui *)
-  val ps_tac1 = PSGraph.read_json_file (SOME data) (pspath^"fef_tac.psgraph");
+(* a quick test of the steup *)
+val test_ps = PSGraph.read_json_file (SOME data) (pspath^"fef_tac.psgraph");
 
-(******************************************)
-(* definition of tac1 - tac 4 *)
-(******************************************)
+(*===== tac1 *)
+val ps_tac1 = PSGraph.read_json_file (SOME data) (pspath^"fef_tac1.psgraph");
+
+(* a qucik test of psgraph version of tac1 *)
+PPIntf.set_psg_goal (SOME ([], ¬(A %implies% C)®)) (SOME ps_tac1);
+
+(* For Rob: to run the real example: *)
+(** step 1: setup goal, e.g. set_goal([], ¬(A %implies% C)®); *)
+
+(** step 2: apply proof steps until tac1 is needed, then get the goal *)
+val g = top_goal();
+(** step 3: apply psgraph_tac1 to the goal *)
+PPIntf.set_psg_goal (SOME g) (SOME ps_tac1);
+
+(*===== tac2 *)
+val ps_tac2 = PSGraph.read_json_file (SOME data) (pspath^"fef_tac2.psgraph");
+
+(* a qucik test of psgraph version of tac1 *)
+PPIntf.set_psg_goal (SOME ([], ¬(A %implies% C)®)) (SOME ps_tac2);
+
+
+(*===== definition of tac1 - tac 4 *)
 (*
 THEN1 apply the 1st subgoal to tac2, others to id
-LEMMA_T applies the 1st arg as subgoal, and then using the 1st arg as thm with the 2sn fn to apply to the orginal goal
+LEMMA_T applies the 1st arg as subgoal, and then using the 1st arg as thm with the 2nd fn to apply to the orginal goal
 POP_ASM_T remove the 1st asm and use it as a thm to snd fns
 *)
-
-open_theory "fef032";
-map get_spec [¬Elems®, ¬OK_VC‰d®];
 
 val tac1 = REPEAT strip_tac THEN
 	LEMMA_T ¬Snd x  OK_VC‰d c®
 	(fn th => all_fc_tac[rewrite_rule(map get_spec[¬OK_VC‰d®])th])
 	THEN1 PC_T1 "sets_ext" asm_prove_tac(map get_spec[¬Elems®, ¬Map®]);
+
 val tac2 = REPEAT strip_tac THEN
 	cases_tac¬Snd (te tl‰0 rl‰0 r‰0) = Snd (te tl‰1 rl‰1 r‰1)®
 	THEN_LIST [
@@ -70,7 +78,7 @@ val tac4 = REPEAT strip_tac THEN
 
   TextSocket.safe_close();
 
-  PPIntf.set_psg_goal (SOME ([], ¬B%and%B®)) (NONE);
+
   PPIntf.set_psg_goal (SOME ([], ¬A®)) (NONE);
 
 
@@ -95,3 +103,9 @@ open_theory "fef032";
   PPIntf.set_psg_goal (SOME ([], ¬B%and%A®)) (SOME ps);
 
   TextSocket.safe_close();
+get_current_pc();
+
+get_pcs();
+
+set_goal ([], ¬B%and%A®);
+ a (PC_T1 "sets_ext" asm_prove_tac(map get_spec[¬Elems®, ¬Map®]));

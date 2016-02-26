@@ -24,12 +24,13 @@ struct
    |> Pretty.str
 
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string 
-| A_L_Thm of thm list | A_L_Trm of term list | A_L of arg_data list
+| A_L_Thm of thm list | A_L_Trm of term list | A_L of arg_data list | A_Conv of term -> thm
   
   datatype env_data = 
     E_Str of string | 
     E_Trm of term | E_Thm of thm |
     E_ML of string | 
+    E_Conv of term -> thm |
     E_L of env_data list
 
   fun pretty_env_data _ (E_Str str) =  [ "E_Str(", str, ")"] |> String.concat |> Pretty.str
