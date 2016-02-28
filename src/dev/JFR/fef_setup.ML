@@ -17,6 +17,8 @@ fun asm_rewrite_sym_thm_tac [PPProver.A_Trm t] = (asm_rewrite_thm_tac o eq_sym_r
 | asm_rewrite_sym_thm_tac _ = fail_tac;
 fun drop_asm_tac [PPProver.A_Trm t] = DROP_ASM_T t (fn _ => id_tac)
 | drop_asm_tac _ = fail_tac;
+val default_asm_rewrite_tac = asm_rewrite_tac [];
+val strip_concl_conv_tac = STRIP_T (asm_tac o conv_rule(RAND_C eq_sym_conv));
 
 
 (*=====  GoalTyp definitions *)

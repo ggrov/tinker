@@ -92,18 +92,22 @@ struct
       else []
   | is_not_goal _ _ _ = [];
   
+   fun print_trm trm = 
+   String.concat (PrettyPrinter.format_term true trm) 
+   |> writeln; 
+   
  fun has_hyp env pnode [ClauseGoalTyp.PVar p] = 
   (case StrName.NTab.lookup env p 
     of NONE => []
-    |  SOME (PPProver.E_Trm t) => 
-     if member (op =) (PPProver.get_pnode_hyps pnode) t then [env] else []
-    |  SOME _ => [])
+    |  SOME (PPProver.E_Trm t) =>
+     if member (op =) (PPProver.get_pnode_hyps pnode) t then [env] else [] 
+    |  SOME _ => []) 
  | has_hyp env pnode [ClauseGoalTyp.Var p] =
   (case StrName.NTab.lookup (PPProver.get_pnode_env pnode) p 
     of NONE => []
     |  SOME (PPProver.E_Trm t) => 
      if member (op =) (PPProver.get_pnode_hyps pnode) t then [env] else []
-    |  SOME _ => [])
+    |  SOME _ => []) 
  | has_hyp env pnode [ClauseGoalTyp.Concl] =
   if member (op =) (PPProver.get_pnode_hyps pnode)(PPProver.get_pnode_concl pnode) 
   then [env] else []    
