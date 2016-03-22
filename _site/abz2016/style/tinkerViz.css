@@ -1,0 +1,57 @@
+div.line{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.content {
+    padding : 5px;
+}
+
+button {
+	text-align:center; 
+	margin: 5px 5px;
+	padding: 0.4em 1em; 
+	color: #333333;
+	background-color: #F6F6F6;
+	display: inline-block; 
+	border: solid 1px #CCCCCC; 
+	cursor: pointer;
+	border-radius: 4px;
+}
+
+button:disabled {
+	color: #999999; 
+	background-color: #E6E6E6;
+	border: solid 1px #CCCCCC; 
+	cursor: default;
+}
+
+select {
+	padding: 0.4em 1em;
+	color: #333333;
+	background-color: #F6F6F6;
+	display: inline-block; 
+	border: solid 1px #CCCCCC; 
+	cursor: pointer;
+	border-radius: 4px;
+}
+
+div#proofInfo {
+    font-size: 1.3em;
+}
+div#proofInfo > span#proofTitle {
+    font-weight: bold;
+}
+div#proofInfo > span#proofDate {
+    font-size: 0.8em;
+    color: #666666
+}
+div#credits{
+    text-align: right;
+    font-size: 0.8em;
+}
+span.button {
+    cursor: pointer;
+}

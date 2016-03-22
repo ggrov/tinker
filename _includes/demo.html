@@ -1,0 +1,44 @@
+		<div class="section" id="proof">
+			<link rel=stylesheet href="style/tinkerViz.css">
+			<link rel=stylesheet href="style/graph.css">
+			<script src="script/d3.min.js"></script>
+			<script src="script/d3-tip.min.js"></script>
+			<script src="script/tinker.js"></script>
+			<hr>
+
+			<div id="demo">
+				<div id="graphContent" style="visibility:hidden">
+					<div class="line">
+						<div id="proofInfo" class="content">
+							<span id="proofTitle"></span>
+							<span id="proofAuthor"></span>
+							<span id="proofDate"></span>
+						</div>
+						<div class="line content">
+							<span>Evaluation Step : </span>
+							<button id="previousPSGraph">&#9664;</button>
+							<span id="vizIndices"></span>
+							<button id="nextPSGraph">&#9654;</button>
+							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
+						</div>
+					</div>
+					<div id="mainArea">
+						<div class="line content">
+							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
+							<div>
+								<select id="tacticList" class=""></select>
+								<span>Subgraphs : </span>
+								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
+								<span id="graphIndices"></span>
+								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
+							</div>
+						</div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+					</div>
+					<div id="graphError" style="visibility:hidden"></div>
+				</div>
+			</div>
+			<script>
+				makeViz("demo","ressources/demo.json")
+			</script>
+		</div>

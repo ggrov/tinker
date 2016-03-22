@@ -46,10 +46,92 @@ Tinker
 </h1>
 <hr>
 
-<p>The Tinker tool, which is a first implementation of PSGraphs. It adopts a generic theorem prover independent framework. We have currently connected it to both Isabelle and ProofPower. It is important to note that this is an extension of these provers. Users of these systems will still use the existing interface, with an additional graphical interface to step through the evaluation of a PSGraph. 
+<p>The Tinker tool, which is a first implementation of PSGraphs. It adopts a generic theorem prover independent framework. We have currently connected it to Isabelle, ProofPower and Rodin. Tinker provides a range of novel features to develop, debug, maintain, record and export hierarchical proof strategies, such as library and hierarchical graphs; richer tactic and debugging options; and recording and replay.
 </p>
 
- <center><img src="images/tinker-isa-i.png" title="Tinker GUI with Isabelle" width="600" ></center>
+ <center><img src="images/demo.png" title="Tinker" width="800" ></center>
+
+<h1>
+Tinker viz
+</h1>
+<hr>
+Tinker allows users to record evaluation/proof steps and then export to a light-weight web application (written in HTML / CSS and JavaScript) via a generated JSON file. A demo of replaying a recorded evaluation is showed as follows. Uers can also try their own recorded evaluation  <a href="./tinkerViz" "tinker viz">HERE</a>.
+		<div class="section" id="proof">
+			<link rel=stylesheet href="style/tinkerViz.css">
+			<link rel=stylesheet href="style/graph.css">
+			<script src="script/d3.min.js"></script>
+			<script src="script/d3-tip.min.js"></script>
+			<script src="script/tinker.js"></script>
+			<hr>
+
+			<div id="demo">
+				<div id="graphContent" style="visibility:hidden">
+					<div class="line">
+						<div id="proofInfo" class="content">
+							<span id="proofTitle"></span>
+							<span id="proofAuthor"></span>
+							<span id="proofDate"></span>
+						</div>
+						<div class="line content">
+							<span>Evaluation Step : </span>
+							<button id="previousPSGraph">&#9664;</button>
+							<span id="vizIndices"></span>
+							<button id="nextPSGraph">&#9654;</button>
+							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
+						</div>
+					</div>
+					<div id="mainArea">
+						<div class="line content">
+							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
+							<div>
+								<select id="tacticList" class=""></select>
+								<span>Subgraphs : </span>
+								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
+								<span id="graphIndices"></span>
+								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
+							</div>
+						</div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+					</div>
+					<div id="graphError" style="visibility:hidden"></div>
+				</div>
+			</div>
+			<script>
+				makeViz("demo","ressources/demo.json")
+			</script>
+		</div>
+
+<h1>
+Tool demo
+</h1>
+<hr>
+		<div class="section" id="tooldemo">
+			<ul>
+			    <li><a onclick="changeVideoSource(0)">- Basic Drag and Drawing Editing</a></li>
+			    <li><a onclick="changeVideoSource(1)">- Supports for Hierarchy</a></li>
+			    <li><a onclick="changeVideoSource(2)">- PSGraph Library</a></li>
+			    <li><a onclick="changeVideoSource(3)">- Evaluation and Debugging</a></li>
+			    <li><a onclick="changeVideoSource(4)">- Breakpoint</a></li>
+			</ul>
+			<div id="vidContainer">
+				<iframe id="vid" width="680" height="390" src="">
+				</iframe>
+			</div>
+			<script>
+				var videosSource = [
+					"https://www.youtube.com/embed/Rll0NH4MFiI",
+					"https://www.youtube.com/embed/LTyAH9IJbfU",
+					"https://www.youtube.com/embed/soAA3pSUTAI",
+					"https://www.youtube.com/embed/L-RHYPXI4Ws",
+					"https://www.youtube.com/embed/JSLqI9dBaq4"
+					]
+				function changeVideoSource(index){
+					document.getElementById("vid").setAttribute("src",videosSource[index])
+				}
+				document.getElementById("vid").setAttribute("src",videosSource[0])
+			</script>
+		</div>
+
 
 <h1>
 Publication
@@ -57,6 +139,30 @@ Publication
 <hr>
 <ul class="paper-list">
 	
+	  
+  	  
+          <li> 
+			<div class="reference"><p>Yibo Liang, Yuhui Lin and Gudmund Grov. <strong>‘The Tinker’ for Rodin</strong>. In <em>5th International ABZ Conference, ABZ 2016</em>, in Linz, Austria. <a href="http://ggrov.github.io/tinker/tacas16/">[paper resources]</a></p>
+</div>
+          </li>
+      
+    
+	  
+  	  
+          <li> 
+			<div class="reference"><p>Yuhui Lin, Pierre Le Bras and Gudmund Grov. <strong>Developing &amp; Debugging Proof Strategies by Tinkering</strong>. In <em>TACAS 2016</em>, in  Eindhoven, The Netherlands. <a href="http://ggrov.github.io/tinker/tacas16/">[paper resources]</a></p>
+</div>
+          </li>
+      
+    
+	  
+  	  
+          <li> 
+			<div class="reference"><p>Yuhui Lin, Gudmund Grov, Colin O’Halloran and Priiya G. <strong>‘A super industrial application of PSGraph</strong>. In <em>5th International ABZ Conference, ABZ 2016</em>, in Linz, Austria.</p>
+</div>
+          </li>
+      
+    
 	  
   	  
           <li> 
@@ -99,8 +205,17 @@ Talks
     
 	  
   	  
+    
+	  
+  	  
+    
+	  
+  	  
+    
+	  
+  	  
           <li> 
-			<div class="reference"><p><a href="talks/uitp14.pdf"> Talk: Tinker, Tailor, Solver, Proof</a>, Aleks Kissinger, 7th July 2014, Presented at <em>User Interfaces for Theorem Provers (UITP 2014)</em>. </p>
+			<div class="reference"><p><a href="talks/uitp14.pdf"> Talk: Tinker, Tailor, Solver, Proof</a>, Aleks Kissinger, 7th July 2014, Presented at <em>User Interfaces for Theorem Provers (UITP 2014)</em>.</p>
  </div> 
           </li>
       
@@ -111,12 +226,14 @@ Talks
 	  
   	  
           <li> 
-			<div class="reference"><p><a href="talks/lpar13.pdf"> Talk: A Graphical Language for Proof Strategies</a>, Gudmund Grov, 15th December 2013, Presented at <em>Logic for Programming Artificial Intelligence and Reasoning (LPAR-19th)</em>. </p>
+			<div class="reference"><p><a href="talks/lpar13.pdf"> Talk: A Graphical Language for Proof Strategies</a>, Gudmund Grov, 15th December 2013, Presented at <em>Logic for Programming Artificial Intelligence and Reasoning (LPAR-19th)</em>.</p>
  </div> 
           </li>
       
     
 </ul>
+
+
 
 
 
@@ -142,6 +259,7 @@ Talks
 <li><a href="http://isabelle.in.tum.de"> Isabelle-2013</a></li>
 
 <li><a href="http://www.lemma-one.com/ProofPower/index/"> ProofPower </a></li>
+<li><a href="http://www.event-b.org/install.html"> Rodin </a></li>
 
 </div>
 <br>
@@ -151,8 +269,8 @@ Talks
 <li><a href="http://www.cs.ox.ac.uk/people/aleks.kissinger/about.html"> Aleks Kissinger </a></li><hr>
 <li><a href="http://www.inf.ed.ac.uk/people/students/Yuhui_Lin.html"> YuHui Lin </a></li><hr>
 <li><a href="mailto:pl196@hw.ac.uk"> Pierre Le Bras  </a></li><hr>
-
 <li><a href="mailto:if30@hw.ac.uk"> Colin Farquhar </a></li><hr>
+<li><a href="mailto:yl9@hw.ac.uk"> Yibo Liang </a></li><hr>
 </div>
 <br>
 <div>
@@ -166,8 +284,6 @@ Talks
        
 </aside>
 </div>
-
-
   </div>
 <div id="footer_wrap" class="outer">
 <footer class="inner">

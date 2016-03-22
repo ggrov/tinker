@@ -21,10 +21,24 @@ Tinker
 </h1>
 <hr>
 
-<p>The Tinker tool, which is a first implementation of PSGraphs. It adopts a generic theorem prover independent framework. We have currently connected it to both Isabelle and ProofPower. It is important to note that this is an extension of these provers. Users of these systems will still use the existing interface, with an additional graphical interface to step through the evaluation of a PSGraph. 
+<p>The Tinker tool, which is a first implementation of PSGraphs. It adopts a generic theorem prover independent framework. We have currently connected it to Isabelle, ProofPower and Rodin. Tinker provides a range of novel features to develop, debug, maintain, record and export hierarchical proof strategies, such as library and hierarchical graphs; richer tactic and debugging options; and recording and replay.
 </p>
 
- <center><img src="images/tinker-isa-i.png" title="Tinker GUI with Isabelle" width="600" ></center>
+ <center><img src="images/demo.png" title="Tinker" width="800" ></center>
+
+<h1>
+Tinker viz
+</h1>
+<hr>
+Tinker allows users to record evaluation/proof steps and then export to a light-weight web application (written in HTML / CSS and JavaScript) via a generated JSON file. A demo of replaying a recorded evaluation is showed as follows. Uers can also try their own recorded evaluation  <a href="./tinkerViz" "tinker viz">HERE</a>.
+{% include demo.html %}
+
+<h1>
+Tool demo
+</h1>
+<hr>
+{% include tooldemo.html %}
+
 
 <h1>
 Publication
@@ -37,10 +51,9 @@ Publication
 Talks
 </h1>
 <hr>
-{% include talks.html %}
+{% include resources.html %}
 
-<hr>
-<a href="./tinkerViz" "tinker viz">Tinker viz</a>
+
 
 </section>
 

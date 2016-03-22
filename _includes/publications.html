@@ -3,7 +3,7 @@
 	  {% capture category %}{{ post.category }}{% endcapture %}
   	  {% if category == "publications" %}
           <li> 
-			<div class="reference">{{ post.reference | markdownify }}</div>
+			<div class="reference">{{ post.content | markdownify }}</div>
           </li>
       {% endif %}
     {% endfor %}

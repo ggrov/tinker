@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Tinker - Plugin for Rodin</title>
+	<link rel=stylesheet href="style/main.css">
+	<link rel="shortcut icon" href="favicon.ico" />
+	
+</head>
+<body>
+	<header id="header" class="">
+	<div>
+		
+		<h1>Tinker - Plugin for Rodin</h1>
+		<h3>Authors :  Y. Liang, Y. Lin and G. Grov</h3>
+	</div>
+	</header><!-- /header -->
+	<div class="container">
+		<div class="section" id="intro">
+			<h2>Foreword</h2>
+			<hr>
+			<p>This webpage aims to present resources used for our tool presentation. For detailed manual, please see <a href="./manual.pdf">here</a> </p>
+			<p>To use those resources, first please download the independent compilation of Tinker Core from one of the following links</p>
+			<ul>
+				<li>
+					<a href="./release/TinkerCore.tar.gz">Download for Linux</a>
+				</li>
+				<li>
+					<a href="./release/TinkerCore.7z">Download for Windows</a>
+				</li>
+			</ul>
+			<p>Then please download the tinkerGUI from <a href="./release/tinkerGUI.zip">here</a> or instead you can <a href="..">download the tinker repo</a> and extract the file </br>
+			<p class="code">$SOME_PATH/tinker/src/core/src/tinkerGUI/release/tinkerGUI-0.4.jar</p>
+			</p>
+			
+			<p>You can extract above 2 files to the same directory for your convenience</p>
+			
+			<p>For the demo project for our tool, please download from <a href="./release/Landing_Dev_3.zip">here</a>. </br>
+			This is the third approach of "Wen Su, Jean-Raymond Abrial. Aircraft Landing Gear System: Approaches with Event-B to the Modeling of an Industrial System". </br>
+			</p>
+			
+			<p>Download 2 psgraph files for the demo from <a href="./release/Landing-Dev-psgraphs.zip">here</a></p>
+			
+			
+			<p>Finally download the plugin for Rodin platform from <a href="./release/tinker.for.rodin.zip">here</a>, </br>
+			and extract the .jar file into "plugins" folder in Rodin installation directory</p>
+			
+			<p>Now the files are set, before you rush to use the plugin please set the following</p>
+			<ul>
+				<li>
+					1. Launch Rodin
+				</li>
+				<li>
+					2.	Click in menu -> Window -> Preference -> Tinker Preference Page</br>
+					2.1	Leave Default Directory and Default PSGraph file empty</br>
+					2.2 Browse to select the independent compilation of Tinker Core you just extracted (TinkerCore.exe for Windows, TinkerCore for Linux)</br>
+					2.3 Browse to select the TinkerGUI .jar file you just extracted</br>
+					3 On Preference -> Event-B -> Auto/Post Tactic, untick both "Enable auto_tactic for proving" and "Enable post-tactic for proving" </br>
+						
+					Click OK
+				</li>
+			</ul>
+			<p>Then you can import the Landing_Dev_3.zip as a project into Rodin workplace</p>
+			
+			<p>Open the project. In the Event-B Explorer View, find the machine m0, </br>
+			then for the DEMO 1, you could open the obligation X_act/inv19/INV, </br>
+			and for the DEMO 2, you could open the obligation X_chg/inv21/INV </br>
+			</p>
+			<p>To repeat the proof in our demo, first prune all existing proof node</p>
+			<p>In the Proof Control View, click the <img src="ressources/tinkerButton.png" alt=""> to start proving. </p>
+			
+			<p>If this is the first time you use the Plugin, a window will be prompted for you to select the default psgraph. If it is not the first time and you wish to use other psgraph files, please go to Preference -> Tinker Preference Page -> change default psgraph file to your desired file under the default folder.</p>
+
+			<p>On the auto-launched TinkerGUI, the following need to be clicked <img src="ressources/evalDisconnected.png" alt="">, once the connection is ready the icon will become <img src="ressources/evalConnected.png" alt="">. Details on how to start the GUI can be found in <a href="../userGuide.pdf" title="">Tinker's user guide</a>.</p>
+			<p>* Note, if you finished proving one obligation, and wish to switch to another one, please click <img src="ressources/stopButton.png" alt=""> on GUI, then Rodin will stop blocking you. Now you can switch to another obligation such as X_chg/inv21/INV, prune all existing nodes. *</p>
+			<p>* Note 2, if you wish to change PSGraph, before you click <img src="ressources/tinkerButton.png" alt=""> again ,please go to Preference -> Tinker Preference Page, and change "Default psgraph file" to your desired psgraph file, or you can reset it to blank, and the next time you click <img src="ressources/tinkerButton.png" alt="">, you will be able to choose another file. *</p>
+			<p>* SERIOUS NOTE (WINDOWS Users only), because this is an ongoing project, the communication protocol is not determinined due to various reasons. The current protocol is: when user finish proof, 
+			the independent compiled Tinker Core for Rodin will shutdown in 15 seconds. If user wants to use Tinker Proof tool after 15 seconds of clicking <img src="ressources/stopButton.png" alt="">, 
+			reconnection is required therefore user will need to firstly click <img src="ressources/evalConnected.png" alt=""> and then click <img src="ressources/evalDisconnected.png" alt=""> to connect again after clicking  <img src="ressources/tinkerButton.png" alt=""> in Rodin. *</p>
+			
+		</div>
+		<div class="section" id="proof">
+			<link rel=stylesheet href="style/tinkerViz.css">
+			<link rel=stylesheet href="style/graph.css">
+			<h2>Proof recording</h2>
+			<hr>
+			<script src="script/d3.min.js"></script>
+			<script src="script/d3-tip.min.js"></script>
+			<script src="script/tinker.js"></script>
+			<div id="record1">
+				<div id="graphContent" style="visibility:hidden">
+					<div class="line">
+						<div id="proofInfo" class="content">
+							<span id="proofTitle"></span>
+							<span id="proofAuthor"></span>
+							<span id="proofDate"></span>
+						</div>
+						<div class="line content">
+							<span>Evaluation Step : </span>
+							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
+							<span id="vizIndices"></span>
+							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
+							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
+						</div>
+					</div>
+					<div id="mainArea">
+						<div class="line content">
+							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
+							<div>
+								<select id="tacticList" class=""></select>
+								<span>Subgraphs : </span>
+								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
+								<span id="graphIndices"></span>
+								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
+							</div>
+						</div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+					</div>
+					<div id="graphError" style="visibility:hidden"></div>
+				</div>
+			</div>
+			<div id="record2">
+				<div id="graphContent" style="visibility:hidden">
+					<div class="line">
+						<div id="proofInfo" class="content">
+							<span id="proofTitle"></span>
+							<span id="proofAuthor"></span>
+							<span id="proofDate"></span>
+						</div>
+						<div class="line content">
+							<span>Evaluation Step : </span>
+							<button id="previousPSGraph">&#9664;</button>
+							<span id="vizIndices"></span>
+							<button id="nextPSGraph">&#9654;</button>
+							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
+						</div>
+					</div>
+					<div id="mainArea">
+						<div class="line content">
+							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
+							<div>
+								<select id="tacticList" class=""></select>
+								<span>Subgraphs : </span>
+								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
+								<span id="graphIndices"></span>
+								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
+							</div>
+						</div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+					</div>
+					<div id="graphError" style="visibility:hidden"></div>
+				</div>
+			</div>
+			<script>
+				makeViz("record1","ressources/x19act.json")
+				makeViz("record2","ressources/x21chg.json")
+			</script>
+		</div>
+		<div class="section" id="demo">
+			<h2>Tool demo</h2>
+			<hr>
+			<ul>
+			    <li><a onclick="changeVideoSource(0)">Tinker For Rodin Demo</a></li>
+			</ul>
+			<div id="vidContainer">
+				<iframe id="vid" width="680" height="390" src="">
+				</iframe>
+			</div>
+			<script>
+				var videosSource = [
+					"https://www.youtube.com/embed/fJRUh9Coa5c"
+					]
+				function changeVideoSource(index){
+					document.getElementById("vid").setAttribute("src",videosSource[index])
+				}
+				document.getElementById("vid").setAttribute("src",videosSource[0])
+			</script>
+		</div>
+	</div>
+</body>
+</html>

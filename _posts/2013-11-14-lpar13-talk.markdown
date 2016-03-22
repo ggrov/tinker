@@ -1,6 +1,6 @@
 ---
 layout: post
-category: talks
+category: resources
 tags:
   - news
 slug: lpar13-talk
