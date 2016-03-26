@@ -111,6 +111,9 @@ public class TinkerTactic implements ITactic {
 		TinkerProcess tp=TinkerProcess.getInstance();
 		try {
 			Process p=tp.getProcess();
+			if (p==null){
+				return "Unable to start Tinker Core.";
+			}
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

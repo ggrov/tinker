@@ -5,30 +5,5 @@
 	<classpathentry exported="true" kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry exported="true" kind="lib" path="lib/json-simple-1.1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-lang3-3.4.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/fr.systerel.editor"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/fr.systerel.explorer"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/fr.systerel.explorer.examples.actionProvider"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/fr.systerel.explorer.examples.contentProvider"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/fr.systerel.explorer.examples.filter"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/fr.systerel.tactics.perf"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/fr.systerel.tactics.perfs"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eventb.core"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eventb.core.ast"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eventb.core.ast.tests.performance"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eventb.core.seqprover"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eventb.core.seqprover.arith"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eventb.ide"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eventb.pp"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eventb.pp.ui"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eventb.pptrans"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eventb.rubin"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eventb.seqprover.core.perf.app"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eventb.ui"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eventb.ui.symboltable"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eventb.ui.tests.integration"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.rodinp.core"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.rodinp.core.emf"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.rodinp.keyboard.core"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.rodinp.keyboard.ui"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

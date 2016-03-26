@@ -11,6 +11,25 @@ public class TinkerProcess {
 	private static Process ptinker=null;
 	private TinkerProcess() {}
 	
+	private static final class OsUtils
+	{
+		   private static String OS = null;
+		   public static String getOsName()
+		   {
+		      if(OS == null) { OS = System.getProperty("os.name"); }
+		      return OS;
+		   }
+		   public static boolean isWindows()
+		   {
+		      return getOsName().startsWith("Windows");
+		   }
+
+		   public static boolean isUnix(){
+			   // and so on
+			   return !getOsName().startsWith("Windows");
+		   }
+		}
+	
 	public static TinkerProcess getInstance(){
 		return INSTANCE;
 	}
@@ -39,14 +58,16 @@ public class TinkerProcess {
 		
 		Runtime rt = Runtime.getRuntime();
 		if (ptinker==null || !isRunning()){
-			
 			ProcessBuilder pb = new ProcessBuilder(path);
-
+			System.out.println(path);
 			pb.redirectOutput(Redirect.INHERIT);
 			pb.redirectError(Redirect.INHERIT);
 			ptinker =pb.start();
 		}
 		
+		if (ptinker==null){
+			return null;
+		}
 		
 		return ptinker;
 	}

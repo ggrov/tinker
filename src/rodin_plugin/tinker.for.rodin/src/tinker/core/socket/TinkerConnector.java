@@ -2,7 +2,6 @@ package tinker.core.socket;
 
 import java.net.*;
 import java.io.*;
-import java.io.ObjectInputStream.GetField;
 
 import org.eventb.core.seqprover.IProofMonitor;
 
