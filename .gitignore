@@ -13,3 +13,4 @@
 # Rodin Source #
 /src/rodin_plugin/*
 !/src/rodin_plugin/tinker.for.rodin
+.tinkerConfig
