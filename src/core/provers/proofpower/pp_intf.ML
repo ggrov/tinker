@@ -10,7 +10,7 @@
       Tinker.start_ieval ctxt ps_opt assms goal 
     end
     
-  fun apply_psg ps = set_psg_goal (SOME ([], %<%false%>%)) (SOME ps) (* use a dummy goal to represnet a mode to use the current goal *)
+  fun apply_ps ps = set_psg_goal (SOME ([], %<%false%>%)) (SOME ps) (* use a dummy goal to represnet a mode to use the current goal *)
   
  (*    
    fun set_psg_goal (assms, goal) mode psg searchf goalf = 
