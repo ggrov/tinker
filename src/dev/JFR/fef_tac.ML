@@ -13,7 +13,7 @@ PPIntf.set_psg_goal (SOME ([], ¬(A %implies% C)®)) (SOME ps_tac1);
 set_goal([], ¬((A %implies% B) %and% (B %implies% B))®);
 a step_strip_tac;
 top_goals();
-PPIntf.apply_psg ps_tac1;
+PPIntf.apply_ps ps_tac1;
 top_goals();
 
 drop_main_goal();
