@@ -22,7 +22,7 @@
   use_file "../simpleGT_lib.ML";
   
 (* top level inteface for pp *)
-  use "../pp_intf.ML"; 
+  use_file "../pp_intf.ML"; 
    
   open Env_Tac_Utils PPProver 
 

@@ -4,14 +4,19 @@ use (OS.FileSys.getDir() ^ "/psgraph/src/dev/JFR/fef_setup.ML");
 (* test if the fef theory is loaded *)
 map get_spec [¨ElemsÆ, ¨OK_VCâdÆ];
 
-(* a quick test of the steup *)
-val test_ps = PSGraph.read_json_file (SOME data) (pspath^"fef_tac.psgraph");
-
 (*===== tac1 *)
 val ps_tac1 = PSGraph.read_json_file (SOME data) (pspath^"fef_tac1.psgraph");
 
 (* a qucik test of psgraph version of tac1 *)
 PPIntf.set_psg_goal (SOME ([], ¨(A %implies% C)Æ)) (SOME ps_tac1);
+(* a qucik test of applying a psgraph to the top goal *)
+set_goal([], ¨((A %implies% B) %and% (B %implies% B))Æ);
+a step_strip_tac;
+top_goals();
+PPIntf.apply_psg ps_tac1;
+top_goals();
+
+drop_main_goal();
 
 (* For Rob: to run the real example: *)
 (** step 1: setup goal, e.g. set_goal([], ¨(A %implies% C)Æ); *)
@@ -47,3 +52,6 @@ PPIntf.set_psg_goal (SOME ([], ¨(CaseVal c te cel ee ç OK_VCâd c %implies% C)Æ))
   TextSocket.safe_close();
 
 
+top_goals();
+List.foldr;
+member;
