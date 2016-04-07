@@ -5,8 +5,8 @@ struct
   structure Prover = Prover;
   local open LoggingHandler in 
 (* note that this has to turned off in isabelle, as pretty printing contains some non-standard chars which breaks the protocal *)
-  val DEBUG_ON = false;
-  val if_gui_mode = false;
+  val DEBUG_ON = true;
+  val if_gui_mode = true;
 
   val tab = Unsynchronized.ref 0;
   fun inctab() = (tab := !tab +1);
@@ -306,7 +306,7 @@ struct
   
   fun imatch data pnode (t as (gtnm,gtargs)) = 
     ((dbg ("evaluating goaltype " ^ (str_arg (Clause t)) ^ " with pnode env " ^ str_env (Prover.get_pnode_env pnode) ); inctab());
-    let val res = match data pnode (gtnm,gtargs) StrName.NTab.empty in dectab(); dbg_res res end);
+    let val res = match data pnode (gtnm,gtargs) (Prover.get_pnode_env pnode) in dectab(); dbg_res res end);
 
   fun type_check data pnode gtype = 
     case imatch data pnode gtype of

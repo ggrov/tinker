@@ -24,12 +24,13 @@ struct
    |> Pretty.str
 
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string 
-| A_L_Thm of thm list | A_L_Trm of term list | A_L of arg_data list
+| A_L_Thm of thm list | A_L_Trm of term list | A_L of arg_data list | A_Conv of term -> thm
   
   datatype env_data = 
     E_Str of string | 
     E_Trm of term | E_Thm of thm |
     E_ML of string | 
+    E_Conv of term -> thm |
     E_L of env_data list
 
   fun pretty_env_data _ (E_Str str) =  [ "E_Str(", str, ")"] |> String.concat |> Pretty.str
@@ -73,7 +74,8 @@ struct
   type pplan = 
       {opengs : pnode StrName.NTab.T, 
       usedgs : StrName.NSet.T,
-      gstate: GOAL_STATE (* used for backtracking *)}
+      gstate: GOAL_STATE (* used for backtracking *),
+      nongs: (string list * GOAL) list (*non psg goal*)}
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq (* in pp, tactic is deteminted, seq is always singleton *)
    
    fun restore_pplan (pplan : pplan) = (logging "FAILURE" "Restoring pplan for backtracking" ; drop_main_goal (); push_goal_state (#gstate pplan))
@@ -168,7 +170,7 @@ struct
   fun get_open_pnodes (pplan:pplan) = StrName.NTab.list_of (#opengs pplan) |> map snd (* should return some goals as top_goals () *)
   fun get_open_pnode_by_name (pplan : pplan) name = StrName.NTab.get (#opengs pplan) name
 
-  fun set_open_goals_pplan (pplan : pplan) ogs  = {opengs = ogs, usedgs = #usedgs pplan, gstate = #gstate pplan}
+  fun set_open_goals_pplan (pplan : pplan) ogs  = {opengs = ogs, usedgs = #usedgs pplan, gstate = #gstate pplan, nongs = #nongs pplan}
   fun set_pnode_pplan pnode (pplan : pplan) = 
    let
     val _ = get_open_pnode_by_name pplan (get_pnode_name pnode)
@@ -195,14 +197,20 @@ struct
   fun init ctxt asms_trms concl_trm : (pnode * pplan) =
     let
       val (pcs, thy) = ctxt
-      val _ = (set_merge_pcs pcs; set_goal (asms_trms, concl_trm)); (* setup goal *)
+      val _ = if ((asms_trms, concl_trm) = ([], ¬false®)) then set_merge_pcs pcs else(set_merge_pcs pcs; set_goal (asms_trms, concl_trm)); (* setup goal *)
       val goal = top_goal ();
+      val allg = top_goals();
+      val nongs = 
+	if (List.length allg) = 1 
+	then []
+	else List.tl allg;
       val ctxt' = get_current_pc();
       val name = StrName.NSet.new StrName.NSet.empty "g"
       val pnode = {pname = name, g = goal,  pctxt = ctxt', global = [], env = StrName.NTab.empty};
       val pplan = {opengs = StrName.NTab.of_list [((#pname pnode), pnode)],
       			 usedgs = StrName.NSet.add name StrName.NSet.empty,
-      			 gstate = top_goal_state()}
+      			 gstate = top_goal_state(),
+			 nongs = nongs}
     in
       (pnode, pplan)
     end;
@@ -221,20 +229,32 @@ struct
         val _ = if debug then Pretty.writeln  (Pretty.chunks (map Pretty.str ((#global pnode)))) else ()*)
       (* set current goal and apply tactic then get the list of goals in the format of :
       	string list * (term list * term) list *)
-      val sgs = (((if (#global pnode) = [] then () else set_labelled_goal (hd (#global pnode)));
-      		SubgoalPackage.apply_tactic tac); top_goals())
-      val ctxt = get_current_pc();   
+      fun get_all_psgs _ =  
+	let
+		fun filter_g l g = filter (fn x => not (x = g)) l;
+		val nongs = (#nongs pplan);
+		val allg = top_goals();
+	in
+		List.foldr (fn (a, b) => filter_g b a)
+		allg nongs
+	end
+  
       fun filter_goals plist name = 
         filter 
         (fn (x : pnode) => 
           (case String.compare ((#pname x), name) of EQUAL => false 
           | _ => true))
         plist
+(* in the case that applying psg in a middle of proof, so that multiply goal may exist, and only apply psg to the top one, the remaing goals are then non psg goals *)
+      val sgs = (((if (#global pnode) = [] then () else set_labelled_goal (hd (#global pnode)));
+      		SubgoalPackage.apply_tactic tac); get_all_psgs())
+      val ctxt = get_current_pc();   
+
       fun gen_pnode (name, g) = ({pname = name, pctxt = ctxt, g = snd g, global = fst g, env = get_pnode_env pnode});
     in
       if (List.length sgs) = 0 (* no sgs *) 
       then 
-        [([], {opengs = StrName.NTab.empty, usedgs = (#usedgs pplan), gstate = top_goal_state()})]
+        [([], {opengs = StrName.NTab.empty, usedgs = (#usedgs pplan), gstate = top_goal_state(), nongs = (#nongs pplan)})]
       else((* a list of sgs *)
         let
           val sgs' = map (gen_fresh_psgname (#usedgs pplan)) sgs 
@@ -275,7 +295,7 @@ struct
          in
           {opengs = mk_new_opengs new_pnodel, (* get all current sgs name *)
            usedgs = StrName.NSet.add_list (map fst sgs') (#usedgs pplan),
-           gstate = top_goal_state()}
+           gstate = top_goal_state(), nongs = (#nongs pplan)}
           end
 
      in

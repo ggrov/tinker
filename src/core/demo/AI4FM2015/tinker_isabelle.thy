@@ -4,7 +4,6 @@ imports
 begin 
  
 (* read and load a psgraph created by gui *)
-  
 ML{* 
   val ps_simple = PSGraph.read_json_file NONE (path ^"demo_simple.psgraph");   
   val ps_eval = PSGraph.read_json_file NONE (path ^"demo_eval.psgraph");

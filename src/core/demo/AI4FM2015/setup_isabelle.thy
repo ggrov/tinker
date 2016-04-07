@@ -4,7 +4,7 @@ imports
 begin
 
 ML{*
-  val path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/src/core/demo/AI4FM2015/" ;
+  val path = "/Users/yuhuilin/Workspace/StrategyLang/psgraph/src/core/demo/AI4FM2015/" ;
 *}
 
 
