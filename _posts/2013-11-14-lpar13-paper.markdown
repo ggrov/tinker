@@ -17,4 +17,4 @@ links:
     url: http://www.lpar-19.info
 
 ---
-Gudmund Grov, Aleks Kissinger and Yuhui Lin. **A Graphical Language for Proof Strategies**. In _Logic for Programming Artificial Intelligence and Reasoning, LPAR-19th_,  in Stellenbosch, South Africa.
+Gudmund Grov, Aleks Kissinger and Yuhui Lin. **A Graphical Language for Proof Strategies**. In _Logic for Programming Artificial Intelligence and Reasoning, LPAR-19th_,  in Stellenbosch, South Africa. <a href="talks/lpar13.pdf">[talk]</a>

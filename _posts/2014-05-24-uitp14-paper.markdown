@@ -17,4 +17,4 @@ links:
     url: 
 
 ---
-Gudmund Grov, Aleks Kissinger and Yuhui Lin. **Tinker, tailor, solver, proof**. In _User Interfaces for Theorem Provers, UITP 2014_,  in Vienna, Austria.
+Gudmund Grov, Aleks Kissinger and Yuhui Lin. **Tinker, tailor, solver, proof**. In _User Interfaces for Theorem Provers, UITP 2014_,  in Vienna, Austria. <a href="talks/uitp14.pdf">[talk]</a>

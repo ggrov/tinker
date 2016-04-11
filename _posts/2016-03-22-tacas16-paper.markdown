@@ -10,4 +10,4 @@ date: 2016-03-20
 reference: "Yuhui Lin, Pierre Le Bras and Gudmund Grov. **Developing & Debugging Proof Strategies by Tinkering**. In _TACAS 2016_, in  Eindhoven, The Netherlands."
 
 ---
-Yuhui Lin, Pierre Le Bras and Gudmund Grov. **Developing & Debugging Proof Strategies by Tinkering**. In _TACAS 2016_, in  Eindhoven, The Netherlands. <a href="http://ggrov.github.io/tinker/tacas16/">[paper resources]</a>
+Yuhui Lin, Pierre Le Bras and Gudmund Grov. **Developing & Debugging Proof Strategies by Tinkering**. In _TACAS 2016_, in  Eindhoven, The Netherlands. <a href="http://ggrov.github.io/tinker/tacas16/">[paper resources]</a> <a href="talks/tacas16.pdf">[talk]</a>
