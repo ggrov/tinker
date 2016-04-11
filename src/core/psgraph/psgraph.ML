@@ -25,13 +25,15 @@ struct
 
   datatype atomic_tacs = Atomic_Tacs of {
      name : string, 
-     tactic: Prover.tactic 
+     tactic: Prover.tactic,
+     def: string
      (*args : Theory.Data.arg_typ*)
   }
 
   datatype env_tacs = Env_Tacs of {
      name : string, 
-     tactic: Prover.env_tac (* actual ml code of the tactic *)
+     tactic: Prover.env_tac (* actual ml code of the tactic *),
+     def: string
      (*args : Theory.Data.arg_typ*)
   }
 
@@ -229,19 +231,19 @@ struct
  fun output_atomic_json (_, Atomic_Tacs atom) =
    Json.mk_object [
     ("name", Json.String (#name atom)), 
-    ("tactic", Json.String (*(#tactic atom)*) "") 
+    ("tactic", Json.String (#def atom)) 
     (*"args", arg_typ_to_json (#args atom)*)]
 
  fun output_env_json (_, Env_Tacs env) =
    Json.mk_object [
     ("name", Json.String (#name env)), 
-    ("tactic", Json.String (*(#tactic atom)*) "") 
+    ("tactic", Json.String (#def env)) 
     (*"args", arg_typ_to_json (#args atom)*)]
 
  fun is_atom_tac (Json.Object jobj) = not (Theory.Graph_Utils.is_env_tactic_name (JsonInputUtils.get_string jobj "name"))
  | is_atom_tac _ = raise Json.parse_exn "unexcepted json strcure in is_env in PSGraph"
 
- fun input_env_json (Json.Object jobj) = 
+ fun input_env_json b (Json.Object jobj) = 
   let
     fun eval_ml ml_str = 
       let
@@ -251,20 +253,22 @@ struct
         Prover.EnvTac_ML_Exec.eval_ml ml_str
       end
     val name = JsonInputUtils.get_string jobj "name"
-    fun tactic _ = 
-      case JsonInputUtils.get_string jobj "tactic" 
-      of "" =>  eval_ml name 
-      | x => eval_ml x
+    val tac_def = JsonInputUtils.get_string jobj "tactic"
+    fun tactic b _ =
+      if b then
+      ( case tac_def 
+        of "" =>  eval_ml name | x => eval_ml x)
+      else eval_ml name
     val dummy_env  = K (K [])
    in
    if Env_Tac_Utils.is_abbrv_env_tac name then 
-    (name, Env_Tacs {name = name, tactic = dummy_env})
+    (name, Env_Tacs {name = name, tactic = dummy_env, def = tac_def})
    else
-    (name, Env_Tacs {name = name, tactic = tactic ()(*, args = args*)})
+    (name, Env_Tacs {name = name, tactic = tactic b (), def = tac_def(*, args = args*)})
    end
- | input_env_json _ = raise Json.parse_exn "unexcepted json strcure in input_env_json"
+ | input_env_json _ _ = raise Json.parse_exn "unexcepted json strcure in input_env_json"
 
- fun input_atomic_json (Json.Object jobj) = 
+ fun input_atomic_json b (Json.Object jobj) = 
   let
     fun eval_ml ml_str = 
       let
@@ -274,16 +278,19 @@ struct
         Prover.Tac_ML_Exec.eval_ml ml_str
       end
     val name = JsonInputUtils.get_string jobj "name"
+    val tac_def = JsonInputUtils.get_string jobj "tactic" 
     val tactic = 
-      case JsonInputUtils.get_string jobj "tactic" 
-      of "" =>  eval_ml ("K " ^ name) 
-      | x => eval_ml x
+      if b then
+      (case tac_def
+      of "" =>  eval_ml name 
+      | x => eval_ml x)
+     else eval_ml name
  
     (* val args = (arg_typ_from_json (Json.get jobj "args"))*)
   in
-    (name, Atomic_Tacs { name = name, tactic = tactic(*, args = args*)})
+    (name, Atomic_Tacs { name = name, tactic = tactic, def = tac_def(*, args = args*)})
   end
- | input_atomic_json _ = raise Json.parse_exn "unexcepted json strcure in input_atomic_json"
+ | input_atomic_json _ _ = raise Json.parse_exn "unexcepted json strcure in input_atomic_json"
                                                       
  fun output_subgraph_json (name, (Graph_Tacs subgraph)) = 
    Json.mk_object [
@@ -408,7 +415,7 @@ struct
   end
 
 (* expect to out put as an eval field *)
- fun input_json  (Json.Object object) = 
+ fun input_json b (Json.Object object) = 
   let
     val gt_data = 
       Json.get object "goal_types"
@@ -420,12 +427,12 @@ struct
     val atomic_tactics = 
       JsonInputUtils.get_array object "atomic_tactics"
       |> filter is_atom_tac(* filter out the ENV tac *)
-      |> map input_atomic_json
+      |> map (input_atomic_json b)
       |> StrName.NTab.of_list
     val env_tactics = 
       JsonInputUtils.get_array object "atomic_tactics"
       |> filter (not o is_atom_tac)(* filter out the ENV tac *)
-      |> map input_env_json
+      |> map (input_env_json b)
       |> StrName.NTab.of_list
     val occurs = Json.get object "occurrences" |> input_occurs_json
 
@@ -440,7 +447,7 @@ struct
     |> set_main main
     (* |> set_tactics tactics*)
   end
- | input_json _ = raise Json.parse_exn "unexcepted json structure in input_json"
+ | input_json _ _ = raise Json.parse_exn "unexcepted json structure in input_json"
 
  fun write_json_file path ps = 
   File_Io.write_string path (output_json ps |> Json.encode |> Theory.Data.GoalTyp.Prover.encoding_to_gui);
@@ -451,7 +458,7 @@ struct
    |> Theory.Data.GoalTyp.Prover.encoding_from_gui
    |> Json.of_string 
    |> to_prover_json
-   |> input_json
+   |> input_json true
   in
    case data of NONE => ps
    | (SOME gt_data) => 

@@ -405,7 +405,7 @@ struct
         | app_args [x] =  x
         | app_args (x::xs)  =  x ^ "," ^ (app_args xs);
    in 
-     Json.String (fst gt ^ "(" ^ (app_args (rev args))  ^ ")")
+     Json.String (fst gt ^ "(" ^ (app_args ( args))  ^ ")")
    end
 
   fun from_json (Json.String str) = scan_goaltyp Prover.default_ctxt str

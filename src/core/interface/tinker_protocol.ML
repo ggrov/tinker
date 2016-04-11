@@ -84,7 +84,7 @@ struct
     val ps = case (#4 init_data) of 
       (SOME ps) => ps
     | NONE => JsonInputUtils.get_array obj "psgraph" |> hd
-    |> EData.PSGraph.input_json 
+    |> EData.PSGraph.input_json true
     val edata0 = IEVal.EVal.init ps ctxt assms g |> hd (* FIXME: only get the first one *)
     handle _ => (logging "FAILURE" "Fail to init the goal with the top-level graph"; raise tinker_fail true);
     val _ = set_data edata0;
@@ -159,12 +159,14 @@ struct
     val (SOME edata) = get_data() 
     (* keep current tactic field *)
     val cur_ps = IEVal.EVal.EData.get_psgraph edata
-    val atom_tacs = IEVal.EVal.EData.PSGraph.get_atomic_tactics cur_ps
-    val env_tacs = IEVal.EVal.EData.PSGraph.get_env_tactics cur_ps
+    val gdata = IEVal.EVal.EData.PSGraph.get_goaltype_data cur_ps (* keep the current goal data *)
+   (* val atom_tacs = IEVal.EVal.EData.PSGraph.get_atomic_tactics cur_ps
+    val env_tacs = IEVal.EVal.EData.PSGraph.get_env_tactics cur_ps*)
     val new_psgraph = 
-      IEVal.EVal.EData.PSGraph.input_json new_eval_json
-      |> IEVal.EVal.EData.PSGraph.set_atomic_tactics atom_tacs
-      |> IEVal.EVal.EData.PSGraph.set_env_tactics env_tacs
+      IEVal.EVal.EData.PSGraph.input_json true new_eval_json
+      |> IEVal.EVal.EData.PSGraph.set_goaltype_data gdata
+   (*   |> IEVal.EVal.EData.PSGraph.set_atomic_tactics atom_tacs
+      |> IEVal.EVal.EData.PSGraph.set_env_tactics env_tacs *)
     val edata1 = IEVal.EVal.EData.set_psgraph new_psgraph edata
    in
     (set_data edata1;

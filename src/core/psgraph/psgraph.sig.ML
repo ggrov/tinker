@@ -76,7 +76,7 @@ sig
   (* json i/o *)
   val output_json : T -> Json.json
   val output_eval_json : StrName.NTab.name list -> int -> T -> Json.json
-  val input_json : Json.json -> T
+  val input_json : bool (*if to reload tac/env tac def*) -> Json.json -> T
   val write_json_file : string -> T -> unit
   val read_json_file : Theory.Data.GoalTyp.data option ->  string -> T
   val from_prover_json : Json.json -> Json.json

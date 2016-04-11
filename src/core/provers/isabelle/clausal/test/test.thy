@@ -10,7 +10,7 @@ ML{*-
 *}
 
 ML{*
-  val tinker_path = "/Users/yuhuilin/Documents/Workspace/StrategyLang/psgraph/"
+  val tinker_path = "/Users/yuhuilin/Workspace/StrategyLang/psgraph/"
   val path = tinker_path ^ "src/dev/psgraph/";
   val guiPath = tinker_path ^ "src/tinkerGUI/release/";
   val sys = "osx_32"
@@ -148,6 +148,8 @@ C.scan_goaltyp @{context} ;
  
 ML{* 
   val ps = PSGraph.read_json_file (SOME data) (path^"clause_demo.psgraph");
+val ps1 = PSGraph.read_json_file (SOME data) (path^"naive.psgraph");
+
 *}
 
 
@@ -155,7 +157,7 @@ ML{* -
   TextSocket.safe_close();
 *}
 
-ML{* -
+ML{* - 
 Tinker.start_ieval @{context} (SOME ps) (SOME []) (SOME @{prop "A \<longrightarrow> A \<longrightarrow> A"});
 *}
 
