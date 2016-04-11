@@ -6,9 +6,9 @@
  use_file (OS.FileSys.getDir() ^ "/psgraph/src/core/demo/TACAS16/imp058.sml");
 
 
-(* the defnition of the pp version *)
+(* the defnition of the pp version 
 val simple_quantifier_tac_pp = (REPEAT(CHANGED ((REPEAT strip_±) THEN (TRY (all_¶_uncurry ORELSE redundant_simple_¶ ORELSE simple_¶_equation ORELSE simple_¶_±)) THEN (TRY (all_µ_uncurry ORELSE redundant_simple_µ ORELSE simple_µ_± ORELSE simple_µ_tac)))));
-
+*)
 
 (* definitions for gts in basic prove exists *)
  fun is_ex env pnode [] = 
@@ -151,5 +151,4 @@ val simple_quantifier_tac_pp = (REPEAT(CHANGED ((REPEAT strip_±) THEN (TRY (all_
   |> ClauseGoalTyp.add_atomic "is_conj_or_simpl_ex_or_forall" is_conj_or_simpl_ex_or_forall
   |> ClauseGoalTyp.add_atomic "is_not_conj_or_simpl_ex_or_forall" is_not_conj_or_simpl_ex_or_forall;
 
-
-
+open PPIntf;
