@@ -282,7 +282,7 @@ struct
     val tactic = 
       if b then
       (case tac_def
-      of "" =>  eval_ml name 
+      of "" =>  eval_ml ("K " ^ name) 
       | x => eval_ml x)
      else eval_ml name
  
