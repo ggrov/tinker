@@ -49,71 +49,28 @@ struct
     ]
   val prover_uni = symb_tab
 
-  fun toUnEscape tab str = 
-   case StrName.NTab.lookup (StrName.NTab.of_list tab) str of
-    (SOME x) => x
-   | NONE => str
-  
-  fun toEscape tab str = 
-    case StrName.NTab.lookup (StrName.NTab.of_list (map (fn (x,y)=> (y,x)) tab)) str of
-    (SOME x) => x
-   | NONE => str
-  
-  fun index str substr = let
-    val (pref, suff) = Substring.position substr (Substring.full str)
-    val (s, i, n) = Substring.base suff
-  in
-    if i = size str then
-      (NONE, size substr, substr)
-    else
-      (SOME i, size substr, substr)
-  end;
-  
-  fun filterf ((SOME i, size, s)::xs)=(SOME i,size, s) |
-      filterf ((NONE,_,_)::xs)=filterf xs |
-      filterf [] = (NONE, 0,"")
-  
-  fun findUC tab str =filterf  ( map ( index str) (map fst tab))
-  fun findEUC tab str=filterf  ( map ( index str) (map snd tab)) 
-  (* To Escape *)
-  fun encode tab str = let
-    val k = findUC tab str;
-    val (start, len, uc) = case k of (NONE, _,_ ) => (0, 0, "")
-                        |  (SOME i, j, unichar) => (i, j, unichar);
-    val head= String.substring(str, 0, start);
-    val mid = toUnEscape tab uc;
-    val tail = String.extract(str, start+len, NONE); 
-    val result= String.concat [head, mid, tail];
-    val hasmore = case findUC tab result of (NONE,_,_) => false | _ => true
-  in
-    if hasmore then
-     encode tab result
-    else
-     result
-  end;
-  
-  (* To Unescape *)
-  fun decode tab str = let
-    val k = findEUC tab str;
-    val (start, len, uc) = case k of (NONE, _,_ ) => (0, 0, "")
-                        |  (SOME i, j, unichar) => (i, j, unichar);
-    val head= String.substring(str, 0, start);
-    val mid = toEscape tab uc;
-    val tail = String.extract(str, start+len, NONE); 
-    val result= String.concat [head, mid, tail];
-    val hasmore = case findEUC tab result of (NONE,_,_) => false | _ => true
-  in
-    if hasmore then
-     (* replaceEUC result *)
-     decode tab result
-    else
-     (* result *)
-     result
-  end;
+  fun subst0 str (tab: (string*string) list) (tab0: (string*string) list) = 
+   let fun substr (s,i,j) = if (i = j ) then "" else String.substring (s,i,j-i) in 
+   if String.size str = 0 then ""
+   else(
+    if tab0 = [] 
+    then String.substring (str, 0, 1) ^ 
+          subst0 (substr(str, 1, String.size str)) tab tab
+    else (
+     if String.isPrefix (fst(hd tab0)) str 
+     then snd(hd tab0) ^ subst0 (substr(str, String.size (fst(hd tab0)), String.size str)) tab tab
+     else subst0 str tab (tl tab0)
+    )
+   )
+  end
+  fun subst tab str = subst0 str tab tab
+  val rev_uni = map (fn (x,y) => (y,x))
+  val encode_gui_json = subst gui_uni (* encode gui symbol to unicode string*)
+  val decode_gui_json = subst (rev_uni gui_uni) (* decode unicode string to gui symbol *)
 
-  val encode_gui_json = encode gui_uni (* encode gui symbol to unicode string*)
-  val decode_gui_json = decode gui_uni (* decode unicode string to gui symbol *)
+  val encode_prover_json = subst prover_uni (* encode prover symbol to unicode string*)
+  val decode_prover_json = subst (rev_uni prover_uni) (* decode unicode string to prover symbol *)
 
-  val encode_prover_json = encode prover_uni (* encode prover symbol to unicode string*)
-  val decode_prover_json = decode prover_uni (* decode unicode string to prover symbol *)
+
+
 end

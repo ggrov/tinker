@@ -97,9 +97,29 @@ struct
    |> map (fn (name, list) => (name, Json.Array (map Json.String list)))
    |> Json.mk_object
    |> (fn x => (clear_logging_buffer (); x))
+  
+(*
+  fun buffer_to_json _ = 
+    let val  i = Timer.startRealTimer() in
+    buffer_to_json0 () 
+    |> (fn x => ( writeln ((Timer.checkRealTimer i)|> Time.toString) ;x))
+  end
+*)
 
 (*fun buffer_to_json _ = Json.mk_object [];*)
-  
+
+val if_check_perform = false
+fun check_perform f arg label = 
+ if (not if_check_perform)
+ then f arg
+ else 
+   (let val i = Timer.startRealTimer() in
+    f arg
+    |> (fn x => (writeln (label^": ");  
+                 writeln ((Timer.checkRealTimer i)|> Time.toString);
+                 x))
+   end) 
+ 
 end
 
 val local_logging_debug = false (* to print all logging info in the prover side *)
@@ -107,4 +127,5 @@ val _ = LoggingHandler.set_logging_handler
   (fn tag => fn msg => ( if local_logging_debug then LoggingHandler.logging_handler_print tag msg else (); 
     LoggingHandler.logging_handler_gui tag msg));
 val _ = LoggingHandler.active_all_tags ();
+structure LH = LoggingHandler; 
 

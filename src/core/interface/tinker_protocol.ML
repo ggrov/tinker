@@ -16,6 +16,7 @@ struct
   val if_gui_dbg_mode = true
 
   val buffer_to_json' = EData.PSGraph.from_prover_json o buffer_to_json
+
 (* if 0 then invalid *)
   val gui_sicket_port = gui_socket_port
   val prover_socket_port = prover_socket_port
@@ -226,12 +227,12 @@ struct
       val json = Json.of_string str
         handle _ => raise protocol_exn ("Fail to parse str as json: " ^ str)
       val _ = (logging_handler_print "JSON_GUI" ("JSON IN: " ^ (Json.encode json)))
-      val json_output = dispatch json (* this output is always a json object *)
+      val json_output = LH.check_perform dispatch json "run_in_textstreams" (* this output is always a json object *)
       val _ =  logging_handler_print "JSON_GUI" ("JSON OUT: " ^ ( Json.encode json_output))
     in 
       (case get_cmd_name json_output
          of "CMD_CLOSE_CONNECT" => () (* do nothing and exit: need to be consider what to do *)
-          | "CMD_END_EVAL_SESSION" => send_msg (Json.encode json_output) (* send to stop cmd and quit *)
+          | "CMD_END_EVAL_SESSION" =>  send_msg (Json.encode json_output) (* send to stop cmd and quit *)
         (*  | "RSP_EXCEPTION" => send_msg (Json.encode json_output) *)(* end session and flash out the exception string*)
           | "RSP_MESSAGE_ERROR" => 
             raise RunCall.Fail "\n Error: Received RSP_MESSAGE_ERROR from GUI. \n Please set the variable if_debug in the logging_handler to see more debugging info for this failure" 
@@ -241,7 +242,7 @@ struct
             (*|> (fn x => logging "JSON_GUI" ("PRINT_RSP: " ^ x))*));
              protocol_loop src)
           | _ =>
-             (send_msg (Json.encode json_output);
+             (LH.check_perform send_msg (LH.check_perform Json.encode json_output "Json encoding") "send_msg";
              protocol_loop s)
       )
     end
