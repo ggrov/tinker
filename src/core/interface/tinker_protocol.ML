@@ -62,6 +62,7 @@ struct
   fun reset_init_data _ = init_data := (NONE, NONE, NONE, NONE)
   fun get_init_data _ = !init_data
   fun set_init_data d = init_data := d
+
 (****************************************************
   protocol commands 
 ****************************************************)
@@ -266,5 +267,13 @@ struct
       run_in_textstreams s init_json;
       get_data () |> (fn x => (reset_data () ; reset_init_data (); Option.valOf x))
     end
+
+fun start_eval ctxt ps assms g = 
+ let
+  val edata0 = IEVal.EVal.init ps ctxt assms g |> hd (* FIXME: only get the first one *)
+ in
+   IEVal.eval_complete edata0;()
+end
+
 end
 
