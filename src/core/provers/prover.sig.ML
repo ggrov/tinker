@@ -26,6 +26,7 @@ sig
   datatype arg_data =  
       A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string 
       | A_L_Thm of thm list | A_L_Trm of term list | A_L of arg_data list | A_Conv of term -> thm
+      | A_CConv1 of (term -> thm) -> (term -> thm)
  
   datatype env_data = 
     E_Str of string | 
@@ -33,10 +34,13 @@ sig
     E_Thm of thm |
     E_ML of string | 
     E_Conv of term -> thm |
-    E_L of env_data list
+    E_CConv1 of (term -> thm) -> (term -> thm) |
+    E_L of env_data list 
+
   val pretty_env_data : context -> env_data -> Pretty.T
 
   val env_to_arg : env_data -> arg_data
+  val arg_to_env : arg_data -> env_data
   
   type env = env_data StrName.NTab.T 
   
@@ -105,6 +109,7 @@ sig
   val top_symbol : term -> string
   val symbols : term -> string list
   *)
+  val parse_ML_arg : string (*ML code*) -> string (*type*) -> arg_data
   (* exec the string as ML code *)
   val exec_str : string -> unit
 

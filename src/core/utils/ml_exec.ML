@@ -2,7 +2,7 @@ signature ML_EXEC =
 sig
    type ret_typ;
    val eval_ml : string -> ret_typ ;
-   val eval_ml_with_name : string -> string -> unit;
+  (* val eval_ml_with_name : string -> string -> unit;*)
    val exec_buffer : ret_typ option Unsynchronized.ref;
    val exec_exp : string -> ret_typ option 
 end;
@@ -23,7 +23,7 @@ functor ML_Exec_Func (val struct_name : string type ret val exec_str : string ->
 	in	!exec_buffer
 	end);
  
-
+(*
  fun exec_exp_with_name name str = 
   let
 	 val cmd =  "val " ^ name ^ "= ((" ^ str ^ "))"; 
@@ -32,14 +32,14 @@ functor ML_Exec_Func (val struct_name : string type ret val exec_str : string ->
 	  (exec_str cmd ; SOME ())
 	  handle _ => NONE
   end
-
+*)
  fun exp_catcher execer str = 
   case execer str 
     of SOME t => t
     | NONE => (logging "FAILURE" ("Fail to eval the ML string ( " ^ str ^ " )");
                raise tinker_fail true)
  val eval_ml = exp_catcher exec_exp 
- val eval_ml_with_name = (fn name => exp_catcher (exec_exp_with_name name))
+(* val eval_ml_with_name = (fn name => exp_catcher (exec_exp_with_name name))*)
 
  end (* end of local *)
  end;

@@ -313,7 +313,18 @@ struct
   end
   
   fun parse_arg_data ctxt pnode args = 
-    let val env = GoalTyp.Prover.get_pnode_env pnode in
+   let 
+    fun de_hd_last l = tl l |>  rev |> tl |> rev (* remove both hd and last ele *)
+    val env = GoalTyp.Prover.get_pnode_env pnode 
+    fun split_args str = String.tokens ((op member) (op =) [#"[", #"]", #" ", #"," ]) str
+    fun parse_singleton typ def = 
+     case typ 
+      of "term" => GoalTyp.Prover.trm_of_string ctxt def|> GoalTyp.Prover.A_Trm
+       | "thm" => GoalTyp.Prover.get_thm_by_name ctxt def|> GoalTyp.Prover.A_Thm
+       | "string" => GoalTyp.Prover.A_Str def
+       | "var" => Option.valOf (parse_env_var_name def)|> GoalTyp.Prover.A_Var
+       | x => GoalTyp.Prover.parse_ML_arg def typ        
+   in
     map 
     (fn arg (* [def, type] / [?env_var]*) 
       => if List.length arg = 1  (* env var or predefine antiqunto, e.g. Hyps, Concl *)
@@ -322,24 +333,23 @@ struct
            | "concl" => GoalTyp.Prover.get_pnode_concl pnode |> GoalTyp.Prover.A_Trm
            | "Hyps" => GoalTyp.Prover.get_pnode_hyps pnode |> GoalTyp.Prover.A_L_Trm
            | "hyps" => GoalTyp.Prover.get_pnode_hyps pnode |> GoalTyp.Prover.A_L_Trm
-           |  x =>
+           |  x => 
+           (* first to check if it is a string i.e. in the format of "..." *)
             if ((String.explode x |> hd) = #"\"" andalso (String.explode x |> List.last) = #"\"" ) (* see if it is a string *)
             then
              String.substring (x, 1, size x - 2) 
-             |> (fn x => (writeln x; x)) 
+             (*|> (fn x => (writeln x; x)) *)
              |> GoalTyp.Prover.A_Str
-            else
+            else (* otherwise, it is a variable , then to get its value in the env *)
              ((StrName.NTab.get env (Option.valOf (parse_env_var_name (hd arg)))
              handle _ => (logging "FAILURE" ("fail to get arg: " ^ (hd arg) ^ " from env"); raise tinker_fail true))
              |> GoalTyp.Prover.env_to_arg)
-         else 
-          case List.nth (arg, 1) 
-            of "term" => hd arg |> GoalTyp.Prover.trm_of_string ctxt |> GoalTyp.Prover.A_Trm
-            | "thm" => hd arg |> GoalTyp.Prover.get_thm_by_name ctxt |> GoalTyp.Prover.A_Thm
-            | "string" => hd arg |> GoalTyp.Prover.A_Str
-            | "var" => Option.valOf (parse_env_var_name (hd arg)) |> GoalTyp.Prover.A_Var
-            | x => (logging "FAILURE" ("Unknown arg data typ in : " ^ x); raise tinker_fail true)
-
+         else if (List.last arg = "list") then
+           map (parse_singleton (de_hd_last arg |> List.foldr (op ^) "")) 
+            (split_args (hd arg)) 
+           |>  GoalTyp.Prover.A_L
+         else
+          parse_singleton (List.foldr (op ^) "" (List.tl arg)) (hd arg)
     )
     args end
     

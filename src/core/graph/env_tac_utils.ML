@@ -165,10 +165,11 @@ struct
         (scan_var (* scan variable name *) --|
         (scan_ignore_pre_blank (Scan.this_string ":=")))
         src 
+    
        (*val def_strs = filter_blank' def_strs*)
        val (typ, def) = 
         if (is_start_with "?" (String.concat def_strs)) 
-        (* start with ?, so must be assiging to another env var *)
+        (* start with ?, so must be assigning to another env var *)
         then
          scan_env_var def_strs |> fst (* get the name of the var *)
          |> (fn x => (StrName.NTab.get env (String.extract (x, 1, NONE)); ("dummy", String.concat def_strs)))

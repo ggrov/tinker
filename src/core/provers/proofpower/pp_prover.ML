@@ -25,28 +25,58 @@ struct
 
   datatype arg_data =  A_Const of string | A_Var of string | A_Trm of term | A_Thm of thm | A_Str of string 
 | A_L_Thm of thm list | A_L_Trm of term list | A_L of arg_data list | A_Conv of term -> thm
+| A_CConv1 of (term -> thm) -> (term -> thm)
   
   datatype env_data = 
     E_Str of string | 
     E_Trm of term | E_Thm of thm |
     E_ML of string | 
     E_Conv of term -> thm |
+    E_CConv1 of (term -> thm) -> (term -> thm) |
     E_L of env_data list
+
 
   fun pretty_env_data _ (E_Str str) =  [ "E_Str(", str, ")"] |> String.concat |> Pretty.str
   |   pretty_env_data ctxt (E_Trm trm) = [ "E_Trm(", pretty_trm ctxt trm |> Pretty.string_of,  ")"] |> String.concat |> Pretty.str
   |   pretty_env_data ctxt (E_Thm thm) =  [ "E_Thm(", concl thm |> pretty_trm ctxt |> Pretty.string_of,  ")"] |> String.concat |> Pretty.str
-  |   pretty_env_data _ (E_ML str) =  [ "E_ML(",  str,  ")"] |> String.concat |> Pretty.str
+  |   pretty_env_data _ (E_ML str) = [ "E_ML(",  str,  ")"] |> String.concat |> Pretty.str
+  |   pretty_env_data _ (E_Conv c) = [ "E_Conv(",  "Conv",  ")"] |> String.concat |> Pretty.str
+  |   pretty_env_data _ (E_CConv1 cc) = [ "E_CConv1(",  "Conv -> Conv",  ")"] |> String.concat |> Pretty.str
   |   pretty_env_data ctxt (E_L l) =  
         Pretty.str (String.concat [ "E_L(",
                       str_chunks (map (Pretty.string_of o pretty_env_data ctxt) l),
                        ")"]);
 
+  fun pretty_arg_data _ (A_Str str) =  [ "A_Str(", str, ")"] |> String.concat |> Pretty.str
+  |   pretty_arg_data ctxt (A_Trm trm) = [ "A_Trm(", pretty_trm ctxt trm |> Pretty.string_of,  ")"] |> String.concat |> Pretty.str
+  |   pretty_arg_data ctxt (A_Thm thm) =  [ "A_Thm(", concl thm |> pretty_trm ctxt |> Pretty.string_of,  ")"] |> String.concat |> Pretty.str
+  |   pretty_arg_data ctxt (A_L_Trm trm_l) = [ "A_L_Trm("] @ (map (fn trm => pretty_trm ctxt trm |> Pretty.string_of |> (fn x => x ^ " | ")) trm_l) @ [")"] |> String.concat |> Pretty.str
+  |   pretty_arg_data ctxt (A_L_Thm thm_l) =  [ "A_L_Thm("]@ (map (fn thm => concl thm |> pretty_trm ctxt |> Pretty.string_of |> (fn x => x ^ " | ")) thm_l) @ [")"] |> String.concat |> Pretty.str
+  |   pretty_arg_data _ (A_Conv c) = [ "A_Conv(",  "Conv",  ")"] |> String.concat |> Pretty.str
+  |   pretty_arg_data _ (A_CConv1 cc) = [ "A_CConv1(",  "Conv -> Conv",  ")"] |> String.concat |> Pretty.str
+  |   pretty_arg_data ctxt (A_L l) =  
+        Pretty.str (String.concat [ "A_L(",
+                      str_chunks (map (Pretty.string_of o pretty_arg_data ctxt) l),
+                       ")"]);
+
   fun env_to_arg (E_Str str) = A_Str str
   |   env_to_arg (E_Trm trm) = A_Trm trm
   |   env_to_arg (E_Thm thm) = A_Thm thm
+  |   env_to_arg (E_Conv c)   = A_Conv c
+  |   env_to_arg (E_CConv1 cc) = A_CConv1 cc
   |   env_to_arg (E_L data) = A_L (map env_to_arg data)
   |   env_to_arg env = (logging "FAILURE" ("Do not suppport the conversion from env to arg: " ^ (pretty_env_data default_ctxt env|> Pretty.string_of)) ;
+      raise tinker_fail true)
+
+  fun arg_to_env (A_Str str) = E_Str str
+  |   arg_to_env (A_Trm trm) = E_Trm trm
+  |   arg_to_env (A_Thm thm) = E_Thm thm
+  |   arg_to_env (A_L_Trm trm_l) = map E_Trm trm_l |> E_L
+  |   arg_to_env (A_L_Thm thm_l) = map E_Thm thm_l |> E_L
+  |   arg_to_env (A_Conv c)   = E_Conv c
+  |   arg_to_env (A_CConv1 cc) = E_CConv1 cc
+  |   arg_to_env (A_L data) = E_L (map arg_to_env data)
+  |   arg_to_env env = (logging "FAILURE" ("Do not suppport the conversion from arg to env: " ^ (pretty_arg_data default_ctxt env|> Pretty.string_of)) ;
       raise tinker_fail true)
 
   type env = env_data StrName.NTab.T
@@ -87,11 +117,22 @@ struct
   structure Tac_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = tactic val struct_name = "PPProver.Tac_ML_Exec");
   structure Thm_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = thm val struct_name = "PPProver.Thm_ML_Exec");
   structure Term_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = TERM val struct_name = "PPProver.Term_ML_Exec");
+  structure CONV_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = CONV val struct_name = "PPProver.CONV_ML_Exec");
+  structure CCONV1_ML_Exec = ML_Exec_Func (val exec_str = exec_str type ret = CONV -> CONV val struct_name = "PPProver.CCONV1_ML_Exec");
   
   
   fun get_thm_by_name _ str = Thm_ML_Exec.eval_ml str
    handle _ => (logging "FAILURE" ("Fail to get thm by name: " ^ str); raise tinker_fail true);
   
+  (* string -> string -> arg_data *)
+  fun parse_ML_arg def typ =  
+   case typ 
+    of "conv" => (CONV_ML_Exec.eval_ml def |> A_Conv
+      handle _ => (logging "FAILURE" ("Fail to parse conv from the string: " ^ def); raise tinker_fail true))
+     | "cconv1" => (CCONV1_ML_Exec.eval_ml def |> A_CConv1
+      handle _ => (logging "FAILURE" ("Fail to parse conv -> conv from the string: " ^ def); raise tinker_fail true))
+     | _ => (logging "FAILURE" ("Unknown arg data typ in : " ^ typ ^ " with def: " ^ def); raise tinker_fail true)
+
   exception gterm_exp
   
   val typ_of = type_of
@@ -374,7 +415,6 @@ struct
    ("‰", "<_uni_symb_down_corner_>"),
 
    ("¬", "<_uni_symb_left_corner_>"),
-   ("®", "<_uni_symb_right_corner_>"),
   
    ("ñ", "<_uni_symb_left_z_corner_>"),
    ("¦", "<_uni_symb_left_z_assign_>")
