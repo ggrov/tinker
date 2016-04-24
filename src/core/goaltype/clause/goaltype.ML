@@ -438,8 +438,9 @@ struct
   fun data_to_json gn = Json.String (Pretty.str_of (pretty_data gn)); 
 
   fun data_from_json (Json.String str) = 
+    let val _ = debug_json ("Json parsing: GoalType data - " ^ str) ()in 
          scan_data Prover.default_ctxt str
-        |> (fn defs => set_data_defs defs default_data)
+        |> (fn defs => set_data_defs defs default_data) end
   | data_from_json _ = raise gt_exp "from_json: ill-formed json structure"
 
 (* TODO: need a proper fix, only merge def here *)

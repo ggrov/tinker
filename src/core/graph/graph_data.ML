@@ -1,6 +1,6 @@
 functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
 = struct
-
+local open LoggingHandler in
   structure GoalTyp = GoalTyp;
 
   type arg_typ = string list list
@@ -234,17 +234,19 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
    
  fun nvdata_from_json (Json.Object jobj) (* has to be jobj *) = 
        (case JsonInputUtils.get_string jobj "type" of
-              "T_Atomic" => 
+              "T_Atomic" =>
+              (debug_json ("Json parsing: Node (T_Atomic) - " ^ JsonInputUtils.get_string jobj "atm") ();
               T_Atomic 
                (JsonInputUtils.get_string jobj "atm", 
-                JsonInputUtils.get jobj "args" |> arg_typ_from_json)
+                JsonInputUtils.get jobj "args" |> arg_typ_from_json))
             | "T_Graph" =>  
+            (debug_json ("Json parsing: Node (T_Graph) - " ^ JsonInputUtils.get_string jobj "subgraph") ();
               T_Graph
                (JsonInputUtils.get_string jobj "subgraph", 
-                JsonInputUtils.get jobj "args" |> arg_typ_from_json)
-            | "T_Identity"=> T_Identity
-            | "G_Break" => G_Break
-            | "G" => G (GoalTyp.gnode_from_json (Json.get jobj "gn") )
+                JsonInputUtils.get jobj "args" |> arg_typ_from_json))
+            | "T_Identity"=> T_Identity |> debug_json "Json parsing: Node (T_Identity)) Done"
+            | "G_Break" => G_Break |> debug_json "Json parsing: Node (G_Break)) Done"
+            | "G" => G (GoalTyp.gnode_from_json (Json.get jobj "gn") ) 
             | "T_Var" => T_Var (JsonInputUtils.get_string jobj "t_var")
             | "G_Var" => T_Var (JsonInputUtils.get_string jobj "g_var")
             | _ => raise gdata_json_exp ("unexpected node type in JSON encoding", Json.Object jobj)
@@ -265,7 +267,9 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
   fun edata_from_json (Json.Object jobj) (* has to be jobj *) = 
       (case JsonInputUtils.get_string jobj "type" of
               ("GT_Var") => GT_Var (JsonInputUtils.get_string jobj "gtyp_var")
-            | ("GT") => GT (GoalTyp.from_json (JsonInputUtils.get jobj "gtyp"))
+            | ("GT") => 
+             (debug_json ("Json parsing: Edge (GT) - " ^ Json.encode (Json.Object jobj)) ();
+              GT (GoalTyp.from_json (JsonInputUtils.get jobj "gtyp")))
             | _ => raise gdata_json_exp ("unexpected edge type in JSON encoding", Json.Object jobj))
     | edata_from_json x = 
         raise gdata_json_exp 
@@ -278,7 +282,7 @@ functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
     type edata = edata
     structure GoalTyp = GoalTyp.BasicSharing
   end
-
+ end
 end;
 
 

@@ -21,6 +21,9 @@ struct
     "FAILURE"
   ] |> StrName.NSet.of_list;
 
+  val if_debug_json = true
+  fun debug_json str x = (if if_debug_json then writeln str else (); x)
+
   val active_tags = Unsynchronized.ref StrName.NSet.empty;
   fun get_active_tags _ = !active_tags;
   val set_active_tags = fn x => active_tags := x;
