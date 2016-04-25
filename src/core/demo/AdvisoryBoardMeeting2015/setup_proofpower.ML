@@ -1,4 +1,5 @@
 (* build tinker *)
+ open_theory "hol";
  use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
 
  val path = OS.FileSys.getDir() ^ "/psgraph/src/core/demo/AdvisoryBoardMeeting2015/";

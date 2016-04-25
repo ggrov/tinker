@@ -1,8 +1,8 @@
-  use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
+open_theory "topology";  
+use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
   val tinker_path = OS.FileSys.getDir()  ^ "/psgraph/";
   val pspath = tinker_path ^ "src/dev/JFR/psgraph/conv/";
   open ListUtilities; (* this structure is from pp, and it is overrideed by psgraph*)
-
 
 (****************************************************)
 (* some required definitions in 083 and 067 *)
@@ -62,9 +62,8 @@ fun get_patterns
 
 val fst_const : TERM = ¬Fst®;
 val snd_const : TERM = ¬Snd®;
-val product_t_const : TERM = ¬$¸T®;
+val product_t_const : TERM = ¬$¸‰T®;
 in
-
 fun continuity_params (thms : THM list) :
 	{facts: THM list,
 	 unary: TERM list,
@@ -80,81 +79,7 @@ fun continuity_params (thms : THM list) :
 		 witness_tac = ¶_object_by_type_tac (([], product_t_const) :: obs)}
 	end
 );
-
-
-
-  use_file1 (cur_path ^ "/psgraph/src/dev/JFR/wrk083.sml");
-(**)
-
-
-
-(* definition from wrk67 *)
-
-val continuity_fact_thms : THM list = [
-	product_topology_thm,
-	_space_t_product_thm,
-	fst_continuous_thm,
-	snd_continuous_thm,
-	i_continuous_thm,
-	k_continuous_thm,
-	pair_continuous_thm,
-	o_continuous_thm];
-val (unary_v, unary_p) = dest_pair ¬(x, x  (Á, Â) Continuous)®;
-val (binary_v, binary_p) = dest_pair ¬(x, Uncurry x  (Á, Â) Continuous)®;
-val (parametrized_v, parametrized_p) = dest_pair ¬(h, (Ì x· h x p)  (Á, Â) Continuous)®;
-val (object_v, object_p) = dest_pair ¬(Á, Á  Topology)®;
-
-(*
-*)
-
-fun get_patterns
-	(accs as (acc_u, acc_b, acc_p, acc_o)
-		: TERM list * TERM list * TERM list * (string list * TERM) list)
-	((thm :: more) : THM list)
-	: TERM list * TERM list * TERM list * (string list * TERM) list = (
-	let	val tm = (snd o strip_µ o concl) thm;
-	in	let	val (tym, tmm) = term_match tm binary_p;
-			val bin = subst tmm (inst [] tym binary_v);
-		in	get_patterns (acc_u, bin::acc_b, acc_p, acc_o) more
-		end	handle Fail _ =>
-		let	val (tym, tmm) = term_match tm parametrized_p;
-			val par = subst tmm (inst [] tym parametrized_v);
-		in	get_patterns (acc_u, acc_b, par::acc_p, acc_o) more
-		end	handle Fail _ =>
-		let	val (tym, tmm) = term_match tm unary_p;
-			val un = subst tmm (inst [] tym unary_v);
-		in	get_patterns (un::acc_u, acc_b, acc_p, acc_o) more
-		end	handle Fail _ =>
-		let	val (tym, tmm) = term_match tm object_p;
-			val ob = subst tmm (inst [] tym object_v);
-			val tvs = (list_cup o map term_tyvars o asms) thm;
-		in	get_patterns (acc_u, acc_b, acc_p, (tvs, ob)::acc_o) more
-		end	handle Fail _ => get_patterns accs more
-	end
-) | get_patterns accs [] = accs;
-
-(*
-*)
-
-val fst_const : TERM = ¬Fst®;
-val snd_const : TERM = ¬Snd®;
-val product_t_const : TERM = ¬$¸T®;
-
-fun continuity_params (thms : THM list) :
-	{facts: THM list,
-	 unary: TERM list,
-	 binary: TERM list,
-	 witness_tac: TACTIC,
-	 parametrized: TERM list} = (
-	let	val (uns, bins, pars, obs) = get_patterns ([], [], [], []) thms;
-	in
-		{unary = fst_const :: snd_const :: uns,
-		 binary = bins,
-		 parametrized = pars,
-		 facts = thms @ continuity_fact_thms,
-		 witness_tac = ¶_object_by_type_tac (([], product_t_const) :: obs)}
-	end
-);
+end;
 
 (****************************************************)
 (* definition of tactic *)

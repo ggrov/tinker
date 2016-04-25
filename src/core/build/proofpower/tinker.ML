@@ -1,6 +1,6 @@
   (*open_theory "z_library";*)
   (*set_pc "z_library";*)
-  open_theory "hol";
+  (*open_theory "hol";*)
   
   val root_path = OS.FileSys.getDir();
   val build_path = root_path ^ "/psgraph/src/core/provers/proofpower/build";

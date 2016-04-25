@@ -2,7 +2,7 @@
   new_theory  "psgraph_taut";
   use_file1 (OS.FileSys.getDir()  ^ "/psgraph/src/dev/JFR/pp_taut.sml");
 
-(*===== Load psgraph and tinker *) 
+(*===== Load psgraph and tinker *)
   use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
   val tinker_path = OS.FileSys.getDir()  ^ "/psgraph/";
   val pspath = tinker_path ^ "src/dev/JFR/psgraph/taut/";
