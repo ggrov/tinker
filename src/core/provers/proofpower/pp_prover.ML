@@ -415,6 +415,7 @@ struct
    ("‰", "<_uni_symb_down_corner_>"),
 
    ("¬", "<_uni_symb_left_corner_>"),
+   ("®", "<_uni_symb_right_corner_>"),
   
    ("ñ", "<_uni_symb_left_z_corner_>"),
    ("¦", "<_uni_symb_left_z_assign_>")
