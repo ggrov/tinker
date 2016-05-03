@@ -110,9 +110,12 @@ struct
        case edata_result 
         of (IEVal.Cont edata1) => 
              (set_data edata1;pp_goal edata1 ();
-              IEVal.output_json "CMD_UPDATE_PSGRAPH" 
-               (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP", "OPT_EVAL_NEXT"]) 
-               edata1) 
+              let val opt =  case  List.length (EData.get_branches edata1) of
+                0 => ["OPT_EVAL_STOP", "OPT_EVAL_NEXT"] 
+                | _ =>  ["OPT_EVAL_STOP", "OPT_EVAL_NEXT", "OPT_EVAL_BACKTRACK"] in 
+              IEVal.output_json "CMD_UPDATE_PSGRAPH"
+               (IEVal.mk_cmd_str_arg_json opt) 
+               edata1 end) 
         | (IEVal.Good edata1) => 
             (set_data edata1;pp_goal edata1 ();
              IEVal.output_json "CMD_UPDATE_PSGRAPH" 
@@ -139,13 +142,13 @@ struct
             handle tinker_fail _ => raise tinker_fail true)
         | "OPT_EVAL_FINISH" => 
           (IEVal.eval_finish edata0 |> make_ret_reuslt
-          handle tinker_fail b => raise tinker_fail b)
+          handle tinker_fail b => raise tinker_fail true)
         | "OPT_EVAL_COMPLETE" => 
           (IEVal.eval_complete edata0 |> make_ret_reuslt
           handle tinker_fail b => raise tinker_fail b)
         | "OPT_EVAL_UNTIL_BREAK" => 
           (IEVal.eval_until_break edata0 |> make_ret_reuslt
-          handle tinker_fail b => raise tinker_fail b)
+          handle tinker_fail b => raise tinker_fail true)
         | "OPT_EVAL_STOP" =>
            (Json.mk_object[("cmd", Json.String  "CMD_END_EVAL_SESSION"), ("log_info", buffer_to_json' ())])
         | x => raise protocol_exn ("ERR: protocol unkown option: " ^ x)

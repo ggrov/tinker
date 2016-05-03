@@ -305,7 +305,7 @@ struct
    @ (eval_defs data pnode (f,args) gtenv);
   
   fun imatch data pnode (t as (gtnm,gtargs)) = 
-    ((dbg ("evaluating goaltype " ^ (str_arg (Clause t)) ^ " with pnode env " ^ str_env (Prover.get_pnode_env pnode) ); inctab());
+    ((dbg ("evaluating goaltype " ^ (str_arg (Clause t)) ^ " with pnode " ^ Prover.get_pnode_name pnode ^ " env " ^ str_env (Prover.get_pnode_env pnode) ); inctab());
     let val res = match data pnode (gtnm,gtargs) (Prover.get_pnode_env pnode) in dectab(); dbg_res res end);
 
   fun type_check data pnode gtype = 

@@ -25,7 +25,7 @@ struct
     val new_branches = branches @ (EData.get_branches edata) 
    in
     case new_branches of 
-      [] => Bad (* no more branches *)
+      [] => (logging "FAILURE" "Err: All branches fail";Bad) (* no more branches *)
       | (x::xs) => (* fixme: this should be based on the search strategy *)
           ((if if_backtrack then EData.PSGraph.Theory.Data.GoalTyp.Prover.restore_pplan (EData.get_bpplan x) 
             else ());
@@ -102,7 +102,9 @@ struct
    let val ret = eval_any0 if_debug edata in
    case ret 
    of Cont e => eval_complete0 if_debug e
-    | _ => ret end;
+    | _ => ret end
+    handle tinker_fail false => 
+      case eval_backtrack edata of Cont e => eval_complete0 if_debug e | x => x;
 
   val eval_complete = eval_complete0 false;
 
