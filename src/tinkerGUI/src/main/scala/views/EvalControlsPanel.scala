@@ -12,8 +12,9 @@ class EvalControlsPanel() {
 	val ConnectButton = new Button(
 		new Action(""){
 			def apply(){
-				if(CommunicationService.connected) CommunicationService.closeConnection
-				else if(!CommunicationService.connecting && !CommunicationService.connected) CommunicationService.openConnection
+				if(CommunicationService.connected) CommunicationService.closeConnection()
+				else if (CommunicationService.connecting) CommunicationService.interruptConnection()
+				else if(!CommunicationService.connecting && !CommunicationService.connected) CommunicationService.openConnection()
 			}
 		}){
 		enabled = true
@@ -21,10 +22,13 @@ class EvalControlsPanel() {
 		tooltip = "Connect"
 		listenTo(CommunicationService)
 		reactions += {
-			case ConnectedToCoreEvent(connected) =>
-				if(connected){
+			case ConnectedToCoreEvent(connected, connecting) =>
+				if(connected) {
 					icon = new ImageIcon(MainGUI.getClass.getResource("eval-connected.png"), "Disconnect")
 					tooltip = "Disconnect"
+				} else if(connecting) {
+					icon = new ImageIcon(MainGUI.getClass.getResource("eval-connecting.png"), "Connecting")
+					tooltip = "Connecting ..."
 				} else {
 					icon = new ImageIcon(MainGUI.getClass.getResource("eval-disconnected.png"), "Connect")
 					tooltip = "Connect"

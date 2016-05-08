@@ -36,6 +36,9 @@ object CommunicationService extends Publisher {
 	/** Evaluation status.*/
 	var state:CommunicationState.Value = CommunicationState.NotConnected
 
+  /** Potential socket used for connection. */
+  var initConnection:Future[Socket] = null
+
 	/** Method closing the connection.
 		*
 		*/
@@ -46,9 +49,20 @@ object CommunicationService extends Publisher {
 			connected = false
 			state = CommunicationState.NotConnected
 			Service.evalCtrl.setInEval(false)
-			publish(ConnectedToCoreEvent(connected))
+			publish(ConnectedToCoreEvent(connected, connecting))
 		}
 	}
+
+  /** Method interrupting the connection request.
+    *
+    */
+  def interruptConnection() {
+    if(connecting){
+      // closing socket, and activating failure implemented in open connection
+      gui.close()
+      println("GUI speaking : interrupting connection !")
+    }
+  }
 
 	/** Method opening a connection.
 		*
@@ -59,22 +73,24 @@ object CommunicationService extends Publisher {
 		if(!connecting){
 			connecting = true
 			gui = new ServerSocket(1790)
-			val init: Future[Socket] = future {
+			initConnection = future {
 				println("GUI speaking : connecting ...")
 				gui.accept
 			}
-			init onComplete {
+			publish(ConnectedToCoreEvent(connected, connecting))
+      initConnection onComplete {
 				case Success(c) =>
 					connecting = false
 					prover = c
 					println("GUI speaking : connected !")
 					connected = true
-					publish(ConnectedToCoreEvent(connected))
+					publish(ConnectedToCoreEvent(connected, connecting))
 					state = CommunicationState.WaitingForInit
 					listen()
 				case Failure(t) =>
 					connecting = false
-					println("GUI speaking : Not connected, an error has occured: " + t.getMessage)
+					publish(ConnectedToCoreEvent(connected, connecting))
+					println("GUI speaking : Not connected : " + t.getMessage)
 			}
 		}
 

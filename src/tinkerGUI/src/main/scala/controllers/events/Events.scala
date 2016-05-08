@@ -81,8 +81,9 @@ case class DocumentChangedEvent(unsavedChanges:Boolean) extends Event
 /** Event notifying of a connection established or lost with core.
 	*
 	* @param connected Boolean for connection status.
+	* @param connecting Boolean for connecting status, in case connected in false.
 	*/
-case class ConnectedToCoreEvent(connected:Boolean) extends Event
+case class ConnectedToCoreEvent(connected:Boolean, connecting:Boolean) extends Event
 
 // Launched by InspectorController and LibraryController
 /** Event notifying of a preview to show or hide.

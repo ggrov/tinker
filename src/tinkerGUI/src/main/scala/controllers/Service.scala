@@ -85,6 +85,8 @@ object Service extends Publisher {
 			case e: Exception =>
 				TinkerDialog.openErrorDialog("Error while opening unicodeConfig<br>"+e.getMessage+"<br>Default settings will be used.")
 		}
+		
+		CommunicationService.openConnection()
 	}
 
 	def closeApp() {
