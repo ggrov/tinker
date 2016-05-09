@@ -6,6 +6,7 @@ import tinkerGUI.utils.ToolBar
 
 import scala.swing._
 import javax.swing.ImageIcon
+import java.util.{Timer, TimerTask}
 
 class EvalControlsPanel() {
 
@@ -17,20 +18,36 @@ class EvalControlsPanel() {
 				else if(!CommunicationService.connecting && !CommunicationService.connected) CommunicationService.openConnection()
 			}
 		}){
+		val connectingIcon = new ImageIcon(MainGUI.getClass.getResource("eval-connecting.png"), "Connecting")
+		val connectedIcon = new ImageIcon(MainGUI.getClass.getResource("eval-connected.png"), "Disconnect")
+		val disconnectedIcon = new ImageIcon(MainGUI.getClass.getResource("eval-disconnected.png"), "Connect")
+		var timer:Timer = null
+		var timerTask:TimerTask = null
 		enabled = true
-		icon = new ImageIcon(MainGUI.getClass.getResource("eval-disconnected.png"), "Connect")
+		icon = disconnectedIcon
 		tooltip = "Connect"
 		listenTo(CommunicationService)
 		reactions += {
 			case ConnectedToCoreEvent(connected, connecting) =>
 				if(connected) {
-					icon = new ImageIcon(MainGUI.getClass.getResource("eval-connected.png"), "Disconnect")
+					timer.cancel()
+					icon = connectedIcon
 					tooltip = "Disconnect"
 				} else if(connecting) {
-					icon = new ImageIcon(MainGUI.getClass.getResource("eval-connecting.png"), "Connecting")
+					timer = new Timer()
+					timerTask = new TimerTask {
+						override def run(): Unit = {
+							if(icon == disconnectedIcon) icon = connectingIcon
+							else if(icon == connectingIcon) icon = connectedIcon
+							else if(icon == connectedIcon) icon = disconnectedIcon
+						}
+					}
+					timer.schedule(timerTask, 0L, 500L)
+					//icon =
 					tooltip = "Connecting ..."
 				} else {
-					icon = new ImageIcon(MainGUI.getClass.getResource("eval-disconnected.png"), "Connect")
+					timer.cancel()
+					icon = disconnectedIcon
 					tooltip = "Connect"
 				}
 		}
