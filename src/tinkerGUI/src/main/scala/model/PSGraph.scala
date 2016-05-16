@@ -352,6 +352,7 @@ class PSGraph(name:String) extends ATManager with GTManager {
 			"atomic_tactics" -> toJsonAT,
 			"goal_types" -> goalTypes,
 			"occurrences" -> JsonObject("atomic_tactics" -> toJsonATOccurrences, "graph_tactics" -> toJsonGTOccurrences))
+		//print(jsonPSGraph)
 		jsonPSGraph
 	}
 

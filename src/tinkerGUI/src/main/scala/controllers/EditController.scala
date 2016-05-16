@@ -46,14 +46,14 @@ class EditController(model:PSGraph) extends Publisher {
 	}
 
 	/** Tactic editor.*/
-	val tacticEditor = new EditorWindow("Tinker - tactic editor",tacticParser)
+	val tacticEditor = new EditorWindow("Tinker - tactic editor",tacticParser,updateTacticEditor)
 
 	/** Method updating the tactic editor text, after loading a model for instance.*/
 	def updateTacticEditor() {
 		tacticEditor.clear()
 		tacticEditor.appendText("// edit your tactic here\n")
 		model.atCollection.foreach{
-			case (k,v) if v.tactic.nonEmpty =>
+			case (k,v) =>
 				tacticEditor.appendText("tactic "+v.name+" := "+v.tactic+";\n")
 			case _ =>
 		}
@@ -69,7 +69,7 @@ class EditController(model:PSGraph) extends Publisher {
 	}
 
 	/** Goal types editor.*/
-	val goaltypeEditor = new EditorWindow("Tinker - goal type editor",goalTypeParser)
+	val goaltypeEditor = new EditorWindow("Tinker - goal type editor",goalTypeParser,updateGoaltypeEditor)
 
 	/** Method updating the goal types editor text, after loading a model for instance.*/
 	def updateGoaltypeEditor() {
