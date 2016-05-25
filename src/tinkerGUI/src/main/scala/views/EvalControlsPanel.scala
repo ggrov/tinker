@@ -18,7 +18,8 @@ class EvalControlsPanel() {
 				else if(!CommunicationService.connecting && !CommunicationService.connected) CommunicationService.openConnection()
 			}
 		}){
-		val connectingIcon = new ImageIcon(MainGUI.getClass.getResource("eval-connecting.png"), "Connecting")
+		val connectingIcon1 = new ImageIcon(MainGUI.getClass.getResource("eval-connecting1.png"), "Connecting")
+		val connectingIcon2 = new ImageIcon(MainGUI.getClass.getResource("eval-connecting2.png"), "Connecting")
 		val connectedIcon = new ImageIcon(MainGUI.getClass.getResource("eval-connected.png"), "Disconnect")
 		val disconnectedIcon = new ImageIcon(MainGUI.getClass.getResource("eval-disconnected.png"), "Connect")
 		var timer:Timer = null
@@ -37,9 +38,10 @@ class EvalControlsPanel() {
 					timer = new Timer()
 					timerTask = new TimerTask {
 						override def run(): Unit = {
-							if(icon == disconnectedIcon) icon = connectingIcon
-							else if(icon == connectingIcon) icon = connectedIcon
-							else if(icon == connectedIcon) icon = disconnectedIcon
+							if(icon == disconnectedIcon
+								|| icon == connectedIcon
+								|| icon == connectingIcon2) icon = connectingIcon1
+							else if(icon == connectingIcon1) icon = connectingIcon2
 						}
 					}
 					timer.schedule(timerTask, 0L, 500L)

@@ -9,7 +9,7 @@ import scala.swing._
 	* @param frameTitle Title to give to the window.
 	* @param parseCallback Callback function to parse the text and/or process it.
 	*/
-class EditorWindow(frameTitle:String, parseCallback:(String)=>Unit) {
+class EditorWindow(frameTitle:String, parseCallback:(String)=>Unit, openCallback:()=>Unit) {
 
 	/** Actual frame object.
 		*
@@ -37,7 +37,10 @@ class EditorWindow(frameTitle:String, parseCallback:(String)=>Unit) {
 	}
 
 	/** Method opening the frame.*/
-	def open() = frame.open()
+	def open() = {
+		openCallback()
+		frame.open()
+	}
 
 	/** Method inserting text in the editor.
 		*

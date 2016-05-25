@@ -112,8 +112,8 @@ object TinkerDialog {
 		*/
 	def openEditDialog(message: String, fields: Map[String,String], success:(Map[String,String])=>Unit, failure:()=>Unit):Dialog = {
 		val editDialog:Dialog = new Dialog()
-		editDialog.resizable = false
-		editDialog.maximumSize = max
+		editDialog.resizable = true
+		//editDialog.maximumSize = max
 		editDialog.minimumSize = min
 		editDialog.title = "Tinker - Edition"
 		var newValMap = Map[String, String]()
@@ -146,13 +146,13 @@ object TinkerDialog {
 							contents += new Label(k+" : ")
 							contents += t
 							textfieldMap += (k -> t)
-						case "Name" | "Proof name" | "Goal" | "Title (*)" | "Author" | "Date" => // large text fields
-							val t = new UnicodeTextField(v, 15)
+						case "Proof name" | "Goal" | "Title (*)" | "Author" | "Date" => // large text fields
+							val t = new UnicodeTextField(v, 20)
 							contents += new Label(k+" : ")
 							contents += t
 							textfieldMap += (k -> t)
-						case _ => // large text area
-							val t = new UnicodeTextArea(v, 3, 20)
+						case _ => // large text area : "Name"
+							val t = new UnicodeTextArea(v, 5, 25)
 							contents += new Label(k+" : ")
 							contents += new ScrollPane(t)
 							textfieldMap += (k -> t)
