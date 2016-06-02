@@ -6,7 +6,7 @@ struct
   local open LoggingHandler in 
 (* note that this has to turned off in isabelle, as pretty printing contains some non-standard chars which breaks the protocal *)
   val DEBUG_ON = true;
-  val if_gui_mode = true;
+  val if_gui_mode = false;
 
   val tab = Unsynchronized.ref 0;
   fun inctab() = (tab := !tab +1);

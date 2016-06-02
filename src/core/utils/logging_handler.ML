@@ -28,7 +28,7 @@ struct
   fun get_active_tags _ = !active_tags;
   val set_active_tags = fn x => active_tags := x;
 
-  val if_debug = false (* to enable local print, i.e. for JSON I/O *)
+  val if_debug = true (* to enable local print, i.e. for JSON I/O *)
   val logging_handler_print = 
    if if_debug then
    (fn tag => (fn msg =>  

@@ -242,13 +242,22 @@ struct
 
  (* fun get_all_assms _ = []
   fun get_all_named_facts_pair _ = [] *)
-
+  fun fix_alls_in_term alledt = 
+    let
+      val t = Term.strip_all_body alledt;
+      val alls = rev (Term.strip_all_vars alledt);
+      val varnames = map (fst o fst o Term.dest_Var) (Misc_Legacy.term_vars t)
+      val names = Misc_Legacy.add_term_names (t,varnames);
+      val fvs = map Free 
+                    (Name.variant_list names (map fst alls)
+                       ~~ (map snd alls));
+    in ((subst_bounds (fvs,t))) end;
 
   fun get_pnode_name (pnode:pnode) = #pname pnode;
   fun get_pnode_ctxt (pnode:pnode) = #pctxt pnode;
 
-  fun get_pnode_concl (pnode:pnode) = #ptrm pnode |> Logic.strip_imp_concl;
-  fun get_pnode_hyps (pnode:pnode) = #ptrm pnode |> Logic.strip_imp_prems;
+  fun get_pnode_concl (pnode:pnode) = #ptrm pnode |> fix_alls_in_term |> Logic.strip_imp_concl;
+  fun get_pnode_hyps (pnode:pnode) = #ptrm pnode |> fix_alls_in_term |> Logic.strip_imp_prems;
 
   fun get_open_pnodes (pplan : pplan) = (#opengs pplan)
   fun get_open_pnode_by_name (pplan : pplan) name = 
