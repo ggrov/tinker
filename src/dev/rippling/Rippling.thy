@@ -38,15 +38,6 @@ begin
   
   attribute_setup wrule = {* Attrib.add_del wrule_add wrule_del *} "maintaining a list of wrules"
 
-ML{*
-        val sg =  TermFeatures.fix_alls_in_term @{term "\<And> a b. a + (suc b) = suc (a + b) ==> (suc a) + (suc b) = suc ((suc a) + b)"} ;
-        val hyps  = Logic.strip_imp_prems sg |> map TermFeatures.fix_alls_as_var  ;
-        val goal = Logic.strip_imp_concl sg |> Syntax.pretty_term @{context} |> Pretty.writeln;
-
-TermFeatures.ctxt_embeds @{context} 
-@{term "a + (suc b) = suc (a + b)"} 
-@{term "\<And> a b. a + (suc b) = suc (a + b) ==> (suc a) + (suc b) = suc ((suc a) + b)"} 
-*}
 
 (* tactics for rippling *)
 

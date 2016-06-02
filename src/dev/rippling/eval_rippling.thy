@@ -12,17 +12,14 @@ section " Peano Arithmetic Theorems "
 
 ML{* -
   TextSocket.safe_close();
-*}    
+*}  
+
  
 ML{* -
 val thm = Tinker.start_ieval @{context} (SOME induct_ripple) (SOME []) (SOME @{prop "a + (suc b) = suc (a + b)"}) (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
 *}
 
-ML_val{*
-val simp_thm = Tinker.start_ieval @{context} (SOME induct_ripple) (SOME [])
-|> EData.get_pplan |> IsaProver.get_goal_thm;
-@{Isar.goal};
-*}
+
 
 end

@@ -10,7 +10,7 @@ struct
     let
       val g = Thm.prop_of thm
     in
-      Tinker.start_ieval ctxt ps [] g
+      Tinker.start_ieval ctxt (SOME ps) (SOME []) (SOME g)
       |> EVal.EData.get_pplan 
       |> thm_of_pplan 
       |> Seq.single
