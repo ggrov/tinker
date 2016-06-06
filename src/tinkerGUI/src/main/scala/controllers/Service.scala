@@ -97,6 +97,8 @@ object Service extends Publisher {
 //				case Some(f:File) => JsonObject("file"->JsonString(f.toString)).writeTo(new File(".tinkerConfig"))
 //				case None =>
 //			}
+			CommunicationService.interruptConnection()
+			CommunicationService.closeConnection()
 			sys.exit(0)
 		}
 	}

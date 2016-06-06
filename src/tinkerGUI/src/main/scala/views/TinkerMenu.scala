@@ -1,11 +1,13 @@
 package tinkerGUI.views
 
-import tinkerGUI.controllers.events.{RecordStartStopEvent, RecordFileSetupEvent, DocumentChangedEvent}
+import java.awt.Cursor
+
+import tinkerGUI.controllers.events.{DocumentChangedEvent, RecordFileSetupEvent, RecordStartStopEvent}
 import tinkerGUI.controllers.{DocumentService, QuantoLibAPI, Service}
 
 import scala.swing._
 import event.Key
-import javax.swing.KeyStroke
+import javax.swing.{ImageIcon, KeyStroke}
 import java.awt.event.KeyEvent
 
 class TinkerMenu() extends MenuBar{

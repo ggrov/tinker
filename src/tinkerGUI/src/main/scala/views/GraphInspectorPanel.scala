@@ -5,12 +5,13 @@ import tinkerGUI.controllers.events._
 import tinkerGUI.utils.MutableComboBox
 
 import scala.swing._
-import scala.swing.event.SelectionChanged
+import scala.swing.event.{SelectionChanged, UIElementResized}
 import javax.swing.ImageIcon
-import java.awt.{Font, Cursor, Insets}
+import java.awt.{Cursor, Font, Insets}
 
 
 class GraphInspectorPanel() extends BorderPanel {
+	// TODO make tactic navigation menu when necessary
 	val tacticNavigation = new BoxPanel(Orientation.Vertical){
 		contents += new FlowPanel(FlowPanel.Alignment.Right)(){
 
@@ -211,6 +212,16 @@ class GraphInspectorPanel() extends BorderPanel {
 				tacticNavigation.visible = false
 			}
 			this.repaint()
+	}
+
+	listenTo(this)
+	reactions += {
+		case UIElementResized(source) =>
+			// test for rezise listener
+			// TODO : connect with repaint method
+			println("resized ")
+			println(source.equals(this))
+			println("-------------------------")
 	}
 
 	def display(visible:Boolean){
