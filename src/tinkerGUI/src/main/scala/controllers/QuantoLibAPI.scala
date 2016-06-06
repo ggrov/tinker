@@ -1026,8 +1026,8 @@ object QuantoLibAPI extends Publisher{
 
 		vertexHit.map{ v => (v, graph.vdata(v)) } match {
 			case Some((v, data: NodeV)) =>
-				if(data.typ == "T_Atomic") Service.editCtrl.updateTactic(v.s,data.label,data.value.stringValue,true)
-				else if(data.typ == "T_Graph") Service.editCtrl.updateTactic(v.s,data.label,data.value.stringValue,false)
+				if(data.typ == "T_Atomic") Service.editCtrl.updateTactic(v.s,data.label,data.value.stringValue,isAtomicTactic = true)
+				else if(data.typ == "T_Graph") Service.editCtrl.editSubgraph(data.value.stringValue, 0) // Service.editCtrl.updateTactic(v.s,data.label,data.value.stringValue,false)
 			case _ =>
 				val edgeHit = view.edgeDisplay find { _._2.pointHit(pt) } map { _._1 }
 				edgeHit.foreach { e =>
