@@ -6,7 +6,7 @@ struct
   local open LoggingHandler in 
 (* note that this has to turned off in isabelle, as pretty printing contains some non-standard chars which breaks the protocal *)
   val DEBUG_ON = true;
-  val if_gui_mode = true;
+  val if_gui_mode = false;
 
   val tab = Unsynchronized.ref 0;
   fun inctab() = (tab := !tab +1);
@@ -234,7 +234,7 @@ struct
    (************** USING DEFINITIONS *********************)
    fun eval_atomic_clause (data as (P {atomics,...})) pnode (cls as Clause (f,args)) gtenv  =
       case StrName.NTab.lookup atomics f of
-          NONE => [] 
+          NONE => (dbg ("ERROR: no definition found for " ^ f);[]) 
         | SOME f_a =>  ((dbg ("evaluating " ^ str_arg cls ^ " with  " ^ str_env gtenv ));
                         dbg_res (f_a gtenv pnode args));
 
