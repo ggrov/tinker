@@ -1,5 +1,5 @@
 functor ClauseGTFun(structure Prover : PROVER  
-                    val struct_name : string)  : CLAUSE_GOALTYPE =
+                    val struct_name : string)  (*: CLAUSE_GOALTYPE *)=
 struct
 
   structure Prover = Prover;
@@ -242,6 +242,7 @@ struct
    fun eval_arg  (data as P {defs,...}) pnode (cls as Clause (name,args)) gtenv =
      (eval_atomic_clause data pnode cls gtenv) @
      (eval_filter_clause data pnode cls gtenv) @
+     (eval_not_clause data pnode cls gtenv) @
      (eval_clauses data pnode defs (name,args) gtenv)
 
   (* hardcoded filter function: cannot give empty list and v has to be fresh*)
@@ -262,6 +263,16 @@ struct
     end
    |   eval_filter_clause _ _ _ _ = []
 
+   and  eval_not_clause (data as P {defs,...}) pnode (cls as Clause ("not",[Clause (nf,args)])) gtenv =
+    let 
+      val _ = dbg ("Negating " ^ nf ^ " : ") 
+    
+    in 
+      case eval_arg data pnode (Clause (nf,args)) gtenv of 
+          [] => [Prover.get_pnode_env pnode]
+        | _  => []
+    end
+   |   eval_not_clause _ _ _ _ = []
    and eval_clause data pnode (d as Def (f',f_args,body)) (f,a_args) gtenv =
      if f = f'  
       then 
