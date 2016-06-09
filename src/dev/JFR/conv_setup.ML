@@ -260,17 +260,54 @@ fun is_some_conv env pnode [ClauseGoalTyp.PVar pc, ClauseGoalTyp.PVar pcc] =
               |> List.foldr (op o) (fn x => x) 
               |> (fn x => (((x c) (PPProver.get_pnode_concl pnode));[env])))
   handle _ => [])
+| is_some_conv env pnode [ClauseGoalTyp.Var pc, ClauseGoalTyp.Var pcc] = 
+ (case StrName.NTab.lookup (PPProver.get_pnode_env pnode) pcc of
+             NONE => []
+           | SOME (PPProver.E_L cc) => 
+            (case StrName.NTab.lookup (PPProver.get_pnode_env pnode) pc of
+              NONE => []
+              | SOME (PPProver.E_Conv c) =>
+              (map strip_E_CC cc) 
+              |> List.foldr (op o) (fn x => x) 
+              |> (fn x => (((x c) (PPProver.get_pnode_concl pnode));[env])))
+  handle _ => [])
 | is_some_conv _ _ _ = [];
 
 val is_i_conv : ClauseGoalTyp.gtyp = is_some_conv' i_conv
 val is_k_conv : ClauseGoalTyp.gtyp = is_some_conv' k_conv
 val is_pair_conv : ClauseGoalTyp.gtyp = is_some_conv' pair_conv
-val is_param_conv : ClauseGoalTyp.gtyp = is_some_conv
-val is_binary_conv : ClauseGoalTyp.gtyp = is_some_conv
+val is_simp_conv: ClauseGoalTyp.gtyp = is_some_conv' simp_conv
+
+
+fun eq0 env pnode cur cc = 
+ (case StrName.NTab.lookup (PPProver.get_pnode_env pnode) cur of
+             NONE => []
+           | SOME (PPProver.E_L cur') => 
+            (case StrName.NTab.lookup (PPProver.get_pnode_env pnode) cc of
+              NONE => []
+              | SOME (PPProver.E_L cc') =>
+                if (List.length cur' = List.length cc')
+                then [env]
+                else [])
+  handle _ => [])
+fun eq env pnode [ClauseGoalTyp.PVar pc, ClauseGoalTyp.PVar pcc] = eq0 env pnode pc pcc
+| eq env pnode [ClauseGoalTyp.Var pc, ClauseGoalTyp.Var pcc] = eq0 env pnode pc pcc
+| eq _ _ _ = []
 
  val clause_def = 
- "c(Z) :- top_symbol(concl,Z)." ^
- "h(Z) :- top_symbol(hyps,Z). ";
+ "is_unary_conv(X,Y) :- is_some_conv(X,Y). " ^
+ "is_param_conv(X,Y) :- is_some_conv(X,Y)." ^
+ "is_binary_conv(X,Y) :- is_some_conv(X,Y). " ^
+ "is_rec_conv(X1,X2,X3,Z) :- is_unary_conv(X1,Z)." ^
+ "is_rec_conv(X1,X2,X3,Z) :- is_param_conv(X2,Z)." ^
+ "is_rec_conv(X1,X2,X3,Z) :- is_binary_conv(X3,Z)." ^
+ "is_rec_conv(X1,X2,X3,Z) :- is_pair_conv(Z)." ^
+ "more_rec(X1,X2,X3,Z) :- is_i_conv(Z)." ^
+ "more_rec(X1,X2,X3,Z) :- is_k_conv(Z)." ^
+ "more_rec(X1,X2,X3,Z) :- is_rec_conv(X1,X2,X3,Z)." ^ 
+ "no_more_rec(X1,X2,X3,Z) :- not(is_rec_conv(X1,X2,X3,Z))." ^
+ "not_simp_conv(X) :- not(is_simp_conv(X))." ^
+ "not_eq(X,Y) :- not(eq(X,Y)).";
 
  val data = 
   default_gt_data
@@ -282,8 +319,10 @@ val is_binary_conv : ClauseGoalTyp.gtyp = is_some_conv
   |> ClauseGoalTyp.add_atomic "not_lambda_pair" not_lambda_pair
   |> ClauseGoalTyp.add_atomic "is_i_conv" is_i_conv
   |> ClauseGoalTyp.add_atomic "is_k_conv" is_k_conv
-  |> ClauseGoalTyp.add_atomic "is_param_conv" is_param_conv
-  |> ClauseGoalTyp.add_atomic "is_binary_conv" is_binary_conv
+  |> ClauseGoalTyp.add_atomic "is_some_conv" is_some_conv
+  |> ClauseGoalTyp.add_atomic "is_simp_conv" is_simp_conv
+  |> ClauseGoalTyp.add_atomic "eq" eq
+  
 (*  |> ClauseGoalTyp.add_atomic "no_asm_to_strip" literal *)
   |> ClauseGoalTyp.update_data_defs (fn x => (ClauseGoalTyp.scan_data PPProver.default_ctxt clause_def) @ x);
 
