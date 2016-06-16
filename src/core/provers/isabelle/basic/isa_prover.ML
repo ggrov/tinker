@@ -101,7 +101,9 @@ struct
     |> Pretty.str
     end
 
-  type env_tac =  arg_data list -> env -> env list
+  type env_tac = context -> arg_data list -> env -> env list
+  fun id_env_tac _ _ env = [env] 
+  fun id_env_tac_f env : env_tac= (fn c => (fn args => fn _ => id_env_tac c args env))
 
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term, env : env } 
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
@@ -312,7 +314,7 @@ struct
   fun apply_env_tactic args (env_tac : env_tac) (pnode,pplan) = 
     (*let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in*)
     (K (K all_tac)) (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
-    |> Seq.maps (update (env_tac args) (pnode,pplan))
+    |> Seq.maps (update (env_tac  (#pctxt pnode)  args) (pnode,pplan))
     |> (fn x => 
         (case Seq.pull x of NONE 
            => (logging "FAILURE" ("Fail to apply env tactic for pnode " ^ get_pnode_name pnode ^  ", empty seqence"); 

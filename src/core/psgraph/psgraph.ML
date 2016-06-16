@@ -259,7 +259,7 @@ struct
       ( case tac_def 
         of "" =>  eval_ml name | x => eval_ml x)
       else eval_ml name
-    val dummy_env  = K (K [])
+    val dummy_env  = Prover.id_env_tac;
    in
    if Env_Tac_Utils.is_abbrv_env_tac name then 
     (name, Env_Tacs {name = name, tactic = dummy_env, def = tac_def})

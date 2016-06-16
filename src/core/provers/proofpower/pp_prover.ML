@@ -91,7 +91,8 @@ struct
   
   type tactic = arg_data list -> TACTIC (* TODO: need pc ? *)
   type env_tac = arg_data list -> env -> env list
-  
+  fun id_env_tac _ env = [env] 
+  fun id_env_tac_f env : env_tac= (fn args => fn _ => id_env_tac c args env)
   (* atomic part *)
   type pnode = 
       {pname : string (* goal ref in psg *), 

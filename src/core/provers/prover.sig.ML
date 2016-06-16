@@ -50,7 +50,10 @@ sig
     -> env_data  
   val pretty_env :  context -> env -> Pretty.T
 
-  type env_tac =  arg_data list -> env -> env list
+  type env_tac(* =  arg_data list -> env -> env list*)
+  val id_env_tac : env_tac
+  val id_env_tac_f: env -> env_tac
+
   exception env_data_exp 
 
   type pplan
@@ -133,6 +136,7 @@ sig
     sharing type Sharing.env_data = env_data
     sharing type Sharing.pplan = pplan
     sharing type Sharing.pnode = pnode
+    sharing type Sharing.env_tac = env_tac
 
 end;
 (*
