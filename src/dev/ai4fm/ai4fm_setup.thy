@@ -80,7 +80,7 @@ ML{*
    fun trm_eq (x,y) = (ignore_true_prop x) = (ignore_true_prop y) 
        
    fun is_term env pnode [r, Clause_GT.PVar p] =
-   let val dest = Clause_GT.project_terms env pnode r val ctxt = Prover.get_pnode_ctxt pnode in
+   let val dest = Clause_GT.project_terms env pnode r val ctxt = IsaProver.get_pnode_ctxt pnode in
    (case StrName.NTab.lookup (IsaProver.get_pnode_env pnode) p of
              NONE => []
            | SOME (IsaProver.E_Trm t) => 
@@ -89,7 +89,7 @@ ML{*
            | SOME _ => [])
    end
   | is_term env pnode [r, Clause_GT.Var p] =
-   let val dest = Clause_GT.project_terms env pnode r val ctxt = Prover.get_pnode_ctxt pnode in
+   let val dest = Clause_GT.project_terms env pnode r val ctxt = IsaProver.get_pnode_ctxt pnode in
    (case StrName.NTab.lookup env p of
              NONE => []
            | SOME (IsaProver.E_Trm t) => 
@@ -141,7 +141,7 @@ ML{*
 
  fun dest_trm env pnode [Clause_GT.Concl, Clause_GT.Var p1, Clause_GT.Var p2] = 
   let 
-    val (trm1, trm2) = dest_comb (Prover.get_pnode_concl pnode) 
+    val (trm1, trm2) = dest_comb (IsaProver.get_pnode_concl pnode) 
   in 
      StrName.NTab.update (p1,Clause_GT.Prover.E_Trm trm1) env
      |> StrName.NTab.update (p2,Clause_GT.Prover.E_Trm trm2) 
@@ -159,7 +159,7 @@ ML{*
    let 
     val (trm1, trm2) = 
       (case StrName.NTab.lookup env input of
-      SOME (Prover.E_Trm t) => dest_comb t
+      SOME (IsaProver.E_Trm t) => dest_comb t
       | _ => raise Fail "fail it on purpose")
    in
       StrName.NTab.update (p1,Clause_GT.Prover.E_Trm trm1) env
@@ -194,10 +194,50 @@ val intro_iff_tac = simp_only_tac [@{thm"iff_def"}];
 val elim_iff_tac = fn _ => etac @{thm"iff_def_f"};
 val intro_imp_tac = fn _ => rtac @{thm"impI"} ;
 val elim_imp_tac = fn _ => dtac @{thm"imp_f"} ;
+fun subgoals_tac [IsaProver.A_Trm t] ctxt = subgoal_tac ctxt (IsaProver.string_of_trm ctxt t)
 *}
 
+ML{*
+exception hyp_match of string
+fun ENV_hyp_match ctxt 
+      [IsaProver.A_L_Trm hyps, 
+       IsaProver.A_Str pat, 
+       IsaProver.A_Var v1, 
+       IsaProver.A_Var v2] (env : IsaProver.env): IsaProver.env list =
+ (let
+  val thy = Proof_Context.theory_of ctxt
+  val term_pat = Proof_Context.read_term_pattern ctxt pat 
+  val hyp = filter (fn x => Pattern.matches thy (term_pat, x)) hyps
+ in
+   case hyp of [] => []
+   | _ => (* a bit hack here, only get the head ele*)
+    let 
+      val tenvir = Pattern.unify thy (term_pat, hd hyp) (Envir.empty 0) |> Envir.term_env
+      fun get_v v = 
+        case Vartab.lookup tenvir (v, 0) 
+          of NONE => raise hyp_match v1
+          | (SOME t) => snd t
+      val v1_t = get_v v1
+      val v2_t = get_v v2
+    in 
+     StrName.NTab.update (v1, IsaProver.E_Trm v1_t) env
+     |> StrName.NTab.update (v2, IsaProver.E_Trm v2_t)
+     |> (fn x => [x])
+    end
+ end 
+ handle (hyp_match str) => (LoggingHandler.logging "FAILURE" ("No matching found for " ^ str);[]))
+| ENV_hyp_match _ _ _ = []
+*}
+ML{*
+IsaProver.string_of_trm @{context} @{term "A \<and> B"};
+subgoal_tac;
+disjE;
+*}
 
+lemma "(x::nat) \<ge> y \<Longrightarrow> ((x = y) \<or> (x > y))"
+apply (tactic {*subgoal_tac (@{context} "x \<ge> y = (x =y \<or> x > y)" 1*})
 
+apply (tactic {*asm_lr_simp_tac (Raw_Simplifier.clear_simpset @{context}) 1*})
 
 
 
