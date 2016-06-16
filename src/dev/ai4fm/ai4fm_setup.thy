@@ -2,16 +2,11 @@ theory ai4fm_setup
 imports "../../core/provers/isabelle/clausal/CIsaP"  
 begin
 section "taut"
-lemma strip_disj: "(P \<or> Q) = (\<not> P \<longrightarrow> Q)" by auto
+lemma disjI3: " (\<not> P \<longrightarrow> Q) \<Longrightarrow> (P \<or> Q)" by auto
 
 lemma not_iff: "(\<not>(P \<longleftrightarrow>Q)) = ((P \<and> \<not> Q) \<or> (\<not>P \<and>Q))" by auto
 
-
-lemma iff_def: "(P \<longleftrightarrow> Q) =((P \<longrightarrow> Q) \<and> (Q \<longrightarrow> P))" by auto
-
-lemma iff_def_f: "(P \<longleftrightarrow> Q) \<Longrightarrow> ((P \<longrightarrow> Q) \<and> (Q \<longrightarrow> P))" by auto
-
-lemma imp_f: "(P \<longrightarrow> Q) \<Longrightarrow> (\<not> P \<or> Q)" by auto
+lemma impF: "(P \<longrightarrow> Q) \<Longrightarrow> (\<not> P \<or> Q)" by auto
 
 thm not_not de_Morgan_conj HOL.de_Morgan_disj not_imp not_iff not_True_eq_False not_False_eq_True
 
@@ -170,33 +165,40 @@ ML{*
   end handle _ => [])  
   | dest_trm _ _ _ = []
 
+ fun is_ccontr env _ [Clause_GT.PVar v] = 
+  (case StrName.NTab.lookup env v of SOME (IsaProver.E_Trm _) => [env]
+  | _ => [])
+ | is_ccontr env _ [Clause_GT.Var v] = 
+  (case StrName.NTab.lookup env v of SOME (IsaProver.E_Trm _) => [env]
+  | _ => [])
+ | is_ccontr _ _ _ = []
+
  val data = 
   Clause_GT.default_data
   |> Clause_GT.add_atomic "top_symbol" top_symbol 
   |> Clause_GT.add_atomic "is_term" is_term 
-  |> Clause_GT.add_atomic "dest_trm" dest_trm 
-  |> Clause_GT.add_atomic "is_literal" is_literal ;
+  |> Clause_GT.add_atomic "dest_term" dest_trm 
+  |> Clause_GT.add_atomic "is_literal" is_literal 
+  |> Clause_GT.add_atomic "is_ccontr" is_ccontr;
 *}
-
 
 ML{*
 (* tactic definition *)
 fun simp_only_tac thml ctxt= fold Simplifier.add_simp thml (Raw_Simplifier.clear_simpset ctxt) |> simp_tac;
 
-val t_tac = fn _ => rtac @{thm"HOL.TrueI"};
-val concl_in_asm_tac = fn _ => atac;
-val elim_conj_tac = fn _ => etac @{thm "conjE"};
-val intro_conj_tac = fn _ =>rtac @{thm"conjI"};
-val elim_conj_tac = fn _ =>etac @{thm "conjE"};
-val intro_disj_tac = simp_only_tac [@{thm"strip_disj"}];
-val elim_disj_tac = fn _ => etac @{thm"disjE"};
 val intro_not_tac = simp_only_tac @{thms not_not de_Morgan_conj HOL.de_Morgan_disj not_imp not_iff not_True_eq_False not_False_eq_True};
-val elim_not_tac = fn _ => dresolve_tac @{thms  not_not_f de_Morgan_conj_f de_Morgan_disj_f not_imp_f not_iff_f not_True_eq_False_f not_False_eq_True_f}
-val intro_iff_tac = simp_only_tac [@{thm"iff_def"}];
-val elim_iff_tac = fn _ => etac @{thm"iff_def_f"};
-val intro_imp_tac = fn _ => rtac @{thm"impI"} ;
-val elim_imp_tac = fn _ => dtac @{thm"imp_f"} ;
+val elim_not_tac = fn _ => dresolve_tac @{thms not_not_f de_Morgan_conj_f de_Morgan_disj_f not_imp_f not_iff_f not_True_eq_False_f not_False_eq_True_f}
+
 fun subgoals_tac [IsaProver.A_Trm t] ctxt = subgoal_tac ctxt (IsaProver.string_of_trm ctxt t)
+
+fun rule [IsaProver.A_Thm thm] _  =  rtac thm;
+fun erule [IsaProver.A_Thm thm] _  = etac thm;
+fun drule [IsaProver.A_Thm thm] _  = dtac thm;
+fun simp_only [IsaProver.A_Thm thm] = simp_only_tac [thm];
+
+(* very hacky *)
+fun erule_tac [IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
+  eres_inst_tac ctxt  [(("P",0), (IsaProver.string_of_trm ctxt (dest_comb trm|>snd)))] thm
 *}
 
 ML{*
@@ -229,6 +231,30 @@ fun ENV_hyp_match ctxt
  end 
  handle (hyp_match str) => (LoggingHandler.logging "FAILURE" ("No matching found for " ^ str);[]))
 | ENV_hyp_match _ _ _ = []
+
+fun ENV_all_asms _ [IsaProver.A_L_Trm hyps, IsaProver.A_Var name] (env : IsaProver.env): IsaProver.env list = 
+   [StrName.NTab.update (name, map IsaProver.E_Trm hyps |> IsaProver.E_L) env]
+|   ENV_all_asms _ _ _ = [];
+
+fun ENV_check_ccontr ctxt [IsaProver.A_L_Trm hyps, IsaProver.A_Var v]  (env : IsaProver.env) :  IsaProver.env list= 
+ (case (filter(member(fn (a,b) => (dest_comb a |> snd) = ((Const ("HOL.Not", dummyT) $ (dest_comb b |> snd))|> Syntax.check_term ctxt)) hyps) hyps) 
+  of [] => [StrName.NTab.update (v, IsaProver.E_Str "None") env]
+  | ret => [StrName.NTab.update (v, IsaProver.E_Trm (hd ret |> dest_comb |> snd)) env])
+| ENV_check_ccontr _ _ _ = []
 *}
+
+
+ML{*
+structure C = Clause_GT;
+   val t = @{prop "B \<Longrightarrow> \<not> B \<Longrightarrow> A"};
+   val (pnode,pplan) = IsaProver.init @{context} [] t;
+
+val env = IsaProver.get_pnode_env pnode;
+val ctxt = IsaProver.get_pnode_ctxt pnode;
+val hyps = IsaProver.get_pnode_hyps pnode;    
+
+ENV_check_ccontr ctxt [IsaProver.A_L_Trm hyps, IsaProver.A_Var "negHyp"] env;
+C.imatch data pnode (C.scan_goaltyp ctxt "is_term(hyps, concl)");
+  *}
 
 end

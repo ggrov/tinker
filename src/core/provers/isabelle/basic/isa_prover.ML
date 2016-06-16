@@ -21,7 +21,7 @@ struct
   val string_of_trm = (*Syntax.string_of_term*) term_to_string;
   fun get_thm_by_name ctxt name = 
     Find_Theorems.find_theorems ctxt NONE NONE false [(true, Find_Theorems.Name name)]
-    |> snd |> hd |> snd
+    |> snd |> List.last |> snd
    handle _ => (logging "FAILURE" ("Fail to get thm by name: " ^ name); raise tinker_fail true)
   val pretty_trm = Syntax.pretty_term;
 
