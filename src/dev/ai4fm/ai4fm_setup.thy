@@ -39,6 +39,7 @@ ML{*
   | top_level_str (Abs (_,_,t)) = top_level_str t
   | top_level_str _ = [];
 
+ fun hack_not n0 = case n0 of "not" => "Not"| _ => n0;
  fun top_symbol env pnode [r,Clause_GT.Var p] : IsaProver.env list= 
           let 
 
@@ -47,11 +48,12 @@ ML{*
           in 
             (case StrName.NTab.lookup env p of
                NONE => map (fn s => StrName.NTab.ins (p,Clause_GT.Prover.E_Str s) env) tops
-             | SOME (Clause_GT.Prover.E_Str s) => if member (op =) tops s then [env] else []
+             | SOME (Clause_GT.Prover.E_Str s) => if member (op =) tops (hack_not s) then [env] else []
              | SOME _ => [])
           end
-    |  top_symbol env pnode [r,Clause_GT.Name n] = 
+    |  top_symbol env pnode [r,Clause_GT.Name n0] = 
           let 
+            val n = hack_not n0;
             val tops = Clause_GT.project_terms env pnode r
                      |> maps top_level_str
           in 
@@ -140,23 +142,23 @@ ML{*
   | is_literal _ _ _ = []
 
  fun dest_trm env pnode [Clause_GT.Concl, Clause_GT.Var p1, Clause_GT.Var p2] = 
-  let 
+  (let 
     val (trm1, trm2) = dest_comb (IsaProver.get_pnode_concl pnode) 
   in 
      StrName.NTab.update (p1,Clause_GT.Prover.E_Trm trm1) env
      |> StrName.NTab.update (p2,Clause_GT.Prover.E_Trm trm2) 
      |> (fn x => [x])
-  handle _ => [] end 
+  end handle _ => [] )
   | dest_trm env _ [Clause_GT.Term t, Clause_GT.Var p1, Clause_GT.Var p2] = 
-   let 
+  (let 
     val (trm1, trm2) = dest_comb t
    in 
      StrName.NTab.update (p1,Clause_GT.Prover.E_Trm trm1) env
      |> StrName.NTab.update (p2,Clause_GT.Prover.E_Trm trm2) 
      |> (fn x => [x])
-   handle _ => [] end 
+  end handle _ => []) 
   | dest_trm env _ [Clause_GT.Var input, Clause_GT.Var p1, Clause_GT.Var p2] = 
-   let 
+  ( let 
     val (trm1, trm2) = 
       (case StrName.NTab.lookup env input of
       SOME (IsaProver.E_Trm t) => dest_comb t
@@ -165,7 +167,7 @@ ML{*
       StrName.NTab.update (p1,Clause_GT.Prover.E_Trm trm1) env
      |> StrName.NTab.update (p2,Clause_GT.Prover.E_Trm trm2) 
      |> (fn x => [x])
-   handle _ => [] end  
+  end handle _ => [])  
   | dest_trm _ _ _ = []
 
  val data = 
@@ -228,17 +230,5 @@ fun ENV_hyp_match ctxt
  handle (hyp_match str) => (LoggingHandler.logging "FAILURE" ("No matching found for " ^ str);[]))
 | ENV_hyp_match _ _ _ = []
 *}
-ML{*
-IsaProver.string_of_trm @{context} @{term "A \<and> B"};
-subgoal_tac;
-disjE;
-*}
-
-lemma "(x::nat) \<ge> y \<Longrightarrow> ((x = y) \<or> (x > y))"
-apply (tactic {*subgoal_tac (@{context} "x \<ge> y = (x =y \<or> x > y)" 1*})
-
-apply (tactic {*asm_lr_simp_tac (Raw_Simplifier.clear_simpset @{context}) 1*})
-
-
 
 end

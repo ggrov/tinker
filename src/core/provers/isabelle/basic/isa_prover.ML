@@ -13,7 +13,7 @@ struct
    let
     val ctxt' = Config.put show_markup false ctxt;
    in Print_Mode.setmp [] (Syntax.string_of_term ctxt') t end;
-  val trm_of_string = Syntax.parse_term;
+  fun trm_of_string ctxt str = Syntax.parse_term ctxt str |> Syntax.check_term ctxt;
   fun prop_of_string ctxt x = 
     Syntax.parse_term ctxt x 
     |> (fn t => (Const ("HOL.Trueprop", dummyT) $ t))

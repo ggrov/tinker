@@ -5,7 +5,7 @@ begin
 ML{*
   val clause_def = 
  "c(Z) :- top_symbol(concl,Z)." ^
- "h(Z) :- top_symbol(hyps,Z). " ^
+ "h(Z) :- top_symbol(hyps,Z)." ^
  "is_goal(Z) :- is_term(concl, Z)." ^
  "has_hyp(Z) :- is_term(hyps, Z)." ^
  "not_literal(X) :- not(is_literal(X))." ^
