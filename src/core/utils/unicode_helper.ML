@@ -14,6 +14,7 @@ struct
      ("∀", "<_uni_symb_forall_>"),
      ("∃", "<_uni_symb_exists_>"),
      ("≠", "<_uni_symb_neq_>"),
+     ("≥", "<_uni_symb_geq_>"),
      
      ("∪", "<_uni_symb_union_>"),
      ("∩", "<_uni_symb_inter_>"),

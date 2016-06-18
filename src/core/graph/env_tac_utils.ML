@@ -18,7 +18,7 @@ sig
     sharing Sharing.PS_Theory = PS_Theory.Sharing
 end
 
-functor EnvTacUtilsFunc (structure Theory : PS_THEORY val struct_name : string) : ENV_TAC_UTILS = 
+functor EnvTacUtilsFunc (structure Theory : PS_THEORY val struct_name : string) (*: ENV_TAC_UTILS *)= 
 struct
   structure PS_Theory = Theory
   structure Prover = PS_Theory.Data.GoalTyp.Prover
@@ -92,8 +92,8 @@ struct
           else let val (a,b) = scan_rest_name xs in (x :: a, b) end;
     
     val scan_env_var = 
-      ($$ "?" -- Scan.one (Symbol.is_letter) -- scan_rest_name)
-      >> (fn ((x,y), l) => [x,y] @ l |> String.concat |> filter_blank) (* collapse the parsed string as a var name *)      ;
+      ($$ "?" -- Scan.many (fn x => Symbol.is_letter x orelse Symbol.is_digit x) -- scan_rest_name)
+      >> (fn ((_,y), _) => y |> String.concat (*|> filter_blank*)) (* collapse the parsed string as a var name *)      ;
  
     fun scan_env_vars0 [] = []
       | scan_env_vars0 xs = 
@@ -150,7 +150,7 @@ struct
          if (typ = "string") then []
          else
          scan_env_vars ( Symbol.explode def)
-         |> map (fn n => (n, StrName.NTab.get env (String.extract (n,1,NONE))))
+         |> map (fn n => (n, StrName.NTab.get env n(*String.extract (n,1,NONE)*)))
          handle StrName.Tab.UNDEF n => 
          (logging "FAILURE" ("the env var " ^ n ^ " does not exist."); raise tinker_fail true)
       in

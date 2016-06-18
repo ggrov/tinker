@@ -13,7 +13,8 @@ struct
    let
     val ctxt' = Config.put show_markup false ctxt;
    in Print_Mode.setmp [] (Syntax.string_of_term ctxt') t end;
-  fun trm_of_string ctxt str = Syntax.parse_term ctxt str |> Syntax.check_term ctxt;
+  fun trm_of_string0 ctxt str = Syntax.parse_term ctxt str 
+  fun trm_of_string ctxt str = trm_of_string0 ctxt str (*|>  Syntax.check_term ctxt*);
   fun prop_of_string ctxt x = 
     Syntax.parse_term ctxt x 
     |> (fn t => (Const ("HOL.Trueprop", dummyT) $ t))
@@ -27,7 +28,7 @@ struct
 
   fun subst_trm_vars vts trm = 
    let
-     val vts' = map (fn (n, trm) => ((String.extract (n,1,NONE), 0), trm)) vts
+     val vts' = map (fn (n, trm) => ((n, 0), trm)) vts
    in
      Term.subst_Vars vts' trm 
    end
@@ -115,7 +116,7 @@ struct
   val exec_str = eval_text;
   
   fun parse_env_data ctxt (typ,def) vts = 
-    case typ of "term" => trm_of_string ctxt def 
+    case typ of "term" => trm_of_string0 ctxt def 
       |> (let val vts' = map (fn (n, E_Trm t) => (n,t) | (n, _) 
        => (logging "FAILURE" ("Only E_trm is supported as args, in parsing env var: " ^ n) ;
        raise tinker_fail true)) vts in
@@ -345,32 +346,33 @@ struct
   fun top_symbol trm = the (TermFeatures.top_level_str trm );*)
 
   val unicode_symb = [
-   ("\\\<longrightarrow>", "<_uni_symb_implies_>"),
+   ("\<longrightarrow>", "<_uni_symb_implies_>"),
   
-   ("\\\<nat>", "<_uni_symb_bbN_>"),
+   ("\<nat>", "<_uni_symb_bbN_>"),
 
-   ( "\\\<not>" ,"<_uni_symb_lnot_>"),
-   ("\\\<and>", "<_uni_symb_land_>"),
-   ("\\\<or>", "<_uni_symb_lor_>"),
+   ( "\<not>" ,"<_uni_symb_lnot_>"),
+   ("\<and>", "<_uni_symb_land_>"),
+   ("\<or>", "<_uni_symb_lor_>"),
 
-   ("\\\<forall>", "<_uni_symb_forall_>"),
-   ("\\\<exists>", "<_uni_symb_exists_>"),
+   ("\<forall>", "<_uni_symb_forall_>"),
+   ("\<exists>", "<_uni_symb_exists_>"),
 
-   ("\\\<noteq>", "<_uni_symb_neq_>"),
+   ("\<noteq>", "<_uni_symb_neq_>"),
+   ("\<ge>", "<_uni_symb_geq_>"),
 
-   ("\\\<union>", "<_uni_symb_union_>"),
-   ("\\\<inter>", "_uni_symb_inter_"),
-   ("\\\<in>", "<_uni_symb_in_>"),
-   ("\\\<notin>", "<_uni_symb_notin_>"),
-   ("\\\<subset>", "<_uni_symb_lsubset_>"),
-   ("\\\<supset>", "<_uni_symb_rsubset_>"),
-   ("\\\<subseteq>", "<_uni_symb_lsubseteq_>"),
-   ("\\\<supseteq>", "<_uni_symb_rsubseteq_>"),
-   ("\\\<lhd>", "<_uni_symb_domres_>"),
-   ("\\\<rhd>", "<_uni_symb_ranres_>"),
+   ("\<union>", "<_uni_symb_union_>"),
+   ("\<inter>", "_uni_symb_inter_"),
+   ("\<in>", "<_uni_symb_in_>"),
+   ("\<notin>", "<_uni_symb_notin_>"),
+   ("\<subset>", "<_uni_symb_lsubset_>"),
+   ("\<supset>", "<_uni_symb_rsubset_>"),
+   ("\<subseteq>", "<_uni_symb_lsubseteq_>"),
+   ("\<supseteq>", "<_uni_symb_rsubseteq_>"),
+   ("\<lhd>", "<_uni_symb_domres_>"),
+   ("\<rhd>", "<_uni_symb_ranres_>"),
    
-   ("\\\<Longrightarrow>", "<_uni_symb_metaimpies_>"),
-   ("\\\<lambda>", "<_uni_symb_lambda_>")
+   ("\<Longrightarrow>", "<_uni_symb_metaimpies_>"),
+   ("\<lambda>", "<_uni_symb_lambda_>")
   ];
   
   structure unicode_helper = UnicodeHelperFUN (val symb_tab  = unicode_symb);

@@ -196,9 +196,14 @@ fun erule [IsaProver.A_Thm thm] _  = etac thm;
 fun drule [IsaProver.A_Thm thm] _  = dtac thm;
 fun simp_only [IsaProver.A_Thm thm] = simp_only_tac [thm];
 
-(* very hacky *)
-fun erule_tac [IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
-  eres_inst_tac ctxt  [(("P",0), (IsaProver.string_of_trm ctxt (dest_comb trm|>snd)))] thm
+fun erule_tac1 [IsaProver.A_Str str, IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
+  eres_inst_tac ctxt  [((str,0), (IsaProver.string_of_trm ctxt trm))] thm
+
+fun erule_tac2 
+  [IsaProver.A_Str str1, IsaProver.A_Str str2, 
+   IsaProver.A_Trm trm1, IsaProver.A_Trm trm2, IsaProver.A_Thm thm] ctxt = 
+  eres_inst_tac ctxt  [((str1,0), (IsaProver.string_of_trm ctxt trm1)), 
+                       ((str2,0), (IsaProver.string_of_trm ctxt trm2))] thm
 *}
 
 ML{*
@@ -208,10 +213,10 @@ fun ENV_hyp_match ctxt
        IsaProver.A_Str pat, 
        IsaProver.A_Var v1, 
        IsaProver.A_Var v2] (env : IsaProver.env): IsaProver.env list =
- (let
+ (let 
   val thy = Proof_Context.theory_of ctxt
   val term_pat = Proof_Context.read_term_pattern ctxt pat 
-  val hyp = filter (fn x => Pattern.matches thy (term_pat, x)) hyps
+  val hyp = filter (fn x => Pattern.matches thy (term_pat, x)) (map (snd o dest_comb) hyps)
  in
    case hyp of [] => []
    | _ => (* a bit hack here, only get the head ele*)
@@ -239,22 +244,86 @@ fun ENV_all_asms _ [IsaProver.A_L_Trm hyps, IsaProver.A_Var name] (env : IsaProv
 fun ENV_check_ccontr ctxt [IsaProver.A_L_Trm hyps, IsaProver.A_Var v]  (env : IsaProver.env) :  IsaProver.env list= 
  (case (filter(member(fn (a,b) => (dest_comb a |> snd) = ((Const ("HOL.Not", dummyT) $ (dest_comb b |> snd))|> Syntax.check_term ctxt)) hyps) hyps) 
   of [] => [StrName.NTab.update (v, IsaProver.E_Str "None") env]
-  | ret => [StrName.NTab.update (v, IsaProver.E_Trm (hd ret |> dest_comb |> snd)) env])
+  | ret => [StrName.NTab.update 
+     (v, IsaProver.E_Trm (
+      hd ret (* only get one ele *)
+      |> dest_comb |> snd (* dest true prop *)
+      |> dest_comb |> snd) (* dest Not *)
+     ) env])
 | ENV_check_ccontr _ _ _ = []
 *}
-
 
 ML{*
 structure C = Clause_GT;
    val t = @{prop "B \<Longrightarrow> \<not> B \<Longrightarrow> A"};
+val t = @{prop "a \<ge> (b::nat) \<Longrightarrow>  P"};
    val (pnode,pplan) = IsaProver.init @{context} [] t;
 
 val env = IsaProver.get_pnode_env pnode;
 val ctxt = IsaProver.get_pnode_ctxt pnode;
 val hyps = IsaProver.get_pnode_hyps pnode;    
+*}
 
+ML{*
 ENV_check_ccontr ctxt [IsaProver.A_L_Trm hyps, IsaProver.A_Var "negHyp"] env;
 C.imatch data pnode (C.scan_goaltyp ctxt "is_term(hyps, concl)");
-  *}
+*}
 
+ML{*
+Symbol.is_digit;
+val s = Symbol.explode "?g := @{term \"(?x = ?y) \<or> (?x > ?y)\"}";
+ Env_Tac_Utils.scan_env_vars s;
+val src = s;
+    val (var, def_strs) = 
+        (scan_var (* scan variable name *) --|
+        (scan_ignore_pre_blank (Scan.this_string ":=")))
+        src ;
+    
+  (scan_antiquto ((*Prover.antiquto_handler env*)snd) def_strs) |>snd
+|> Symbol.explode
+|>  Env_Tac_Utils.scan_env_vars
+
+*}
+ML{*
+val env = ENV_hyp_match ctxt [IsaProver.A_L_Trm hyps, IsaProver.A_Str "?x \<ge> ?y", IsaProver.A_Var "x", IsaProver.A_Var "y"] env |>hd;
+
+val input = "?g := @{term \"(?x = ?y)\"}";
+
+*}
+
+ML{*
+      
+       val src = Symbol.explode input;
+       val (var, def_strs) = 
+        (scan_var (* scan variable name *) --|
+        (scan_ignore_pre_blank (Scan.this_string ":=")))
+        src ;
+
+       (*val def_strs = filter_blank' def_strs*);
+       val (typ, def) = 
+        if (is_start_with "?" (String.concat def_strs)) 
+        (* start with ?, so must be assigning to another env var *)
+        then
+         scan_env_var def_strs |> fst (* get the name of the var *)
+         |> (fn x => (StrName.NTab.get env (String.extract (x, 1, NONE)); ("dummy", String.concat def_strs)))
+    
+        else if  (is_start_with "\"" (String.concat def_strs)) then
+         ("string", (String.concat def_strs))
+        else (* otherwise, scan as the antiquto format*)
+        (scan_antiquto ((*Prover.antiquto_handler env*)snd) def_strs);
+
+    scan_env_vars ( Symbol.explode def);
+
+        (*val _ = writeln "a"*)
+        val env_vars = 
+         if (typ = "string") then []
+         else
+         scan_env_vars ( Symbol.explode def)
+         |> map (fn n => (n, StrName.NTab.get env n(*String.extract (n,1,NONE)*)));
+
+
+        StrName.NTab.update (filter_blank var, Prover.parse_env_data ctxt (filter_blank typ, def) env_vars) env
+        |> Prover.id_env_tac_f 
+      
+*}
 end
