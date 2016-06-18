@@ -24,11 +24,12 @@ ML{*
 ML{*-
 TextSocket.safe_close();*}  
 
-ML{*
+ML{*-
 val g = @{prop "m \<ge> (2::nat) \<Longrightarrow>  P"};
 val thm = Tinker.start_ieval @{context} (SOME hca) (SOME []) (SOME g) (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
 *}
+
 
 ML{*
 val g = @{prop "m \<ge> (2::nat) \<Longrightarrow>  P"};
