@@ -271,5 +271,5 @@ open ClauseGT_Lib;
 val _ = init_symbol_table 
 [("%and%", "conj"), ("%or%", "disj"),
  ("%implies%", "implies"), ("%not%", "not"), ("%forall%", "forall"), ("%exists%", "exists"),
- ("%equiv%", "equiv"),("Cond", "if_then_else")];
+ ("%equiv%", "equiv"),("Cond", "if_then_else"), ("%mem%", "member")];
 
