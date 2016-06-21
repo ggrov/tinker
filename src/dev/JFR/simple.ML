@@ -20,3 +20,5 @@ set_goal([], ¨µx∑ (1, x) ç {(a, b) | a = 1 ≤ b æ 2} ± (x æ 3 ≤ x º 4)Æ);
 PPIntf.apply_ps_i simple;
 top_thm();
 drop_main_goal();
+
+TextSocket.safe_close();

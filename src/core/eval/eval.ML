@@ -227,6 +227,10 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
 (************************************************************
       Gnode evaluation
 *************************************************************)
+  fun print_outedges (r : GoalTyp.gnode list list) = 
+   let fun print_one gs =  map GoalTyp.goal_name gs |> str_blocks ", " in
+   logging "EVAL"  ("Branch (goals on the ouput edges): | " ^((map print_one r) |> str_blocks " | ") ^ " |") end
+
   fun mk_ngs_to_branch  gt_data gnode_opt goal_typs  (ngs :( Prover.pnode list * Prover.pplan) Seq.seq) 
     : (Prover.pplan * GoalTyp.gnode list list) Seq.seq =
    let 
@@ -242,7 +246,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
       )) res
       |>  *)
         case pnds of [] => Seq.single (pplan, [])
-       | _ =>  Seq.of_list res
+       | _ =>  (map (print_outedges o snd) res ; Seq.of_list res)
       end
     handle partition_exp {pnodes,...}  => 
       (logging "FAILURE" ("Fail to match any goaltype for the output goal pnode :" ^ 
