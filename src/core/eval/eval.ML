@@ -55,7 +55,6 @@ struct
       (* succeeds, and check for further successes *)
     else
         let
-        
          val new_branch =  (pplan, (bres @ [(GoalTyp.lift pnode) :: r] @ ares))
         in
         (* adds the succeded to the current result *)
@@ -70,7 +69,13 @@ struct
        [] => raise partition_exp {input = gnode_opt, pnodes = [pnode], goaltypes = goal_typs} 
      | xs => xs 
 
-  (* return value : outer list - each branch: singleton 
+  (*
+  type: 
+   GoalTyp.data ->
+   Prover.pnode list ->
+   GoalTyp.gnode option -> pplan -> GoalTyp.T list -> (pplan * GoalTyp.gnode list list) list 
+
+  return value : outer list - each branch: singleton 
                     middle list - one branch same length as goaltype input list
                     inner list - matching goal nodes for given goaltype
     invariant result = partition goal_typs pplan pnds 
@@ -81,9 +86,11 @@ struct
   *)
   fun partition _ [] _  _ _ = []
    |  partition gtype_data pnds gnode_opt pplan goal_typs =
-        [(pplan, map (K []) goal_typs)] (* empty list to start, mk an empty list for each output edges, each 
+(* empty list to start, mk an empty list for each output edges, each 
 branch should have a pplan, as goaltype will change the env so that the gnode in the pplan need to be updated *)
+        [(pplan, map (K []) goal_typs)]
         |> fold (fn pnd => maps (partition_one gtype_data goal_typs pnd gnode_opt)) pnds;
+
 (*
   val partition_to_gnodes = map (map GData.G);
 *) 
@@ -245,10 +252,11 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
     Seq.maps apply_one ngs
    end
   fun apply_atomic edata gnode tac goal_typs =
-   let  val gt_data = edata 
+   let  
+    val gt_data = edata 
                   |> EData.get_psgraph  
                   |> EData.PSGraph.get_goaltype_data 
-     val res = apply_tactic edata gnode tac  
+    val res = apply_tactic edata gnode tac  
    in
       mk_ngs_to_branch gt_data (SOME gnode) goal_typs res
       |> Seq.map (fn (pp, res) => (EData.set_bpplan pp (EData.get_current edata) , res))
@@ -278,10 +286,15 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
      val (SOME tactic) = Util.lookup_ivertex_data graph tnode 
      val result = apply_atomic edata goal tactic out_goaltypes
    in
-      case Seq.pull result of SOME ((b,[]),_) (* no new goals is produced *) =>
+   (*
+      case Seq.pull result of SOME ((b,[]),_)  =>
         Seq.single (
          EData.set_bgraph graph' b)
       | _ => Seq.map 
+       (fn (b,rs) => (EData.set_bgraph (add_gnodes out_edges rs graph')) b) 
+      result
+    *)
+      Seq.map 
        (fn (b,rs) => (EData.set_bgraph (add_gnodes out_edges rs graph')) b) 
       result
    end

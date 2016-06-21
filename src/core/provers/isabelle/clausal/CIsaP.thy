@@ -32,7 +32,7 @@ ML{*
                                      val prover_socket_port = 0);
  *}
 
-ML{*  open Env_Tac_Utils  *}
+ML{* open Env_Tac_Utils  *}
 
 end
 

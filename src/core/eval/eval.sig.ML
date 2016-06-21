@@ -15,7 +15,7 @@ sig
   val has_psgraph_terminated : EData.T -> bool
   val is_top_level_psgraph : EData.T -> bool
   val is_gnode_on_output_edge : EData.T -> string -> bool
-
+(*
   val apply_atomic : 
         EData.T 
       -> EData.PSGraph.Theory.Data.GoalTyp.gnode (* the goal node  *)
@@ -28,6 +28,7 @@ sig
       -> EData.PSGraph.Theory.Data.GoalTyp.gnode (* the goal node *)
       -> EData.PSGraph.Theory.Data.nvdata (* tactic assumption *)
       -> (EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list * EData.PSGraph.Theory.Data.GoalTyp.Prover.pplan) Seq.seq
+*)
   val init : EData.PSGraph.T -> EData.PSGraph.Theory.Data.GoalTyp.Prover.context 
     -> EData.PSGraph.Theory.Data.GoalTyp.Prover.term list 
     -> EData.PSGraph.Theory.Data.GoalTyp.Prover.term 

@@ -13,7 +13,8 @@ struct
   structure Prover = EData.PSGraph.Theory.Data.GoalTyp.Prover
   structure TextSocket = TextSocket
   
-  val if_gui_dbg_mode = true
+  val if_gui_dbg_mode = false
+  fun dbg s1 s2 = if if_gui_dbg_mode then logging_handler_print s1 s2 else ();
 
   val buffer_to_json' = EData.PSGraph.from_prover_json o buffer_to_json
 
@@ -24,7 +25,7 @@ struct
   type T = ((Json.json -> Json.json) * string) Symtab.table
 
   fun pp_goal edata =  (fn x => ((EData.pretty_goals edata 
-    |> (if if_gui_dbg_mode then (logging "GOAL") o Pretty.string_of else Pretty.writeln)) ; x))
+    |> ((logging "GOAL") o Pretty.string_of)) ; x))
 
   fun get_cmd_name (Json.Object obj) =  
     JsonInputUtils.get_string obj "cmd" 
@@ -187,7 +188,7 @@ struct
    let 
     val err = JsonInputUtils.get_string obj "error"
    in
-    (logging_handler_print "FAILURE" err;
+    (dbg "FAILURE" err;
     Json.mk_object[("cmd", Json.String "RSP_MESSAGE_ERROR")])
    end
    | RSP_MESSAGE_ERROR _ = raise protocol_exn "dummy, this won't happen in RSP_MESSAGE_ERROR"
@@ -229,9 +230,9 @@ struct
       (* a bit hacky *)
       val json = Json.of_string str
         handle _ => raise protocol_exn ("Fail to parse str as json: " ^ str)
-      val _ = (logging_handler_print "JSON_GUI" ("JSON IN: " ^ (Json.encode json)))
+      val _ = (dbg "JSON_GUI" ("JSON IN: " ^ (Json.encode json)))
       val json_output = LH.check_perform dispatch json "run_in_textstreams" (* this output is always a json object *)
-      val _ =  logging_handler_print "JSON_GUI" ("JSON OUT: " ^ ( Json.encode json_output))
+      val _ =  dbg "JSON_GUI" ("JSON OUT: " ^ ( Json.encode json_output))
     in 
       (case get_cmd_name json_output
          of "CMD_CLOSE_CONNECT" => () (* do nothing and exit: need to be consider what to do *)
@@ -265,7 +266,7 @@ struct
       ("psgraph", Json.Bool (Option.isSome ps_opt)),
       ("goal", Json.Bool (Option.isSome g_opt)),
       ("log_info", buffer_to_json' ())]
-      val _ = logging_handler_print "JSON_GUI" ("JSON OUT: " ^ (Json.encode init_json))
+      val _ = dbg "JSON_GUI" ("JSON OUT: " ^ (Json.encode init_json))
       val _ = reset_data ()
     in
       run_in_textstreams s init_json;
