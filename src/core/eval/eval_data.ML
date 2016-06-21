@@ -23,7 +23,7 @@ local open LoggingHandler in
     pplan : Prover.pplan,
     goals : Prover.pnode StrName.NTab.T
   }
-  (* todo : should we keep the previous Edata  too?*)
+  (* todo : should we keep the previous Edata too?*)
   datatype T = EData of { 
       current : branch,
       branches : branch list
@@ -43,7 +43,7 @@ local open LoggingHandler in
   fun get_bgoals (Branch rep) = #goals rep;
   fun get_bpsgraph (Branch rep) = #psgraph rep;
 
-  fun get_current (EData rep) = #current rep;
+  fun get_current (EData rep) =  #current rep;
   fun get_branches (EData rep) = #branches rep;
 
   val get_psgraph = get_bpsgraph o get_current;
@@ -135,9 +135,14 @@ local open LoggingHandler in
 
   fun update_current f (EData rep) =
     EData {current = f (#current rep), branches = #branches rep};
-  fun update_branches f (EData rep) =
-    EData {current = #current rep, branches = f (#branches rep)};
-
+  fun update_branches f (EData rep) = 
+    EData {current = #current rep, branches = f (#branches rep)}
+    |> (fn x => 
+        ((logging "EVAL" 
+          ("Number of alternative branches: " ^ 
+            ((List.length (get_branches x)) |> Int.toString)));
+        x));
+    
   val set_current = update_current o K;
   val set_branches = update_branches o K;
 
