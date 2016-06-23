@@ -344,17 +344,14 @@ struct
 	    map (fn npl => (npl, mk_new_pplan npl)) new_pnodel_l  
 	   end 
 	  )
-   end
-    
+   end 
 
   fun pretty_pnode pnode = 
-  String.concat
-  ["[ Goal ", 
-  (get_pnode_name pnode),
-  " : ",
-  pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode) |> Pretty.string_of,
-  " ]"] |> Pretty.str;
-
+  str_chunks_tab 1
+  (["[ Goal " ^ (get_pnode_name pnode) ^ " : "] @
+   (map (fn x => (tab 1) ^  (Pretty.string_of (pretty_trm (get_pnode_ctxt pnode) x))) (get_pnode_hyps pnode)) @
+   [(tab 1) ^ ("ô " ^ (pretty_trm (get_pnode_ctxt pnode) (get_pnode_concl pnode) |> Pretty.string_of)) ^ "]"])
+  |> Pretty.str;
 
   fun apply_tactic args tac (pnode,pplan) = 
     (*let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in*)
@@ -419,7 +416,8 @@ struct
    ("®", "<_uni_symb_right_corner_>"),
   
    ("ñ", "<_uni_symb_left_z_corner_>"),
-   ("¦", "<_uni_symb_left_z_assign_>")
+   ("¦", "<_uni_symb_left_z_assign_>"),
+   ("ô", "<_uni_symb_vdash_>")
   ];
 
   

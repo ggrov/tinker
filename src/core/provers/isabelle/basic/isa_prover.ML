@@ -297,6 +297,13 @@ struct
      term_to_string (get_pnode_ctxt pnode) (get_pnode_concl pnode),
      " ]"] |> Pretty.str
 
+  fun pretty_pnode pnode = 
+  str_chunks_tab 1
+  (["[ Goal " ^ (get_pnode_name pnode) ^ " : "] @
+   (map (fn x => (tab 1) ^  (term_to_string (get_pnode_ctxt pnode) x)) (get_pnode_hyps pnode)) @
+   [(tab 1) ^ ("\<turnstile> " ^ (term_to_string (get_pnode_ctxt pnode) (get_pnode_concl pnode))) ^ "]"])
+  |> Pretty.str;
+
   fun pretty_pplan _ = Pretty.str "Pretty PPLAN TOTO";
   fun restore_pplan _ = ();
    
@@ -372,7 +379,8 @@ struct
    ("\<rhd>", "<_uni_symb_ranres_>"),
    
    ("\<Longrightarrow>", "<_uni_symb_metaimpies_>"),
-   ("\<lambda>", "<_uni_symb_lambda_>")
+   ("\<lambda>", "<_uni_symb_lambda_>"),
+   ("\<turnstile>",  "<_uni_symb_vdash_>")
   ];
   
   structure unicode_helper = UnicodeHelperFUN (val symb_tab  = unicode_symb);

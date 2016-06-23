@@ -46,7 +46,8 @@ struct
      ("⌝", "<_uni_symb_right_corner_>"),
 
      ("ⓩ", "<_uni_symb_left_z_corner_>"),
-     ("≜", "<_uni_symb_left_z_assign_>")
+     ("≜", "<_uni_symb_left_z_assign_>"),
+     ("⊢", "<_uni_symb_vdash_>")
     ]
   val prover_uni = symb_tab
 
