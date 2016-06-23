@@ -127,7 +127,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
   fun is_top_level_psgraph edata = 
    (EData.get_parent edata |> StrName.NTab.list_of) = []
   
-  fun is_gnode_on_output_edge edata goal_name =
+  fun is_gn_on_boundary edata goal_name =
    let
     val graph = EData.get_graph edata
     val gnode = Util.all_gnodes graph
@@ -136,13 +136,13 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
    in
      (is_some o try_get_out graph) gnode
    end
-  fun has_current_graph_terminated edata = 
+
+  fun is_all_gns_on_boundary edata = 
     Util.all_gnodes (EData.get_graph edata)
-    |> forall (is_some o (try_get_out (EData.get_graph edata)));
-    
+    |> forall (is_some o (try_get_out (EData.get_graph edata))); 
 
   fun has_psgraph_terminated edata = 
-    has_current_graph_terminated edata andalso (* current graph is terminated *)
+    is_all_gns_on_boundary edata andalso
     is_top_level_psgraph edata
   
 

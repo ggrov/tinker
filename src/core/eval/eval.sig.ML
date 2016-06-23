@@ -11,10 +11,11 @@ sig
       input :  EData.PSGraph.Theory.Data.GoalTyp.gnode option, 
       goaltypes : EData.PSGraph.Theory.Data.GoalTyp.T list } 
 
-  val has_current_graph_terminated : EData.T -> bool
+  val is_all_gns_on_boundary : EData.T -> bool
+  val is_gn_on_boundary : EData.T -> string (* gname *) -> bool
   val has_psgraph_terminated : EData.T -> bool
   val is_top_level_psgraph : EData.T -> bool
-  val is_gnode_on_output_edge : EData.T -> string -> bool
+  
 (*
   val apply_atomic : 
         EData.T 
