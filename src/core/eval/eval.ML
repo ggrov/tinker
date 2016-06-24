@@ -249,7 +249,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
        | _ =>  (map (print_outedges o snd) res ; Seq.of_list res)
       end
     handle partition_exp {pnodes,...}  => 
-      (logging "FAILURE" ("Fail to match any goaltype for the output goal pnode :" ^ 
+      (logging "FAILURE" ("Fail to match any goaltype for the output goal pnode :\n" ^ 
        ((hd pnodes) |> Prover.pretty_pnode |> Pretty.string_of)); 
        raise tinker_fail false)
    in

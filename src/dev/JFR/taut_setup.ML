@@ -17,8 +17,10 @@
  val clause_def = 
  "c(Z) :- top_symbol(concl,Z)." ^
  "h(Z) :- top_symbol(hyps,Z). " ^
- "c_not_literal(X) :- c(X), rand_trm(concl, Y), not_trm_var(Y)." ^
- "h_not_literal(X) :- top_symbol(hyps,X,Y), rand_trm(Y, Z), not_trm_var(Z)." ^
+ "not_trm_var(Y) :- not(trm_var(Y)). " ^
+ "has_no_hyp(Y) :- not(has_hyp(Y)). " ^
+ "c_not_literal(X) :- c(X), dest_term(concl, Y1, Y2), not_trm_var(Y2)." ^
+ "h_not_literal(X) :- top_symbol(hyps,X,Y), dest_term(Y, Z1, Z2), not_trm_var(Z2)." ^
  "taut_simp(concl) :- is_goal(true)." ^
  "taut_simp(concl) :- has_hyp(concl)." ^
  "taut_simp(concl) :- has_no_hyp(concl), c(conj)." ^
