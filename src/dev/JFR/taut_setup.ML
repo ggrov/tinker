@@ -16,29 +16,29 @@
 (*=====  GoalTyp definitions *)
  val clause_def = 
  "c(Z) :- top_symbol(concl,Z)." ^
- "h(Z) :- top_symbol(hyps,Z). " ^
+ "h(Z) :- member(X, hyps), top_symbol(X,Z). " ^
  "not_trm_var(Y) :- not(trm_var(Y)). " ^
  "has_no_hyp(Y) :- not(has_hyp(Y)). " ^
- "c_not_literal(X) :- c(X), dest_term(concl, Y1, Y2), not_trm_var(Y2)." ^
- "h_not_literal(X) :- top_symbol(hyps,X,Y), dest_term(Y, Z1, Z2), not_trm_var(Z2)." ^
- "taut_simp(concl) :- is_goal(true)." ^
- "taut_simp(concl) :- has_hyp(concl)." ^
- "taut_simp(concl) :- has_no_hyp(concl), c(conj)." ^
- "taut_simp(concl) :- has_no_hyp(concl), c(disj)." ^
- "taut_simp(concl) :- has_no_hyp(concl), c(if_then_else)." ^
- "taut_simp(concl) :- has_no_hyp(concl), c(equiv)." ^
- "taut_simp(concl) :- has_no_hyp(concl), c(implies)." ^
- "taut_simp(concl) :- has_no_hyp(concl), c_not_literal(not)." ^
- "asm_to_strip(hyps) :- h(conj)." ^
- "asm_to_strip(hyps) :- h(disj)." ^
- "asm_to_strip(hyps) :- h(equiv)." ^
- "asm_to_strip(hyps) :- h(implies)." ^
- "asm_to_strip(hyps) :- h(if_then_else)." ^
- "asm_to_strip(hyps) :- h_not_literal(not).";
+ "c_not_literal(X) :- c(X), dest_term(concl, _, Y2), not_trm_var(Y2)." ^
+ "h_not_literal(X) :- member(X, hyps), top_symbol(X,Z), dest_term(Y, _, Z2), not_trm_var(Z2)." ^
+ "taut_simp() :- is_goal(true)." ^
+ "taut_simp() :- has_hyp(concl)." ^
+ "taut_simp() :- has_no_hyp(concl), c(conj)." ^
+ "taut_simp() :- has_no_hyp(concl), c(disj)." ^
+ "taut_simp() :- has_no_hyp(concl), c(if_then_else)." ^
+ "taut_simp() :- has_no_hyp(concl), c(equiv)." ^
+ "taut_simp() :- has_no_hyp(concl), c(implies)." ^
+ "taut_simp() :- has_no_hyp(concl), c_not_literal(not)." ^
+ "asm_to_strip() :- h(conj)." ^
+ "asm_to_strip() :- h(disj)." ^
+ "asm_to_strip() :- h(equiv)." ^
+ "asm_to_strip() :- h(implies)." ^
+ "asm_to_strip() :- h(if_then_else)." ^
+ "asm_to_strip() :- h_not_literal(not)." ^
+ "no_asm_to_strip() :- not(asm_to_strip())." ^;
 
  val data = 
   default_gt_data
-  |> ClauseGoalTyp.add_atomic "no_asm_to_strip" literal
   |> ClauseGoalTyp.update_data_defs (fn x => (ClauseGoalTyp.scan_data PPProver.default_ctxt clause_def) @ x);
 
 (*===== Tactic definitions *)

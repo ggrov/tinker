@@ -12,6 +12,12 @@ struct
      NONE => []
    | SOME v => [decode_str v];
   
+
+fun is_member env pnode [d, r] = 
+  ClauseGoalTyp.project_terms env pnode r
+  |> maps (fn x => ClauseGoalTyp.update_var env (PPProver.E_Trm x) d)
+ | is_member _ _ _ = [];
+
  fun top_symbol env pnode [r,ClauseGoalTyp.Var p] = 
   let 
     val tops = ClauseGoalTyp.project_terms env pnode r
@@ -274,6 +280,7 @@ struct
    |> ClauseGoalTyp.add_atomic "not_trm_var_nor_const" not_trm_var_nor_const
    |> ClauseGoalTyp.add_atomic "literal" literal
    |> ClauseGoalTyp.add_atomic "is_empty" is_empty 
+   |> ClauseGoalTyp.add_atomic "member" is_member 
    
    
 end (* end of local *)

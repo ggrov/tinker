@@ -51,7 +51,4 @@ PPIntf.set_psg_goal (SOME ([], ¨(CaseVal c te cel ee ç OK_VCâd c %implies% C)Æ))
 (*=== command to end the session *)
   TextSocket.safe_close();
 
-
-top_goals();
-List.foldr;
-member;
+LEMMA_T THEN1;

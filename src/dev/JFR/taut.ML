@@ -30,7 +30,6 @@
  val taut_v6 = PSGraph.read_json_file (SOME data) (pspath ^"simple_taut_tac_V6.psgraph"); 
  PPIntf.set_psg_goal (SOME g8) (SOME taut_v6);
 
-
  TextSocket.safe_close();
 
 (*********** TEST ONLY ********)
