@@ -8,7 +8,7 @@ begin
  ML_file "../../../goaltype/clause/goaltype.ML"                                                                                                                        
 
  -- "the prover"  
- ML_file "../basic/isa_prover.ML"                                
+ ML_file "../basic/isa_prover.ML"                              
 
  -- "setting up PSGraph"
 
@@ -32,7 +32,7 @@ ML{*
                                      val prover_socket_port = 0);
  *}
 
-ML{*  open Env_Tac_Utils  *}
+ML{* open Env_Tac_Utils  *}
 
 end
 

@@ -82,7 +82,7 @@ begin
   
    (* FIXME: handle all cases with trms *)
    (* note assumes existential reading *)
-   fun trm_str_schema f env pnode [r,C.Var v] : env list = 
+   fun trm_str_schema f env pnode [r,C.Var v] : IsaProver.env list = 
      let 
        val t1 = C.project_terms env pnode r
        fun app_one t =  
@@ -141,8 +141,10 @@ ML{*
   | top_level_str (Abs (_,_,t)) = top_level_str t
   | top_level_str _ = [];
 
-   fun top_symbol env pnode [r,C.Var p] : env list= 
+   fun top_symbol env pnode [r,C.Var p] : IsaProver.env list= 
           let 
+            val _ = writeln ("in var: " ^ p);
+
             val tops = C.project_terms env pnode r
                      |> maps top_level_str
           in 
@@ -160,6 +162,7 @@ ML{*
           end
     |  top_symbol env pnode [r,C.PVar p] = 
           let 
+            val _ = writeln ("in pvar: " ^ p);
             val tops = C.project_terms env pnode r
                      |> maps top_level_str
           in 
@@ -244,6 +247,13 @@ ML{*
    C.type_check data pnode ("top_symbol",[C.Hyps,C.Name "conj"]);
   *}        
 
+ML{*
+   val fdef2 = "not_top(X) :- not(top_symbol(X,conj)).";
+   val data = C.add_defs ((scan_def fdef2)) data;
+C.type_check data pnode (C.scan_goaltyp @{context} "not_top(imp)")
+   
+*}
+
  ML{*
    val fdef1 = "mtop(X) :- top_symbol(X,conj).";
    val data = C.add_defs ((scan_def fdef1)) data;
@@ -293,5 +303,9 @@ ML{*
  *}
 
 
+ML{*
+ val gt =   C.scan_goaltyp @{context} " top_symbol(concl,Z,conj)";
+ val gt2 =  gt |> C.to_json |> C.from_json;
+*}
 
 end

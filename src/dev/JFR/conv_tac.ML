@@ -8,16 +8,26 @@ use_file (tinker_path ^ "src/dev/JFR/conv_setup.ML");
 (****************************************************)
 val ps = PSGraph.read_json_file (SOME data) (pspath^"basic_morphism.psgraph");
 
-witness_tac;
+fun eq_tav env pnode rec cc =  []
+;
+fun eq_tav env pnode cc1 cc2 = 
+ (case (StrName.NTab.lookup (PPProver.get_pnode_env pnode) rec) of
+             NONE => []
+           | SOME (PPProver.E_L rec') => 
+            (case StrName.NTab.lookup (PPProver.get_pnode_env pnode) cc of
+              NONE => []
+              | SOME (PPProver.E_L cc') =>
+                if (List.length rec' = List.length cc')
+                then [env]
+                else [])
+  handle _ => []);
+
+
 (* definition of the GT *)
-is_simp_conv(?rec)
-not_simp_conv(?rec)
-
-
 
 basic_morphism_tac;
 
-  fun lift_conv_tac (conv : CONV) (conv_args : CONV) TACTIC = 
+  fun lift_conv_tac (conv : CONV) (conv_args : CONV) : TACTIC = 
     (fn (assms, g) => 
       let 
         val thm = conv_args g

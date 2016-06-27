@@ -37,7 +37,7 @@ struct
         if is_env_tactic_name name 
         then 
         let val env_tac = if Env_Tac_Utils.is_abbrv_env_tac name
-        then Env_Tac_Utils.scan_abbrv_env_tac ctxt name |> K
+        then Env_Tac_Utils.scan_abbrv_env_tac ctxt name env
         else EData.PSGraph.get_atomic_env_tac_by_name ps name in
         Prover.apply_env_tactic arg_list env_tac (pnode,pplan) end
         else 
@@ -55,7 +55,6 @@ struct
       (* succeeds, and check for further successes *)
     else
         let
-        
          val new_branch =  (pplan, (bres @ [(GoalTyp.lift pnode) :: r] @ ares))
         in
         (* adds the succeded to the current result *)
@@ -70,7 +69,13 @@ struct
        [] => raise partition_exp {input = gnode_opt, pnodes = [pnode], goaltypes = goal_typs} 
      | xs => xs 
 
-  (* return value : outer list - each branch: singleton 
+  (*
+  type: 
+   GoalTyp.data ->
+   Prover.pnode list ->
+   GoalTyp.gnode option -> pplan -> GoalTyp.T list -> (pplan * GoalTyp.gnode list list) list 
+
+  return value : outer list - each branch: singleton 
                     middle list - one branch same length as goaltype input list
                     inner list - matching goal nodes for given goaltype
     invariant result = partition goal_typs pplan pnds 
@@ -81,9 +86,11 @@ struct
   *)
   fun partition _ [] _  _ _ = []
    |  partition gtype_data pnds gnode_opt pplan goal_typs =
-        [(pplan, map (K []) goal_typs)] (* empty list to start, mk an empty list for each output edges, each 
+(* empty list to start, mk an empty list for each output edges, each 
 branch should have a pplan, as goaltype will change the env so that the gnode in the pplan need to be updated *)
+        [(pplan, map (K []) goal_typs)]
         |> fold (fn pnd => maps (partition_one gtype_data goal_typs pnd gnode_opt)) pnds;
+
 (*
   val partition_to_gnodes = map (map GData.G);
 *) 
@@ -120,7 +127,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
   fun is_top_level_psgraph edata = 
    (EData.get_parent edata |> StrName.NTab.list_of) = []
   
-  fun is_gnode_on_output_edge edata goal_name =
+  fun is_gn_on_boundary edata goal_name =
    let
     val graph = EData.get_graph edata
     val gnode = Util.all_gnodes graph
@@ -129,13 +136,13 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
    in
      (is_some o try_get_out graph) gnode
    end
-  fun has_current_graph_terminated edata = 
+
+  fun is_all_gns_on_boundary edata = 
     Util.all_gnodes (EData.get_graph edata)
-    |> forall (is_some o (try_get_out (EData.get_graph edata)));
-    
+    |> forall (is_some o (try_get_out (EData.get_graph edata))); 
 
   fun has_psgraph_terminated edata = 
-    has_current_graph_terminated edata andalso (* current graph is terminated *)
+    is_all_gns_on_boundary edata andalso
     is_top_level_psgraph edata
   
 
@@ -220,6 +227,10 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
 (************************************************************
       Gnode evaluation
 *************************************************************)
+  fun print_outedges (r : GoalTyp.gnode list list) = 
+   let fun print_one gs =  map GoalTyp.goal_name gs |> str_blocks ", " in
+   logging "EVAL"  ("Branch (goals on the ouput edges): | " ^((map print_one r) |> str_blocks " | ") ^ " |") end
+
   fun mk_ngs_to_branch  gt_data gnode_opt goal_typs  (ngs :( Prover.pnode list * Prover.pplan) Seq.seq) 
     : (Prover.pplan * GoalTyp.gnode list list) Seq.seq =
    let 
@@ -235,20 +246,21 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
       )) res
       |>  *)
         case pnds of [] => Seq.single (pplan, [])
-       | _ =>  Seq.of_list res
+       | _ =>  (map (print_outedges o snd) res ; Seq.of_list res)
       end
     handle partition_exp {pnodes,...}  => 
-      (logging "FAILURE" ("Fail to match any goaltype for the output goal pnode :" ^ 
+      (logging "FAILURE" ("Fail to match any goaltype for the output goal pnode :\n" ^ 
        ((hd pnodes) |> Prover.pretty_pnode |> Pretty.string_of)); 
        raise tinker_fail false)
    in
     Seq.maps apply_one ngs
    end
   fun apply_atomic edata gnode tac goal_typs =
-   let  val gt_data = edata 
+   let  
+    val gt_data = edata 
                   |> EData.get_psgraph  
                   |> EData.PSGraph.get_goaltype_data 
-     val res = apply_tactic edata gnode tac  
+    val res = apply_tactic edata gnode tac  
    in
       mk_ngs_to_branch gt_data (SOME gnode) goal_typs res
       |> Seq.map (fn (pp, res) => (EData.set_bpplan pp (EData.get_current edata) , res))
@@ -278,10 +290,15 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
      val (SOME tactic) = Util.lookup_ivertex_data graph tnode 
      val result = apply_atomic edata goal tactic out_goaltypes
    in
-      case Seq.pull result of SOME ((b,[]),_) (* no new goals is produced *) =>
+   (*
+      case Seq.pull result of SOME ((b,[]),_)  =>
         Seq.single (
          EData.set_bgraph graph' b)
       | _ => Seq.map 
+       (fn (b,rs) => (EData.set_bgraph (add_gnodes out_edges rs graph')) b) 
+      result
+    *)
+      Seq.map 
        (fn (b,rs) => (EData.set_bgraph (add_gnodes out_edges rs graph')) b) 
       result
    end

@@ -13,7 +13,8 @@ struct
    let
     val ctxt' = Config.put show_markup false ctxt;
    in Print_Mode.setmp [] (Syntax.string_of_term ctxt') t end;
-  val trm_of_string = Syntax.parse_term;
+  fun trm_of_string0 ctxt str = Syntax.parse_term ctxt str 
+  fun trm_of_string ctxt str = trm_of_string0 ctxt str (*|>  Syntax.check_term ctxt*);
   fun prop_of_string ctxt x = 
     Syntax.parse_term ctxt x 
     |> (fn t => (Const ("HOL.Trueprop", dummyT) $ t))
@@ -21,13 +22,13 @@ struct
   val string_of_trm = (*Syntax.string_of_term*) term_to_string;
   fun get_thm_by_name ctxt name = 
     Find_Theorems.find_theorems ctxt NONE NONE false [(true, Find_Theorems.Name name)]
-    |> snd |> hd |> snd
+    |> snd |> List.last |> snd
    handle _ => (logging "FAILURE" ("Fail to get thm by name: " ^ name); raise tinker_fail true)
   val pretty_trm = Syntax.pretty_term;
 
   fun subst_trm_vars vts trm = 
    let
-     val vts' = map (fn (n, trm) => ((String.extract (n,1,NONE), 0), trm)) vts
+     val vts' = map (fn (n, trm) => ((n, 0), trm)) vts
    in
      Term.subst_Vars vts' trm 
    end
@@ -101,7 +102,9 @@ struct
     |> Pretty.str
     end
 
-  type env_tac =  arg_data list -> env -> env list
+  type env_tac = context -> arg_data list -> env -> env list
+  fun id_env_tac _ _ env = [env] 
+  fun id_env_tac_f env : env_tac= (fn c => (fn args => fn _ => id_env_tac c args env))
 
   type pnode = { pname : string, pctxt : Proof.context, ptrm : Term.term, env : env } 
   type pplan = { goal : Thm.thm, opengs : pnode list, usedgs : StrName.NSet.T }
@@ -113,7 +116,7 @@ struct
   val exec_str = eval_text;
   
   fun parse_env_data ctxt (typ,def) vts = 
-    case typ of "term" => trm_of_string ctxt def 
+    case typ of "term" => trm_of_string0 ctxt def 
       |> (let val vts' = map (fn (n, E_Trm t) => (n,t) | (n, _) 
        => (logging "FAILURE" ("Only E_trm is supported as args, in parsing env var: " ^ n) ;
        raise tinker_fail true)) vts in
@@ -294,6 +297,13 @@ struct
      term_to_string (get_pnode_ctxt pnode) (get_pnode_concl pnode),
      " ]"] |> Pretty.str
 
+  fun pretty_pnode pnode = 
+  str_chunks_tab 1
+  (["[ Goal " ^ (get_pnode_name pnode) ^ " : "] @
+   (map (fn x => (tab 1) ^  (term_to_string (get_pnode_ctxt pnode) x)) (get_pnode_hyps pnode)) @
+   [(tab 1) ^ ("\<turnstile> " ^ (term_to_string (get_pnode_ctxt pnode) (get_pnode_concl pnode))) ^ "]"])
+  |> Pretty.str;
+
   fun pretty_pplan _ = Pretty.str "Pretty PPLAN TOTO";
   fun restore_pplan _ = ();
    
@@ -312,7 +322,7 @@ struct
   fun apply_env_tactic args (env_tac : env_tac) (pnode,pplan) = 
     (*let val (env_tac : env_tac)  = build_tac_code_with_arg env_tac_code args |> EnvTac_ML_Exec.eval_ml in*)
     (K (K all_tac)) (#pctxt pnode) (get_index pnode pplan) (#goal pplan)
-    |> Seq.maps (update (env_tac args) (pnode,pplan))
+    |> Seq.maps (update (env_tac  (#pctxt pnode)  args) (pnode,pplan))
     |> (fn x => 
         (case Seq.pull x of NONE 
            => (logging "FAILURE" ("Fail to apply env tactic for pnode " ^ get_pnode_name pnode ^  ", empty seqence"); 
@@ -343,32 +353,34 @@ struct
   fun top_symbol trm = the (TermFeatures.top_level_str trm );*)
 
   val unicode_symb = [
-   ("\\\<longrightarrow>", "<_uni_symb_implies_>"),
+   ("\<longrightarrow>", "<_uni_symb_implies_>"),
   
-   ("\\\<nat>", "<_uni_symb_bbN_>"),
+   ("\<nat>", "<_uni_symb_bbN_>"),
 
-   ( "\\\<not>" ,"<_uni_symb_lnot_>"),
-   ("\\\<and>", "<_uni_symb_land_>"),
-   ("\\\<or>", "<_uni_symb_lor_>"),
+   ( "\<not>" ,"<_uni_symb_lnot_>"),
+   ("\<and>", "<_uni_symb_land_>"),
+   ("\<or>", "<_uni_symb_lor_>"),
 
-   ("\\\<forall>", "<_uni_symb_forall_>"),
-   ("\\\<exists>", "<_uni_symb_exists_>"),
+   ("\<forall>", "<_uni_symb_forall_>"),
+   ("\<exists>", "<_uni_symb_exists_>"),
 
-   ("\\\<noteq>", "<_uni_symb_neq_>"),
+   ("\<noteq>", "<_uni_symb_neq_>"),
+   ("\<ge>", "<_uni_symb_geq_>"),
 
-   ("\\\<union>", "<_uni_symb_union_>"),
-   ("\\\<inter>", "_uni_symb_inter_"),
-   ("\\\<in>", "<_uni_symb_in_>"),
-   ("\\\<notin>", "<_uni_symb_notin_>"),
-   ("\\\<subset>", "<_uni_symb_lsubset_>"),
-   ("\\\<supset>", "<_uni_symb_rsubset_>"),
-   ("\\\<subseteq>", "<_uni_symb_lsubseteq_>"),
-   ("\\\<supseteq>", "<_uni_symb_rsubseteq_>"),
-   ("\\\<lhd>", "<_uni_symb_domres_>"),
-   ("\\\<rhd>", "<_uni_symb_ranres_>"),
+   ("\<union>", "<_uni_symb_union_>"),
+   ("\<inter>", "_uni_symb_inter_"),
+   ("\<in>", "<_uni_symb_in_>"),
+   ("\<notin>", "<_uni_symb_notin_>"),
+   ("\<subset>", "<_uni_symb_lsubset_>"),
+   ("\<supset>", "<_uni_symb_rsubset_>"),
+   ("\<subseteq>", "<_uni_symb_lsubseteq_>"),
+   ("\<supseteq>", "<_uni_symb_rsubseteq_>"),
+   ("\<lhd>", "<_uni_symb_domres_>"),
+   ("\<rhd>", "<_uni_symb_ranres_>"),
    
-   ("\\\<Longrightarrow>", "<_uni_symb_metaimpies_>"),
-   ("\\\<lambda>", "<_uni_symb_lambda_>")
+   ("\<Longrightarrow>", "<_uni_symb_metaimpies_>"),
+   ("\<lambda>", "<_uni_symb_lambda_>"),
+   ("\<turnstile>",  "<_uni_symb_vdash_>")
   ];
   
   structure unicode_helper = UnicodeHelperFUN (val symb_tab  = unicode_symb);

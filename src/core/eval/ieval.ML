@@ -43,7 +43,7 @@ struct
      if EVal.has_psgraph_terminated edata then Good edata
      else
       (* do nothing, if reaching the top level and the current goal is on edge *)
-       if EVal.is_top_level_psgraph edata andalso EVal.is_gnode_on_output_edge edata g 
+       if EVal.is_top_level_psgraph edata andalso EVal.is_gn_on_boundary edata g 
        then Cont edata
        else
          EVal.eval_goal_goalname if_debug g edata
@@ -54,26 +54,15 @@ struct
    handle EVal.EData.PSGraph.Theory.Graph.no_such_vertex_exp (f, v, _) => 
      (logging "FAILURE" ("Exception in " ^ f ^ " for node " ^ (V.string_of_name v) ^ ": no such vertex");
        raise tinker_fail true)
-  
-  val eval_goal = eval_goal0 false;
-  
-(* need to restore pom depends on provers *)
-  fun eval_backtrack edata = 
-   case EData.get_branches edata  
-   of [] => (logging "FAILURE" "No branch available for backtracking" ; Bad)
-    | branch  => 
-        (EData.PSGraph.Theory.Data.GoalTyp.Prover.restore_pplan (EData.get_bpplan (hd branch));
-        Cont( EData.set_current (hd branch) edata 
-              |> EData.set_branches (tl branch)))
 
-  fun eval_any0 if_debug edata = 
+   fun eval_any0 if_debug edata = 
    let 
     val graph = (EData.get_graph edata) 
     val cur_gnodenames = EVal.EData.PSGraph.Theory.Graph_Utils.all_gnodes graph
    in
     if EVal.has_psgraph_terminated edata then Good edata
     else
-    if EVal.has_current_graph_terminated edata andalso (List.null cur_gnodenames)
+    if (*EVal.is_all_gns_on_boundary edata  andalso*) (List.null cur_gnodenames)
     then EVal.exit_hgraph_no_goal_node edata |> Seq.list_of |> update_branches edata
     else
    (* todo: hierichecal one *)
@@ -87,7 +76,7 @@ struct
             x))
        |> (fn gl => (* filter out those on the edges when at the top level,shoule never reach here if the current graph is finished *)
            if EVal.is_top_level_psgraph edata 
-           then (filter (fn g => (not (EVal.is_gnode_on_output_edge edata g)))gl) 
+           then (filter (fn g => (not (EVal.is_gn_on_boundary edata g)))gl) 
            else gl)
        |> hd(* pick the first one *)
        |> (fn g => EVal.eval_goal_goalname if_debug g edata
@@ -95,10 +84,18 @@ struct
                        (*|> map fst*))
        |> update_branches edata
   end;
- 
+
+  val eval_goal = eval_goal0 false;
   val eval_any = eval_any0 false;
 
-  fun eval_complete0 if_debug edata = 
+  fun eval_backtrack edata = 
+   case EData.get_branches edata  
+   of [] => (logging "FAILURE" "No branch available for backtracking" ; Bad)
+    | branch  => 
+        (EData.PSGraph.Theory.Data.GoalTyp.Prover.restore_pplan (EData.get_bpplan (hd branch));
+        Cont( EData.set_current (hd branch) edata |> EData.set_branches (tl branch)))
+
+  fun eval_complete0 if_debug (* if debug mode, i.e. breakpoint *) edata = 
    let val ret = eval_any0 if_debug edata in
    case ret 
    of Cont e => eval_complete0 if_debug e
@@ -129,14 +126,31 @@ struct
     |> eval_until_graph edata)
   end
 
- fun eval_until_break edata = eval_complete0 true edata
- handle EVal.Breakpoint e => Cont e;
+ 
+ fun eval_until_break0 edata (bs : EData.branch list) = 
+  let 
+    fun get_ret ed = eval_complete0 true ed 
+     handle EVal.Breakpoint e => Cont e
+    fun debug_branches ret = 
+     let 
+      val (e, newbs) = 
+       case ret of Good e0 => (e0, bs @ [EData.get_current e0])
+       | Bad => (EData.set_branches [] edata, bs)
+       | Cont e0  => (e0 , bs @ [EData.get_current e0] )
+     in
+      case EData.get_branches e
+       of [] => 
+       (* no more branches to evaluate, then restore pplan and update branches *)
+       (EData.PSGraph.Theory.Data.GoalTyp.Prover.restore_pplan (EData.get_bpplan (hd newbs));
+        update_branches e newbs)
+       | _ => (case eval_backtrack e of Cont e0 => eval_until_break0 e0 newbs) 
+     end
+  in
+    debug_branches (get_ret edata)
+  end
 
-(*
- fun eval_until_breakpoint
- fun eval_ignore_breakpoint 
-*) 
-
+ fun eval_until_break edata = eval_until_break0 edata []
+  
 (************************************************************
      JSON output
 *************************************************************)

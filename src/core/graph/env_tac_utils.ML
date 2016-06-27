@@ -6,25 +6,13 @@ end
 signature ENV_TAC_UTILS = 
 sig
   structure PS_Theory : PS_THEORY
-  val ENV_new_var : 
-    string (* var name *) 
-    -> PS_Theory.Data.GoalTyp.Prover.env_data  
-    -> PS_Theory.Data.GoalTyp.Prover.env 
-    -> PS_Theory.Data.GoalTyp.Prover.env list
-  val ENV_del_var : 
-    string (* var name *) 
-    -> PS_Theory.Data.GoalTyp.Prover.env  
-    -> PS_Theory.Data.GoalTyp.Prover.env list
-  val ENV_update_var : 
-    ('a -> PS_Theory.Data.GoalTyp.Prover.env_data -> PS_Theory.Data.GoalTyp.Prover.env_data list) 
-    -> string -> 'a
-    -> PS_Theory.Data.GoalTyp.Prover.env -> PS_Theory.Data.GoalTyp.Prover.env list
 
   val is_abbrv_env_tac : string -> bool
   val scan_abbrv_env_tac : 
      PS_Theory.Data.GoalTyp.Prover.context
-     -> string 
-     -> PS_Theory.Data.GoalTyp.Prover.env -> PS_Theory.Data.GoalTyp.Prover.env list
+     -> string
+     -> PS_Theory.Data.GoalTyp.Prover.env
+     -> PS_Theory.Data.GoalTyp.Prover.env_tac
 
   structure Sharing : ENV_TAC_UTILS_SHARING
     sharing Sharing.PS_Theory = PS_Theory.Sharing
@@ -43,29 +31,6 @@ struct
         of NONE 
           => (logging "ENV_DATA" ("Invalid env variable name: " ^ name); raise tinker_fail true)
         | (SOME n) => n;
-  
-    fun ENV_new_var name data env = 
-      [StrName.NTab.ins ((parse_env_var_name' name), data) env]
-     handle StrName.NSet.duplicate_exp _
-      => (logging "ENV_DATA" ("The env variable name already exists " ^ name); raise tinker_fail true)
-
-    fun ENV_del_var name env = 
-     let 
-      val _ = 
-       if StrName.NTab.contains env (parse_env_var_name' name) then ()
-       else logging "ENV_DATA" ("The env variable name to be deleted doesn't exist " ^ name) in
-    [StrName.NTab.delete (parse_env_var_name' name) env] end
-
-  fun ENV_update_var f name arg env = 
-    let val _ = 
-        if StrName.NTab.contains env (parse_env_var_name' name) then ()
-        else logging "ENV_DATA" ("The env variable name to be updated doesn't exist " ^ name) in
-   map (fn x =>  StrName.NTab.update (name, x) env) 
-     (f arg (StrName.NTab.get env (parse_env_var_name' name))) end
-
-(*
-  structure ENV_UTILS_ML_Exec = ML_Exec_Func (val exec_str = Prover.exec_str type ret = string val struct_name = struct_name ^ ".ENV_UTILS_ML_Exec");
-*)
 
   (* scanner for the easier form of env tactic *)
     fun filter_blank str = Symbol.explode str |> filter (not o member (op =) [" ", "\t"]) |> String.concat
@@ -127,8 +92,8 @@ struct
           else let val (a,b) = scan_rest_name xs in (x :: a, b) end;
     
     val scan_env_var = 
-      ($$ "?" -- Scan.one (Symbol.is_letter) -- scan_rest_name)
-      >> (fn ((x,y), l) => [x,y] @ l |> String.concat |> filter_blank) (* collapse the parsed string as a var name *)      ;
+      ($$ "?" -- Scan.many (fn x => Symbol.is_letter x orelse Symbol.is_digit x) -- scan_rest_name)
+      >> (fn ((_,y), _) => y |> String.concat (*|> filter_blank*)) (* collapse the parsed string as a var name *)      ;
  
     fun scan_env_vars0 [] = []
       | scan_env_vars0 xs = 
@@ -185,11 +150,12 @@ struct
          if (typ = "string") then []
          else
          scan_env_vars ( Symbol.explode def)
-         |> map (fn n => (n, StrName.NTab.get env (String.extract (n,1,NONE))))
+         |> map (fn n => (n, StrName.NTab.get env n(*String.extract (n,1,NONE)*)))
          handle StrName.Tab.UNDEF n => 
          (logging "FAILURE" ("the env var " ^ n ^ " does not exist."); raise tinker_fail true)
       in
-        [StrName.NTab.update (filter_blank var, Prover.parse_env_data ctxt (filter_blank typ, def) env_vars) env]
+        StrName.NTab.update (filter_blank var, Prover.parse_env_data ctxt (filter_blank typ, def) env_vars) env
+        |> Prover.id_env_tac_f 
       end
      handle _ => (if if_local_debug then writeln ("Fail to parse: " ^ input )
       else (LoggingHandler.logging "FAILURE" ("Fail to parse: " ^ input )); 

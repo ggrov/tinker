@@ -21,14 +21,14 @@ struct
     "FAILURE"
   ] |> StrName.NSet.of_list;
 
-  val if_debug_json = true
+  val if_debug_json = false
   fun debug_json str x = (if if_debug_json then writeln str else (); x)
 
   val active_tags = Unsynchronized.ref StrName.NSet.empty;
   fun get_active_tags _ = !active_tags;
   val set_active_tags = fn x => active_tags := x;
 
-  val if_debug = true (* to enable local print, i.e. for JSON I/O *)
+  val if_debug = true (* to enable local print, an overall control for all local print *)
   val logging_handler_print = 
    if if_debug then
    (fn tag => (fn msg =>  
@@ -125,10 +125,7 @@ fun check_perform f arg label =
  
 end
 
-val local_logging_debug = false (* to print all logging info in the prover side *)
-val _ = LoggingHandler.set_logging_handler 
-  (fn tag => fn msg => ( if local_logging_debug then LoggingHandler.logging_handler_print tag msg else (); 
-    LoggingHandler.logging_handler_gui tag msg));
+val _ = LoggingHandler.set_logging_handler LoggingHandler.logging_handler_gui ;
 val _ = LoggingHandler.active_all_tags ();
 structure LH = LoggingHandler; 
 
