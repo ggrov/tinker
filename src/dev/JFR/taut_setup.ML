@@ -35,7 +35,7 @@
  "asm_to_strip() :- h(implies)." ^
  "asm_to_strip() :- h(if_then_else)." ^
  "asm_to_strip() :- h_not_literal(not)." ^
- "no_asm_to_strip() :- not(asm_to_strip())." ^;
+ "no_asm_to_strip() :- not(asm_to_strip())." ;
 
  val data = 
   default_gt_data
