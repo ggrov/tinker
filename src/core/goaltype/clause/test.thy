@@ -13,8 +13,14 @@ begin
   ML{*
     structure ClauseGoalTyp = ClauseGTFun(structure Prover = IsaProver val struct_name = "ClauseGoalTyp");  
     structure C = ClauseGoalTyp;
-    C.Var;
+    C.Var
   *}
+
+
+ML{*
+C.scan_clause @{context} (Symbol.explode "!c()");
+C.scan_clause @{context} (Symbol.explode "not(c())");
+*}
 
 
   ML{*

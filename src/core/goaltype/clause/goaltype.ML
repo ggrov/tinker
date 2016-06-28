@@ -273,7 +273,6 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
    and  eval_not_clause (data as P {defs,...}) pnode (cls as Clause ("not",[Clause (nf,args)])) gtenv =
     let 
       val _ = dbg ("Negating " ^ nf ^ " : ") 
-    
     in 
       case eval_arg data pnode (Clause (nf,args)) gtenv of 
           [] => [Prover.get_pnode_env pnode]
@@ -375,7 +374,8 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
 
  (* scan clause *)
  fun scan_term ctxt = $$ "\"" |--  Scan.many (fn s => not(s = "\"")) --| $$ "\"" >> implode >> (Term o (Prover.trm_of_string ctxt));  
- fun scan_clause ctxt xs  =  (scan_name -- ( scan_empty || (scan_args ctxt)) >> Clause) xs 
+ fun scan_clause0 ctxt xs  =  (scan_name -- ( scan_empty || (scan_args ctxt)) >> Clause) xs 
+ and scan_clause ctxt = ($$"!" |-- scan_clause0 ctxt) >> (fn x => Clause("not", [x])) || scan_clause0 ctxt
  (* Note: does not turn into term *)
  (*       terms not supported*)
  and scan_arg ctxt xs = ((scan_clause ctxt) || scan_arg_name  || scan_term ctxt) xs
