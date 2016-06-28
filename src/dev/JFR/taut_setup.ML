@@ -17,8 +17,8 @@
  val clause_def = 
  "c(Z) :- top_symbol(concl,Z)." ^
  "h(Z) :- member(X, hyps), top_symbol(X,Z). " ^
- "not_trm_var(Y) :- not(trm_var(Y)). " ^
- "has_no_hyp(Y) :- not(has_hyp(Y)). " ^
+ "not_trm_var(Y) :- !trm_var(Y). " ^
+ "has_no_hyp(Y) :- !has_hyp(Y). " ^
  "c_not_literal(X) :- c(X), dest_term(concl, _, Y2), not_trm_var(Y2)." ^
  "h_not_literal(X) :- member(X, hyps), top_symbol(X,Z), dest_term(Y, _, Z2), not_trm_var(Z2)." ^
  "taut_simp() :- is_goal(true)." ^
@@ -35,7 +35,7 @@
  "asm_to_strip() :- h(implies)." ^
  "asm_to_strip() :- h(if_then_else)." ^
  "asm_to_strip() :- h_not_literal(not)." ^
- "no_asm_to_strip() :- not(asm_to_strip())." ;
+ "no_asm_to_strip() :- !asm_to_strip()." ;
 
  val data = 
   default_gt_data

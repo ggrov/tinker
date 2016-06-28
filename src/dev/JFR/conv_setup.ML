@@ -305,9 +305,9 @@ fun eq env pnode [ClauseGoalTyp.PVar pc, ClauseGoalTyp.PVar pcc] = eq0 env pnode
  "more_rec(X1,X2,X3,Z) :- is_i_conv(Z)." ^
  "more_rec(X1,X2,X3,Z) :- is_k_conv(Z)." ^
  "more_rec(X1,X2,X3,Z) :- is_rec_conv(X1,X2,X3,Z)." ^ 
- "no_more_rec(X1,X2,X3,Z) :- not(is_rec_conv(X1,X2,X3,Z))." ^
- "not_simp_conv(X) :- not(is_simp_conv(X))." ^
- "not_eq(X,Y) :- not(eq(X,Y)).";
+ "no_more_rec(X1,X2,X3,Z) :- !is_rec_conv(X1,X2,X3,Z)." ^
+ "not_simp_conv(X) :- !is_simp_conv(X)." ^
+ "not_eq(X,Y) :- !eq(X,Y).";
 
  val data = 
   default_gt_data

@@ -13,7 +13,7 @@ ML{*
  "h(Z) :- member(X,hyps), top_symbol(X,Z)." ^
  "is_goal(Z) :- eq_term(concl, Z)." ^
  "has_hyp(Z) :- eq_term(hyps, Z)." ^
- "not_literal(X) :- not(is_literal(X))." ^
+ "not_literal(X) :- !is_literal(X)." ^
  "c_and_non_literal(X) :- c(X), dest_term(concl, _, Y2), not_literal(Y2)." ^
  "h_and_non_literal(X) :- member(X,hyps), top_symbol(X,Z), dest_term(Y, _, Z2), not_literal(Z2)." ^
  "asm_to_elim() :- h(conj)." ^
@@ -21,8 +21,8 @@ ML{*
  "asm_to_elim() :- h(eq)." ^
  "asm_to_elim() :- h(implies)." ^
  "asm_to_elim() :- h_and_non_literal(not)." ^
- "no_asm_to_elim(X) :- not(asm_to_elim(X))." ^
- "not_empty_list(X) :- not(empty_list(X)).";
+ "no_asm_to_elim(X) :- !asm_to_elim(X)." ^
+ "not_empty_list(X) :- !empty_list(X).";
 
   val data =  
   data 
