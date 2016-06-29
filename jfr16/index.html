@@ -15,9 +15,6 @@
 	</div>
 	</header><!-- /header -->
 	<div class="container">
-		<script src="script/d3.min.js"></script>
-		<script src="script/d3-tip.min.js"></script>
-		<script src="script/tinker.js"></script>
 		<div class="section" id="intro">
 			<h2>Foreword (TODO: update how to get all the executable and install instruction)</h2>
 			<hr>
@@ -72,7 +69,7 @@
 			<hr>
 			<h3>Background</h3>
 			<h3>Refactoring History</h3>
-			<div id="record1">
+			<div id="taut_refactor">
 				<div id="graphContent" style="visibility:hidden">
 					<div class="line">
 						<div id="proofInfo" class="content">
@@ -105,50 +102,10 @@
 				</div>
 			</div>
 			<script>
-				makeViz("record1","ressources/flat.json")
+				makeViz("taut_refactor","ressources/flat.json")
 			</script>
 			<h3>Proof recording</h3>
-			<div id="record1">
-				<div id="graphContent" style="visibility:hidden">
-					<div class="line">
-						<div id="proofInfo" class="content">
-							<span id="proofTitle"></span>
-							<span id="proofAuthor"></span>
-							<span id="proofDate"></span>
-						</div>
-						<div class="line content">
-							<span>Evaluation Step : </span>
-							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
-							<span id="vizIndices"></span>
-							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
-							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
-						</div>
-					</div>
-					<div id="mainArea">
-						<div class="line content">
-							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
-							<div>
-								<select id="tacticList" class=""></select>
-								<span>Subgraphs : </span>
-								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
-								<span id="graphIndices"></span>
-								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
-							</div>
-						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
-					</div>
-					<div id="graphError" style="visibility:hidden"></div>
-				</div>
-			</div>
-		</div>
-		<div class="section" id="fef">
-			<link rel=stylesheet href="style/tinkerViz.css">
-			<link rel=stylesheet href="style/graph.css">
-			<h2>Domain specific tactics from the FEF project</h2>
-			<hr>
-			<h3>Background</h3>
-			<h3>Proof recording</h3>
-			<div id="record1">
+			<div id="taut_proof">
 				<div id="graphContent" style="visibility:hidden">
 					<div class="line">
 						<div id="proofInfo" class="content">
@@ -181,7 +138,50 @@
 				</div>
 			</div>
 			<script>
-				makeViz("record1","ressources/flat.json")
+				makeViz("taut_proof","ressources/flat.json")
+			</script>			
+		</div>
+		<div class="section" id="fef">
+			<link rel=stylesheet href="style/tinkerViz.css">
+			<link rel=stylesheet href="style/graph.css">
+			<h2>Domain specific tactics from the FEF project</h2>
+			<hr>
+			<h3>Background</h3>
+			<h3>Proof recording</h3>
+			<div id="fef_proof">
+				<div id="graphContent" style="visibility:hidden">
+					<div class="line">
+						<div id="proofInfo" class="content">
+							<span id="proofTitle"></span>
+							<span id="proofAuthor"></span>
+							<span id="proofDate"></span>
+						</div>
+						<div class="line content">
+							<span>Evaluation Step : </span>
+							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
+							<span id="vizIndices"></span>
+							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
+							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
+						</div>
+					</div>
+					<div id="mainArea">
+						<div class="line content">
+							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
+							<div>
+								<select id="tacticList" class=""></select>
+								<span>Subgraphs : </span>
+								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
+								<span id="graphIndices"></span>
+								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
+							</div>
+						</div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+					</div>
+					<div id="graphError" style="visibility:hidden"></div>
+				</div>
+			</div>
+			<script>
+				makeViz("fef_proof","ressources/flat.json")
 			</script>
 		</div>
 		<div class="section" id="conv">
@@ -192,7 +192,7 @@
 			<h3>Background</h3>
 			<h3>Proof recording</h3>
 
-			<div id="record1">
+			<div id="conv_proof">
 				<div id="graphContent" style="visibility:hidden">
 					<div class="line">
 						<div id="proofInfo" class="content">
@@ -225,7 +225,7 @@
 				</div>
 			</div>
 			<script>
-				makeViz("record1","ressources/flat.json")
+				makeViz("conv_proof","ressources/flat.json")
 			</script>
 		</div>
 		<div class="section" id="demo">
