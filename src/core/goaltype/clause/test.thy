@@ -250,8 +250,12 @@ ML{*
 
   ML{*
    C.imatch data pnode ("top_symbol",[C.Concl,C.Name "conj"]);
-   C.type_check data pnode ("top_symbol",[C.Hyps,C.Name "conj"]);
+   C.type_check data pnode ("top_symbol",[C.Hyps,C.Name "disj"]);
   *}        
+ML{*
+(C.scan_goaltyp @{context} "!top_symbol(concl, imp)");
+   C.type_check data pnode (C.scan_goaltyp @{context} "!top_symbol(concl, imp)")
+*}
 
 ML{*
    val fdef2 = "not_top(X) :- not(top_symbol(X,conj)).";

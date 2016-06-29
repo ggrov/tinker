@@ -7,7 +7,7 @@ struct
 (* note that this has to be turned off in isabelle, 
 as pretty printing contains some non-standard chars which breaks the protocal *)
   val DEBUG_ON = true;
-  val if_gui_mode = true;
+  val if_gui_mode = false;
 
   val tab = Unsynchronized.ref 0;
   fun inctab() = (tab := !tab +1);
@@ -317,8 +317,13 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
         ((dbg ("evaluating " ^  (str_arg (Clause t))  ^ " with " ^ str_env gtenv ));
         dbg_res (f_a gtenv pnode args));
 
+  fun match_not_atomic data  pnode (cls as ("not",[Clause (nf,args)]):T) gtenv =
+    eval_not_clause data pnode (Clause cls) gtenv
+    | match_not_atomic _ _ _ _ = [];
+
   fun match data pnode ((f,args):T) gtenv =
      (match_atomic data pnode (f,args) gtenv) 
+   @ (match_not_atomic data pnode (f,args) gtenv)
    @ (eval_defs data pnode (f,args) gtenv);
   
   fun imatch data pnode (t as (gtnm,gtargs)) = 
@@ -403,7 +408,8 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
 
   fun scan_data ctxt = explode #> scan_all (scan_prog ctxt); 
 
-  fun scan_gt_single ctxt = scan_name -- (scan_args ctxt || scan_empty)
+  fun scan_gt_single0 ctxt = (scan_name -- (scan_args ctxt || scan_empty)) 
+  fun scan_gt_single ctxt =  ($$"!" |-- scan_gt_single0 ctxt)>> (fn x => ("not", [Clause x])) || scan_gt_single0 ctxt ;
   fun scan_gt_full ctxt = (scan_gt_single ctxt) -- Scan.repeat ($$ "," |-- (scan_gt_single ctxt)) --| $$ "." >> op :: ; 
   fun scan_goaltyp0 ctxt = explode #> scan_gt_single ctxt #> #1; 
   fun scan_goaltyp ctxt str = 
