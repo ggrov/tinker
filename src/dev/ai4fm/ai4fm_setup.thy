@@ -8,7 +8,8 @@ lemma not_iff: "(\<not>(P \<longleftrightarrow>Q)) = ((P \<and> \<not> Q) \<or> 
 
 lemma impF: "(P \<longrightarrow> Q) \<Longrightarrow> (\<not> P \<or> Q)" by auto
 
-thm not_not de_Morgan_conj HOL.de_Morgan_disj not_imp not_iff not_True_eq_False not_False_eq_True
+
+lemmas not_thms = not_not de_Morgan_conj HOL.de_Morgan_disj not_imp not_iff not_True_eq_False not_False_eq_True
 
 lemma not_not_f: "\<not>\<not>P \<Longrightarrow> P" by auto
 lemma de_Morgan_conj_f: " (\<not> (P \<and> Q)) \<Longrightarrow> (\<not> P \<or> \<not> Q)" by auto
@@ -119,30 +120,29 @@ ML{*
      end
   | eq_term _ _ _ = [];
 
- fun is_literal0 trm = 
-  Term.is_Free trm orelse Term.is_Var trm 
- fun is_literal env pnode [Clause_GT.Concl] = 
+ fun is_var0 trm = Term.is_Free trm orelse Term.is_Var trm 
+ fun is_var env pnode [Clause_GT.Concl] = 
   IsaProver.get_pnode_concl pnode
   |> ignore_true_prop
-  |> is_literal0
+  |> is_var0
   |> (fn x => if x then [env] else [])
-  | is_literal env _ [Clause_GT.Var v] = 
+  | is_var env _ [Clause_GT.Var v] = 
      (case StrName.NTab.lookup env v of
        NONE => []
      | SOME (IsaProver.E_Trm t) => 
-            if ((is_literal0 o ignore_true_prop) t)
+            if ((is_var0 o ignore_true_prop) t)
             then [env]
             else []
      | _ => [] )
-  | is_literal env _ [Clause_GT.PVar v] = 
+  | is_var env _ [Clause_GT.PVar v] = 
      (case StrName.NTab.lookup env v of
        NONE => []
      | SOME (IsaProver.E_Trm t) => 
-            if ((is_literal0 o ignore_true_prop) t)
+            if ((is_var0 o ignore_true_prop) t)
             then [env]
             else []
       | _ => [])
-  | is_literal _ _ _ = []
+  | is_var _ _ _ = []
 
  exception dest_trm_exp of string 
  fun dest_trm env pnode [trm, p1, p2] = 
@@ -169,7 +169,7 @@ ML{*
   |> Clause_GT.add_atomic "top_symbol" top_symbol 
   |> Clause_GT.add_atomic "eq_term" eq_term 
   |> Clause_GT.add_atomic "dest_term" dest_trm 
-  |> Clause_GT.add_atomic "is_literal" is_literal 
+  |> Clause_GT.add_atomic "is_var" is_var 
   |> Clause_GT.add_atomic "empty_list" empty_list
   |> Clause_GT.add_atomic "member" is_member;
 
@@ -198,6 +198,15 @@ fun erule_tac2
    IsaProver.A_Trm trm1, IsaProver.A_Trm trm2, IsaProver.A_Thm thm] ctxt = 
   eres_inst_tac ctxt  [((str1,0), (IsaProver.string_of_trm ctxt trm1)), 
                        ((str2,0), (IsaProver.string_of_trm ctxt trm2))] thm
+fun subst_tac [IsaProver.A_Str thmn] ctxt = 
+  let val thms =  Find_Theorems.find_theorems ctxt NONE NONE false 
+    [(true, Find_Theorems.Name thmn)] |> snd |> map snd in
+  EqSubst.eqsubst_tac ctxt [0] thms  end
+ 
+fun asm_subst_tac [IsaProver.A_Str thmn] ctxt = 
+  let val thms =  Find_Theorems.find_theorems ctxt NONE NONE false 
+    [(true, Find_Theorems.Name thmn)] |> snd |> map snd in
+  EqSubst.eqsubst_asm_tac ctxt [0] thms  end
 *}
 
 ML{*
@@ -237,7 +246,7 @@ fun ENV_all_asms _ [IsaProver.A_L_Trm hyps, IsaProver.A_Var name] (env : IsaProv
 
 fun ENV_check_ccontr ctxt [IsaProver.A_L_Trm hyps, IsaProver.A_Var v]  (env : IsaProver.env) :  IsaProver.env list= 
  (case (filter(member(fn (a,b) => (dest_comb a |> snd) = ((Const ("HOL.Not", dummyT) $ (dest_comb b |> snd))|> Syntax.check_term ctxt)) hyps) hyps) 
-  of [] => [StrName.NTab.update (v, IsaProver.E_Str "None") env]
+  of [] => [StrName.NTab.update (v, IsaProver.E_L []) env]
   | ret => [StrName.NTab.update 
      (v, IsaProver.E_Trm (
       hd ret (* only get one ele *)
@@ -285,39 +294,11 @@ val input = "?g := @{term \"(?x = ?y)\"}";
 
 *}
 
+ML{*  
+*}
+
 ML{*
-      
-       val src = Symbol.explode input;
-       val (var, def_strs) = 
-        (scan_var (* scan variable name *) --|
-        (scan_ignore_pre_blank (Scan.this_string ":=")))
-        src ;
-
-       (*val def_strs = filter_blank' def_strs*);
-       val (typ, def) = 
-        if (is_start_with "?" (String.concat def_strs)) 
-        (* start with ?, so must be assigning to another env var *)
-        then
-         scan_env_var def_strs |> fst (* get the name of the var *)
-         |> (fn x => (StrName.NTab.get env (String.extract (x, 1, NONE)); ("dummy", String.concat def_strs)))
-    
-        else if  (is_start_with "\"" (String.concat def_strs)) then
-         ("string", (String.concat def_strs))
-        else (* otherwise, scan as the antiquto format*)
-        (scan_antiquto ((*Prover.antiquto_handler env*)snd) def_strs);
-
-    scan_env_vars ( Symbol.explode def);
-
-        (*val _ = writeln "a"*)
-        val env_vars = 
-         if (typ = "string") then []
-         else
-         scan_env_vars ( Symbol.explode def)
-         |> map (fn n => (n, StrName.NTab.get env n(*String.extract (n,1,NONE)*)));
-
-
-        StrName.NTab.update (filter_blank var, Prover.parse_env_data ctxt (filter_blank typ, def) env_vars) env
-        |> Prover.id_env_tac_f 
-      
+EqSubst.eqsubst_tac;
+EqSubst.eqsubst_asm_tac;
 *}
 end

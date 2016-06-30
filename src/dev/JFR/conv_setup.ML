@@ -295,19 +295,13 @@ fun eq env pnode [ClauseGoalTyp.PVar pc, ClauseGoalTyp.PVar pcc] = eq0 env pnode
 | eq _ _ _ = []
 
  val clause_def = 
- "is_unary_conv(X,Y) :- is_some_conv(X,Y). " ^
- "is_param_conv(X,Y) :- is_some_conv(X,Y)." ^
- "is_binary_conv(X,Y) :- is_some_conv(X,Y). " ^
- "is_rec_conv(X1,X2,X3,Z) :- is_unary_conv(X1,Z)." ^
- "is_rec_conv(X1,X2,X3,Z) :- is_param_conv(X2,Z)." ^
- "is_rec_conv(X1,X2,X3,Z) :- is_binary_conv(X3,Z)." ^
- "is_rec_conv(X1,X2,X3,Z) :- is_pair_conv(Z)." ^
- "more_rec(X1,X2,X3,Z) :- is_i_conv(Z)." ^
- "more_rec(X1,X2,X3,Z) :- is_k_conv(Z)." ^
- "more_rec(X1,X2,X3,Z) :- is_rec_conv(X1,X2,X3,Z)." ^ 
- "no_more_rec(X1,X2,X3,Z) :- !is_rec_conv(X1,X2,X3,Z)." ^
- "not_simp_conv(X) :- !is_simp_conv(X)." ^
- "not_eq(X,Y) :- !eq(X,Y).";
+ "is_rec_conv(X) :- is_unary_conv(X)." ^
+ "is_rec_conv(X) :- is_param_conv(X)." ^
+ "is_rec_conv(X) :- is_binary_conv(X)." ^
+ "is_rec_conv(X) :- is_pair_conv(X)." ^
+ "more_rec(X) :- is_i_conv(X)." ^
+ "more_rec(X) :- is_k_conv(X)." ^
+ "more_rec(X) :- is_rec_conv(X)." ;
 
  val data = 
   default_gt_data
@@ -318,6 +312,10 @@ fun eq env pnode [ClauseGoalTyp.PVar pc, ClauseGoalTyp.PVar pcc] = eq0 env pnode
   |> ClauseGoalTyp.add_atomic "is_lambda_pair" is_lambda_pair
   |> ClauseGoalTyp.add_atomic "not_lambda_pair" not_lambda_pair
   |> ClauseGoalTyp.add_atomic "is_i_conv" is_i_conv
+  |> ClauseGoalTyp.add_atomic "is_unary_conv" is_unary_conv
+  |> ClauseGoalTyp.add_atomic "is_binary_conv" is_binary_conv
+  |> ClauseGoalTyp.add_atomic "is_param_conv" is_param_conv
+  |> ClauseGoalTyp.add_atomic "is_pair_conv" is_pair_conv
   |> ClauseGoalTyp.add_atomic "is_k_conv" is_k_conv
   |> ClauseGoalTyp.add_atomic "is_some_conv" is_some_conv
   |> ClauseGoalTyp.add_atomic "is_simp_conv" is_simp_conv

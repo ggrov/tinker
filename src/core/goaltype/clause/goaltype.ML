@@ -7,7 +7,7 @@ struct
 (* note that this has to be turned off in isabelle, 
 as pretty printing contains some non-standard chars which breaks the protocal *)
   val DEBUG_ON = true;
-  val if_gui_mode = false;
+  val if_gui_mode = true;
 
   val tab = Unsynchronized.ref 0;
   fun inctab() = (tab := !tab +1);
@@ -87,7 +87,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
    |  pretty_arg (Clause (str,args)) =
        Pretty.block 
         [Pretty.str str,
-         Pretty.enclose "(" ")" (Pretty.separate "," (map pretty_arg args))] 
+         Pretty.enclose "(" ")" (Pretty.separate "," (map pretty_arg args))]
 
   fun pretty_clause (Def (nm,args,body)) =
        Pretty.block 
@@ -107,12 +107,12 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
       
   val pretty_gnode = Pretty.str o goal_name;
 
-  val pretty_env = StrName.NTab.pretty (Prover.pretty_env_data Prover.default_ctxt);
-
-  val str_env = pretty_env #> Pretty.string_of;
+ (* val pretty_env = StrName.NTab.pretty (Prover.pretty_env_data Prover.default_ctxt);*)
+  val pretty_env  = Prover.pretty_env;
+  val str_env = pretty_env #> Pretty.str_of;
   (* val dbg_env = str_env #> dbg; *)
-  val str_cls = pretty_clause #> Pretty.string_of;
-  val str_arg = pretty_arg #> Pretty.string_of;
+  val str_cls = pretty_clause #> Pretty.str_of;
+  val str_arg = pretty_arg #> Pretty.str_of;
 
   (**********************
      Record GET/SET/UPDATE methods
@@ -424,12 +424,14 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
   (* JSON on goal types *)
   fun to_json gt =
    let 
-    val args = snd gt |> map pretty_arg |> map Pretty.string_of
+    val args = snd gt |> map pretty_arg |> map Pretty.str_of
     fun app_args [] = ""
         | app_args [x] =  x
         | app_args (x::xs)  =  x ^ "," ^ (app_args xs);
    in 
-     Json.String (fst gt ^ "(" ^ (app_args ( args))  ^ ")")
+     (case fst gt of "not" => "!" ^ app_args ( args)
+     |_ => (fst gt ^ "(" ^ (app_args ( args))  ^ ")"))
+     |> Json.String
    end
 
   fun from_json (Json.String str) = scan_goaltyp Prover.default_ctxt str
@@ -439,7 +441,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
   fun gnode_to_json g = 
    Json.mk_object[
     ("name", Json.String (goal_name g)),
-    ("goal", Json.String (Pretty.string_of (goal_pretty g)))];
+    ("goal", Json.String (Pretty.str_of (goal_pretty g)))];
 
   fun gnode_from_json (Json.Object obj) = 
     G {name = JsonInputUtils.get_string obj "name", 

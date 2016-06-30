@@ -21,14 +21,12 @@ struct
     "FAILURE"
   ] |> StrName.NSet.of_list;
 
-  val if_debug_json = false
-  fun debug_json str x = (if if_debug_json then writeln str else (); x)
-
   val active_tags = Unsynchronized.ref StrName.NSet.empty;
   fun get_active_tags _ = !active_tags;
   val set_active_tags = fn x => active_tags := x;
 
-  val if_debug = true (* to enable local print, an overall control for all local print *)
+  val if_debug = false (* to enable local print, an overall control for all local print *)
+  fun debug_json str x = (if if_debug then writeln str else (); x)
   val logging_handler_print = 
    if if_debug then
    (fn tag => (fn msg =>  

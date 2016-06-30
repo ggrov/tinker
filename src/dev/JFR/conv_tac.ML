@@ -6,45 +6,9 @@
 
 use_file (tinker_path ^ "src/dev/JFR/conv_setup.ML");
 (****************************************************)
-val ps = PSGraph.read_json_file (SOME data) (pspath^"basic_morphism.psgraph");
-
-fun eq_tav env pnode rec cc =  []
-;
-fun eq_tav env pnode cc1 cc2 = 
- (case (StrName.NTab.lookup (PPProver.get_pnode_env pnode) rec) of
-             NONE => []
-           | SOME (PPProver.E_L rec') => 
-            (case StrName.NTab.lookup (PPProver.get_pnode_env pnode) cc of
-              NONE => []
-              | SOME (PPProver.E_L cc') =>
-                if (List.length rec' = List.length cc')
-                then [env]
-                else [])
-  handle _ => []);
-
+val ps = PSGraph.read_json_file (SOME data) (pspath^"rec_conv.psgraph");
 
 (* definition of the GT *)
-
-basic_morphism_tac;
-
-  fun lift_conv_tac (conv : CONV) (conv_args : CONV) : TACTIC = 
-    (fn (assms, g) => 
-      let 
-        val thm = conv_args g
-        val trm = PPProver.concl_of_thm thm |> PPTermLib.subtrm_of_pos [1];
-      in
-        pure_rewrite_tac [conv trm] (assms, g)
-      end);
-      
-  fun gen_pre_post_conv (conv : CONV) conv_args = 
-   let 
-    val thm = PPProver.concl_of_thm (conv trm)
-   in
-    PPTermLib.strip_comb thm  (* pred, post *)
-   end;
-   
-   val gen_pre_conv = snd o gen_pre_post_conv;
-   val gen_post_conv = fst o gen_pre_post_conv;
 
 
 (* definition of rec conv which is the trick conv to be lifed to tactic *)
