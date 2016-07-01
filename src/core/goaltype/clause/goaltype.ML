@@ -108,7 +108,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
   val pretty_gnode = Pretty.str o goal_name;
 
  (* val pretty_env = StrName.NTab.pretty (Prover.pretty_env_data Prover.default_ctxt);*)
-  val pretty_env  = Prover.pretty_env;
+  val pretty_env  = Prover.pretty_env  Prover.default_ctxt;
   val str_env = pretty_env #> Pretty.str_of;
   (* val dbg_env = str_env #> dbg; *)
   val str_cls = pretty_clause #> Pretty.str_of;
@@ -464,7 +464,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
   fun data_to_json gn = Json.String (Pretty.str_of (pretty_data gn)); 
 
   fun data_from_json (Json.String str) = 
-    let val _ = debug_json ("Json parsing: GoalType data - " ^ str) ()in 
+    let val _ = debug_json "JSON_CORE" ("Json parsing: GoalType data - " ^ str) ()in 
          scan_data Prover.default_ctxt str
         |> (fn defs => set_data_defs defs default_data) end
   | data_from_json _ = raise gt_exp "from_json: ill-formed json structure"

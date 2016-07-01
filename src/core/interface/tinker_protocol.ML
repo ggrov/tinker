@@ -14,7 +14,7 @@ struct
   structure TextSocket = TextSocket
   
   val if_gui_dbg_mode = true
-  fun dbg s1 s2 = if if_gui_dbg_mode then logging_handler_print s1 s2 else ();
+  fun dbg s1 s2 = if if_gui_dbg_mode then LH.debug_json s1 s2 () else ();
 
   val buffer_to_json' = EData.PSGraph.from_prover_json o buffer_to_json
 
@@ -239,7 +239,7 @@ struct
           | "CMD_END_EVAL_SESSION" =>  send_msg (Json.encode json_output) (* send to stop cmd and quit *)
         (*  | "RSP_EXCEPTION" => send_msg (Json.encode json_output) *)(* end session and flash out the exception string*)
           | "RSP_MESSAGE_ERROR" => 
-            raise RunCall.Fail "\n Error: Received RSP_MESSAGE_ERROR from GUI. \n Please set the variable if_debug in the logging_handler to see more debugging info for this failure" 
+            raise RunCall.Fail "\n Error: Received RSP_MESSAGE_ERROR from GUI. \n Please set if_debug to true in LoggingHandler to see more debugging info for this failure" 
           | "Dummy_RSP" => ((); protocol_loop s)
           | "PRINT_ONLY_RSP" => 
             ((get_print_only_msg  json_output
