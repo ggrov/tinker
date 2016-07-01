@@ -123,10 +123,11 @@ struct
               (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
               edata1)
         |(IEVal.Bad) => 
-            (logging "EVAL" "No subsequent eval status: Bad";
-            IEVal.output_json "CMD_UPDATE_PSGRAPH" 
+            (logging "FAILURE" "No subsequent eval status: Bad";
+              raise tinker_fail true            
+              (* IEVal.output_json "CMD_UPDATE_PSGRAPH" 
               (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
-              edata0) 
+              edata0*)) 
     in
       case opt 
         of "OPT_EVAL_NEXT" => 

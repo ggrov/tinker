@@ -5,7 +5,6 @@ ML{*
   (* define your local path here *)
   val pspath = OS.FileSys.getDir() ^ "/Workspace/StrategyLang/psgraph/src/dev/ai4fm/"
   val ps_file = "simple_taut.psgraph";
-
 *}
   
 ML{*
@@ -33,7 +32,7 @@ ML{*
 ML{*-
 TextSocket.safe_close();*}  
 
-ML{*-
+ML{*  -
 val g = @{prop "(A \<and> A \<and> B) \<longrightarrow> (B \<and> A \<and> True)"};
 val thm = Tinker.start_ieval @{context} (SOME taut) (SOME []) (SOME g) (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
