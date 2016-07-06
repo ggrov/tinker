@@ -340,31 +340,6 @@ val enum_set_clauses = list_±_intro
 	[enum_set_€_thm,  Þ_enum_set_clauses, ¥_enum_set_clauses];
 
 
-val Þ_finite_thm = save_thm ( "Þ_finite_thm", (
-set_goal([], ¬µV·
-	 V   Finite ± V € Finite ´ ÞV  Finite
-®);
-a(REPEAT strip_tac);
-a(lemma_tac¬µW· W  Finite ± W € V ´ ÞW  Finite®);
-(* *** Goal "1" *** *)
-a(REPEAT strip_tac THEN POP_ASM_T ante_tac);
-a(finite_induction_tac¬W®);
-(* *** Goal "1.1" *** *)
-a(rewrite_tac[enum_set_clauses, empty_finite_thm]);
-(* *** Goal "1.2" *** *)
-a(LEMMA_T¬³{x} À W € V® rewrite_thm_tac);
-a(PC_T1 "sets_ext1" asm_prove_tac[]);
-(* *** Goal "1.3" *** *)
-a(REPEAT strip_tac THEN
-	rewrite_tac[pc_rule1"sets_ext1" prove_rule[]¬µa v·Þ(a À v) = Þa À Þv®,
-		enum_set_clauses]);
-a(all_fc_tac[pc_rule1"sets_ext1" prove_rule[]¬µx a b c·{x} À a € b ± b € c ´ x  c®]);
-a(asm_rewrite_tac[À_finite_thm]);
-(* *** Goal "2" *** *)
-a(POP_ASM_T bc_thm_tac THEN REPEAT strip_tac);
-pop_thm()
-));
-
 
 val finite_image_thm = save_thm ( "finite_image_thm", (
 set_goal([], ¬µ f : 'a ­ 'b; A : 'a SET·
@@ -1560,63 +1535,24 @@ val continuity_fact_thms : THM list = [
 (*
 *)
 
-val (unary_v, unary_p) = dest_pair ¬(x, x  (Á, Â) Continuous)®;
-val (binary_v, binary_p) = dest_pair ¬(x, Uncurry x  (Á, Â) Continuous)®;
-val (parametrized_v, parametrized_p) = dest_pair ¬(h, (Ì x· h x p)  (Á, Â) Continuous)®;
-val (object_v, object_p) = dest_pair ¬(Á, Á  Topology)®;
-
 (*
 *)
+val continuity_pats = {
+	object_pat = ¬(Á, Á  Topology)®,
+	unary_pat = ¬(x, x  (Á, Â) Continuous)®,
+	binary_pat = ¬(x, Uncurry x  (Á, Â) Continuous)®,
+	parametrized_pat = ¬(h, (Ì x· h x p)  (Á, Â) Continuous)®};
 
-fun get_patterns
-	(accs as (acc_u, acc_b, acc_p, acc_o)
-		: TERM list * TERM list * TERM list * (string list * TERM) list)
-	((thm :: more) : THM list)
-	: TERM list * TERM list * TERM list * (string list * TERM) list = (
-	let	val tm = (snd o strip_µ o concl) thm;
-	in	let	val (tym, tmm) = term_match tm binary_p;
-			val bin = subst tmm (inst [] tym binary_v);
-		in	get_patterns (acc_u, bin::acc_b, acc_p, acc_o) more
-		end	handle Fail _ =>
-		let	val (tym, tmm) = term_match tm parametrized_p;
-			val par = subst tmm (inst [] tym parametrized_v);
-		in	get_patterns (acc_u, acc_b, par::acc_p, acc_o) more
-		end	handle Fail _ =>
-		let	val (tym, tmm) = term_match tm unary_p;
-			val un = subst tmm (inst [] tym unary_v);
-		in	get_patterns (un::acc_u, acc_b, acc_p, acc_o) more
-		end	handle Fail _ =>
-		let	val (tym, tmm) = term_match tm object_p;
-			val ob = subst tmm (inst [] tym object_v);
-			val tvs = (list_cup o map term_tyvars o asms) thm;
-		in	get_patterns (acc_u, acc_b, acc_p, (tvs, ob)::acc_o) more
-		end	handle Fail _ => get_patterns accs more
-	end
-) | get_patterns accs [] = accs;
+val fst_snd : TERM list = [¬Fst®,  ¬Snd®];
 
-(*
-*)
-
-val fst_const : TERM = ¬Fst®;
-val snd_const : TERM = ¬Snd®;
 val product_t_const : TERM = ¬$¸‰T®;
 
-fun continuity_params (thms : THM list) :
-	{facts: THM list,
-	 unary: TERM list,
-	 binary: TERM list,
-	 witness_tac: TACTIC,
-	 parametrized: TERM list} = (
-	let	val (uns, bins, pars, obs) = get_patterns ([], [], [], []) thms;
-	in
-		{unary = fst_const :: snd_const :: uns,
-		 binary = bins,
-		 parametrized = pars,
-		 facts = thms @ continuity_fact_thms,
-		 witness_tac = ¶_object_by_type_tac (([], product_t_const) :: obs)}
-	end
-);
-
+val continuity_params = morphism_params
+		continuity_pats
+		fst_snd
+		[([], product_t_const)]
+		¶_object_by_type_tac
+		continuity_fact_thms;
 in
 (*
 *)

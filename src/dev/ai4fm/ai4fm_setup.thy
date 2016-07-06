@@ -83,39 +83,45 @@ ML{*
     ((Const ("HOL.Trueprop",_)) $ f) => ignore_true_prop f
     | _ => t ;
 
-   fun trm_eq (x,y) = (ignore_true_prop x) = (ignore_true_prop y) 
+   fun trm_eq thy (x,y) = Pattern.matches thy ((ignore_true_prop x), (ignore_true_prop y) )
        
    fun eq_term env pnode [r, Clause_GT.PVar p] =
-   let val dest = Clause_GT.project_terms env pnode r val ctxt = IsaProver.get_pnode_ctxt pnode in
+   let val dest = Clause_GT.project_terms env pnode r 
+   val ctxt = IsaProver.get_pnode_ctxt pnode 
+   val thy = Proof_Context.theory_of ctxt in
    (case StrName.NTab.lookup (IsaProver.get_pnode_env pnode) p of
              NONE => []
            | SOME (IsaProver.E_Trm t) => 
            (case dest of [] =>[]
-           | _ =>  if member trm_eq dest  (Syntax.check_term ctxt t) then [env] else [])
+           | _ =>  if member (trm_eq thy) dest (Syntax.check_term ctxt t) then [env] else [])
            | SOME _ => [])
    end
   | eq_term env pnode [r, Clause_GT.Var p] =
-   let val dest = Clause_GT.project_terms env pnode r val ctxt = IsaProver.get_pnode_ctxt pnode in
+   let val dest = Clause_GT.project_terms env pnode r val ctxt = IsaProver.get_pnode_ctxt pnode 
+   val thy = Proof_Context.theory_of ctxt in
    (case StrName.NTab.lookup env p of
              NONE => []
            | SOME (IsaProver.E_Trm t) => 
                      (case dest of [] =>[]
-           | _ =>  if member trm_eq dest (Syntax.check_term ctxt t) then [env] else [])
+           | _ =>  if member (trm_eq thy) dest (Syntax.check_term ctxt t) then [env] else [])
            | SOME _ => []) end
   | eq_term env pnode [r, Clause_GT.Term trm] = 
    let 
     val ctxt = IsaProver.get_pnode_ctxt pnode  
+    val thy = Proof_Context.theory_of ctxt
     val dest = Clause_GT.project_terms env pnode r in
    (case dest of [] =>[]
     | _ =>  
-     if member trm_eq dest (Syntax.check_term ctxt trm) 
+     if member (trm_eq thy) dest (Syntax.check_term ctxt trm) 
      then [env] else [])
    end
   | eq_term env pnode [r, Clause_GT.Concl] = 
-     let val dest = Clause_GT.project_terms env pnode r in
+     let val dest = Clause_GT.project_terms env pnode r 
+     val ctxt = IsaProver.get_pnode_ctxt pnode 
+     val thy = Proof_Context.theory_of ctxt in
      (case dest of [] =>[]
       | _ =>  
-       if member trm_eq dest (IsaProver.get_pnode_concl pnode)
+       if member (trm_eq thy) dest (IsaProver.get_pnode_concl pnode)
        then [env] else [])
      end
   | eq_term _ _ _ = [];
