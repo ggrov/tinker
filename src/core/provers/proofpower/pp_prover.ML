@@ -179,27 +179,35 @@ struct
     case typ of "term" => 
       trm_of_string ctxt def 
       |> (let 
-           val vts0 = 
-            map (fn (n, E_Trm t) => (n,t) 
-             | (n, _) => 
-             (logging "FAILURE" ("Only E_trm is supported as args, in parsing env var: " ^ n) ;
+           val vts0 =  (* strip construtor in the list  and add ? back to the variable name *)
+           map (fn (n, E_Trm t) => ("?"^n,t) | (n, _) => 
+           (logging "FAILURE" ("Only E_trm is supported as args, in parsing env var: " ^ n) ;
              raise tinker_fail true)) 
-            vts; 
+           vts; 
            val vts' = 
             map (fn (n, t) => (t, 
              trm_of_string ctxt 
               ("(" ^ n ^") : " ^
-               (fn str => String.extract (str, 1, SOME (String.size str - 2))) (* to strip the bracket annotation*)
+               (fn str => String.extract (str, 1, SOME (String.size str - 2))) (* to strip the bracket annotation *)
                ((string_of_type o typ_of) t)))) 
             vts0
           in
          subst vts' end)
       |> E_Trm 
     | "prop" => prop_of_string ctxt def |> E_Trm
-    | "thm" => get_thm_by_name ctxt def |> E_Thm
-    | "dummy" => snd (hd vts)
-    | illform => (logging "FAILURE" ("Unsupported env data type: " ^ illform) ;
-    raise tinker_fail true)
+    | "thm" => 
+      let val vts0 =  (* strip construtor in the list  and add ? back to the variable name *)
+      map (fn (n, E_Trm t) => ("?"^n,t) | (n, _) => 
+      (logging "FAILURE" ("Only E_trm is supported as args, in parsing env var: " ^ n) ;
+        raise tinker_fail true)) 
+      vts; 
+      val vts' = map (fn (x, y) => (x, string_of_trm default_ctxt y)) vts0
+      val def' = str_subst vts' def 
+    in
+      get_thm_by_name ctxt def' end |> E_Thm 
+    | "dummy" => snd (hd vts) (* assignment *)
+    | illform => (logging "FAILURE" ("Unsupported env data type: " ^ illform);
+    raise tinker_fail true) 
   
 
   fun get_all_assms (pnode : pnode)  = (#g pnode) 
@@ -396,6 +404,9 @@ struct
    ("µ", "<_uni_symb_forall_>"),
    ("∂", "<_uni_symb_exists_>"),
    ("Ω", "<_uni_symb_neq_>"),
+   ("æ", "<_uni_symb_geq_>"),
+   ("º", "<_uni_symb_leq_>"),
+
 
    ("∑","<_uni_symb_blackdot_>"),
    ("ç", "<_uni_symb_in_>"),

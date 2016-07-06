@@ -264,6 +264,18 @@ fun is_member env pnode [d, r] =
    if List.null  (PPProver.get_pnode_hyps pnode) then [env]
    else []
   | is_empty _ _ _ = []
+
+  fun is_term env _ [ClauseGoalTyp.Var p] = 
+   (case StrName.NTab.lookup env p of
+       NONE => []
+     | SOME (ClauseGoalTyp.Prover.E_Trm _) => [env]
+     | SOME _ => [])
+  | is_term env _ [ClauseGoalTyp.PVar p] = 
+   (case StrName.NTab.lookup env p of
+       NONE => []
+     | SOME (ClauseGoalTyp.Prover.E_Trm _) => [env]
+     | SOME _ => [])
+   | is_term _ _ _ = []
   
   val default_gt_data = 
    ClauseGoalTyp.add_atomic "top_symbol" top_symbol ClauseGoalTyp.default_data
@@ -281,6 +293,7 @@ fun is_member env pnode [d, r] =
    |> ClauseGoalTyp.add_atomic "literal" literal
    |> ClauseGoalTyp.add_atomic "is_empty" is_empty 
    |> ClauseGoalTyp.add_atomic "member" is_member 
+   |> ClauseGoalTyp.add_atomic "is_term" is_term 
    
    
 end (* end of local *)
