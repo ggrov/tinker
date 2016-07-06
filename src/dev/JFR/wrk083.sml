@@ -140,22 +140,20 @@ fun gen_µ_elim (tm : TERM) (thm : THM) : THM = (
 	in	µ_elim tm thm'
 	end
 );
-fun all_µ_intro1 (tm : TERM) (thm : THM) : THM = (
-	let	val fvs = frees tm;
+fun all_µ_intro1 (pat_vars : TERM list) (tm : TERM) (thm : THM) : THM = (
+	let	val fvs = frees tm diff pat_vars;
 		val bvs = thm_frees thm diff fvs;
 	in	list_µ_intro bvs thm
 	end
 );
-
-
 fun morphism_conv
-	{unary : TERM list, binary : TERM list, parametrized : TERM list}
+	{unary : TERM list, binary : TERM list, parametrized : TERM list, pattern_vars : TERM list}
 	: CONV = (
-	let	val unary_thms = map (fn t => all_µ_intro1 t (gen_µ_elim t unary_rule_thm))
+	let	val unary_thms = map (fn t => all_µ_intro1 pattern_vars t (gen_µ_elim t unary_rule_thm))
 			unary;
-		val binary_thms = map (fn t => all_µ_intro1 t (gen_µ_elim t binary_rule_thm))
+		val binary_thms = map (fn t => all_µ_intro1 pattern_vars t (gen_µ_elim t binary_rule_thm))
 			binary;
-		val binary_thms1 = map (fn t => all_µ_intro1 t (gen_µ_elim t binary_rule_thm1))
+		val binary_thms1 = map (fn t => all_µ_intro1 pattern_vars t (gen_µ_elim t binary_rule_thm1))
 			binary;
 		val parametrized_thms = map (switch gen_µ_elim parametrized_rule_thm)
 			parametrized;
@@ -195,9 +193,14 @@ fun basic_morphism_tac
 		unary : TERM list,
 		binary : TERM list,
 		parametrized : TERM list,
+		pattern_vars : TERM list,
 		facts : THM list,
 		witness_tac : TACTIC} : THM list -> TACTIC = (
-	let	val m_conv = morphism_conv {unary = unary, binary = binary, parametrized = parametrized};
+	let	val m_conv = morphism_conv {
+			unary = unary,
+			binary = binary,
+			parametrized = parametrized,
+			pattern_vars = pattern_vars};
 		val is_rule = is_´ o snd o strip_µ o concl;
 		val rule_thms = facts drop (not o is_rule);
 		val axiom_thms = facts drop is_rule;
@@ -241,6 +244,72 @@ fun ¶_object_by_type_tac (ocs : (string list * TERM) list) : TACTIC = (
 		let	val (x, _) = dest_simple_¶ conc;
 		in	(simple_¶_tac o witness_by_type o type_of) x gl
 		end
+	end
+);
+(*
+*)
+fun analyse_morphism_thms
+	{object_pat : TERM, unary_pat : TERM, binary_pat : TERM, parametrized_pat : TERM}
+	: THM list ->
+		{unary : TERM list, binary : TERM list, parametrized : TERM list} *
+			(string list * TERM) list = (
+	let	fun dp p = dest_pair p handle Fail _ => (mk_t, mk_t);
+		val (object_v, object_p) = dp object_pat;
+		val (unary_v, unary_p) = dp unary_pat;
+		val (binary_v, binary_p) = dp binary_pat;
+		val (parametrized_v, parametrized_p) = dp parametrized_pat;
+		fun aux (accs as (acc_u, acc_b, acc_p, acc_o))
+			((thm :: more)) = (
+			let	val tm = (snd o strip_µ o concl) thm;
+			in	let	val (tym, tmm) = term_match tm binary_p;
+					val bin = subst tmm (inst [] tym binary_v);
+				in	aux (acc_u, bin::acc_b, acc_p, acc_o) more
+				end	handle Fail _ =>
+				let	val (tym, tmm) = term_match tm parametrized_p;
+					val par = subst tmm (inst [] tym parametrized_v);
+				in	aux (acc_u, acc_b, par::acc_p, acc_o) more
+				end	handle Fail _ =>
+				let	val (tym, tmm) = term_match tm unary_p;
+					val un = subst tmm (inst [] tym unary_v);
+				in	aux (un::acc_u, acc_b, acc_p, acc_o) more
+				end	handle Fail _ =>
+				let	val (tym, tmm) = term_match tm object_p;
+					val ob = subst tmm (inst [] tym object_v);
+					val tvs = (list_cup o map term_tyvars o asms) thm;
+				in	aux (acc_u, acc_b, acc_p, (tvs, ob)::acc_o) more
+				end	handle Fail _ => aux accs more
+			end
+		) | aux accs [] = accs;
+	in	fn thms => (
+			let	val (ul, bl, pl, ol) = aux ([], [], [], []) thms;
+			in	({unary = ul, binary = bl, parametrized = pl}, ol)
+			end
+		)
+	end
+);
+(*
+*)
+fun morphism_params
+	(pats as {object_pat : TERM, unary_pat : TERM, binary_pat : TERM, parametrized_pat : TERM})
+	(fst_snd : TERM list)
+	(basic_obs : (string list * TERM) list)
+	(tac :  (string list * TERM) list -> TACTIC)
+	(basic_thms : THM list)
+	(thms : THM list) :
+	{unary : TERM list,
+	 binary : TERM list,
+	 parametrized : TERM list,
+	 pattern_vars : TERM list,
+	 facts : THM list,
+	 witness_tac : TACTIC} = (
+	let	val ({unary, binary, parametrized}, obs) = analyse_morphism_thms pats thms;
+	in
+		{unary = fst_snd @ unary,
+		 binary = binary,
+		 parametrized = parametrized,
+		 pattern_vars = [],
+		 facts = thms @ basic_thms,
+		 witness_tac = tac (basic_obs @ obs)}
 	end
 );
 
