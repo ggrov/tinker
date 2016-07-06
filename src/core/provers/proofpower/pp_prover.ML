@@ -406,7 +406,8 @@ struct
    ("ƒ", "<_uni_symb_bbU_>"),
    ("ú", "<_uni_symb_bbZ_>"),
 
-
+   ("Ì", "<_uni_symb_lambda_>"),
+   ("Ô", "<_uni_symb_tau_>"),
    ("Ó", "<_uni_symb_sigma_>"),
    ("Ç", "<_uni_symb_gammar_>"),
    ("È", "<_uni_symb_eta_>"),

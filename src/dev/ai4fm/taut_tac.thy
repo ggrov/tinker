@@ -19,7 +19,15 @@ ML{*
  "asm_to_elim() :- h(disj)." ^
  "asm_to_elim() :- h(eq)." ^
  "asm_to_elim() :- h(implies)." ^
- "asm_to_elim() :- h_and_non_literal(not)." ;
+ "asm_to_elim() :- h_non_var(not)." ^
+ "taut_simp() :- is_goal(\"True\")." ^
+ "taut_simp() :- has_hyp(concl)." ^
+ "taut_simp() :- c(conj)." ^
+ "taut_simp() :- c(disj)." ^
+ "taut_simp() :- c(eq)." ^
+ "taut_simp() :- c(simplies)." ^
+ "taut_simp() :- c_not_var(not)."
+ ;
 
   val data =  
   data  
@@ -28,6 +36,11 @@ ML{*
   val taut = PSGraph.read_json_file (SOME data) (pspath ^ ps_file);
 
 *}
+
+lemmas test = not_not not_True_eq_False
+lemma "\<not> \<not> (\<not> True)"
+apply (tactic {* EqSubst.eqsubst_tac @{context} [0] @{thms test} 1*})
+apply (tactic {* EqSubst.eqsubst_tac @{context} [0] @{thms test} 1*})
 
 ML{*-
 TextSocket.safe_close();*}  

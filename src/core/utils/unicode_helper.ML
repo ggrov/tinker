@@ -40,6 +40,7 @@ struct
      ("σ", "<_uni_symb_sigma_>"),
      ("γ", "<_uni_symb_gammar_>"),
      ("η", "<_uni_symb_eta_>"),
+     ("τ", "<_uni_symb_tau_>"),
      
      ("⋎", "<_uni_symb_down_corner_>"),
      ("⌜","<_uni_symb_left_corner_>"),

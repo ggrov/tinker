@@ -398,10 +398,12 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
     (scan_sig --| ($$ ":" -- $$ "-") -- (scan_body ctxt) >> (fn ((n,a),b) => Def (n,a,b)))
     ||
     (scan_clause ctxt --| $$ "." >> Constraint);
-  fun scan_all f [] = []
+  fun scan_all _ [] = []
    |  scan_all f xs = 
        let 
-          val (result,str) = f xs
+          val error_msg  = (fn (x,_) => (fn _ =>"Syntax error: fail to parse - "  ^ String.concat x));
+          val f' =  !!error_msg f
+          val (result,str) = Scan.error f' xs
        in
           result :: scan_all f str
        end;
