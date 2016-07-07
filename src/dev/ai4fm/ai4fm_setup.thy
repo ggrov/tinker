@@ -262,4 +262,49 @@ fun ENV_check_ccontr ctxt [IsaProver.A_L_Trm hyps, IsaProver.A_Var v]  (env : Is
 | ENV_check_ccontr _ _ _ = []
 *}
 
+ML{*
+structure C = Clause_GT;
+   val t = @{prop "B \<Longrightarrow> \<not> B \<Longrightarrow> A"};
+   val t = @{prop "a \<ge> (b::nat) \<Longrightarrow>  P"};
+   val (pnode,pplan) = IsaProver.init @{context} [] t;
+
+val env = IsaProver.get_pnode_env pnode;
+val ctxt = IsaProver.get_pnode_ctxt pnode;
+val hyps = IsaProver.get_pnode_hyps pnode;    
+*}
+
+ML{*
+ENV_check_ccontr ctxt [IsaProver.A_L_Trm hyps, IsaProver.A_Var "negHyp"] env;
+C.imatch data pnode (C.scan_goaltyp ctxt "is_term(hyps, concl)");
+*}
+
+ML{*
+Symbol.is_digit;
+val s = Symbol.explode "?g := @{term \"(?x = ?y) \<or> (?x > ?y)\"}";
+ Env_Tac_Utils.scan_env_vars s;
+val src = s;
+    val (var, def_strs) = 
+        (scan_var (* scan variable name *) --|
+        (scan_ignore_pre_blank (Scan.this_string ":=")))
+        src ;
+    
+  (scan_antiquto ((*Prover.antiquto_handler env*)snd) def_strs) |>snd
+|> Symbol.explode
+|>  Env_Tac_Utils.scan_env_vars
+
+*}
+ML{*
+val env = ENV_hyp_match ctxt [IsaProver.A_L_Trm hyps, IsaProver.A_Str "?x \<ge> ?y", IsaProver.A_Var "x", IsaProver.A_Var "y"] env |>hd;
+
+val input = "?g := @{term \"(?x = ?y)\"}";
+
+*}
+
+ML{*  
+*}
+
+ML{*
+EqSubst.eqsubst_tac;
+EqSubst.eqsubst_asm_tac;
+*}
 end

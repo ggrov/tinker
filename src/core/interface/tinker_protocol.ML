@@ -278,11 +278,8 @@ fun start_eval ctxt ps assms g =
  let
   val edata0 = IEVal.EVal.init ps ctxt assms g |> hd (* FIXME: only get the first one *)
  in
-   case IEVal.eval_complete edata0 
-    of IEVal.Good e => e
-    |  IEVal.Cont e => e
-    |  IEVal.Bad => edata0
- end
+   IEVal.eval_complete edata0;()
+end
 
 end
 
