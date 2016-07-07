@@ -48,8 +48,11 @@ TextSocket.safe_close();
 
 lemma "(A \<and> A \<and> B) \<longrightarrow> (B \<and> A \<and> True)"
 ML_val{*
-     val st = #goal  @{Isar.goal};
+     val st = #goal @{Isar.goal};
      writeln (Proof_Display.string_of_goal @{context} st);
+ val g = Thm.concl_of st;
+val thm = Tinker.start_eval @{context} ( taut) ( []) ( g) (* prove the goal *)
+          |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
 *}
 
 lemma "True"
@@ -57,7 +60,7 @@ ML{*-
   TextSocket.safe_close();
 *}  
 
-ML{* -
+ML{* 
 val g = @{prop "(A \<and> A \<and> B) \<longrightarrow> (B \<and> A \<and> True)"};
 val thm = Tinker.start_eval @{context} ( taut) ( []) ( g) (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
