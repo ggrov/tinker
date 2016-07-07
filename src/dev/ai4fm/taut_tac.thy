@@ -25,9 +25,8 @@ ML{*
  "taut_simp() :- c(conj)." ^
  "taut_simp() :- c(disj)." ^
  "taut_simp() :- c(eq)." ^
- "taut_simp() :- c(simplies)." ^
- "taut_simp() :- c_not_var(not)." ^
- "taut_simp() :- c_not_var(implies).";
+ "taut_simp() :- c(implies)." ^
+ "taut_simp() :- c_not_var(not).";
 
   val data =  
   data  
@@ -48,10 +47,12 @@ TextSocket.safe_close();
 *}
 
 lemma "(A \<and> A \<and> B) \<longrightarrow> (B \<and> A \<and> True)"
+ML_val{*
+     val st = #goal  @{Isar.goal};
+     writeln (Proof_Display.string_of_goal @{context} st);
+*}
 
-
-oops
-
+lemma "True"
 ML{*-
   TextSocket.safe_close();
 *}  
