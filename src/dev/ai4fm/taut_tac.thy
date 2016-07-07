@@ -26,26 +26,43 @@ ML{*
  "taut_simp() :- c(disj)." ^
  "taut_simp() :- c(eq)." ^
  "taut_simp() :- c(simplies)." ^
- "taut_simp() :- c_not_var(not)."
- ;
+ "taut_simp() :- c_not_var(not)." ^
+ "taut_simp() :- c_not_var(implies).";
 
   val data =  
   data  
   |> Clause_GT.update_data_defs (fn x => (Clause_GT.scan_data IsaProver.default_ctxt clause_def) @ x);
 
   val taut = PSGraph.read_json_file (SOME data) (pspath ^ ps_file);
-
 *}
 
-lemmas test = not_not not_True_eq_False
-lemma "\<not> \<not> (\<not> True)"
-apply (tactic {* EqSubst.eqsubst_tac @{context} [0] @{thms test} 1*})
-apply (tactic {* EqSubst.eqsubst_tac @{context} [0] @{thms test} 1*})
+ML{*
+fun eval_text text =(
+      (*writeln ("exec : "^ text);*)
+      Secure.use_text ML_Env.local_context (1, "pp") (false) text  
+    ) 
+*}
 
 ML{*-
-TextSocket.safe_close();*}  
+TextSocket.safe_close();
+*}
 
-ML{*  -
+lemma "(A \<and> A \<and> B) \<longrightarrow> (B \<and> A \<and> True)"
+
+
+oops
+
+ML{*-
+  TextSocket.safe_close();
+*}  
+
+ML{* -
+val g = @{prop "(A \<and> A \<and> B) \<longrightarrow> (B \<and> A \<and> True)"};
+val thm = Tinker.start_eval @{context} ( taut) ( []) ( g) (* prove the goal *)
+          |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
+*}
+
+ML{*-
 val g = @{prop "(A \<and> A \<and> B) \<longrightarrow> (B \<and> A \<and> True)"};
 val thm = Tinker.start_ieval @{context} (SOME taut) (SOME []) (SOME g) (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
