@@ -1516,7 +1516,7 @@ object QuantoLibAPI extends Publisher{
 						Service.editCtrl.createTactic(vertexName.s, d.value.stringValue, toPasteATactics(d.value.stringValue), true)
 					}
 					if (d.typ == "T_Graph") {
-						Service.editCtrl.createTactic(vertexName.s, d.value.stringValue, toPasteATactics(d.value.stringValue), false)
+						Service.editCtrl.createTactic(vertexName.s, d.value.stringValue, toPasteGTactics(d.value.stringValue), false)
 					}
 				case d: WireV =>
 					val vertexName = graph.verts.freshWithSuggestion(VName("b0"))
