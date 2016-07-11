@@ -15,6 +15,7 @@ struct
      ("∃", "<_uni_symb_exists_>"),
      ("≠", "<_uni_symb_neq_>"),
      ("≥", "<_uni_symb_geq_>"),
+     ("≤", "<_uni_symb_leq_>"),
      
      ("∪", "<_uni_symb_union_>"),
      ("∩", "<_uni_symb_inter_>"),
@@ -40,6 +41,7 @@ struct
      ("σ", "<_uni_symb_sigma_>"),
      ("γ", "<_uni_symb_gammar_>"),
      ("η", "<_uni_symb_eta_>"),
+     ("τ", "<_uni_symb_tau_>"),
      
      ("⋎", "<_uni_symb_down_corner_>"),
      ("⌜","<_uni_symb_left_corner_>"),
@@ -51,27 +53,13 @@ struct
     ]
   val prover_uni = symb_tab
 
-  fun subst0 str (tab: (string*string) list) (tab0: (string*string) list) = 
-   let fun substr (s,i,j) = if (i = j ) then "" else String.substring (s,i,j-i) in 
-   if String.size str = 0 then ""
-   else(
-    if tab0 = [] 
-    then String.substring (str, 0, 1) ^ 
-          subst0 (substr(str, 1, String.size str)) tab tab
-    else (
-     if String.isPrefix (fst(hd tab0)) str 
-     then snd(hd tab0) ^ subst0 (substr(str, String.size (fst(hd tab0)), String.size str)) tab tab
-     else subst0 str tab (tl tab0)
-    )
-   )
-  end
-  fun subst tab str = subst0 str tab tab
-  val rev_uni = map (fn (x,y) => (y,x))
-  val encode_gui_json = subst gui_uni (* encode gui symbol to unicode string*)
-  val decode_gui_json = subst (rev_uni gui_uni) (* decode unicode string to gui symbol *)
 
-  val encode_prover_json = subst prover_uni (* encode prover symbol to unicode string*)
-  val decode_prover_json = subst (rev_uni prover_uni) (* decode unicode string to prover symbol *)
+  val rev_uni = map (fn (x,y) => (y,x))
+  val encode_gui_json = str_subst gui_uni (* encode gui symbol to unicode string*)
+  val decode_gui_json = str_subst (rev_uni gui_uni) (* decode unicode string to gui symbol *)
+
+  val encode_prover_json = str_subst prover_uni (* encode prover symbol to unicode string*)
+  val decode_prover_json = str_subst (rev_uni prover_uni) (* decode unicode string to prover symbol *)
 
 
 

@@ -8,7 +8,8 @@ lemma not_iff: "(\<not>(P \<longleftrightarrow>Q)) = ((P \<and> \<not> Q) \<or> 
 
 lemma impF: "(P \<longrightarrow> Q) \<Longrightarrow> (\<not> P \<or> Q)" by auto
 
-thm not_not de_Morgan_conj HOL.de_Morgan_disj not_imp not_iff not_True_eq_False not_False_eq_True
+
+lemmas not_thms = not_not de_Morgan_conj HOL.de_Morgan_disj not_imp not_iff not_True_eq_False not_False_eq_True
 
 lemma not_not_f: "\<not>\<not>P \<Longrightarrow> P" by auto
 lemma de_Morgan_conj_f: " (\<not> (P \<and> Q)) \<Longrightarrow> (\<not> P \<or> \<not> Q)" by auto
@@ -33,6 +34,14 @@ ML{*
   | top_level_str (f $ _) = top_level_str f
   | top_level_str (Abs (_,_,t)) = top_level_str t
   | top_level_str _ = [];
+  
+ fun to_singleton_list [] = []
+ | to_singleton_list (x::xs) = [x] @ (to_singleton_list xs)
+
+ fun is_member env pnode [d, r] = 
+  Clause_GT.project_terms env pnode r
+  |> maps (fn x => Clause_GT.update_var env (IsaProver.E_Trm x) d)
+ | is_member _ _ _ = [];
 
  fun hack_not n0 = case n0 of "not" => "Not"| _ => n0;
  fun top_symbol env pnode [r,Clause_GT.Var p] : IsaProver.env list= 
@@ -74,116 +83,107 @@ ML{*
     ((Const ("HOL.Trueprop",_)) $ f) => ignore_true_prop f
     | _ => t ;
 
-   fun trm_eq (x,y) = (ignore_true_prop x) = (ignore_true_prop y) 
+   fun trm_eq thy (x,y) = Pattern.matches thy ((ignore_true_prop x), (ignore_true_prop y) )
        
-   fun is_term env pnode [r, Clause_GT.PVar p] =
-   let val dest = Clause_GT.project_terms env pnode r val ctxt = IsaProver.get_pnode_ctxt pnode in
+   fun eq_term env pnode [r, Clause_GT.PVar p] =
+   let val dest = Clause_GT.project_terms env pnode r 
+   val ctxt = IsaProver.get_pnode_ctxt pnode 
+   val thy = Proof_Context.theory_of ctxt in
    (case StrName.NTab.lookup (IsaProver.get_pnode_env pnode) p of
              NONE => []
            | SOME (IsaProver.E_Trm t) => 
            (case dest of [] =>[]
-           | _ =>  if member trm_eq dest  (Syntax.check_term ctxt t) then [env] else [])
+           | _ =>  if member (trm_eq thy) dest (Syntax.check_term ctxt t) then [env] else [])
            | SOME _ => [])
    end
-  | is_term env pnode [r, Clause_GT.Var p] =
-   let val dest = Clause_GT.project_terms env pnode r val ctxt = IsaProver.get_pnode_ctxt pnode in
+  | eq_term env pnode [r, Clause_GT.Var p] =
+   let val dest = Clause_GT.project_terms env pnode r val ctxt = IsaProver.get_pnode_ctxt pnode 
+   val thy = Proof_Context.theory_of ctxt in
    (case StrName.NTab.lookup env p of
              NONE => []
            | SOME (IsaProver.E_Trm t) => 
                      (case dest of [] =>[]
-           | _ =>  if member trm_eq dest (Syntax.check_term ctxt t) then [env] else [])
+           | _ =>  if member (trm_eq thy) dest (Syntax.check_term ctxt t) then [env] else [])
            | SOME _ => []) end
-  | is_term env pnode [r, Clause_GT.Term trm] = 
+  | eq_term env pnode [r, Clause_GT.Term trm] = 
    let 
     val ctxt = IsaProver.get_pnode_ctxt pnode  
+    val thy = Proof_Context.theory_of ctxt
     val dest = Clause_GT.project_terms env pnode r in
    (case dest of [] =>[]
     | _ =>  
-     if member trm_eq dest (Syntax.check_term ctxt trm) 
+     if member (trm_eq thy) dest (Syntax.check_term ctxt trm) 
      then [env] else [])
    end
-  | is_term env pnode [r, Clause_GT.Concl] = 
-     let val dest = Clause_GT.project_terms env pnode r in
+  | eq_term env pnode [r, Clause_GT.Concl] = 
+     let val dest = Clause_GT.project_terms env pnode r 
+     val ctxt = IsaProver.get_pnode_ctxt pnode 
+     val thy = Proof_Context.theory_of ctxt in
      (case dest of [] =>[]
       | _ =>  
-       if member trm_eq dest (IsaProver.get_pnode_concl pnode)
+       if member (trm_eq thy) dest (IsaProver.get_pnode_concl pnode)
        then [env] else [])
      end
-  | is_term _ _ _ = [];
+  | eq_term _ _ _ = [];
 
- fun is_literal0 trm = 
-  Term.is_Free trm orelse Term.is_Var trm 
- fun is_literal env pnode [Clause_GT.Concl] = 
+ fun is_var0 trm = Term.is_Free trm orelse Term.is_Var trm 
+ fun is_var env pnode [Clause_GT.Concl] = 
   IsaProver.get_pnode_concl pnode
   |> ignore_true_prop
-  |> is_literal0
+  |> is_var0
   |> (fn x => if x then [env] else [])
-  | is_literal env _ [Clause_GT.Var v] = 
+  | is_var env _ [Clause_GT.Var v] = 
      (case StrName.NTab.lookup env v of
        NONE => []
      | SOME (IsaProver.E_Trm t) => 
-            if ((is_literal0 o ignore_true_prop) t)
+            if ((is_var0 o ignore_true_prop) t)
             then [env]
             else []
      | _ => [] )
-  | is_literal env _ [Clause_GT.PVar v] = 
+  | is_var env _ [Clause_GT.PVar v] = 
      (case StrName.NTab.lookup env v of
        NONE => []
      | SOME (IsaProver.E_Trm t) => 
-            if ((is_literal0 o ignore_true_prop) t)
+            if ((is_var0 o ignore_true_prop) t)
             then [env]
             else []
       | _ => [])
-  | is_literal _ _ _ = []
+  | is_var _ _ _ = []
 
- fun dest_trm env pnode [Clause_GT.Concl, Clause_GT.Var p1, Clause_GT.Var p2] = 
+ exception dest_trm_exp of string 
+ fun dest_trm env pnode [trm, p1, p2] = 
   (let 
-    val (trm1, trm2) = dest_comb (IsaProver.get_pnode_concl pnode) 
+    val trm' = case Clause_GT.project_terms env pnode trm of [x] => x 
+      | _ => raise dest_trm_exp "only one term is expected"
+    val (trm1, trm2) = dest_comb trm' 
   in 
-     StrName.NTab.update (p1,Clause_GT.Prover.E_Trm trm1) env
-     |> StrName.NTab.update (p2,Clause_GT.Prover.E_Trm trm2) 
-     |> (fn x => [x])
+     Clause_GT.update_var env (Clause_GT.Prover.E_Trm trm1) p1
+    |> maps (fn e => Clause_GT.update_var e (Clause_GT.Prover.E_Trm trm2) p2)
   end handle _ => [] )
-  | dest_trm env _ [Clause_GT.Term t, Clause_GT.Var p1, Clause_GT.Var p2] = 
-  (let 
-    val (trm1, trm2) = dest_comb t
-   in 
-     StrName.NTab.update (p1,Clause_GT.Prover.E_Trm trm1) env
-     |> StrName.NTab.update (p2,Clause_GT.Prover.E_Trm trm2) 
-     |> (fn x => [x])
-  end handle _ => []) 
-  | dest_trm env _ [Clause_GT.Var input, Clause_GT.Var p1, Clause_GT.Var p2] = 
-  ( let 
-    val (trm1, trm2) = 
-      (case StrName.NTab.lookup env input of
-      SOME (IsaProver.E_Trm t) => dest_comb t
-      | _ => raise Fail "fail it on purpose")
-   in
-      StrName.NTab.update (p1,Clause_GT.Prover.E_Trm trm1) env
-     |> StrName.NTab.update (p2,Clause_GT.Prover.E_Trm trm2) 
-     |> (fn x => [x])
-  end handle _ => [])  
   | dest_trm _ _ _ = []
 
- fun is_ccontr env _ [Clause_GT.PVar v] = 
-  (case StrName.NTab.lookup env v of SOME (IsaProver.E_Trm _) => [env]
+ fun empty_list (env : IsaProver.env) _ [Clause_GT.PVar v] = 
+  (case StrName.NTab.lookup env v of SOME (IsaProver.E_L[]) => [env]
   | _ => [])
- | is_ccontr env _ [Clause_GT.Var v] = 
-  (case StrName.NTab.lookup env v of SOME (IsaProver.E_Trm _) => [env]
+ | empty_list (env : IsaProver.env) _ [Clause_GT.Var v] = 
+  (case StrName.NTab.lookup env v of SOME (IsaProver.E_L[])  => [env]
   | _ => [])
- | is_ccontr _ _ _ = []
+ | empty_list _ _ _ = []
 
  val data = 
   Clause_GT.default_data
   |> Clause_GT.add_atomic "top_symbol" top_symbol 
-  |> Clause_GT.add_atomic "is_term" is_term 
+  |> Clause_GT.add_atomic "eq_term" eq_term 
   |> Clause_GT.add_atomic "dest_term" dest_trm 
-  |> Clause_GT.add_atomic "is_literal" is_literal 
-  |> Clause_GT.add_atomic "is_ccontr" is_ccontr;
+  |> Clause_GT.add_atomic "is_var" is_var 
+  |> Clause_GT.add_atomic "empty_list" empty_list
+  |> Clause_GT.add_atomic "member" is_member;
+
 *}
 
 ML{*
 (* tactic definition *)
+val simp = safe_asm_full_simp_tac;
 fun simp_only_tac thml ctxt= fold Simplifier.add_simp thml (Raw_Simplifier.clear_simpset ctxt) |> simp_tac;
 
 val intro_not_tac = simp_only_tac @{thms not_not de_Morgan_conj HOL.de_Morgan_disj not_imp not_iff not_True_eq_False not_False_eq_True};
@@ -204,6 +204,15 @@ fun erule_tac2
    IsaProver.A_Trm trm1, IsaProver.A_Trm trm2, IsaProver.A_Thm thm] ctxt = 
   eres_inst_tac ctxt  [((str1,0), (IsaProver.string_of_trm ctxt trm1)), 
                        ((str2,0), (IsaProver.string_of_trm ctxt trm2))] thm
+fun subst_tac [IsaProver.A_Str thmn] ctxt = 
+  let val thms =  Find_Theorems.find_theorems ctxt NONE NONE false 
+    [(true, Find_Theorems.Name thmn)] |> snd |> map snd in
+  EqSubst.eqsubst_tac ctxt [0] thms  end
+ 
+fun asm_subst_tac [IsaProver.A_Str thmn] ctxt = 
+  let val thms =  Find_Theorems.find_theorems ctxt NONE NONE false 
+    [(true, Find_Theorems.Name thmn)] |> snd |> map snd in
+  EqSubst.eqsubst_asm_tac ctxt [0] thms  end
 *}
 
 ML{*
@@ -243,7 +252,7 @@ fun ENV_all_asms _ [IsaProver.A_L_Trm hyps, IsaProver.A_Var name] (env : IsaProv
 
 fun ENV_check_ccontr ctxt [IsaProver.A_L_Trm hyps, IsaProver.A_Var v]  (env : IsaProver.env) :  IsaProver.env list= 
  (case (filter(member(fn (a,b) => (dest_comb a |> snd) = ((Const ("HOL.Not", dummyT) $ (dest_comb b |> snd))|> Syntax.check_term ctxt)) hyps) hyps) 
-  of [] => [StrName.NTab.update (v, IsaProver.E_Str "None") env]
+  of [] => [StrName.NTab.update (v, IsaProver.E_L []) env]
   | ret => [StrName.NTab.update 
      (v, IsaProver.E_Trm (
       hd ret (* only get one ele *)
@@ -253,77 +262,4 @@ fun ENV_check_ccontr ctxt [IsaProver.A_L_Trm hyps, IsaProver.A_Var v]  (env : Is
 | ENV_check_ccontr _ _ _ = []
 *}
 
-ML{*
-structure C = Clause_GT;
-   val t = @{prop "B \<Longrightarrow> \<not> B \<Longrightarrow> A"};
-val t = @{prop "a \<ge> (b::nat) \<Longrightarrow>  P"};
-   val (pnode,pplan) = IsaProver.init @{context} [] t;
-
-val env = IsaProver.get_pnode_env pnode;
-val ctxt = IsaProver.get_pnode_ctxt pnode;
-val hyps = IsaProver.get_pnode_hyps pnode;    
-*}
-
-ML{*
-ENV_check_ccontr ctxt [IsaProver.A_L_Trm hyps, IsaProver.A_Var "negHyp"] env;
-C.imatch data pnode (C.scan_goaltyp ctxt "is_term(hyps, concl)");
-*}
-
-ML{*
-Symbol.is_digit;
-val s = Symbol.explode "?g := @{term \"(?x = ?y) \<or> (?x > ?y)\"}";
- Env_Tac_Utils.scan_env_vars s;
-val src = s;
-    val (var, def_strs) = 
-        (scan_var (* scan variable name *) --|
-        (scan_ignore_pre_blank (Scan.this_string ":=")))
-        src ;
-    
-  (scan_antiquto ((*Prover.antiquto_handler env*)snd) def_strs) |>snd
-|> Symbol.explode
-|>  Env_Tac_Utils.scan_env_vars
-
-*}
-ML{*
-val env = ENV_hyp_match ctxt [IsaProver.A_L_Trm hyps, IsaProver.A_Str "?x \<ge> ?y", IsaProver.A_Var "x", IsaProver.A_Var "y"] env |>hd;
-
-val input = "?g := @{term \"(?x = ?y)\"}";
-
-*}
-
-ML{*
-      
-       val src = Symbol.explode input;
-       val (var, def_strs) = 
-        (scan_var (* scan variable name *) --|
-        (scan_ignore_pre_blank (Scan.this_string ":=")))
-        src ;
-
-       (*val def_strs = filter_blank' def_strs*);
-       val (typ, def) = 
-        if (is_start_with "?" (String.concat def_strs)) 
-        (* start with ?, so must be assigning to another env var *)
-        then
-         scan_env_var def_strs |> fst (* get the name of the var *)
-         |> (fn x => (StrName.NTab.get env (String.extract (x, 1, NONE)); ("dummy", String.concat def_strs)))
-    
-        else if  (is_start_with "\"" (String.concat def_strs)) then
-         ("string", (String.concat def_strs))
-        else (* otherwise, scan as the antiquto format*)
-        (scan_antiquto ((*Prover.antiquto_handler env*)snd) def_strs);
-
-    scan_env_vars ( Symbol.explode def);
-
-        (*val _ = writeln "a"*)
-        val env_vars = 
-         if (typ = "string") then []
-         else
-         scan_env_vars ( Symbol.explode def)
-         |> map (fn n => (n, StrName.NTab.get env n(*String.extract (n,1,NONE)*)));
-
-
-        StrName.NTab.update (filter_blank var, Prover.parse_env_data ctxt (filter_blank typ, def) env_vars) env
-        |> Prover.id_env_tac_f 
-      
-*}
 end

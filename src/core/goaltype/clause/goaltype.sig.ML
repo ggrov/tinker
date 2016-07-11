@@ -48,7 +48,7 @@ sig
 
   val project_terms : Prover.env -> Prover.pnode -> arg -> Prover.term list
   val project_name : Prover.env -> Prover.pnode -> arg -> string list
-
+  val update_var : Prover.env ->  Prover.env_data -> arg -> env list
 
   (**********************
     EVALUATION

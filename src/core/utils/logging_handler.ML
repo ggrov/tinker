@@ -21,26 +21,24 @@ struct
     "FAILURE"
   ] |> StrName.NSet.of_list;
 
-  val if_debug_json = false
-  fun debug_json str x = (if if_debug_json then writeln str else (); x)
-
   val active_tags = Unsynchronized.ref StrName.NSet.empty;
   fun get_active_tags _ = !active_tags;
   val set_active_tags = fn x => active_tags := x;
 
-  val if_debug = true (* to enable local print, an overall control for all local print *)
-  val logging_handler_print = 
+  val if_debug =  false (* to enable local print, an overall control for all local print *)
+  
+  val logging_handler_print0 = 
    if if_debug then
    (fn tag => (fn msg =>  
-      Pretty.writeln (
          Pretty.block [Pretty.str "[ LOGGING - ", 
                        Pretty.str (tag ^ ": "),
                        Pretty.str msg,
-                       Pretty.str " ]"])))
+                       Pretty.str " ]"]|> Pretty.str_of |> writeln)) 
    else (fn _ =>( fn _ => ()))
-
+  fun debug_json tag str x = (if if_debug then logging_handler_print0 tag str else (); x);
+ 
   val logging_handler = 
-    Unsynchronized.ref logging_handler_print;
+    Unsynchronized.ref logging_handler_print0;
 
 
   fun get_logging_handler _ = !logging_handler;

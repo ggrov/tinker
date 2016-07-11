@@ -302,7 +302,7 @@ struct
  fun input_subgraph_json (Json.Object jobj) =
   let 
     val name =  JsonInputUtils.get_string jobj "name"
-    val  _  =  debug_json ("Json parsing: Graph name - " ^ name) ()
+    val  _  =  debug_json "JSON_CORE" ("Json parsing: Graph name - " ^ name) ()
     val branchType = JsonInputUtils.get_string jobj "branch_type"
     val graphs = JsonInputUtils.get_array jobj "graphs" |> map Theory_IO.in_json
    (* val args = (arg_typ_from_json (Json.get jobj "args"))*)
@@ -420,27 +420,27 @@ struct
   let
     val gt_data = 
       Json.get object "goal_types"
-      |> debug_json "Json parsing: goal_types"
+      |> debug_json "JSON_CORE" "Json parsing: goal_types"
       |> Theory.Data.GoalTyp.data_from_json
     val graph_tactics = 
       JsonInputUtils.get_array object "graphs"
-      |> debug_json "Json parsing: graphs"
+      |> debug_json "JSON_CORE""Json parsing: graphs"
       |> map input_subgraph_json
       |> StrName.NTab.of_list
     val atomic_tactics = 
       JsonInputUtils.get_array object "atomic_tactics"
-      |> debug_json "Json parsing: atomic_tactics"
+      |> debug_json "JSON_CORE" "Json parsing: atomic_tactics"
       |> filter is_atom_tac(* filter out the ENV tac *)
       |> map (input_atomic_json b)
       |> StrName.NTab.of_list
     val env_tactics = 
       JsonInputUtils.get_array object "atomic_tactics"
-      |> debug_json "Json parsing: env_tactics"
+      |> debug_json "JSON_CORE" "Json parsing: env_tactics"
       |> filter (not o is_atom_tac)(* filter out the ENV tac *)
       |> map (input_env_json b)
       |> StrName.NTab.of_list
     val occurs = Json.get object "occurrences" 
-      |>  debug_json "Json parsing: occurrences"
+      |>  debug_json "JSON_CORE" "Json parsing: occurrences"
       |> input_occurs_json
     val main = JsonInputUtils.get_string object "main" 
   in

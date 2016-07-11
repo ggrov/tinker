@@ -4,8 +4,8 @@
   fun x |> f = f x;
 
 (* some utilities *)
-  use_file "../../../utils/unicode_helper.ML";
   use "../../../utils/psgraph_names.ML"; 
+  use_file "../../../utils/unicode_helper.ML";
   use "../../../utils/logging_handler.ML";
   use "../../../utils/ml_exec.ML";
 

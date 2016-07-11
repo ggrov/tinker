@@ -87,7 +87,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
    |  pretty_arg (Clause (str,args)) =
        Pretty.block 
         [Pretty.str str,
-         Pretty.enclose "(" ")" (Pretty.separate "," (map pretty_arg args))] 
+         Pretty.enclose "(" ")" (Pretty.separate "," (map pretty_arg args))]
 
   fun pretty_clause (Def (nm,args,body)) =
        Pretty.block 
@@ -107,12 +107,12 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
       
   val pretty_gnode = Pretty.str o goal_name;
 
-  val pretty_env = StrName.NTab.pretty (Prover.pretty_env_data Prover.default_ctxt);
-
-  val str_env = pretty_env #> Pretty.string_of;
+ (* val pretty_env = StrName.NTab.pretty (Prover.pretty_env_data Prover.default_ctxt);*)
+  val pretty_env  = Prover.pretty_env  Prover.default_ctxt;
+  val str_env = pretty_env #> Pretty.str_of;
   (* val dbg_env = str_env #> dbg; *)
-  val str_cls = pretty_clause #> Pretty.string_of;
-  val str_arg = pretty_arg #> Pretty.string_of;
+  val str_cls = pretty_clause #> Pretty.str_of;
+  val str_arg = pretty_arg #> Pretty.str_of;
 
   (**********************
      Record GET/SET/UPDATE methods
@@ -179,6 +179,9 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
    |  project_name _ _ (Term _) = []
    |  project_name _ _ (Clause _) = []
 
+  fun update_var env v (Var n) = [StrName.NTab.update (n,v) env]
+  | update_var env _ Ignore = [env]
+  | update_var _ _ _ = []
 
   (**********************
     EVALUATION
@@ -270,7 +273,6 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
    and  eval_not_clause (data as P {defs,...}) pnode (cls as Clause ("not",[Clause (nf,args)])) gtenv =
     let 
       val _ = dbg ("Negating " ^ nf ^ " : ") 
-    
     in 
       case eval_arg data pnode (Clause (nf,args)) gtenv of 
           [] => [Prover.get_pnode_env pnode]
@@ -315,8 +317,13 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
         ((dbg ("evaluating " ^  (str_arg (Clause t))  ^ " with " ^ str_env gtenv ));
         dbg_res (f_a gtenv pnode args));
 
+  fun match_not_atomic data  pnode (cls as ("not",[Clause (nf,args)]):T) gtenv =
+    eval_not_clause data pnode (Clause cls) gtenv
+    | match_not_atomic _ _ _ _ = [];
+
   fun match data pnode ((f,args):T) gtenv =
      (match_atomic data pnode (f,args) gtenv) 
+   @ (match_not_atomic data pnode (f,args) gtenv)
    @ (eval_defs data pnode (f,args) gtenv);
   
   fun imatch data pnode (t as (gtnm,gtargs)) = 
@@ -372,7 +379,8 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
 
  (* scan clause *)
  fun scan_term ctxt = $$ "\"" |--  Scan.many (fn s => not(s = "\"")) --| $$ "\"" >> implode >> (Term o (Prover.trm_of_string ctxt));  
- fun scan_clause ctxt xs  =  (scan_name -- ((scan_args ctxt) || scan_empty) >> Clause) xs 
+ fun scan_clause0 ctxt xs  =  (scan_name -- ( scan_empty || (scan_args ctxt)) >> Clause) xs 
+ and scan_clause ctxt = ($$"!" |-- scan_clause0 ctxt) >> (fn x => Clause("not", [x])) || scan_clause0 ctxt
  (* Note: does not turn into term *)
  (*       terms not supported*)
  and scan_arg ctxt xs = ((scan_clause ctxt) || scan_arg_name  || scan_term ctxt) xs
@@ -381,7 +389,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
 
  fun scan_sig_args xs = 
   ($$ "("  |--  scan_name -- Scan.repeat ($$ "," |-- scan_name) --| $$ ")" >> op :: ) xs; 
- val scan_sig = scan_name -- scan_sig_args;
+ val scan_sig = scan_name -- (scan_sig_args || $$ "("  -- $$ ")" >> K ([]));
 
  (* body *)
  fun scan_body ctxt = 
@@ -390,17 +398,20 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
     (scan_sig --| ($$ ":" -- $$ "-") -- (scan_body ctxt) >> (fn ((n,a),b) => Def (n,a,b)))
     ||
     (scan_clause ctxt --| $$ "." >> Constraint);
-  fun scan_all f [] = []
+  fun scan_all _ [] = []
    |  scan_all f xs = 
        let 
-          val (result,str) = f xs
+          val error_msg  = (fn (x,_) => (fn _ =>"Syntax error: fail to parse - "  ^ String.concat x));
+          val f' =  !!error_msg f
+          val (result,str) = Scan.error f' xs
        in
           result :: scan_all f str
        end;
 
   fun scan_data ctxt = explode #> scan_all (scan_prog ctxt); 
 
-  fun scan_gt_single ctxt = scan_name -- (scan_args ctxt || scan_empty)
+  fun scan_gt_single0 ctxt = (scan_name -- (scan_args ctxt || scan_empty)) 
+  fun scan_gt_single ctxt =  ($$"!" |-- scan_gt_single0 ctxt)>> (fn x => ("not", [Clause x])) || scan_gt_single0 ctxt ;
   fun scan_gt_full ctxt = (scan_gt_single ctxt) -- Scan.repeat ($$ "," |-- (scan_gt_single ctxt)) --| $$ "." >> op :: ; 
   fun scan_goaltyp0 ctxt = explode #> scan_gt_single ctxt #> #1; 
   fun scan_goaltyp ctxt str = 
@@ -415,12 +426,14 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
   (* JSON on goal types *)
   fun to_json gt =
    let 
-    val args = snd gt |> map pretty_arg |> map Pretty.string_of
+    val args = snd gt |> map pretty_arg |> map Pretty.str_of
     fun app_args [] = ""
         | app_args [x] =  x
         | app_args (x::xs)  =  x ^ "," ^ (app_args xs);
    in 
-     Json.String (fst gt ^ "(" ^ (app_args ( args))  ^ ")")
+     (case fst gt of "not" => "!" ^ app_args ( args)
+     |_ => (fst gt ^ "(" ^ (app_args ( args))  ^ ")"))
+     |> Json.String
    end
 
   fun from_json (Json.String str) = scan_goaltyp Prover.default_ctxt str
@@ -430,7 +443,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
   fun gnode_to_json g = 
    Json.mk_object[
     ("name", Json.String (goal_name g)),
-    ("goal", Json.String (Pretty.string_of (goal_pretty g)))];
+    ("goal", Json.String (Pretty.str_of (goal_pretty g)))];
 
   fun gnode_from_json (Json.Object obj) = 
     G {name = JsonInputUtils.get_string obj "name", 
@@ -453,7 +466,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
   fun data_to_json gn = Json.String (Pretty.str_of (pretty_data gn)); 
 
   fun data_from_json (Json.String str) = 
-    let val _ = debug_json ("Json parsing: GoalType data - " ^ str) ()in 
+    let val _ = debug_json "JSON_CORE" ("Json parsing: GoalType data - " ^ str) ()in 
          scan_data Prover.default_ctxt str
         |> (fn defs => set_data_defs defs default_data) end
   | data_from_json _ = raise gt_exp "from_json: ill-formed json structure"

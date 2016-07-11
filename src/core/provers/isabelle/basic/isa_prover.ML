@@ -14,7 +14,7 @@ struct
     val ctxt' = Config.put show_markup false ctxt;
    in Print_Mode.setmp [] (Syntax.string_of_term ctxt') t end;
   fun trm_of_string0 ctxt str = Syntax.parse_term ctxt str 
-  fun trm_of_string ctxt str = trm_of_string0 ctxt str (*|>  Syntax.check_term ctxt*);
+  fun trm_of_string ctxt str = trm_of_string0 ctxt str (*|> Syntax.check_term ctxt*);
   fun prop_of_string ctxt x = 
     Syntax.parse_term ctxt x 
     |> (fn t => (Const ("HOL.Trueprop", dummyT) $ t))
@@ -98,7 +98,7 @@ struct
      String.concat [n, ": ", pretty_env_data ctxt env_data |> Pretty.string_of] in
     StrName.NTab.list_of env
     |> map pretty_pair
-    |> (fn xs => str_chunks (( "ENV_DATA: [" :: xs) @ [ "]"]) )
+    |> (fn xs => "["  ^ str_blocks ", " (( xs) @ [ "]"]) )
     |> Pretty.str
     end
 

@@ -13,8 +13,8 @@ struct
   structure Prover = EData.PSGraph.Theory.Data.GoalTyp.Prover
   structure TextSocket = TextSocket
   
-  val if_gui_dbg_mode = false
-  fun dbg s1 s2 = if if_gui_dbg_mode then logging_handler_print s1 s2 else ();
+  val if_gui_dbg_mode = true
+  fun dbg s1 s2 = if if_gui_dbg_mode then LH.debug_json s1 s2 () else ();
 
   val buffer_to_json' = EData.PSGraph.from_prover_json o buffer_to_json
 
@@ -123,10 +123,11 @@ struct
               (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
               edata1)
         |(IEVal.Bad) => 
-            (logging "EVAL" "No subsequent eval status: Bad";
-            IEVal.output_json "CMD_UPDATE_PSGRAPH" 
+            (logging "FAILURE" "No subsequent eval status: Bad";
+              raise tinker_fail true            
+              (* IEVal.output_json "CMD_UPDATE_PSGRAPH" 
               (IEVal.mk_cmd_str_arg_json ["OPT_EVAL_STOP"]) 
-              edata0) 
+              edata0*)) 
     in
       case opt 
         of "OPT_EVAL_NEXT" => 
@@ -239,7 +240,7 @@ struct
           | "CMD_END_EVAL_SESSION" =>  send_msg (Json.encode json_output) (* send to stop cmd and quit *)
         (*  | "RSP_EXCEPTION" => send_msg (Json.encode json_output) *)(* end session and flash out the exception string*)
           | "RSP_MESSAGE_ERROR" => 
-            raise RunCall.Fail "\n Error: Received RSP_MESSAGE_ERROR from GUI. \n Please set the variable if_debug in the logging_handler to see more debugging info for this failure" 
+            raise RunCall.Fail "\n Error: Received RSP_MESSAGE_ERROR from GUI. \n Please set if_debug to true in LoggingHandler to see more debugging info for this failure" 
           | "Dummy_RSP" => ((); protocol_loop s)
           | "PRINT_ONLY_RSP" => 
             ((get_print_only_msg  json_output
@@ -277,8 +278,11 @@ fun start_eval ctxt ps assms g =
  let
   val edata0 = IEVal.EVal.init ps ctxt assms g |> hd (* FIXME: only get the first one *)
  in
-   IEVal.eval_complete edata0;()
-end
+   case IEVal.eval_complete edata0 
+    of IEVal.Good e => e
+    |  IEVal.Cont e => e
+    |  IEVal.Bad => edata0
+ end
 
 end
 

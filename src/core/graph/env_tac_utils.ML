@@ -92,13 +92,18 @@ struct
           else let val (a,b) = scan_rest_name xs in (x :: a, b) end;
     
     val scan_env_var = 
-      ($$ "?" -- Scan.many (fn x => Symbol.is_letter x orelse Symbol.is_digit x) -- scan_rest_name)
+      ($$ "?" -- Scan.finite Symbol.stopper (Scan.many (fn x => Symbol.is_letter x orelse Symbol.is_digit x)) -- scan_rest_name)
       >> (fn ((_,y), _) => y |> String.concat (*|> filter_blank*)) (* collapse the parsed string as a var name *)      ;
  
+    val scan_env_var0 = 
+      ($$ "?" -- (Scan.many (fn x => Symbol.is_letter x orelse Symbol.is_digit x)) -- scan_rest_name)
+      >> (fn ((_,y), _) => y |> String.concat (*|> filter_blank*)) (* collapse the parsed string as a var name *)      ;
+ 
+
     fun scan_env_vars0 [] = []
       | scan_env_vars0 xs = 
         let 
-          val (_, res) = scan_until scan_env_var xs 
+          val (_, res) = scan_until scan_env_var0 xs 
         in
           case res of [] => []
           | _ =>
@@ -108,7 +113,7 @@ struct
         end
     fun scan_env_vars args = scan_env_vars0 args |> StrName.NSet.of_list |> StrName.NSet.list_of
 (* scan_env_tac' format: ?var_name : type := definition, 
-   a more constraint format of scan_env_tac is: ?var_name := @{ type " definition"}*)
+   a more constraint format of scan_env_tac is: ?var_name := @{ type " definition"}
     fun scan_abbrv_env_tac' input env = 
       let
        val src = Symbol.explode input
@@ -121,7 +126,7 @@ struct
          (var, typ, (scan_def (Prover.antiquto_handler env) def_strs))
       end
      handle _ => (LoggingHandler.logging "FAILURE" ("Fail to parse: " ^ input ); 
-    raise LoggingHandler.tinker_fail true);
+    raise LoggingHandler.tinker_fail true); *)
 
     fun scan_abbrv_env_tac ctxt input env  = 
       let
@@ -136,8 +141,8 @@ struct
         if (is_start_with "?" (String.concat def_strs)) 
         (* start with ?, so must be assigning to another env var *)
         then
-         scan_env_var def_strs |> fst (* get the name of the var *)
-         |> (fn x => (StrName.NTab.get env (String.extract (x, 1, NONE)); ("dummy", String.concat def_strs)))
+        (scan_ignore_pre_blank scan_env_var def_strs) |> fst (* get the name of the var *)
+         |> (fn x => (StrName.NTab.get env (*String.extract (x, 1, NONE)*)x; ("dummy", String.concat def_strs)))
          handle StrName.Tab.UNDEF n => 
          (logging "FAILURE" ("the env var " ^ (String.concat def_strs)  ^ " does not exist."); 
           raise tinker_fail true)
