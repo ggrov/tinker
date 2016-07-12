@@ -75,6 +75,12 @@ class TinkerMenu() extends MenuBar{
 				DocumentService.exportSvg()
 			}
 		}
+		new Action("Export as dot file") {
+			menu.contents += new MenuItem(this)
+			def apply(): Unit = {
+				DocumentService.exportDot()
+			}
+		}
 		menu.contents += new Separator()
 		new Action("Quit") {
 			menu.contents += new MenuItem(this) { mnemonic = Key.Q }
