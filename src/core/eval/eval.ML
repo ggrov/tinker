@@ -210,9 +210,9 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
            new_graphs
    end;
 
- fun init psgraph ctxt assms goals =
+ fun init psgraph ctxt st =
    let
-     val (pnode,pplan) = Prover.init ctxt assms goals
+     val (pnode,pplan) = Prover.init ctxt st
      val pnode_tab = 
        StrName.NTab.ins
          (Prover.get_pnode_name pnode,pnode)
@@ -238,20 +238,13 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
       let
         val res = partition gt_data pnds gnode_opt pplan goal_typs  
       in
-(*       map 
-       (fn (pp, branch) => 
-         ( EData.set_bpplan pp b
-        (* |> EData.add_bgoals pnds*),  
-         branch
-      )) res
-      |>  *)
-        case pnds of [] => Seq.single (pplan, [])
+       case pnds of [] => Seq.single (pplan, [])
        | _ =>  (map (print_outedges o snd) res ; Seq.of_list res)
       end
     handle partition_exp {pnodes,...}  => 
-      (logging "FAILURE" ("Fail to match any goaltype for the output goal pnode :\n" ^ 
+      (logging "GOAL" ("Discard the result due to no matched goaltype for the output goal pnode :\n" ^ 
        ((hd pnodes) |> Prover.pretty_pnode |> Pretty.string_of)); 
-       raise tinker_fail false)
+       (*raise tinker_fail false*) Seq.empty)
    in
     Seq.maps apply_one ngs
    end

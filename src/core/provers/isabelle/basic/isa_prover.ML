@@ -5,6 +5,7 @@ struct
   type typ = typ
   type term = Term.term  
   type thm = Thm.thm
+  datatype goal = THM of (thm * int) | TERM of (term list * term)
   type context = Proof.context
 
   val default_ctxt = @{context}
@@ -161,8 +162,9 @@ struct
 
   exception atomic_exp of string
 
-  fun init ctxt [] trm =
-    let 
+  fun init ctxt st  =
+  case st of TERM (_, trm) =>
+   (let 
       val th = Proof_Context.theory_of ctxt
       val goal = Thm.cterm_of th trm
                |> Goal.init;
@@ -170,29 +172,16 @@ struct
       val pplan = { goal = goal, opengs = [pnode], usedgs = StrName.NSet.single "g"}
    in
      (pnode,pplan)
-   end;
-
-(*
-  fun init_of_thm (ctxt : context) thm = 
-    let 
-      val prems = Thm.prems_of thm
-      fun add prem (prms,nms) = 
-          let 
-             val (nm,nms') = StrName.NSet.add_new "g" nms
-          in
-            (prms @ [{ pname = nm, pctxt = ctxt, ptrm = prem, env = StrName.NTab.empty}],nms')
-          end
-      val (pnds,usedgs) = fold add prems ([],StrName.NSet.empty)
-      val pplan = { goal = thm, opengs = pnds, usedgs = usedgs}
+   end)
+  | THM (thm, i) => 
+   (let 
+      val goal = thm
+      val pnode = { pname = "g", pctxt = ctxt, ptrm = (Thm.cprem_of thm i |> Thm.term_of), env = StrName.NTab.empty}
+      val pplan = { goal = goal, opengs = [pnode], usedgs = StrName.NSet.single "g"}
    in
-     (pnds,pplan)
-   end;
-*)
+     (pnode,pplan)
+   end);
 
-(*
-  fun init_with_assm _ _ _ =   (* a dummy init which is not used in isabelle by LYH*)
-    raise atomic_exp "init_with_assm should not be used in isabelle"
-*)
   fun get_ind str _ [] = raise atomic_exp ("goal " ^ str ^ " does not exists")
    |  get_ind str n (x::xs) = if str = (#pname x) then n else get_ind str (n+1) xs;
 
@@ -294,7 +283,7 @@ struct
      [ "[ Goal ",
      (get_pnode_name pnode),
       " : ",
-     term_to_string (get_pnode_ctxt pnode) (get_pnode_concl pnode),
+     (*term_to_string*) Syntax.pretty_term (get_pnode_ctxt pnode) (get_pnode_concl pnode) |> Pretty.string_of,
      " ]"] |> Pretty.str
 
   fun pretty_pnode pnode = 
@@ -376,6 +365,7 @@ struct
    ("\<subseteq>", "<_uni_symb_lsubseteq_>"),
    ("\<supseteq>", "<_uni_symb_rsubseteq_>"),
    ("\<lhd>", "<_uni_symb_domres_>"),
+   ("\<triangleleft>", "<_uni_symb_domres_>"),
    ("\<rhd>", "<_uni_symb_ranres_>"),
    
    ("\<Longrightarrow>", "<_uni_symb_metaimpies_>"),
@@ -403,6 +393,8 @@ struct
     type tactic = tactic
     type pplan = pplan
     type pnode = pnode
+    type goal = goal
+
   end
 end (* struct *)
 

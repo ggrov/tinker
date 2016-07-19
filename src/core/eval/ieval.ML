@@ -90,7 +90,7 @@ struct
 
   fun eval_backtrack edata = 
    case EData.get_branches edata  
-   of [] => (logging "FAILURE" "All branches faul, no branch available for backtracking" ; Bad)
+   of [] => (logging "FAILURE" "All branches fail, no branch available for backtracking" ; Bad)
     | branch  => 
         (EData.PSGraph.Theory.Data.GoalTyp.Prover.restore_pplan (EData.get_bpplan (hd branch));
         Cont( EData.set_current (hd branch) edata |> EData.set_branches (tl branch)))

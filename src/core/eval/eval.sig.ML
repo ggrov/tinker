@@ -31,8 +31,7 @@ sig
       -> (EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list * EData.PSGraph.Theory.Data.GoalTyp.Prover.pplan) Seq.seq
 *)
   val init : EData.PSGraph.T -> EData.PSGraph.Theory.Data.GoalTyp.Prover.context 
-    -> EData.PSGraph.Theory.Data.GoalTyp.Prover.term list 
-    -> EData.PSGraph.Theory.Data.GoalTyp.Prover.term 
+    -> EData.PSGraph.Theory.Data.GoalTyp.Prover.goal 
     -> EData.T list
   val exit_hgraph_no_goal_node : EData.T -> EData.branch Seq.seq
   val eval_goal_gnodename :  bool -> V.name -> EData.T 

@@ -10,11 +10,11 @@ ML{*
 ML{*
   val clause_def = 
  "c(Z) :- top_symbol(concl,Z)." ^
- "h(Z) :- member(X,hyps), top_symbol(X,Z)." ^
+ "h(Z) :- member_of(hyps,X), top_symbol(X,Z)." ^
  "is_goal(Z) :- eq_term(concl, Z)." ^
  "has_hyp(Z) :- eq_term(hyps, Z)." ^
  "c_not_var(X) :- c(X), dest_term(concl, _, Y2), !is_var(Y2)." ^
- "h_not_var(X) :- member(X,hyps), top_symbol(X,Z), dest_term(Y, _, Z2), !is_var(Z2)." ^
+ "h_not_var(X) :- member_of(hyps,X), top_symbol(X,Z), dest_term(Y, _, Z2), !is_var(Z2)." ^
  "asm_to_elim() :- h(conj)." ^
  "asm_to_elim() :- h(disj)." ^
  "asm_to_elim() :- h(eq)." ^
@@ -35,32 +35,11 @@ ML{*
   val taut = PSGraph.read_json_file (SOME data) (pspath ^ ps_file);
 *}
 
-ML{*
-fun eval_text text =(
-      (*writeln ("exec : "^ text);*)
-      Secure.use_text ML_Env.local_context (1, "pp") (false) text  
-    ) 
-*}
-
-ML{*-
-TextSocket.safe_close();
-*}
-
-lemma "(A \<and> A \<and> B) \<longrightarrow> (B \<and> A \<and> True)"
-ML_val{*
-     val st = #goal @{Isar.goal};
-     writeln (Proof_Display.string_of_goal @{context} st);
- val g = Thm.concl_of st;
-val thm = Tinker.start_eval @{context} ( taut) ( []) ( g) (* prove the goal *)
-          |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
-*}
-
-lemma "True"
 ML{*-
   TextSocket.safe_close();
 *}  
 
-ML{* 
+ML{* -
 val g = @{prop "(A \<and> A \<and> B) \<longrightarrow> (B \<and> A \<and> True)"};
 val thm = Tinker.start_eval @{context} ( taut) ( []) ( g) (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
