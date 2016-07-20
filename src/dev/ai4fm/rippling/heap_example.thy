@@ -1,5 +1,5 @@
 theory heap_example
-imports Rippling "heap/HEAP1"
+imports Rippling "heap/HEAP1" "heap/HEAP1Lemmas"
 begin  
 
 ML{*         
@@ -15,8 +15,6 @@ ML{*
 *}
 
 setup {* PSGraphIsarMethod.add_graph ("rippling",rippling) *}
-
-
 
 thm F1_inv_def
 thm Disjoint_def
@@ -38,49 +36,71 @@ ML_val {*-
 apply (tinker rippling)
 done
 
-
-ML{*
-   val t = @{prop "finite (dom(f)) \<and> the (f(r)) \<noteq> s \<and> nat1 s \<and> r \<in> dom(f) \<and> s \<le> the(f(r)) \<Longrightarrow> finite(dom({r} -\<triangleleft> f))"}; 
-   val (pnode,pplan) = IsaProver.init @{context} [] t;
-*}
-ML{*
-val e = EVal.init rippling @{context} [] t |> hd;
-val (IEVal.Cont e0) = IEVal.eval_any e;
-val (IEVal.Cont e1) = IEVal.eval_any e0;
-*}
-
-ML{*
-val pp = EData.get_pplan e1;
-val p1 = IsaProver.get_open_pnode_by_name pp "a";
-val env = Prover.get_pnode_env p1;
-;
-
-val p2 = IsaProver.set_pnode_env (ENV_bind env [IsaProver.A_Trm (IsaProver.get_pnode_concl p1), IsaProver.A_Var "g"] env |> hd)
-p1 ;
-*}
-ML{*
-Clause_GT.type_check data p2 (Clause_GT.scan_goaltyp @{context} "has_wrule(?g)");
-*}
-
-ML{*
-  Prover.pretty_pnode pnode |> Pretty.writeln;
-   Clause_GT.type_check data pnode (Clause_GT.scan_goaltyp @{context} "hyp_embeds()")
-*}
-
-ML{*-
-val g = @{prop "finite (dom(f)) \<and> the (f(r)) \<noteq> s \<and> nat1 s \<and> r \<in> dom(f) \<and> s \<le> the(f(r)) \<Longrightarrow> finite(dom({r} -\<triangleleft> f))"};
-val thm = Tinker.start_ieval @{context} (SOME rippling) (SOME []) (SOME g) (* prove the goal *)
-          |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
-*}
 ML{*-
 TextSocket.safe_close();
 *}
 
+thm l_disjoint_dispose1_ext
+(* the current example *)
 (* The PO of new fsb *)
 context level1_new
 begin
+
 theorem locale1_new_FSB: "PO_new1_feasibility"
 unfolding PO_new1_feasibility_def new1_postcondition_def
+apply (insert l1_new1_precondition_def)
+unfolding new1_pre_def new1_post_def
+
+unfolding PO_new1_feasibility_def new1_postcondition_def 
+unfolding new1_post_def new1_post_eq_def new1_post_gr_def 
+apply (subst HOL.conj_disj_distribR) 
+apply (subst HOL.ex_disj_distrib)+
+(* hidden cases *)
+find_theorems "_ \<le> _ = ((_ < _) \<or> _)"
+apply (elim bexE)
+apply (subst(asm) Orderings.order_class.order.order_iff_strict, erule disjE)
+apply (rule disjI2) prefer 2
+apply (rule disjI1) prefer 2
+apply (subst ex_comm) apply (rule_tac x = l in exI) prefer 2
+apply (subst ex_comm) apply (rule_tac x = l in exI) prefer 2
+
+(* one point rule *)
+(* TODO, it seems that we need to do more rearrange for the one point rule in PSGraph  *)
+apply (subst HOL.conj_commute) apply (subst HOL.conj_commute)
+apply (subst HOL.conj_assoc)+
+apply (subst HOL.simp_thms(39)) prefer 2
+apply (subst HOL.conj_commute) apply (subst HOL.conj_commute)
+apply (subst HOL.conj_assoc)+
+apply (subst HOL.simp_thms(39)) prefer 2
+apply simp_all
+
+apply (insert l1_invariant_def)
+unfolding F1_inv_def  apply(elim conjE) prefer 2 apply(elim conjE) prefer 2
+apply(intro conjI) 
+(* solve the other sgs using sledgehammer *)
+prefer 2  
+apply (metis k_sep_dom_ar_munion l1_input_notempty_def) prefer 2
+apply (metis k_nat1_map_dom_ar_munion l1_input_notempty_def) prefer 2
+apply (metis k_finite_dom_ar_munion l1_input_notempty_def) 
+(* rippling *)
+unfolding Disjoint_def Set.Ball_def
+find_theorems "_ \<union>m_"
+find_theorems "disjoint (locs_of _ _) (locs _)"
+
+
+unfolding Locs_of_def
+
+
+prefer 2
+
+
+ 
+
+apply simp
+
+unfolding F1_inv_def
+
+thm nat1_map_def sep_def
 oops
 
 end
