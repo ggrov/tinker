@@ -1,79 +1,105 @@
 <!DOCTYPE html>
-<html>
-<head>
-	<title>Tinker - JFR paper resources</title>
-	<link rel=stylesheet href="style/main.css">
-	<link rel="shortcut icon" href="favicon.ico" />
+<html><head><title>Tinker - JFR paper resources</title>
+
+
+
+
 	
-</head>
-<body>
+	<link rel="stylesheet" href="style/main.css">
+	<link rel="shortcut icon" href="favicon.ico">
+	
+<link rel="stylesheet" href="style/tinkerViz.css"><link rel="stylesheet" href="style/graph.css"><link rel="stylesheet" href="style/tinkerViz.css"><link rel="stylesheet" href="style/graph.css"><link rel="stylesheet" href="style/tinkerViz.css"><link rel="stylesheet" href="style/graph.css"><link rel="stylesheet" href="style/tinkerViz.css"><link rel="stylesheet" href="style/graph.css"></head><body>
 	<header id="header" class="">
-	<div>
+	</header><div>
+<div style="text-align: center;">
 		
-		<h1>Debugging and refactoring tactics graphically <br> (JFR paper resources)</h1>
-		<h3>Authors : Yuhui Lin, Gudmund Grov and Rob Arthan</h3>
+		</div>
+<h1 style="text-align: center;">Debugging and refactoring tactics graphically <br>
+ (JFR paper resources)</h1>
+
+		<h3 style="text-align: center;">Authors : Yuhui Lin, Gudmund Grov and Rob Arthan</h3>
 	</div>
-	</header><!-- /header -->
+	<!-- /header -->
 	<div class="container">
 		<script src="script/d3.min.js"></script>
 		<script src="script/d3-tip.min.js"></script>
-		<script src="script/tinker.js"></script>
-		<div class="section" id="intro">
-			<h2>Foreword (TODO: update how to get all the executable and install instruction)</h2>
-			<hr>
-			<p>This webpage aims to present resources used for our tool presentation. To use those resources, first download Tinker from <a href=".." title="">here</a>. Once extracted, the example files will be available under:</p>
-			<p class="code">$SOME_PATH/tinker/src/core/demo/TACAS16/</p>
-			<p>The example runs with Proof Power, to configure it, follow those steps :</p>
-			<ul>
-				<li>
-					<p>assume that the quantomatics repo and the psgraph are cloned in the same folder, for example </p>
-					<p class="code">$SOME_PATH/tinker</p> 
-					<p>we can check the readme file to make sure the path is correct, e.g. the readme for quantomatoics repo will be </p>
-					<p class="code">$SOME_PATH/tinker/quantomatic/README</p>
-					<p>similarly, the readme for the psgtarph repo will be </p>
-					<p class="code">$SOME_PATH/tinker/psgraph/Readme.md?</p>
-					<p>Note that both repo need to be latest version.</p>
-				</li>
-				<li>
-					<p>go to the tinker folder by </p>
-					<p class="code">cd $SOME_PATH/tinker</p> 
-					<p>then to make the psgraph db, using </p>
-					<p class="code">pp_make_database -p zed psgraph</p>
-				</li>
-				<li>
-					<p>then to open the psgraph db in the same directory, i.e.</p>
-					<p class="code">xpp -d psgraph</p>
-				</li>
-				<li>
-					<p>in the xpp, to open the install file in</p>
-					<p class="code">$SOME_PATH/tinker/psgraph/src/core/provers/proofpower/build/install.ML</p>
-					<p>then to run this run to compile the required library into the psgraph db. </p>
-				</li>
-				<li>
-					<p>now the psgraph db should be ok to load psgraph and run and run some experiments, no need to do steps 1 - 4 from this point.</p>
-				</li>
-				<li>
-					<p>to run some examples, open the psgraph db under</p>
-					<p class="code">$SOME_PATH/tinker</p>
-					<p>by</p>
-					<p class="code">xpp -d psgraph</p>
-				</li>
-			</ul>
-			<p>Then open the following demo file in the pp to see if the tool can run correctly</p>
-			<p class="code">$SOME_PATH/tinker/psgraph/src/core/demo/TACAS16/</p>
-			<p>The  line</p>
-			<p class="code">PPIntf.set_psg_goal</p>
-			<p>is to ask pp to connect gui for proofs. Note that to enable gui to accept the connection from pp, the following need to be clicked <img src="ressources/evalDisconnected.png" alt="">, once the connection is ready the icon will become <img src="ressources/evalConnected.png" alt="">. Details on how to start the GUI can be found in <a href="../userGuide.pdf" title="">Tinker's user guide</a>.</p>
+		<script src="script/tinker.js"></script><br>
+<div class="section" id="intro">
+<address>We present the use of a graph-based proof strategy language,
+called PSGraph, in the&nbsp; re-implementation and refactoring of
+several existing tactics. We show that the PSGraph impmentation can
+improve understandability and maintainability properties of the tactic.
+This webpage present resources used in the paper. All the PSGraph
+examples are available <a href="../jfr16/ressources/exmaples_ps.zip" target="_blank">here</a>, and the orignal resource of the case studies are available here (TODO: add the source of the case studies).<br>
+<span style="color: rgb(153, 51, 0);"></span></address>
+<br>
+<h2>Installation <br>
+</h2>
+
+
+			<hr>The example runs with Proof Power, to configure it, follow those steps :
+			
+					
+<p>assume that the quantomatics repo and the psgraph are cloned in the
+same folder, for example (TODO: can we provide a srcipt to generate a ProofPower database, like the FEF example)<br>
+</p>
+
+					
+<p class="code">$SOME_PATH/tinker</p>
+ 
+					
+<p>we can check the readme file to make sure the path is correct, e.g. the readme for quantomatoics repo will be </p>
+
+					
+<p class="code">$SOME_PATH/tinker/quantomatic/README</p>
+
+					
+<p>similarly, the readme for the psgtarph repo will be</p>
+
+					
+<p class="code">$SOME_PATH/tinker/psgraph/Readme.md?</p>
+(SOME TEXT to show how to build or run the script to compile the database)<br>
+When the database is compiled, using the following commnad to run proofpower containing the case studies in the heap:<br>
+<p class="code">xpp -d psgraph</p>
+
+				
+			<p>The ML files of the examples of the paper are under<br>
+</p>
+			<p class="code">$SOME_PATH/tinker/psgraph/src/core/examples/JFR16</p>
+			namely, <span style="font-style: italic;">simple.M</span>L, <span style="font-style: italic;">taut.ML</span>, <span style="font-style: italic;">fef_tac.ML</span> and&nbsp;<span style="font-style: italic;"> conv_tac.ML</span>. We will give more details for each example in the following sections. There are two commands to invoke tinker, <br>
+
+<p style="color: rgb(153, 51, 0);">&nbsp;&nbsp;&nbsp; <span class="section"></span><span class="code"></span><small><span style="font-style: italic;"></span></small><span style="font-family: monospace;">PPIntf.apply_ps psgraph</span></p>
+and <small><span style="font-style: italic; color: rgb(153, 0, 0);" class="section"></span><span style="font-style: italic; color: rgb(153, 0, 0);" class="code"></span><span style="font-style: italic; color: rgb(153, 0, 0);"><br>
+</span></small>
+<p style="color: rgb(153, 51, 0);">&nbsp;&nbsp;&nbsp; <span class="section"></span><span class="code"></span><small><span style="font-style: italic;"></span></small><span style="font-family: monospace;">PPIntf.apply_ps_i psgraph</span></p>The
+first command is to apply a psgraph to the current goal automatically,
+while the second one is to apply a psgraph interactively with the
+Tinker GUI.
+Also, there is another command to setup a goal in ProofPower and apply
+a
+psgraph interactively, which is<br>
+
+			
+<p><span style="font-family: monospace; color: rgb(153, 51, 0);">&nbsp;&nbsp; PPIntf.set_psg_goal goal psgraph</span></p>
+<span class="atm"></span><ul>
+  
+</ul><br>
+
+<span class="section"></span><span class="code"></span>In the
+interactive mode, the tinker GUI will be involved for evaluating and
+debugging the current proof. More details for the GUI can be found
+in <a href="../userGuide.pdf" title="">Tinker's user guide</a>.
 		</div>
 		<div class="section" id="simple">
-			<link rel=stylesheet href="style/tinkerViz.css">
-			<link rel=stylesheet href="style/graph.css">
+			
+			
 			<h2>A simple example</h2>
 			<hr>
-			<h3>Background</h3>
+			This is a simple example to show the use of Goaltype to guide the subgoal to the right subsequent tactic.<br>
+
 			<h3>Evaluation of the simple PSGraph </h3>
 			<div id="simple_proof">
-				<div id="graphContent" style="visibility:hidden">
+				<div id="graphContent" style="visibility: hidden;">
 					<div class="line">
 						<div class="line content">
 							<span>Evaluation Step : </span>
@@ -94,9 +120,9 @@
 								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
 							</div>
 						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
 					</div>
-					<div id="graphError" style="visibility:hidden"></div>
+					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
 			<script>
@@ -104,14 +130,19 @@
 			</script>
 		</div>
 		<div class="section" id="taut">
-			<link rel=stylesheet href="style/tinkerViz.css">
-			<link rel=stylesheet href="style/graph.css">
+			
+			
 			<h2>A tautology tactic for propositional logic</h2>
 			<hr>
-			<h3>Background</h3>
+			This
+example re-engineers a tautology tactic into PSGraph. It contains the
+details of how we a generalised version, followed by optimisations
+through a set of refactorings. Tinker's debugging capabilities are
+utilised to find and correct mistakes in the encoding.<br>
+
 			<h3>Refactoring History</h3>
 			<div id="taut_refactor">
-				<div id="graphContent" style="visibility:hidden">
+				<div id="graphContent" style="visibility: hidden;">
 					<div class="line">
 						<div class="line content">
 							<span>Version : </span>
@@ -131,9 +162,9 @@
 								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
 							</div>
 						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
 					</div>
-					<div id="graphError" style="visibility:hidden"></div>
+					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
 			<script>
@@ -142,7 +173,7 @@
 
 			<h3>Debugging using breakpoints</h3>
 			<div id="taut_debug">
-				<div id="graphContent" style="visibility:hidden">
+				<div id="graphContent" style="visibility: hidden;">
 					<div class="line">
 						<div class="line content">
 							<span>Evaluation Step : </span>
@@ -163,9 +194,9 @@
 								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
 							</div>
 						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
 					</div>
-					<div id="graphError" style="visibility:hidden"></div>
+					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
 			<script>
@@ -173,7 +204,7 @@
 			</script>		
 			<h3>Evaluation of the final version </h3>
 			<div id="taut_proof">
-				<div id="graphContent" style="visibility:hidden">
+				<div id="graphContent" style="visibility: hidden;">
 					<div class="line">
 						<div class="line content">
 							<span>Evaluation Step : </span>
@@ -194,9 +225,9 @@
 								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
 							</div>
 						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
 					</div>
-					<div id="graphError" style="visibility:hidden"></div>
+					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>	
 			<script>
@@ -204,14 +235,20 @@
 			</script>		
 		</div>
 		<div class="section" id="fef">
-			<link rel=stylesheet href="style/tinkerViz.css">
-			<link rel=stylesheet href="style/graph.css">
+			
+			
 			<h2>Domain specific tactics from the FEF project</h2>
-			<hr>
-			<h3>Background</h3>
-			<h3>Evaluation of tac1</h3>
+			<hr>The FEF Project was an early application of ProofPower to<br>
+verify the security properties of a multi-level secure database system
+called SWORD. We will look at some very domain-specific tactics taken
+from the FEF<br>
+proof scripts as an experiment in porting an existing application proof
+to PSGraph with a view to making future maintenance easier by
+presenting the proof at a higher level.<br>
+<br>
+<h3>Evaluation of tac1</h3>
 			<div id="fef_tac1_proof">
-				<div id="graphContent" style="visibility:hidden">
+				<div id="graphContent" style="visibility: hidden;">
 					<div class="line">
 						<div class="line content">
 							<span>Evaluation Step : </span>
@@ -232,9 +269,9 @@
 								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
 							</div>
 						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
 					</div>
-					<div id="graphError" style="visibility:hidden"></div>
+					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
 			<script>
@@ -242,7 +279,7 @@
 			</script>
 			<h3>Evaluation of tac2</h3>
 			<div id="fef_tac2_proof">
-				<div id="graphContent" style="visibility:hidden">
+				<div id="graphContent" style="visibility: hidden;">
 					<div class="line">
 						<div class="line content">
 							<span>Evaluation Step : </span>
@@ -263,9 +300,9 @@
 								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
 							</div>
 						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
 					</div>
-					<div id="graphError" style="visibility:hidden"></div>
+					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
 			<script>
@@ -273,7 +310,7 @@
 			</script>
 			<h3>Evaluation of tac3</h3>
 			<div id="fef_tac3_proof">
-				<div id="graphContent" style="visibility:hidden">
+				<div id="graphContent" style="visibility: hidden;">
 					<div class="line">
 						<div class="line content">
 							<span>Evaluation Step : </span>
@@ -294,9 +331,9 @@
 								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
 							</div>
 						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
 					</div>
-					<div id="graphError" style="visibility:hidden"></div>
+					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
 			<script>
@@ -304,7 +341,7 @@
 			</script>
 			<h3>Evaluation of tac4</h3>
 			<div id="fef_tac4_proof">
-				<div id="graphContent" style="visibility:hidden">
+				<div id="graphContent" style="visibility: hidden;">
 					<div class="line">
 						<div class="line content">
 							<span>Evaluation Step : </span>
@@ -325,9 +362,9 @@
 								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
 							</div>
 						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
 					</div>
-					<div id="graphError" style="visibility:hidden"></div>
+					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
 			<script>
@@ -335,15 +372,21 @@
 			</script>
 		</div>
 		<div class="section" id="conv">
-			<link rel=stylesheet href="style/tinkerViz.css">
-			<link rel=stylesheet href="style/graph.css">
+			
+			
 			<h2>Developing conversions</h2>
 			<hr>
-			<h3>Background</h3>
+			The
+final case study addresses a more abstract example, which is an
+implementation of a proof procedure&nbsp; that automates proofs that a
+function formed from a given set of<br>
+atomic morphisms by composition and pairing is a morphism in a concrete category. <br>
+This case study includes more complex features of low-level term rewriting through
+conversions with recursion.
 			<h3>Proof recording</h3>
 
 			<div id="conv_proof">
-				<div id="graphContent" style="visibility:hidden">
+				<div id="graphContent" style="visibility: hidden;">
 					<div class="line">
 						<div class="line content">
 							<span>Evaluation Step : </span>
@@ -364,9 +407,9 @@
 								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
 							</div>
 						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> & <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
 					</div>
-					<div id="graphError" style="visibility:hidden"></div>
+					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
 			<script>
@@ -385,7 +428,7 @@
 			    <li><a onclick="changeVideoSource(4)">Breakpoint</a></li>
 			</ul>
 			<div id="vidContainer">
-				<iframe id="vid" width="680" height="390" src="">
+				<iframe id="vid" src="" height="390" width="680">
 				</iframe>
 			</div>
 			<script>
@@ -403,5 +446,4 @@
 			</script>
 		</div>
 	</div>
-</body>
-</html>
+</body></html>
