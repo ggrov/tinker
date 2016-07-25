@@ -338,6 +338,7 @@ object QuantoLibAPI extends Publisher{
 		graph.outEdges(n).foreach{e =>
 			graph.vdata(graph.target(e)) match {
 				case d:NodeV if d.typ == "T_Graph" => res = true
+				case d:NodeV if d.typ == "G" => res = hasNestedTacticAfter(graph.target(e).s)
 				case _ =>
 			}
 		}
