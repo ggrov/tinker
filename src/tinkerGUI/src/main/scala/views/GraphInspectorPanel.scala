@@ -15,6 +15,30 @@ class GraphInspectorPanel() extends BorderPanel {
 
 	val tacticNavigationButtons = new FlowPanel(FlowPanel.Alignment.Left)(){
 
+		contents += new Button(new Action(""){
+			def apply(): Unit = {
+				Service.inspectorCtrl.toggleLock()
+			}
+		}){
+			icon = new ImageIcon(MainGUI.getClass.getResource("inspectUnlocked.png"), "Lock")
+			tooltip = "Lock inspector"
+			borderPainted = false
+			margin = new Insets(0,0,0,0)
+			contentAreaFilled = false
+			opaque = false
+			cursor = new Cursor(java.awt.Cursor.HAND_CURSOR)
+			listenTo(Service.inspectorCtrl)
+			reactions += {
+				case InspectorLockEvent(l:Boolean) =>
+					if(l){
+						icon = new ImageIcon(MainGUI.getClass.getResource("inspectLocked.png"), "Unlock")
+						tooltip = "Unlock inspector"
+					} else {
+						icon = new ImageIcon(MainGUI.getClass.getResource("inspectUnlocked.png"), "Lock")
+						tooltip = "Lock inspector"
+					}
+			}
+		}
 		contents += new Button(new Action("") {
 			def apply() {
 				Service.inspectorCtrl.showPrev()

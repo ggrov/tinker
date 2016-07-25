@@ -112,6 +112,12 @@ case class UpdateGTListEvent() extends Event
 	*/
 case class DisableNavigationEvent(a:Array[String]) extends Event
 
+/** Event to enable/disable lock.
+	*
+	* @param l Lock boolean.
+	*/
+case class InspectorLockEvent(l:Boolean) extends Event
+
 // launched by edit controller
 /** Event notifying of a change of mouse state.
 	*
