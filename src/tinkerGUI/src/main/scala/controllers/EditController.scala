@@ -623,7 +623,7 @@ class EditController(model:PSGraph) extends Publisher {
 		*/
 	def editSubgraph(tactic:String, index:Int, parents:Option[Array[String]] = None) {
 		try {
-			Service.documentCtrl.registerChanges()
+			// Service.documentCtrl.registerChanges()
 			model.changeCurrent(tactic, index, parents)
 			Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
 			QuantoLibAPI.loadFromJson(model.getCurrentJson)
