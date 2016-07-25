@@ -1249,12 +1249,12 @@ object QuantoLibAPI extends Publisher{
 			def printNode(id:String, typ:String, label:String): Unit ={
 				var s = id+" [label=\""+label+"\""
 				typ match {
-					case "id" => s += ",shape=triangle,style=filled,color=\"#99CCFF\",width=0.45"
-					case "atm" => s += ",shape=box,style=filled,color=\"#CCFF99\""
-					case "nst" => s += ",shape=box,style=filled,color=\"#FFCC99\""
-					case "break" => s += ",shape=octagon,style=filled,color=\"#FF3333\",fontcolor=\"#FFFFFF\",fontsize=8.0,fontname=\"Hevetica bold\",width=0.4,height=0.4,margin=\"0 0\""
-					case "goal" => s += ",shape=circle,style=filled,color=\"#CCFFFF\",width=0.4,height=0.4,margin=\"0 0\""
-					case "bound" => s += ",shape=point"
+					case "id" => s += ",shape=invtriangle,style=filled,fillcolor=\"#99CCFF\",width=0.45"
+					case "atm" => s += ",shape=box,style=filled,fillcolor=\"#CCFF99\",height=0.3"
+					case "nst" => s += ",shape=box,style=filled,fillcolor=\"#FFCC99\""
+					case "break" => s += ",shape=octagon,style=filled,fillcolor=\"#FF3333\",fontcolor=\"#FFFFFF\",fontsize=8.0,fontname=\"Hevetica bold\",width=0.4,height=0.4,margin=\"0 0\""
+					case "goal" => s += ",shape=circle,style=filled,fillcolor=\"#CCFFFF\",width=0.4,height=0.4,margin=\"0 0\""
+					case "bound" => s += ",shape=none"
 				}
 				s += "];"
 				p.println(s)
