@@ -4,6 +4,7 @@
 
 
 
+
 	
 	<link rel="stylesheet" href="style/main.css">
 	<link rel="shortcut icon" href="favicon.ico">
@@ -15,33 +16,51 @@
 		
 		</div>
 <h1 style="text-align: center;">Debugging and refactoring tactics graphically <br>
+
  (JFR paper resources)</h1>
 
 		<h3 style="text-align: center;">Authors : Yuhui Lin, Gudmund Grov and Rob Arthan</h3>
 	</div>
 	<!-- /header -->
 	<div class="container">
-		<script src="script/d3.min.js"></script>
-		<script src="script/d3-tip.min.js"></script>
-		<script src="script/tinker.js"></script><br>
+		
+<script src="script/d3.min.js"></script>
+		
+<script src="script/d3-tip.min.js"></script>
+		
+<script src="script/tinker.js"></script><br>
+
 <div class="section" id="intro">
 <address>We present the use of a graph-based proof strategy language,
 called PSGraph, in the&nbsp; re-implementation and refactoring of
-several existing tactics. We show that the PSGraph impmentation can
+several existing tactics. We show that the PSGraph implementation can
 improve understandability and maintainability properties of the tactic.
-This webpage present resources used in the paper. All the PSGraph
-examples are available <a href="../jfr16/ressources/exmaples_ps.zip" target="_blank">here</a>, and the orignal resource of the case studies are available here (TODO: add the source of the case studies).<br>
+This webpage presents the resources used in the paper. All the PSGraph
+examples are available <a href="./ressources/exmaples_ps.zip" target="_blank">&lt;here&gt;</a>, and the original resource of the case studies are <br>
+</address>
+<ul>
+  <li>Tautology: this tactic is part of ProofPower, the ML file is <a target="_blank" href="file:///Users/yuhuilin/Workspace/StrategyLang/projectPage/jfr16/ressources/pp_taut.sml">&lt;here&gt;</a>.<br>
+  </li>
+  <li>the FEF project: the project website can be found <a target="_blank" href="http://www.lemma-one.com/ProofPower/fef/fef.html">&lt;here&gt;</a>, and the ML file which includes the definitions of the tactics is <a target="_blank" href="file:///Users/yuhuilin/Workspace/StrategyLang/projectPage/jfr16/ressources/fef033.sml">&lt;here&gt;</a>.<br>
+  </li>
+  <li>Conversions: the paper for this case study is &lt;here&gt;, and the ML file which includes the definition of the tactic is<a target="_blank" href="file:///Users/yuhuilin/Workspace/StrategyLang/projectPage/jfr16/ressources/wrk083.sml"> &lt;here&gt;</a>. </li>
+</ul>
+<address>
 <span style="color: rgb(153, 51, 0);"></span></address>
+
 <br>
+
 <h2>Installation <br>
+
 </h2>
 
 
 			<hr>The example runs with Proof Power, to configure it, follow those steps :
 			
 					
-<p>assume that the quantomatics repo and the psgraph are cloned in the
-same folder, for example (TODO: can we provide a srcipt to generate a ProofPower database, like the FEF example)<br>
+<p>assume that the quantomatics repo and the PSGraph are cloned in the
+same folder, for example (TODO: can we provide a script to generate a ProofPower database, like the FEF example)<br>
+
 </p>
 
 					
@@ -59,31 +78,36 @@ same folder, for example (TODO: can we provide a srcipt to generate a ProofPower
 					
 <p class="code">$SOME_PATH/tinker/psgraph/Readme.md?</p>
 (SOME TEXT to show how to build or run the script to compile the database)<br>
-When the database is compiled, using the following commnad to run proofpower containing the case studies in the heap:<br>
+
+When the database is compiled, using the following command to run ProofPower containing the case studies in the heap:<br>
+
 <p class="code">xpp -d psgraph</p>
 
 				
 			<p>The ML files of the examples of the paper are under<br>
+
 </p>
 			<p class="code">$SOME_PATH/tinker/psgraph/src/core/examples/JFR16</p>
 			namely, <span style="font-style: italic;">simple.M</span>L, <span style="font-style: italic;">taut.ML</span>, <span style="font-style: italic;">fef_tac.ML</span> and&nbsp;<span style="font-style: italic;"> conv_tac.ML</span>. We will give more details for each example in the following sections. There are two commands to invoke tinker, <br>
+
 
 <p style="color: rgb(153, 51, 0);">&nbsp;&nbsp;&nbsp; <span class="section"></span><span class="code"></span><small><span style="font-style: italic;"></span></small><span style="font-family: monospace;">PPIntf.apply_ps psgraph</span></p>
 and <small><span style="font-style: italic; color: rgb(153, 0, 0);" class="section"></span><span style="font-style: italic; color: rgb(153, 0, 0);" class="code"></span><span style="font-style: italic; color: rgb(153, 0, 0);"><br>
 </span></small>
 <p style="color: rgb(153, 51, 0);">&nbsp;&nbsp;&nbsp; <span class="section"></span><span class="code"></span><small><span style="font-style: italic;"></span></small><span style="font-family: monospace;">PPIntf.apply_ps_i psgraph</span></p>The
-first command is to apply a psgraph to the current goal automatically,
-while the second one is to apply a psgraph interactively with the
+first command is to apply a PSGraph to the current goal automatically,
+while the second one is to apply a PSGraph interactively with the
 Tinker GUI.
 Also, there is another command to setup a goal in ProofPower and apply
-a
-psgraph interactively, which is<br>
+a PSGraph interactively, which is<br>
+
 
 			
 <p><span style="font-family: monospace; color: rgb(153, 51, 0);">&nbsp;&nbsp; PPIntf.set_psg_goal goal psgraph</span></p>
 <span class="atm"></span><ul>
   
 </ul><br>
+
 
 <span class="section"></span><span class="code"></span>In the
 interactive mode, the tinker GUI will be involved for evaluating and
@@ -96,6 +120,7 @@ in <a href="../userGuide.pdf" title="">Tinker's user guide</a>.
 			<h2>A simple example</h2>
 			<hr>
 			This is a simple example to show the use of Goaltype to guide the subgoal to the right subsequent tactic.<br>
+
 
 			<h3>Evaluation of the simple PSGraph </h3>
 			<div id="simple_proof">
@@ -113,7 +138,10 @@ in <a href="../userGuide.pdf" title="">Tinker's user guide</a>.
 						<div class="line content">
 							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
 							<div>
-								<select id="tacticList" class=""></select>
+								
+<select id="tacticList" class="">
+</select>
+
 								<span>Subgraphs : </span>
 								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
 								<span id="graphIndices"></span>
@@ -125,7 +153,8 @@ in <a href="../userGuide.pdf" title="">Tinker's user guide</a>.
 					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
-			<script>
+			
+<script>
 				makeViz("simple_proof","ressources/simple_eval.json")
 			</script>
 		</div>
@@ -139,6 +168,7 @@ example re-engineers a tautology tactic into PSGraph. It contains the
 details of how we a generalised version, followed by optimisations
 through a set of refactorings. Tinker's debugging capabilities are
 utilised to find and correct mistakes in the encoding.<br>
+
 
 			<h3>Refactoring History</h3>
 			<div id="taut_refactor">
@@ -155,7 +185,10 @@ utilised to find and correct mistakes in the encoding.<br>
 					<div id="mainArea">
 						<div class="line content">
 							<div>
-								<select id="tacticList" class=""></select>
+								
+<select id="tacticList" class="">
+</select>
+
 								<span>Subgraphs : </span>
 								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
 								<span id="graphIndices"></span>
@@ -167,7 +200,8 @@ utilised to find and correct mistakes in the encoding.<br>
 					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
-			<script>
+			
+<script>
 				makeViz("taut_refactor","ressources/taut_refactor.json")
 			</script>
 
@@ -187,7 +221,10 @@ utilised to find and correct mistakes in the encoding.<br>
 						<div class="line content">
 							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
 							<div>
-								<select id="tacticList" class=""></select>
+								
+<select id="tacticList" class="">
+</select>
+
 								<span>Subgraphs : </span>
 								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
 								<span id="graphIndices"></span>
@@ -199,7 +236,8 @@ utilised to find and correct mistakes in the encoding.<br>
 					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
-			<script>
+			
+<script>
 				makeViz("taut_debug","ressources/taut_debug.json")
 			</script>		
 			<h3>Evaluation of the final version </h3>
@@ -218,7 +256,10 @@ utilised to find and correct mistakes in the encoding.<br>
 						<div class="line content">
 							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
 							<div>
-								<select id="tacticList" class=""></select>
+								
+<select id="tacticList" class="">
+</select>
+
 								<span>Subgraphs : </span>
 								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
 								<span id="graphIndices"></span>
@@ -230,7 +271,8 @@ utilised to find and correct mistakes in the encoding.<br>
 					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>	
-			<script>
+			
+<script>
 				makeViz("taut_proof","ressources/taut_eval.json")
 			</script>		
 		</div>
@@ -239,13 +281,17 @@ utilised to find and correct mistakes in the encoding.<br>
 			
 			<h2>Domain specific tactics from the FEF project</h2>
 			<hr>The FEF Project was an early application of ProofPower to<br>
+
 verify the security properties of a multi-level secure database system
 called SWORD. We will look at some very domain-specific tactics taken
 from the FEF<br>
+
 proof scripts as an experiment in porting an existing application proof
 to PSGraph with a view to making future maintenance easier by
 presenting the proof at a higher level.<br>
+
 <br>
+
 <h3>Evaluation of tac1</h3>
 			<div id="fef_tac1_proof">
 				<div id="graphContent" style="visibility: hidden;">
@@ -262,7 +308,10 @@ presenting the proof at a higher level.<br>
 						<div class="line content">
 							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
 							<div>
-								<select id="tacticList" class=""></select>
+								
+<select id="tacticList" class="">
+</select>
+
 								<span>Subgraphs : </span>
 								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
 								<span id="graphIndices"></span>
@@ -274,7 +323,8 @@ presenting the proof at a higher level.<br>
 					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
-			<script>
+			
+<script>
 				makeViz("fef_tac1_proof","ressources/tac1_eval.json")
 			</script>
 			<h3>Evaluation of tac2</h3>
@@ -293,7 +343,10 @@ presenting the proof at a higher level.<br>
 						<div class="line content">
 							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
 							<div>
-								<select id="tacticList" class=""></select>
+								
+<select id="tacticList" class="">
+</select>
+
 								<span>Subgraphs : </span>
 								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
 								<span id="graphIndices"></span>
@@ -305,7 +358,8 @@ presenting the proof at a higher level.<br>
 					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
-			<script>
+			
+<script>
 				makeViz("fef_tac2_proof","ressources/tac2_eval.json")
 			</script>
 			<h3>Evaluation of tac3</h3>
@@ -324,7 +378,10 @@ presenting the proof at a higher level.<br>
 						<div class="line content">
 							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
 							<div>
-								<select id="tacticList" class=""></select>
+								
+<select id="tacticList" class="">
+</select>
+
 								<span>Subgraphs : </span>
 								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
 								<span id="graphIndices"></span>
@@ -336,7 +393,8 @@ presenting the proof at a higher level.<br>
 					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
-			<script>
+			
+<script>
 				makeViz("fef_tac3_proof","ressources/tac3_eval.json")
 			</script>
 			<h3>Evaluation of tac4</h3>
@@ -355,7 +413,10 @@ presenting the proof at a higher level.<br>
 						<div class="line content">
 							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
 							<div>
-								<select id="tacticList" class=""></select>
+								
+<select id="tacticList" class="">
+</select>
+
 								<span>Subgraphs : </span>
 								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
 								<span id="graphIndices"></span>
@@ -367,7 +428,8 @@ presenting the proof at a higher level.<br>
 					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
-			<script>
+			
+<script>
 				makeViz("fef_tac4_proof","ressources/tac4_eval.json")
 			</script>
 		</div>
@@ -380,7 +442,9 @@ presenting the proof at a higher level.<br>
 final case study addresses a more abstract example, which is an
 implementation of a proof procedure&nbsp; that automates proofs that a
 function formed from a given set of<br>
+
 atomic morphisms by composition and pairing is a morphism in a concrete category. <br>
+
 This case study includes more complex features of low-level term rewriting through
 conversions with recursion.
 			<h3>Proof recording</h3>
@@ -400,7 +464,10 @@ conversions with recursion.
 						<div class="line content">
 							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
 							<div>
-								<select id="tacticList" class=""></select>
+								
+<select id="tacticList" class="">
+</select>
+
 								<span>Subgraphs : </span>
 								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
 								<span id="graphIndices"></span>
@@ -412,7 +479,8 @@ conversions with recursion.
 					<div id="graphError" style="visibility: hidden;"></div>
 				</div>
 			</div>
-			<script>
+			
+<script>
 				makeViz("conv_proof","ressources/conv_eval.json")
 			</script>
 		</div>
@@ -431,7 +499,8 @@ conversions with recursion.
 				<iframe id="vid" src="" height="390" width="680">
 				</iframe>
 			</div>
-			<script>
+			
+<script>
 				var videosSource = [
 					"https://www.youtube.com/embed/Rll0NH4MFiI",
 					"https://www.youtube.com/embed/LTyAH9IJbfU",
