@@ -3,6 +3,8 @@ struct
   exception tinker_fail of (bool) (* if critical *)
   exception logging_exp of string
 
+  val if_debug =  true (* to enable local print, an overall control for all local print *)
+
   val logging_tags = [ 
     "GOAL",
     "GOALTYPE",
@@ -24,8 +26,6 @@ struct
   val active_tags = Unsynchronized.ref StrName.NSet.empty;
   fun get_active_tags _ = !active_tags;
   val set_active_tags = fn x => active_tags := x;
-
-  val if_debug =  false (* to enable local print, an overall control for all local print *)
   
   val logging_handler_print0 = 
    if if_debug then

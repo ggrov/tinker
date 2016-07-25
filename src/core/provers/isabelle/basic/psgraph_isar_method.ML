@@ -3,28 +3,45 @@ struct
   local open IsaProver in
     fun thm_of_pplan (pplan:pplan) = #goal pplan;
   end;
- structure IsaMethod_ML_Exec = 
-  ML_Exec_Func (val exec_str = IsaProver.exec_str type ret = PSGraph.T val struct_name = "PSGraphIsarMethod.IsaMethod_ML_Exec");
 
-  fun tinker_tac ps ctxt thm = 
-    let
-      val g = Thm.prop_of thm
+ structure Data = Theory_Data(struct 
+    type T = PSGraph.T StrName.NTab.T
+    val empty =  StrName.NTab.empty;
+    val extend = I;
+    fun merge (m1,_) = m1; (* or fail? *)
+  end);
+
+ exception no_psgraph_exp of string;
+ val psgraph = (Attrib.setup_config_string @{binding "psgraph"} (K "unknown"));
+
+ fun get_graph th name =
+    case StrName.NTab.lookup (Data.get th) name of 
+      NONE => raise no_psgraph_exp name
+    | SOME v => v;
+
+  val add_graph = Data.map o StrName.NTab.ins;
+  val add_graph_list =  Data.map o (fold StrName.NTab.ins);
+
+  fun tinker_tac name ctxt i st = 
+  case SOME (Thm.cprem_of st i) handle THM _ => NONE of
+  NONE => Seq.empty
+  |SOME _ =>
+    (let
+      val ps = get_graph (Proof_Context.theory_of ctxt) name
     in
-      Tinker.start_ieval ctxt (SOME ps) (SOME []) (SOME g)
+      Tinker.start_eval ctxt ps (IsaProver.THM (st,i))
       |> EVal.EData.get_pplan 
       |> thm_of_pplan 
       |> Seq.single
-   end
+   end)
 
-  fun tinker_method str ctxt =  
-    let val ps  = IsaMethod_ML_Exec.eval_ml str
-    in SIMPLE_METHOD (tinker_tac ps ctxt) end;
+  fun tinker_method str ctxt = 
+   SIMPLE_METHOD' (tinker_tac str ctxt);
 
   val str_parser : string context_parser = (Scan.lift (Args.name));
-  
-  val _ = Context.>> (Context.map_theory
+    val _ = Context.>> (Context.map_theory
      (Method.setup (Binding.name "tinker") (str_parser >> tinker_method) "apply tinker tactic"));
-
+ 
 end
 
 open PSGraphIsarMethod

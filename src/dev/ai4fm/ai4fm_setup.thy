@@ -38,10 +38,10 @@ ML{*
  fun to_singleton_list [] = []
  | to_singleton_list (x::xs) = [x] @ (to_singleton_list xs)
 
- fun is_member env pnode [d, r] = 
+ fun member_of env pnode [r,d] = 
   Clause_GT.project_terms env pnode r
   |> maps (fn x => Clause_GT.update_var env (IsaProver.E_Trm x) d)
- | is_member _ _ _ = [];
+ | member_of _ _ _ = [];
 
  fun hack_not n0 = case n0 of "not" => "Not"| _ => n0;
  fun top_symbol env pnode [r,Clause_GT.Var p] : IsaProver.env list= 
@@ -153,7 +153,7 @@ ML{*
  exception dest_trm_exp of string 
  fun dest_trm env pnode [trm, p1, p2] = 
   (let 
-    val trm' = case Clause_GT.project_terms env pnode trm of [x] => x 
+    val trm' = case Clause_GT.project_terms env pnode trm of [x] => ignore_true_prop x 
       | _ => raise dest_trm_exp "only one term is expected"
     val (trm1, trm2) = dest_comb trm' 
   in 
@@ -177,7 +177,7 @@ ML{*
   |> Clause_GT.add_atomic "dest_term" dest_trm 
   |> Clause_GT.add_atomic "is_var" is_var 
   |> Clause_GT.add_atomic "empty_list" empty_list
-  |> Clause_GT.add_atomic "member" is_member;
+  |> Clause_GT.add_atomic "membe_ofr" member_of;
 
 *}
 
@@ -260,6 +260,10 @@ fun ENV_check_ccontr ctxt [IsaProver.A_L_Trm hyps, IsaProver.A_Var v]  (env : Is
       |> dest_comb |> snd) (* dest Not *)
      ) env])
 | ENV_check_ccontr _ _ _ = []
+
+fun ENV_bind _ [IsaProver.A_Trm t, IsaProver.A_Var v] env :  IsaProver.env list = 
+  [StrName.NTab.update (v, IsaProver.E_Trm t) env]
+ | ENV_bind _ _ _ = [];  
 *}
 
 end

@@ -11,7 +11,7 @@
     end
     
   fun apply_ps_i ps = set_psg_goal (SOME ([], %<%false%>%)) (SOME ps) (* use a dummy goal to represnet a mode to use the current goal *)
-  fun apply_ps ps = Tinker.start_eval (get_current_pc()) ps [] %<%false%>%
+  fun apply_ps ps = Tinker.start_eval (get_current_pc()) ps (PPProver.TERM([], %<%false%>%))
 
  (*    
    fun set_psg_goal (assms, goal) mode psg searchf goalf = 

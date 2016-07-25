@@ -25,7 +25,7 @@ struct
   type T = ((Json.json -> Json.json) * string) Symtab.table
 
   fun pp_goal edata =  (fn x => ((EData.pretty_goals edata 
-    |> ((logging "GOAL") o Pretty.string_of)) ; x))
+    |> ((logging "GOAL") o Pretty.str_of)) ; x))
 
   fun get_cmd_name (Json.Object obj) =  
     JsonInputUtils.get_string obj "cmd" 
@@ -88,8 +88,8 @@ struct
       (SOME ps) => ps
     | NONE => JsonInputUtils.get_array obj "psgraph" |> hd
     |> EData.PSGraph.input_json true
-    val edata0 = IEVal.EVal.init ps ctxt assms g |> hd (* FIXME: only get the first one *)
-    handle _ => (logging "FAILURE" "Fail to init the goal with the top-level graph"; raise tinker_fail true);
+    val edata0 = IEVal.EVal.init ps ctxt (Prover.TERM(assms, g)) |> hd (* FIXME: only get the first one *)
+    handle _ => (logging "FAILURE" "Fail to init the goal with the top-level graph";raise tinker_fail true);
     val _ = set_data edata0;
     val _ = pp_goal edata0 ()
    in
@@ -274,9 +274,9 @@ struct
       get_data () |> (fn x => (reset_data () ; reset_init_data (); Option.valOf x))
     end
 
-fun start_eval ctxt ps assms g = 
+fun start_eval ctxt ps st = 
  let
-  val edata0 = IEVal.EVal.init ps ctxt assms g |> hd (* FIXME: only get the first one *)
+  val edata0 = IEVal.EVal.init ps ctxt st |> hd (* FIXME: only get the first one *)
  in
    case IEVal.eval_complete edata0 
     of IEVal.Good e => e

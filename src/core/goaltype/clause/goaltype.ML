@@ -294,7 +294,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
            in
              dectab();dbg_res res
           end
-       else (dbg "ERROR: wrong number of args";[]))
+       else (dbg ("ERROR: wrong number of args in " ^(str_cls d));[]))
       else []
 
    (* TO DO: is this reflected in formal semantics? *)
@@ -307,12 +307,12 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
   (* 
     Goaltype evaluation / goaltype checking
   *)
-  fun lift pn = G {name = (Prover.get_pnode_name pn), pretty = Prover.pretty_goal pn}
+  fun lift pn = G {name = (Prover.get_pnode_name pn), pretty = Prover.pretty_pnode pn}
 
   (* note that this is when atomic on edge *)
   fun match_atomic (data as (P {atomics,...}))  pnode (t as (f,args):T) gtenv = 
     case StrName.NTab.lookup atomics f of
-     NONE => []
+     NONE => ( dbg ("WARNING: no atomic definition found for " ^ f);[])
     | SOME f_a => 
         ((dbg ("evaluating " ^  (str_arg (Clause t))  ^ " with " ^ str_env gtenv ));
         dbg_res (f_a gtenv pnode args));
