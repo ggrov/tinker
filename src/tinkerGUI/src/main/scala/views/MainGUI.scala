@@ -6,6 +6,8 @@ import tinkerGUI.controllers.{CommunicationService, Service}
 import scala.swing._
 import scala.swing.event.{Key, KeyReleased}
 
+import javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE
+
 object MainGUI extends SimpleSwingApplication {
 
 	val graphPanel = new GraphEditPanel() {
@@ -95,6 +97,7 @@ object MainGUI extends SimpleSwingApplication {
 		centerOnScreen()
 		Service.setTopFrame(this)
 		Service.initApp()
+		peer.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE)
 		override def closeOperation() { Service.closeApp() }
 	}
 
