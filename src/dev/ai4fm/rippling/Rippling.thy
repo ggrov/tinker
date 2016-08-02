@@ -1,5 +1,5 @@
 theory Rippling
-imports "../ai4fm_setup"  
+imports "../../../core/provers/isabelle/clausal/CIsaP"  
 
 begin
 (* wrapping trm with name structure *)
@@ -110,34 +110,6 @@ ML{*
   [StrName.NTab.update (d, IsaProver.E_Trm trm) env]
  | ENV_bind  _ _ _ = [];
 
- val data = 
-  Clause_GT.default_data
-  |> Clause_GT.add_atomic "inductable" inductable
-  |> Clause_GT.add_atomic "member_of" member_of
-  |> Clause_GT.add_atomic "top_symbol" top_symbol
-  |> Clause_GT.add_atomic "dest_term" dest_trm 
-  |> Clause_GT.add_atomic "has_wrules" has_wrules
-  |> Clause_GT.add_atomic "embeds"
-    (cl_is_f (cl2_wraper TermFeatures.ctxt_embeds))
-  |> Clause_GT.add_atomic "sub_term" (cl_is_f (cl2_wraper (TermFeatures.is_subterm o Proof_Context.theory_of)))
-  |>  Clause_GT.add_atomic  "measure_reduced" (cl_is_f (cl3_wraper (TermFeatures.is_measure_decreased)))
-  |> Clause_GT.update_data_defs (fn x => (Clause_GT.scan_data Prover.default_ctxt "") @ x);
-
-  val clause_def = 
-  "h(Z) :- member_of(hyps,X), top_symbol(X,Z)." ^
-  "hyp_embeds() :- member_of(hyps,X),embeds(X,concl)." ^
-  "hyp_bck_res() :- member_of(hyps,X),sub_term(X,concl)." ^
-  "match_lr (X,Y,Z) :- sub_term(Y, X)." ^
-  "match_lr (X,Y,Z) :- sub_term(Z, X)." ^
-  "hyp_subst() :- member_of(hyps,X),top_symbol(X,eq),dest_term(X,Y,R),dest_term(Y,_,L),match_lr(concl,L,R)." ^
-  "measure_reduces(X) :- member_of(hyps,Y),embeds(Y,concl),measure_reduced(Y,X,concl)." ^
-  "rippled() :- hyp_bck_res(). " ^ "rippled() :- hyp_subst()." ^
-  "can_ripple(X) :- has_wrules(X), !hyp_bck_res().";
-
-  val data =  
-  data  
-  |> Clause_GT.update_data_defs 
-    (fn x => (Clause_GT.scan_data IsaProver.default_ctxt clause_def) @ x);
 *}
 
 end

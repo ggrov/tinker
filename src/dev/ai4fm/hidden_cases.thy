@@ -8,17 +8,7 @@ ML{*
 *}
 
 ML{*
-  val clause_def = 
- "is_goal(Z) :- is_term(concl, Z)." ^
- "is_not_goal(Z) :- not(is_goal(Z))." ;
-
-  val data =  
-  data 
-  |> Clause_GT.update_data_defs (fn x => (Clause_GT.scan_data IsaProver.default_ctxt clause_def) @ x);
-
-  val hca = PSGraph.read_json_file (SOME data) (pspath ^ ps_file);
-
-*}
+  val hca = PSGraph.read_json_file (SOME data) (pspath ^ ps_file);*}
 
 
 ML{*-

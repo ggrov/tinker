@@ -8,7 +8,7 @@ struct
   type typ = TYPE
   type term = TERM
   type thm = THM
-  datatype goal = THM of (thm * int) | TERM of (term list * term)
+  datatype goal = G_THM of (thm * int) | G_TERM of (term list * term)
   type context = string list * string (* context string list * theory string *)
   
   val default_ctxt = get_current_pc (); (* used in those place need context in general *)

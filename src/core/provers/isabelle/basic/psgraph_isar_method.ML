@@ -29,7 +29,7 @@ struct
     (let
       val ps = get_graph (Proof_Context.theory_of ctxt) name
     in
-      Tinker.start_eval ctxt ps (IsaProver.THM (st,i))
+      Tinker.start_eval ctxt ps (IsaProver.G_THM (st,i))
       |> EVal.EData.get_pplan 
       |> thm_of_pplan 
       |> Seq.single

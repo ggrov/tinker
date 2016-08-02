@@ -22,7 +22,7 @@ sig
   type thm
   type context
   type tactic 
-  datatype goal = THM of (thm * int) | TERM of (term list * term)
+  datatype goal = G_THM of (thm * int) | G_TERM of (term list * term)
 
   (* arguments for atomic goal types and tactics *)
   datatype arg_data =  

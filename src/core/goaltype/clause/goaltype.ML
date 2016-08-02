@@ -137,6 +137,15 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
   (**********************
     HELPER METHODS
    **********************)
+  fun dbg_arg_typ (Name _) = writeln "Name"
+   |  dbg_arg_typ (Var _) = writeln "Var"
+   |  dbg_arg_typ (PVar _) = writeln "PVar"
+   |  dbg_arg_typ  Concl = writeln "Concl"
+   |  dbg_arg_typ  Ignore = writeln "Ignore"
+   |  dbg_arg_typ Hyps = writeln "Hyps"
+   |  dbg_arg_typ (Term _) = writeln "Term"
+   |  dbg_arg_typ  (Clause _) = writeln "Clause"
+
 
   fun project_env_terms (Prover.E_Trm t) = [t]
    |  project_env_terms (Prover.E_Thm t) = [Prover.concl_of_thm t]
@@ -275,7 +284,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
       val _ = dbg ("Negating " ^ nf ^ " : ") 
     in 
       case eval_arg data pnode (Clause (nf,args)) gtenv of 
-          [] => [Prover.get_pnode_env pnode]
+          [] => [gtenv](*[Prover.get_pnode_env pnode]*)
         | _  => []
     end
    |   eval_not_clause _ _ _ _ = []
@@ -299,7 +308,8 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
 
    (* TO DO: is this reflected in formal semantics? *)
    and eval_clauses data pnode clauses (name,args) gtenv = 
-         maps (fn c => eval_clause data pnode c (name,args) gtenv handle eval_exp msg => (dbg ("ERROR: " ^ msg);[])) clauses;
+         maps (fn c => eval_clause data pnode c (name,args) gtenv 
+           handle eval_exp msg => (dbg ("ERROR: " ^ msg);[])) clauses;
  
   fun eval_defs (data as P {defs,...}) pnode (name,args) gtenv = 
      eval_clauses data pnode defs (name,args) gtenv

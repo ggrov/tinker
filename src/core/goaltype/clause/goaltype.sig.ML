@@ -42,7 +42,7 @@ sig
   (**********************
     HELPER METHODS
    **********************)
-
+  val dbg_arg_typ : arg -> unit
   val project_env_terms : Prover.env_data -> Prover.term list
   val project_env_str : Prover.env_data -> string list
 

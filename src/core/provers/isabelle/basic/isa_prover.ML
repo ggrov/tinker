@@ -5,7 +5,7 @@ struct
   type typ = typ
   type term = Term.term  
   type thm = Thm.thm
-  datatype goal = THM of (thm * int) | TERM of (term list * term)
+  datatype goal = G_THM of (thm * int) | G_TERM of (term list * term)
   type context = Proof.context
 
   val default_ctxt = @{context}
@@ -163,7 +163,7 @@ struct
   exception atomic_exp of string
 
   fun init ctxt st  =
-  case st of TERM (_, trm) =>
+  case st of G_TERM (_, trm) =>
    (let 
       val th = Proof_Context.theory_of ctxt
       val goal = Thm.cterm_of th trm
@@ -173,7 +173,7 @@ struct
    in
      (pnode,pplan)
    end)
-  | THM (thm, i) => 
+  | G_THM (thm, i) => 
    (let 
       val goal = thm
       val pnode = { pname = "g", pctxt = ctxt, ptrm = (Thm.cprem_of thm i |> Thm.term_of), env = StrName.NTab.empty}

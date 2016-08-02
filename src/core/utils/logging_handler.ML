@@ -3,7 +3,7 @@ struct
   exception tinker_fail of (bool) (* if critical *)
   exception logging_exp of string
 
-  val if_debug =  true (* to enable local print, an overall control for all local print *)
+  val if_debug =  false (* to enable local print, an overall control for all local print *)
 
   val logging_tags = [ 
     "GOAL",
@@ -108,6 +108,7 @@ struct
 *)
 
 (*fun buffer_to_json _ = Json.mk_object [];*)
+fun log_undefined tag n ret =  (logging tag ("Warning: Undefined arguements: " ^ n ); ret)
 
 val if_check_perform = false
 fun check_perform f arg label = 
@@ -122,7 +123,7 @@ fun check_perform f arg label =
    end) 
  
 end
-
+ 
 val _ = LoggingHandler.set_logging_handler LoggingHandler.logging_handler_gui ;
 val _ = LoggingHandler.active_all_tags ();
 structure LH = LoggingHandler; 

@@ -1,5 +1,5 @@
 theory ai4fm_setup
-imports "../../core/provers/isabelle/clausal/CIsaP"  
+imports "rippling/Rippling"
 begin
 section "taut"
 lemma disjI3: " (\<not> P \<longrightarrow> Q) \<Longrightarrow> (P \<or> Q)" by auto
@@ -21,8 +21,14 @@ lemma not_False_eq_True_f: "(\<not> False) \<Longrightarrow> True" by auto
 
 thm not_not_f de_Morgan_conj_f de_Morgan_disj_f not_imp_f not_iff_f not_True_eq_False_f not_False_eq_True_f
 
+
+section "general defs"
 ML{*
 (* Clause GT*)
+  fun dbg_lookup tab name = case StrName.NTab.lookup tab name of 
+     NONE => (writeln (*"WARNING" *) (name ^ " is not in the table"); NONE)
+    | x => x;
+
   val ignore_module = List.last o String.tokens (fn ch => #"." = ch) ;
 
     fun top_level_str (Const (s,_)) = [ignore_module s]
@@ -50,7 +56,7 @@ ML{*
             val tops = Clause_GT.project_terms env pnode r
                      |> maps top_level_str
           in 
-            (case StrName.NTab.lookup env p of
+            (case dbg_lookup env p of
                NONE => map (fn s => StrName.NTab.ins (p,Clause_GT.Prover.E_Str s) env) tops
              | SOME (Clause_GT.Prover.E_Str s) => if member (op =) tops (hack_not s) then [env] else []
              | SOME _ => [])
@@ -68,7 +74,7 @@ ML{*
             val tops = Clause_GT.project_terms env pnode r
                      |> maps top_level_str
           in 
-            (case StrName.NTab.lookup (Clause_GT.Prover.get_pnode_env pnode) p of
+            (case dbg_lookup (Clause_GT.Prover.get_pnode_env pnode) p of
                NONE => []
              | SOME (Clause_GT.Prover.E_Str s) => if member (op =) tops s then [env] else []
              | SOME _ => [])
@@ -89,7 +95,7 @@ ML{*
    let val dest = Clause_GT.project_terms env pnode r 
    val ctxt = IsaProver.get_pnode_ctxt pnode 
    val thy = Proof_Context.theory_of ctxt in
-   (case StrName.NTab.lookup (IsaProver.get_pnode_env pnode) p of
+   (case dbg_lookup (IsaProver.get_pnode_env pnode) p of
              NONE => []
            | SOME (IsaProver.E_Trm t) => 
            (case dest of [] =>[]
@@ -99,7 +105,7 @@ ML{*
   | eq_term env pnode [r, Clause_GT.Var p] =
    let val dest = Clause_GT.project_terms env pnode r val ctxt = IsaProver.get_pnode_ctxt pnode 
    val thy = Proof_Context.theory_of ctxt in
-   (case StrName.NTab.lookup env p of
+   (case dbg_lookup env p of
              NONE => []
            | SOME (IsaProver.E_Trm t) => 
                      (case dest of [] =>[]
@@ -133,7 +139,7 @@ ML{*
   |> is_var0
   |> (fn x => if x then [env] else [])
   | is_var env _ [Clause_GT.Var v] = 
-     (case StrName.NTab.lookup env v of
+     (case dbg_lookup env v of
        NONE => []
      | SOME (IsaProver.E_Trm t) => 
             if ((is_var0 o ignore_true_prop) t)
@@ -141,7 +147,7 @@ ML{*
             else []
      | _ => [] )
   | is_var env _ [Clause_GT.PVar v] = 
-     (case StrName.NTab.lookup env v of
+     (case dbg_lookup env v of
        NONE => []
      | SOME (IsaProver.E_Trm t) => 
             if ((is_var0 o ignore_true_prop) t)
@@ -163,21 +169,12 @@ ML{*
   | dest_trm _ _ _ = []
 
  fun empty_list (env : IsaProver.env) _ [Clause_GT.PVar v] = 
-  (case StrName.NTab.lookup env v of SOME (IsaProver.E_L[]) => [env]
+  (case dbg_lookup env v of SOME (IsaProver.E_L[]) => [env]
   | _ => [])
  | empty_list (env : IsaProver.env) _ [Clause_GT.Var v] = 
-  (case StrName.NTab.lookup env v of SOME (IsaProver.E_L[])  => [env]
+  (case dbg_lookup env v of SOME (IsaProver.E_L[])  => [env]
   | _ => [])
  | empty_list _ _ _ = []
-
- val data = 
-  Clause_GT.default_data
-  |> Clause_GT.add_atomic "top_symbol" top_symbol 
-  |> Clause_GT.add_atomic "eq_term" eq_term 
-  |> Clause_GT.add_atomic "dest_term" dest_trm 
-  |> Clause_GT.add_atomic "is_var" is_var 
-  |> Clause_GT.add_atomic "empty_list" empty_list
-  |> Clause_GT.add_atomic "membe_ofr" member_of;
 
 *}
 
@@ -190,29 +187,49 @@ val intro_not_tac = simp_only_tac @{thms not_not de_Morgan_conj HOL.de_Morgan_di
 val elim_not_tac = fn _ => dresolve_tac @{thms not_not_f de_Morgan_conj_f de_Morgan_disj_f not_imp_f not_iff_f not_True_eq_False_f not_False_eq_True_f}
 
 fun subgoals_tac [IsaProver.A_Trm t] ctxt = subgoal_tac ctxt (IsaProver.string_of_trm ctxt t)
+| subgoals_tac _ _ =  K no_tac
 
-fun rule [IsaProver.A_Thm thm] _  =  rtac thm;
-fun erule [IsaProver.A_Thm thm] _  = etac thm;
-fun drule [IsaProver.A_Thm thm] _  = dtac thm;
-fun simp_only [IsaProver.A_Thm thm] = simp_only_tac [thm];
+fun rule [IsaProver.A_Thm thm] _  =  rtac thm
+| rule  _ _ =  K no_tac;
+fun erule [IsaProver.A_Thm thm] _  = etac thm
+| erule  _ _ =  K no_tac;
+fun drule [IsaProver.A_Thm thm] _  = dtac thm
+| drule  _ _ =  K no_tac;
+fun simp_only [IsaProver.A_Thm thm] = simp_only_tac [thm]
+| simp_only _  =  K (K no_tac);
+
+
+fun rule_tac1 [IsaProver.A_Str str, IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
+  res_inst_tac ctxt  [((str,0), (IsaProver.string_of_trm ctxt trm))] thm
+|  rule_tac1  _ _ =  K no_tac;
+
 
 fun erule_tac1 [IsaProver.A_Str str, IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
   eres_inst_tac ctxt  [((str,0), (IsaProver.string_of_trm ctxt trm))] thm
+|  erule_tac1  _ _ =  K no_tac;
 
 fun erule_tac2 
   [IsaProver.A_Str str1, IsaProver.A_Str str2, 
    IsaProver.A_Trm trm1, IsaProver.A_Trm trm2, IsaProver.A_Thm thm] ctxt = 
   eres_inst_tac ctxt  [((str1,0), (IsaProver.string_of_trm ctxt trm1)), 
                        ((str2,0), (IsaProver.string_of_trm ctxt trm2))] thm
+| erule_tac2  _ _ =  K no_tac;
+
 fun subst_tac [IsaProver.A_Str thmn] ctxt = 
   let val thms =  Find_Theorems.find_theorems ctxt NONE NONE false 
     [(true, Find_Theorems.Name thmn)] |> snd |> map snd in
   EqSubst.eqsubst_tac ctxt [0] thms  end
+|  subst_tac [IsaProver.A_Thm thm] ctxt = 
+  EqSubst.eqsubst_tac ctxt [0] [thm]  
+| subst_tac  _ _ =  K no_tac;
  
 fun asm_subst_tac [IsaProver.A_Str thmn] ctxt = 
   let val thms =  Find_Theorems.find_theorems ctxt NONE NONE false 
     [(true, Find_Theorems.Name thmn)] |> snd |> map snd in
   EqSubst.eqsubst_asm_tac ctxt [0] thms  end
+|  asm_subst_tac [IsaProver.A_Thm thm] ctxt =  
+  EqSubst.eqsubst_asm_tac ctxt [0] [thm]
+| asm_subst_tac  _ _ =  K no_tac;
 *}
 
 ML{*
@@ -265,5 +282,275 @@ fun ENV_bind _ [IsaProver.A_Trm t, IsaProver.A_Var v] env :  IsaProver.env list 
   [StrName.NTab.update (v, IsaProver.E_Trm t) env]
  | ENV_bind _ _ _ = [];  
 *}
+
+section "one point rules"
+(* Definitions for the one point rule, from GG *)
+-- "number of top-level exists and the rest"
+ML{*
+  fun top_exists' n (Const ("HOL.Ex",_) $ Abs(_,_,t)) = top_exists' (n+1) t
+   |  top_exists' n t = (n,t);
+  val top_exists = top_exists' 0;
+   *}
+   
+-- "returns bound term and De-Bruijn (relative to top-level insts)"   
+(* TO DO: should maybe check t as well, .e.g if term t has any existentials *)
+ML{*
+    fun check_bound new n = n >= new;
+
+    fun onep_match newbinders (Const ("HOL.eq",_) $ Bound n $ t) =
+      if check_bound newbinders n then SOME (t,n-newbinders) else NONE
+     |  onep_match newbinders (Const ("HOL.eq",_) $ t $ Bound n) = 
+           if check_bound newbinders n then SOME (t,n-newbinders) else NONE
+     |  onep_match newbinders (Abs(_,_,t)) = onep_match (newbinders+1) t
+     |  onep_match newbinders (t1 $ t2) = 
+         let  val res = onep_match newbinders t1
+         in case res of 
+             SOME _ => res
+           | NONE   =>  onep_match newbinders t2 
+         end
+     |  onep_match _ _ = NONE
+     
+    fun allp_match newbinders (Const ("HOL.eq",_) $ Bound n $ t) =
+      if check_bound newbinders n then [(t,n-newbinders+1)] else []
+     |  allp_match newbinders (Const ("HOL.eq",_) $ t $ Bound n) = 
+           if check_bound newbinders n then [(t,n-newbinders+1)] else []
+     |  allp_match newbinders (Abs(_,_,t)) = allp_match (newbinders+1) t
+     |  allp_match newbinders (t1 $ t2) = 
+         (allp_match newbinders t1) @ (allp_match newbinders t2)
+     |  allp_match _ _ = []     
+*}
+
+-- "the matching term"
+ML {*
+ fun matching_term t = 
+   let
+     val (n,t') = top_exists  (ignore_true_prop t);
+   in
+     if n = 0 then NONE
+     else 
+        case onep_match 0 t' of
+           NONE => NONE
+         | SOME (t,_) => SOME t
+   end  
+*}
+
+
+ML{*
+val t = @{prop "\<exists>y x. ((y > x) \<and> (y = (2::int)) \<and> (x + y = 5))"};
+val (n,t') = top_exists (ignore_true_prop t);
+val ms =  allp_match 0 t';
+*}
+-- depth
+ML{*
+ fun tdepth k t =
+   let
+     val (n,t') = top_exists (ignore_true_prop t);
+     val ms =  allp_match 0 t'
+     fun get [] = NONE
+      | get ((nt,d)::ls) = 
+         if nt = k then SOME (n-d) else get ls 
+   in
+     get ms 
+   end 
+   
+ fun tless str1 str2 = 
+   case (Int.fromString str1,Int.fromString str2) of
+     (SOME v1,SOME v2) => SOME (v1 < v2)
+    | (_,_) => NONE
+*}
+
+ML{*
+  
+  val t1 = @{term "? b1 b2 b3. P b1 \<and> b2 = 0"};
+  val t2 = @{term "? b2. b2 = 0"};
+  val t3 = @{term "? b2. ! x. ? b3. b3 = 0"};
+*}
+
+ML{*
+ val (SOME v) =  matching_term t1;
+ tdepth v t1
+*}
+
+section "Atomic environment tactics"
+ML{*
+  fun ENV_onep_match 
+         _ [IsaProver.A_Trm t, IsaProver.A_Var v] 
+        (env : IsaProver.env): IsaProver.env list =
+    (case matching_term t of
+      NONE => []
+     | SOME t' => [StrName.NTab.update (v, IsaProver.E_Trm t') env])
+   | ENV_onep_match _ _ _ = [];
+     
+  fun ENV_exists_depth 
+         _ [IsaProver.A_Trm t, IsaProver.A_Trm k, IsaProver.A_Var v] 
+        (env : IsaProver.env): IsaProver.env list =
+    (case tdepth k t of
+      NONE => []
+     | SOME (n) => [StrName.NTab.update (v, IsaProver.E_Str (Int.toString n)) env])
+   | ENV_exists_depth _ _ _ = LH.log_undefined "TACTIC" "ENV_exists_depth" []
+*}
+
+section "Atomic goal types"
+
+-- "checks if it is one point rule"
+(* also add support for variable? *)
+ML{*
+ fun is_one_point env pnode [v] = 
+   (case Clause_GT.project_terms env pnode v of
+    [t] =>
+      (case matching_term t of
+        NONE => []
+       | _ => [env])
+    | _ => [])
+  | is_one_point _ _ _ = [];
+*}
+
+-- "check if it is less than"
+ML{*
+(* note that, isabelle bind order is reversed, EX x, y, BOUND $1 $2*)
+ fun less env _ [Clause_GT.Name l,Clause_GT.Name r] = 
+      (case (Int.fromString l,Int.fromString r) of
+        (SOME li,SOME ri) => if li < ri then [env] else []
+       | _ => [])
+  | less env pnode [Clause_GT.PVar l,r] = 
+      (case dbg_lookup (Clause_GT.Prover.get_pnode_env pnode) l of
+               NONE => []
+             | SOME (Clause_GT.Prover.E_Str ls) => 
+                 less env pnode [Clause_GT.Name ls,r]
+             | SOME _ => [])       
+  | less env pnode [l,Clause_GT.PVar r] = 
+      (case dbg_lookup (Clause_GT.Prover.get_pnode_env pnode) r of
+               NONE => []
+             | SOME (Clause_GT.Prover.E_Str rs) => 
+                 less env pnode [l,Clause_GT.Name rs]
+             | SOME _ => [])   
+  | less env pnode [Clause_GT.Var l,r] = 
+      (case dbg_lookup env l of
+               NONE => []
+             | SOME (Clause_GT.Prover.E_Str ls) => 
+                 less env pnode [Clause_GT.Name ls,r]
+             | SOME _ => [])       
+  | less env pnode [l,Clause_GT.Var r] = 
+      (case dbg_lookup env r of
+               NONE => []
+             | SOME (Clause_GT.Prover.E_Str rs) => 
+                 less env pnode [l,Clause_GT.Name rs]
+             | SOME _ => [])   
+  | less _ _ _ = []      
+*} 
+
+-- "checks depth  "
+ML{*
+ fun depth env _ [Clause_GT.Term k,Clause_GT.Term t,Clause_GT.Var s] =
+      (case tdepth k t of
+          NONE => []
+        | SOME (v) => 
+           (case dbg_lookup env s of (* check if var bound *)
+               NONE => [StrName.NTab.ins (s,Clause_GT.Prover.E_Str (Int.toString v)) env]
+             | SOME (IsaProver.E_Str s) => 
+                 (case (Int.fromString s) of
+                    NONE => []
+                  | SOME n => if v = n then [env] else [])
+             | SOME _ => []))
+  | depth env _ [Clause_GT.Term k,Clause_GT.Term t,Clause_GT.Name s] =
+     (case tdepth k t of
+       NONE => []
+     | SOME (v) => 
+        (case Int.fromString s of 
+          NONE => []
+         | (SOME n) => if v = n then [env] else []))  
+(*  | depth env pnode [k,Clause_GT.PVar t,y] = (* PVar in second *)
+      (case dbg_lookup (Clause_GT.Prover.get_pnode_env pnode) t of
+               NONE => []
+             | SOME (Clause_GT.Prover.E_Trm te) => 
+                 depth env pnode [k,Clause_GT.Term te,y]
+             | SOME _ => [])   *)
+ | depth env pnode [v1, v2, y] = (* PVar in first *)
+      (case Clause_GT.project_terms env pnode v1 of
+               [] => []
+             | [t1] =>
+              (case Clause_GT.project_terms env pnode v2 of
+               [] => []
+               | [t2] => depth env pnode [Clause_GT.Term t1, Clause_GT.Term t2,y]
+               | _ => [])
+             |  _ => [])  
+  | depth _ _ _ = LH.log_undefined "GOALTYPE" "ENV_exists_depth" [];
+*}
+
+-- "check if term is top-level"
+
+ML{*
+
+ fun is_top env _ [Clause_GT.Term k,Clause_GT.Term t] = 
+      ( case tdepth k t of
+         NONE => []
+       | SOME 0 => [env]
+       | _ => [])
+   (* the two variable cases (assumes bound) *)
+   | is_top env pnode [Clause_GT.Term k,r] = 
+     (case Clause_GT.project_terms env pnode r of 
+       [x] => is_top env pnode [Clause_GT.Term k , Clause_GT.Term x]
+     | _ => [])
+   | is_top env pnode [l, r] = 
+     (case Clause_GT.project_terms env pnode l of 
+       [x] => is_top env pnode [Clause_GT.Term x ,  r]
+     | _ => [])
+   | is_top _ _ _ = [];
+
+*}
+
+
+
+section "setup"
+(* Add all atomics and GT defs *)
+ML{*
+val clause_cls = 
+ "is_goal(Z) :- is_term(concl, Z)." ^
+ "is_not_goal(Z) :- not(is_goal(Z))." ^
+ "h(Z) :- member_of(hyps,X), top_symbol(X,Z)." ^
+(* rippling *)
+ "hyp_embeds() :- member_of(hyps,X),embeds(X,concl)." ^
+ "hyp_bck_res() :- member_of(hyps,X),sub_term(X,concl)." ^
+ "match_lr (X,Y,Z) :- sub_term(Y, X)." ^
+ "match_lr (X,Y,Z) :- sub_term(Z, X)." ^
+ "hyp_subst() :- member_of(hyps,X),top_symbol(X,eq),dest_term(X,Y,R),dest_term(Y,_,L),match_lr(concl,L,R)." ^
+ "measure_reduces(X) :- member_of(hyps,Y),embeds(Y,concl),measure_reduced(Y,X,concl)." ^
+ "rippled() :- hyp_bck_res(). " ^ "rippled() :- hyp_subst()." ^
+ "can_ripple(X) :- has_wrules(X), !hyp_bck_res()." ^
+(* one point *)
+ "reduced(X,N) :- !is_top(X,concl),depth(X,concl,D),less(D,N)."
+(* end of rippling *)
+;
+
+ val data_atom = 
+  Clause_GT.default_data
+(* general atomics *)
+  |> Clause_GT.add_atomic "top_symbol" top_symbol 
+  |> Clause_GT.add_atomic "eq_term" eq_term 
+  |> Clause_GT.add_atomic "dest_term" dest_trm 
+  |> Clause_GT.add_atomic "is_var" is_var 
+  |> Clause_GT.add_atomic "empty_list" empty_list
+  |> Clause_GT.add_atomic "member_of" member_of
+(* one point rule *)
+  |> Clause_GT.add_atomic "is_one_point" is_one_point
+  |> Clause_GT.add_atomic "is_top" is_top
+  |> Clause_GT.add_atomic "depth" depth
+  |> Clause_GT.add_atomic "less" less
+(* rippling *)
+  |> Clause_GT.add_atomic "inductable" inductable
+  |> Clause_GT.add_atomic "has_wrules" has_wrules
+  |> Clause_GT.add_atomic "embeds"
+    (cl_is_f (cl2_wraper TermFeatures.ctxt_embeds))
+  |> Clause_GT.add_atomic "sub_term" (cl_is_f (cl2_wraper (TermFeatures.is_subterm o Proof_Context.theory_of)))
+  |> Clause_GT.add_atomic  "measure_reduced" (cl_is_f (cl3_wraper (TermFeatures.is_measure_decreased)))
+  |> Clause_GT.update_data_defs (fn x => (Clause_GT.scan_data Prover.default_ctxt "") @ x);
+
+  val data =  
+  data_atom 
+  |> Clause_GT.update_data_defs (fn x => (Clause_GT.scan_data IsaProver.default_ctxt clause_cls) @ x);
+
+*}
+
+
 
 end

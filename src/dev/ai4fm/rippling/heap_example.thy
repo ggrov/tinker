@@ -1,5 +1,5 @@
 theory heap_example
-imports Rippling "heap/HEAP1" "heap/HEAP1Lemmas"
+imports "../ai4fm_setup" "heap/HEAP1" "heap/HEAP1Lemmas"
 begin  
 
 ML{*         
@@ -14,7 +14,7 @@ ML{*
   val rippling = PSGraph.read_json_file (SOME data) (pspath ^ ps_file);
 *}
 
-setup {* PSGraphIsarMethod.add_graph ("rippling",rippling) *}
+setup {* PSGraphIsarMethod.add_graph ("rippling", rippling) *}
 
 thm F1_inv_def
 thm Disjoint_def
@@ -46,6 +46,12 @@ thm l_disjoint_dispose1_ext
 context level1_new
 begin
 
+lemma dummy: "(x = x) = True"
+ by auto
+
+lemma dummy2: "(A \<and> True) = A"
+ by auto
+
 theorem locale1_new_FSB: "PO_new1_feasibility"
 unfolding PO_new1_feasibility_def new1_postcondition_def
 apply (insert l1_new1_precondition_def)
@@ -64,11 +70,13 @@ apply (rule disjI1) prefer 2
 apply (subst ex_comm) apply (rule_tac x = l in exI) prefer 2
 apply (subst ex_comm) apply (rule_tac x = l in exI) prefer 2
 
-(* one point rule *)
-(* TODO, it seems that we need to do more rearrange for the one point rule in PSGraph  *)
-apply (subst HOL.conj_commute) apply (subst HOL.conj_commute)
+(* one point rule *)      
+apply (rule_tac x= "{l} -\<triangleleft> f1 \<union>m [l + s1 \<mapsto> the (f1 l) - s1]" in exI)
+apply (subst dummy,subst dummy2)
+
+(*apply (subst HOL.conj_commute) apply (subst HOL.conj_commute)
 apply (subst HOL.conj_assoc)+
-apply (subst HOL.simp_thms(39)) prefer 2
+apply (subst HOL.simp_thms(39)) prefer 2*)
 apply (subst HOL.conj_commute) apply (subst HOL.conj_commute)
 apply (subst HOL.conj_assoc)+
 apply (subst HOL.simp_thms(39)) prefer 2
