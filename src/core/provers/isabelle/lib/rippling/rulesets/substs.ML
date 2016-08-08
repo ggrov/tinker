@@ -108,6 +108,7 @@ struct
     val maxid = (#maxidx (rep_cterm ctrm)) in
     (thy, maxid, Zipper.mktop gtrm) end;
 
+
   fun match_lhs thy gtrm lhs =
     EqSubst.searchf_lr_unify_valid (mk_searchinfo thy gtrm) lhs
     |> Seq.flat

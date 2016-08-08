@@ -132,6 +132,9 @@ ML{*
      end
   | eq_term _ _ _ = [];
 
+ fun is_term env pnode [r] = (case Clause_GT.project_terms env pnode r of [] => [] |_ => [env])
+ |  is_term _ _ _ = LH.log_undefined "GOALTYPE" "is_term" []
+
  fun is_var0 trm = Term.is_Free trm orelse Term.is_Var trm 
  fun is_var env pnode [Clause_GT.Concl] = 
   IsaProver.get_pnode_concl pnode
@@ -176,11 +179,81 @@ ML{*
   | _ => [])
  | empty_list _ _ _ = []
 
+
+ fun bound (env : IsaProver.env) _ [Clause_GT.PVar v] = 
+  (case dbg_lookup env v of (SOME _) => [env]
+  | _ => [])
+ | bound (env : IsaProver.env) _ [Clause_GT.Var v] = 
+ (case dbg_lookup env v of (SOME _) => [env]  | _ => [])
+ | bound _ _ _ = LH.log_undefined "GOALTYPE" "bound" []
+
+*}
+
+ML{*
+structure Sledgehammer_Tactics =
+struct
+
+open Sledgehammer_Util
+open Sledgehammer_Fact
+open Sledgehammer_Prover
+open Sledgehammer_Prover_ATP
+open Sledgehammer_Prover_Minimize
+open Sledgehammer_MaSh
+open Sledgehammer_Commands
+
+fun run_prover override_params fact_override i n ctxt goal =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val mode = Normal
+    val params as {provers, max_facts, ...} = default_params thy override_params
+    val name = hd provers
+    val prover = get_prover ctxt mode name
+    val default_max_facts = default_max_facts_of_prover ctxt name
+    val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal i ctxt
+    val ho_atp = exists (is_ho_atp ctxt) provers
+    val reserved = reserved_isar_keyword_table ()
+    val css_table = clasimpset_rule_table_of ctxt
+    val facts =
+      nearly_all_facts ctxt ho_atp fact_override reserved css_table [] hyp_ts concl_t
+      |> relevant_facts ctxt params name
+             (the_default default_max_facts max_facts) fact_override hyp_ts
+             concl_t
+      |> hd |> snd
+    val problem =
+      {comment = "", state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
+       factss = [("", facts)]}
+  in
+    (case prover params (K (K (K ""))) problem of
+      {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME
+    | _ => NONE)
+    handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)
+  end
+
+fun sledgehammer_with_metis_tac ctxt override_params fact_override i th =
+  let val override_params = override_params @ [("preplay_timeout", "0")] in
+    case run_prover override_params fact_override i i ctxt th of
+      SOME facts =>
+      Metis_Tactic.metis_tac [] ATP_Problem_Generate.combs_or_liftingN ctxt
+          (maps (thms_of_name ctxt) facts) i th
+    | NONE => Seq.empty
+  end
+
+end;
+
+  fun sledgehammer ctxt i = 
+    Sledgehammer_Tactics.sledgehammer_with_metis_tac ctxt []  {add = [], del = [], only = false} i
 *}
 
 ML{*
 (* tactic definition *)
-val simp = safe_asm_full_simp_tac;
+fun unfolding [IsaProver.A_L thml] ctxt _ = map (fn (IsaProver.A_Thm th) => th) thml |> unfold_tac ctxt
+| unfolding _ _ _ = LH.log_undefined "TACTIC" "unfolding" no_tac;
+
+fun simp ctxt = 
+  safe_asm_full_simp_tac (Raw_Simplifier.clear_simpset ctxt
+  |> (Simplifier.add_simp (List.nth (Proof_Context.get_fact ctxt (Facts.named "simp_thms"), 10)))
+  |> (Simplifier.add_simp (List.nth (Proof_Context.get_fact ctxt (Facts.named "simp_thms"), 11))))
+
 fun simp_only_tac thml ctxt= fold Simplifier.add_simp thml (Raw_Simplifier.clear_simpset ctxt) |> simp_tac;
 
 val intro_not_tac = simp_only_tac @{thms not_not de_Morgan_conj HOL.de_Morgan_disj not_imp not_iff not_True_eq_False not_False_eq_True};
@@ -213,7 +286,7 @@ fun erule_tac2
    IsaProver.A_Trm trm1, IsaProver.A_Trm trm2, IsaProver.A_Thm thm] ctxt = 
   eres_inst_tac ctxt  [((str1,0), (IsaProver.string_of_trm ctxt trm1)), 
                        ((str2,0), (IsaProver.string_of_trm ctxt trm2))] thm
-| erule_tac2  _ _ =  K no_tac;
+| erule_tac2  _ _ = LH.log_undefined "TACTIC" "erule_tac2" (K no_tac);
 
 fun subst_tac [IsaProver.A_Str thmn] ctxt = 
   let val thms =  Find_Theorems.find_theorems ctxt NONE NONE false 
@@ -505,8 +578,9 @@ section "setup"
 (* Add all atomics and GT defs *)
 ML{*
 val clause_cls = 
- "is_goal(Z) :- is_term(concl, Z)." ^
+ "is_goal(Z) :- eq_term(concl, Z)." ^
  "is_not_goal(Z) :- not(is_goal(Z))." ^
+ "c(X) :- top_symbol(concl, X)." ^
  "h(Z) :- member_of(hyps,X), top_symbol(X,Z)." ^
 (* rippling *)
  "hyp_embeds() :- member_of(hyps,X),embeds(X,concl)." ^
@@ -517,6 +591,10 @@ val clause_cls =
  "measure_reduces(X) :- member_of(hyps,Y),embeds(Y,concl),measure_reduced(Y,X,concl)." ^
  "rippled() :- hyp_bck_res(). " ^ "rippled() :- hyp_subst()." ^
  "can_ripple(X) :- has_wrules(X), !hyp_bck_res()." ^
+(* structure *)
+ "pre_post(X,Y) :- bound(X), bound(Y)."^
+(* hca *)
+ "has_cases(X,Y) :- is_term(X), is_term(Y)." ^
 (* one point *)
  "reduced(X,N) :- !is_top(X,concl),depth(X,concl,D),less(D,N)."
 (* end of rippling *)
@@ -527,9 +605,11 @@ val clause_cls =
 (* general atomics *)
   |> Clause_GT.add_atomic "top_symbol" top_symbol 
   |> Clause_GT.add_atomic "eq_term" eq_term 
+  |> Clause_GT.add_atomic "is_term" is_term 
   |> Clause_GT.add_atomic "dest_term" dest_trm 
   |> Clause_GT.add_atomic "is_var" is_var 
   |> Clause_GT.add_atomic "empty_list" empty_list
+  |> Clause_GT.add_atomic "bound" bound
   |> Clause_GT.add_atomic "member_of" member_of
 (* one point rule *)
   |> Clause_GT.add_atomic "is_one_point" is_one_point

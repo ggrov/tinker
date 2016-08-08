@@ -14,9 +14,9 @@ struct
       val named_thms = 
         named_thms' 
         |> maps (fn (n,t) => [(n, t),(n^"(sym)", t RS @{thm sym})])
-        |> filter (fn (_, t) => 
+        (*|> filter (fn (_, t) => 
                     let val (lhs, rhs) = Substset.strip_lhs_rhs t in
-                    not(TermFeatures.is_subterm thy rhs lhs) end)
+                    not(TermFeatures.is_subterm thy rhs lhs) end)*)
       val rules = map (fn m => Substset.rule_of_thm m |> (fn SOME x => x)) named_thms  
     in
       fold (Substset.add) rules Substset.empty 
@@ -57,7 +57,7 @@ struct
 
 (* this version only apply the matched rules but does not check measurement *)
   fun ripple_subst_tac0 ctxt i thm  = 
-  let 
+   let 
     (*val _ = atomic_tracing "****call ripple_tac****";*)
     val sg =  Thm.cprem_of thm i |> Thm.term_of;
     val hyps  = Logic.strip_imp_prems sg 
@@ -76,7 +76,7 @@ struct
     val _ = str_blocks ""  ([ "numbers of matched wave rules: "] @ [Int.toString (List.length wrules)])|> atomic_tracing
    in 
     Seq.maps (fn (occ, th) => EqSubst.eqsubst_tac ctxt occ [th] i thm ) (Seq.of_list wrules)
-  end
+   end
 
   fun ripple_subst_tac ctxt i st = 
   case SOME (Thm.cprem_of st i) handle THM _ => NONE of

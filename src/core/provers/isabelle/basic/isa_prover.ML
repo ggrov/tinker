@@ -21,10 +21,13 @@ struct
     |> (fn t => (Const ("HOL.Trueprop", dummyT) $ t))
     |> Syntax.check_term ctxt
   val string_of_trm = (*Syntax.string_of_term*) term_to_string;
-  fun get_thm_by_name ctxt name = 
-    Find_Theorems.find_theorems ctxt NONE NONE false [(true, Find_Theorems.Name name)]
-    |> snd |> List.last |> snd
-   handle _ => (logging "FAILURE" ("Fail to get thm by name: " ^ name); raise tinker_fail true)
+
+  fun get_thms_by_name ctxt name = 
+    Proof_Context.get_fact ctxt (Facts.named name)
+   handle _ => (logging "FAILURE" ("Fail to get thms by name: " ^ name); raise tinker_fail true)
+
+  fun get_thm_by_name ctxt name = get_thms_by_name ctxt name |> List.last
+
   val pretty_trm = Syntax.pretty_term;
 
   fun subst_trm_vars vts trm = 
@@ -83,6 +86,7 @@ struct
   fun env_to_arg (E_Str str) = A_Str str
   |   env_to_arg (E_Trm trm) = A_Trm trm
   |   env_to_arg (E_Thm thm) = A_Thm thm
+  |   env_to_arg (E_L l) = A_L (map env_to_arg l)
   |   env_to_arg env = (logging "FAILURE" ("Do not suppport the conversion from env to arg: " ^ (pretty_env_data default_ctxt env|> Pretty.string_of)) ;
       raise tinker_fail true)
 
@@ -125,6 +129,7 @@ struct
       |> Syntax.check_term ctxt |> E_Trm
     | "prop" => prop_of_string ctxt def |> E_Trm
     | "thm" => get_thm_by_name ctxt def |> E_Thm
+    | "thms" => get_thms_by_name ctxt def |> map E_Thm |> E_L
     | "string" => E_Str def
     | "dummy" => snd (hd vts)
     | illform => (logging "FAILURE" ("Unsupported env data type: " ^ illform) ;
