@@ -117,7 +117,6 @@ apply (rule disjI2) prefer 2
 (* now part of one point rule*)
 apply (subst ex_comm) apply (rule_tac x = x in exI) prefer 2
 apply (subst ex_comm) apply (rule_tac x = x in exI) prefer 2
-
 (* Pattern: one point rule *)
 ML_val {*-
   val st =  Thm.cprem_of (#goal @{Isar.goal}) 1 |> Thm.term_of;
@@ -125,6 +124,9 @@ ML_val {*-
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
 *} 
 apply (tinker onep)
+prefer 2
+apply (tinker onep)
+prefer 2
 
 (* from here, only prove part of the PO, ignore other subgoals *) 
 
@@ -152,7 +154,7 @@ apply (erule_tac x = xa in allE )
 (* pwf for imp *) apply (erule impE) apply assumption
 
 (* a bit more tidy up on the definition of Locs_of *)
-apply (subst  l_locs_of_Locs_of_iff)
+apply (subst l_locs_of_Locs_of_iff)
 apply (metis l_in_dom_ar)
 apply (subst  l_locs_of_Locs_of_iff) apply (metis l_in_dom_ar)
 apply (subst(asm)  l_locs_of_Locs_of_iff) apply metis
@@ -165,12 +167,45 @@ ML_val {*-
   val ps_thm = Tinker.start_ieval @{context} (SOME rippling) (SOME []) (SOME st) (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
 *} 
-
-
 apply (subst VDMMaps.f_in_dom_ar_apply_subsume)apply (metis l_in_dom_ar)
 apply (subst VDMMaps.f_in_dom_ar_apply_subsume) apply (metis l_in_dom_ar)
 apply assumption
 
+(* the other strand of this inv po*)
+prefer 4
+apply (elim conjE)+ apply (intro conjI)+
+(* some simple sg are dischared by assumption*)
+apply assumption 
+apply assumption 
+apply (rule refl)
+
+apply(subgoal_tac "")
+thm  munion_def  l_locs_of_Locs_of_iff l_dagger_apply
+
+
+
+
+apply(subst VDMMaps.l_munion_dom_ar_singleton_subsume)
+find_theorems "_\<union>m_"
+
+thm VDMMaps.l_dom_dom_ar
+thm Set.Diff_iff
+apply (subst VDMMaps.l_dom_dom_ar)+
+apply (subst Set.Diff_iff)+
+apply (intro allI impI)+
+apply (elim conjE)+
+apply (erule_tac x = xa in allE )
+(* pwf for imp *) apply (erule impE) apply assumption
+(* elim allE for the inv hyp *) apply (erule_tac x = xb in allE)
+(* pwf for imp *) apply (erule impE) apply assumption
+(* pwf for imp *) apply (erule impE) apply assumption
+
+(* a bit more tidy up on the definition of Locs_of *)
+apply (subst  l_locs_of_Locs_of_iff)
+apply (metis l_in_dom_ar)
+apply (subst  l_locs_of_Locs_of_iff) apply (metis l_in_dom_ar)
+apply (subst(asm)  l_locs_of_Locs_of_iff) apply metis
+apply (subst(asm)  l_locs_of_Locs_of_iff) apply metis
 
 (* alternatiely, we can show the seq inv *)
 unfolding sep_def Ball_def
