@@ -17,6 +17,8 @@ trait EdgeDisplayData { self: GraphView with VertexDisplayData =>
   import GraphView._
 
   protected def computeEdgeDisplay() {
+    // modified by Pierre Le Bras - 10/08/16 :
+    // made recursive edge display on side of the node
     for ((v1,sd) <- graph.vdata; (v2,td) <- graph.vdata if v1 <= v2) {
       val edges = graph.source.codf(v1) intersect graph.target.codf(v2)
       val rEdges = if (v1 == v2) Set[EName]() else graph.target.codf(v1) intersect graph.source.codf(v2)
@@ -24,8 +26,8 @@ trait EdgeDisplayData { self: GraphView with VertexDisplayData =>
 
       if (numEdges != 0) {
         val inc = Pi * (0.666 / (numEdges + 1))
-        lazy val angle = if (v1 == v2) 0.25 * Pi else atan2(td.coord._2 - sd.coord._2, td.coord._1 - sd.coord._1)
-        val angleFlip = if (v1 == v2) 0.5 * Pi else Pi
+        lazy val angle = if (v1 == v2) -0.25 * Pi else atan2(td.coord._2 - sd.coord._2, td.coord._1 - sd.coord._1)
+        val angleFlip = if (v1 == v2) 0.55 * Pi else Pi
         var i = 1
 
         // first do reverse edges, then do edges
@@ -40,20 +42,21 @@ trait EdgeDisplayData { self: GraphView with VertexDisplayData =>
           val p = new Path2D.Double()
 
           val (curve, midpoint) = if (v1 == v2) {
-            val arcCenter = (sd.coord._1, sd.coord._2 + 0.6 - 0.4 * (i.toDouble / (numEdges + 1).toDouble))
-            val (dx,dy) = (sp._1 - arcCenter._1, sp._2 - arcCenter._2)
+            val vertWidth = trans.scaleFromScreen(vertexDisplay(v1).shape.getBounds2D.getWidth)
+            val arcCenter = (sd.coord._1 + vertWidth - 0.2 * (i.toDouble / (numEdges+1).toDouble), sd.coord._2 )
+            val (dx,dy) = (abs(sp._1 - arcCenter._1),  abs(sp._2 - arcCenter._2))
             val curveRadius = sqrt(dx*dx + dy*dy)
-            val arcStart = atan2(sp._2 - arcCenter._2, sp._1 - arcCenter._1)
-            val arcEnd = atan2(tp._2 - arcCenter._2, tp._1 - arcCenter._1)
+            val arcStart = atan2(abs(sp._2 - arcCenter._2), abs(sp._1 - arcCenter._1))
+            val arcEnd = atan2(abs(tp._2 - arcCenter._2), abs(tp._1 - arcCenter._1))
 
             val trCenter = trans toScreen arcCenter
             val trRad = trans.scaleToScreen(curveRadius)
-            val rect = new Rectangle2D.Double(trCenter._1 - trRad, trCenter._2 - trRad, 2.0 * trRad, 2.0 * trRad)
+            val rect = new Rectangle2D.Double(trCenter._1 - trRad, trCenter._2 - trRad, 1.5 * trRad, 2.0 * trRad)
 
             val arc = new Arc2D.Double(rect, toDegrees(arcStart),
               toDegrees(2 * Pi - abs(arcEnd - arcStart)),  Arc2D.OPEN)
 
-            (arc, (rect.getCenterX, rect.getMinY))
+            (arc, (rect.getMaxX, rect.getCenterY + (trans scaleToScreen (0.3 * (i.toDouble / (numEdges+1).toDouble) ))))
           } else {
             val (dx,dy) = (tp._1 - sp._1, tp._2 - sp._2)
             val handleRad = 0.333 * sqrt(dx*dx + dy*dy)
