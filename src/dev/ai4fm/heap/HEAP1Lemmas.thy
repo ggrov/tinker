@@ -735,6 +735,7 @@ lemma k_Disjoint_dom_ar_dagger:
 	"r \<in> dom f \<Longrightarrow> the (f r) > s \<Longrightarrow> nat1_map f \<Longrightarrow> Disjoint f \<Longrightarrow> Disjoint (({r} -\<triangleleft> f) \<dagger> [r + s \<mapsto> the (f r) - s])"
 unfolding Disjoint_def disjoint_def
 apply (intro impI ballI)+
+thm l_locs_of_Locs_of_iff l_dagger_apply
 apply (simp add: l_locs_of_Locs_of_iff l_dagger_apply)
 apply (intro impI conjI)+
 apply (simp_all add: l_dagger_dom)
@@ -760,8 +761,10 @@ find_theorems "sep(_ -\<triangleleft> _)"
 lemma k_Disjoint_dom_ar_munion:
 	"r \<in> dom f \<Longrightarrow> the (f r) > s \<Longrightarrow> nat1 s \<Longrightarrow> nat1_map f \<Longrightarrow> Disjoint f \<Longrightarrow> Disjoint (({r} -\<triangleleft> f) \<union>m [r + s \<mapsto> the (f r) - s])"
 apply (frule l_disjoint_mapupd_keep_sep[of f r s])
+thm l_disjoint_mapupd_keep_sep
 apply (assumption)+
 unfolding munion_def
+thm k_Disjoint_dom_ar_dagger
 apply (simp add: k_Disjoint_dom_ar_dagger)
 by (metis f_in_dom_ar_subsume)
 

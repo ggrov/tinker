@@ -66,6 +66,18 @@ lemma dummy2: "(A \<and> True) = A"  by auto
 lemma "l \<in> dom (S -\<triangleleft> f) \<Longrightarrow> ((S -\<triangleleft> f) l) = (f l)"
  by (rule VDMMaps.f_in_dom_ar_apply_subsume)
 
+lemma munion_def2: "  dom f \<inter> dom g = {}  \<Longrightarrow> f \<union>m g = f \<dagger> g"
+by (metis munion_def)
+lemma dom_domsub_dagger: "dom ((s -\<triangleleft> f) \<dagger> g) = (dom f - s)  \<union> dom g "
+by (metis dagger_def dom_map_add l_dom_dom_ar sup_commute)
+lemma in_sminus_sunion:"x \<in> (a - b \<union> c) = (x \<in> a \<and> x \<notin> b \<or> x : c)" 
+by (metis DiffE DiffI Un_iff)
+lemma impE_fert: "\<lbrakk>(P\<longrightarrow> Q); P' \<Longrightarrow>  P; Q \<Longrightarrow> Q'\<rbrakk> \<Longrightarrow>  (P'\<longrightarrow> Q')" by auto
+lemma impE_fert2: "\<lbrakk>(P\<longrightarrow> Q); P' \<Longrightarrow>  P; P'\<Longrightarrow> Q \<Longrightarrow> Q'\<rbrakk> \<Longrightarrow>  (P'\<longrightarrow> Q')" by auto
+lemma domsub_dagger_apply: "x \<notin> s \<Longrightarrow> x \<notin> dom g \<Longrightarrow> (s -\<triangleleft> f \<dagger> g) x =  f x" 
+by (metis f_in_dom_ar_apply_not_elem l_dagger_apply)
+
+
 (*declare VDMMaps.f_in_dom_ar_apply_subsume [wrule]*)
 declare VDMMaps.f_in_dom_ar_the_subsume [wrule]
 
@@ -93,8 +105,6 @@ apply (elim exE conjE)
 (* GT def
 need_move_dis_up :- inst2(concl,"\<exists>x.?P x \<and> ?Q x", X, _), match(X, "?P \<or> ?Q").
 need_move_dis_up :- inst2(concl,"\<exists>x.?P x \<and> ?Q x", _, Y), match(Y, "?P \<or> ?Q").
-
-
 *)
 
 
@@ -128,8 +138,14 @@ prefer 2
 apply (tinker onep)
 prefer 2
 
-(* from here, only prove part of the PO, ignore other subgoals *) 
+(*TODO: how to encode this in PSGraph*)
+prefer 2
+apply (subgoal_tac " x + s1 \<notin> dom f1") prefer 2 
+apply (unfold  F1_inv_def) 
+apply (metis l1_input_notempty_def l_disjoint_mapupd_keep_sep)
+prefer 2 
 
+(* from here, only prove part of the PO, ignore other subgoals *) 
 (* structure breakdown ? donesn't seem to fit here, only unfolding the inv_def *)
 unfolding inv_def
 apply (elim conjE)+ apply (intro conjI)+
@@ -179,9 +195,50 @@ apply assumption
 apply assumption 
 apply (rule refl)
 
-apply(subgoal_tac "")
-thm  munion_def  l_locs_of_Locs_of_iff l_dagger_apply
 
+thm munion_def2 l_locs_of_Locs_of_iff
+(* unfolding Locs_of to locs_of*)
+apply (subst munion_def2)   
+apply simp apply (metis F1_inv_def l1_input_notempty_def l1_invariant_def l_disjoint_mapupd_keep_sep l_dom_ar_not_in_dom)
+apply (subst munion_def2)   
+apply simp apply (metis F1_inv_def l1_input_notempty_def l1_invariant_def l_disjoint_mapupd_keep_sep l_dom_ar_not_in_dom)
+apply (subst munion_def2)   
+apply simp apply (metis F1_inv_def l1_input_notempty_def l1_invariant_def l_disjoint_mapupd_keep_sep l_dom_ar_not_in_dom)
+apply (subst munion_def2)   
+apply simp apply (metis F1_inv_def l1_input_notempty_def l1_invariant_def l_disjoint_mapupd_keep_sep l_dom_ar_not_in_dom)
+
+(* some rippling steps for the condition, then inst quantifier, and then apply pwf for implication *)
+ apply (subst dom_domsub_dagger)+
+ apply (subst in_sminus_sunion)+
+ apply (subst HOL.imp_disjL)+
+ (* inst quantifiers accordingly *)
+ apply (rule allI) apply (erule_tac x = xa in allE) apply (intro conjI)
+ (* pwf*)
+  (* the condition part *)
+  apply (erule impE_fert2, elim conjE) apply assumption
+  (* the main body, a similar routine as the outer layer, i.e.  quantifiler + pwf *)
+  apply (rule allI) apply (erule_tac x = xb in allE) apply (intro conjI) 
+  apply (erule impE_fert2, elim conjE) apply assumption
+  apply (erule impE_fert2) apply assumption
+  (* unfodling def of Locs_of to locs_of *)
+  apply (subst l_locs_of_Locs_of_iff) apply simp 
+  apply (metis DiffI in_dagger_domL l_dom_dom_ar singletonD)
+  apply (subst l_locs_of_Locs_of_iff) apply simp 
+  apply (metis DiffI in_dagger_domL l_dom_dom_ar singletonD)
+  apply (subst(asm) l_locs_of_Locs_of_iff, simp)+
+ (* rippling steps *)
+ thm domsub_dagger_apply
+ apply (subst domsub_dagger_apply) apply simp apply simp apply metis
+ apply (subst domsub_dagger_apply) apply simp apply simp apply metis
+ (* fert *) apply assumption
+
+oops
+
+
+find_theorems "_ -\<triangleleft> _ \<dagger>   _" 
+thm  munion_def  l_locs_of_Locs_of_iff l_dagger_apply
+thm f_in_dom_ar_subsume
+apply(subgoal_tac "")
 
 
 
