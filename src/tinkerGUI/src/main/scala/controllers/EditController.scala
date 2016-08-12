@@ -53,7 +53,7 @@ class EditController(model:PSGraph) extends Publisher {
 		tacticEditor.clear()
 		tacticEditor.appendText("// edit your tactic here\n")
 		model.atCollection.foreach{
-			case (k,v) =>
+			case (k,v) if !v.name.startsWith("?") =>
 				tacticEditor.appendText("tactic "+v.name+" := "+v.tactic+";\n")
 			case _ =>
 		}
