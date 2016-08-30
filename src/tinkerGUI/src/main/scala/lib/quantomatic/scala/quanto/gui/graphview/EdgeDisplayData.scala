@@ -36,14 +36,17 @@ trait EdgeDisplayData { self: GraphView with VertexDisplayData =>
           val outAngle = angle - shift
           val inAngle = angle + angleFlip + shift
 
-          val sp = vertexContactPoint(v1,outAngle)
-          val tp = vertexContactPoint(v2,inAngle)
+          var sp = vertexContactPoint(v1,outAngle)
+          var tp = vertexContactPoint(v2,inAngle)
 
           val p = new Path2D.Double()
 
           val (curve, midpoint) = if (v1 == v2) {
+            // TODO : fix position of edge
             val vertWidth = trans.scaleFromScreen(vertexDisplay(v1).shape.getBounds2D.getWidth)
-            val arcCenter = (sd.coord._1 + vertWidth - 0.2 * (i.toDouble / (numEdges+1).toDouble), sd.coord._2 )
+            val arcCenter = (sd.coord._1 + vertWidth/2 + 0.5 - 0.2 * (i.toDouble / (numEdges+1).toDouble), sd.coord._2 )
+            sp = (sp._1+vertWidth/2-0.5, sp._2)
+            tp = (tp._1+vertWidth/2-0.5, tp._2)
             val (dx,dy) = (abs(sp._1 - arcCenter._1),  abs(sp._2 - arcCenter._2))
             val curveRadius = sqrt(dx*dx + dy*dy)
             val arcStart = atan2(abs(sp._2 - arcCenter._2), abs(sp._1 - arcCenter._1))
