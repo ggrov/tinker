@@ -1,6 +1,5 @@
 package quanto.gui
 
-
 class Transformer(
   var scale: Double = 50.0f,
   var origin: (Double, Double) = (250.0f, 250.0f)
@@ -11,4 +10,5 @@ class Transformer(
 
   def scaleToScreen(x: Double) = x * scale
   def scaleFromScreen(x: Double) = x / scale
+
 }

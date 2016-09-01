@@ -42,7 +42,6 @@ trait EdgeDisplayData { self: GraphView with VertexDisplayData =>
           val p = new Path2D.Double()
 
           val (curve, midpoint) = if (v1 == v2) {
-            // TODO : fix position of edge
             val vertWidth = trans.scaleFromScreen(vertexDisplay(v1).shape.getBounds2D.getWidth)
             val arcCenter = (sd.coord._1 + vertWidth/2 + 0.5 - 0.2 * (i.toDouble / (numEdges+1).toDouble), sd.coord._2 )
             sp = (sp._1+vertWidth/2-0.5, sp._2)
@@ -119,7 +118,7 @@ trait EdgeDisplayData { self: GraphView with VertexDisplayData =>
 
           val labelDisplay = edgeData.typeInfo.value.typ match {
             case Theory.ValueType.String =>
-              val fm = peer.getGraphics.getFontMetrics(GraphView.EdgeLabelFont)
+              val fm = peer.getGraphics.getFontMetrics(GraphView.EdgeLabelFont.deriveFont((trans scaleToScreen 0.2).toFloat))
               val text = edgeData.label
               if (text == "") None
               else

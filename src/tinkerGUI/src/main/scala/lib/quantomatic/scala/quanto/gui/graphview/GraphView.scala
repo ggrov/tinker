@@ -292,7 +292,7 @@ class GraphView(val theory: Theory, gRef: HasGraph) extends Panel
             ld.bounds.getWidth + 6.0, ld.bounds.getHeight + 6.0))
         }
         g.setColor(ld.foregroundColor)
-        g.setFont(EdgeLabelFont)
+        g.setFont(EdgeLabelFont.deriveFont((trans scaleToScreen 0.2).toFloat))
         g.drawString(ld.text, ld.bounds.getMinX.toFloat, ld.baseline.toFloat)
       }
     }
@@ -364,12 +364,12 @@ class GraphView(val theory: Theory, gRef: HasGraph) extends Panel
         }
 
         if (ld.text.length > 0) {
-          var textLayout = new TextLayout(ld.text, VertexLabelFont, g.getFontRenderContext)
+          var textLayout = new TextLayout(ld.text, VertexLabelFont.deriveFont((trans scaleToScreen 0.25).toFloat), g.getFontRenderContext)
           // added for tinker
           // check type of node, if breakpoint set font size to small
           // changed textLayout to var for that
           graph.vdata(v) match {
-            case d: NodeV => if(d.typ == "G_Break") textLayout = new TextLayout(ld.text, VertexLabelFontSmall, g.getFontRenderContext)
+            case d: NodeV => if(d.typ == "G_Break") textLayout = new TextLayout(ld.text, VertexLabelFontSmall.deriveFont((trans scaleToScreen 0.16).toFloat), g.getFontRenderContext)
             case _ =>
           }
 //          val tr = new AffineTransform
