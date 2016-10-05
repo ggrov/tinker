@@ -245,7 +245,7 @@ struct
     
   exception atomic_exp of string
 
-  fun init ctxt (TERM(asms_trms, concl_trm)) : (pnode * pplan) =
+  fun init ctxt (G_TERM(asms_trms, concl_trm)) : (pnode * pplan) =
     let
       val (pcs, thy) = ctxt
       val _ = if ((asms_trms, concl_trm) = ([], ¬false®)) then set_merge_pcs pcs else(set_merge_pcs pcs; set_goal (asms_trms, concl_trm)); (* setup goal *)
