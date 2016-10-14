@@ -1,6 +1,12 @@
 theory heap_example
 imports "ai4fm_setup" "heap/HEAP1" "heap/HEAP1Lemmas"
 begin  
+thm VDMMaps.f_in_dom_ar_the_subsume
+thm l_locs_of_Locs_of_iff
+
+lemma "l \<in> dom (S -\<triangleleft> f) \<Longrightarrow>  Locs_of (S -\<triangleleft> f) l =  Locs_of f l"
+sledgehammer
+by (metis Locs_of_def f_in_dom_ar_apply_not_elem l_dom_ar_notin_dom_or)
 
 
 ML{*
@@ -147,7 +153,7 @@ prefer 2
 
 (* from here, only prove part of the PO, ignore other subgoals *) 
 (* structure breakdown ? donesn't seem to fit here, only unfolding the inv_def *)
-unfolding inv_def
+unfolding inv_def (* inv Disjoint *)
 apply (elim conjE)+ apply (intro conjI)+
 (* some simple sg are dischared by assumption*)
 apply assumption 
@@ -170,6 +176,7 @@ apply (erule_tac x = xa in allE )
 (* pwf for imp *) apply (erule impE) apply assumption
 
 (* a bit more tidy up on the definition of Locs_of *)
+thm l_locs_of_Locs_of_iff
 apply (subst l_locs_of_Locs_of_iff)
 apply (metis l_in_dom_ar)
 apply (subst  l_locs_of_Locs_of_iff) apply (metis l_in_dom_ar)
@@ -187,6 +194,22 @@ apply (subst VDMMaps.f_in_dom_ar_apply_subsume)apply (metis l_in_dom_ar)
 apply (subst VDMMaps.f_in_dom_ar_apply_subsume) apply (metis l_in_dom_ar)
 apply assumption
 
+(* inv sep *)
+unfolding sep_def Set.Ball_def
+thm VDMMaps.l_dom_dom_ar thm Set.Diff_iff
+apply (subst VDMMaps.l_dom_dom_ar)+
+
+apply (intro allI) apply(rotate_tac 4) apply (erule_tac x = xa in allE)
+apply (subst Set.Diff_iff)
+apply (erule impE_fert2, elim conjE, assumption)
+apply (subst VDMMaps.f_in_dom_ar_apply_subsume)
+
+apply (intro conjI) 
+ apply assumption
+  apply (erule impE_fert2) apply assumption
+apply (subst VDMMaps.f_in_dom_ar_apply_subsume)
+
+
 (* the other strand of this inv po*)
 prefer 4
 apply (elim conjE)+ apply (intro conjI)+
@@ -197,7 +220,7 @@ apply (rule refl)
 
 
 thm munion_def2 l_locs_of_Locs_of_iff
-(* unfolding Locs_of to locs_of*)
+(* unfolding munion*)
 apply (subst munion_def2)   
 apply simp apply (metis F1_inv_def l1_input_notempty_def l1_invariant_def l_disjoint_mapupd_keep_sep l_dom_ar_not_in_dom)
 apply (subst munion_def2)   
@@ -231,14 +254,13 @@ apply simp apply (metis F1_inv_def l1_input_notempty_def l1_invariant_def l_disj
  apply (subst domsub_dagger_apply) apply simp apply simp apply metis
  apply (subst domsub_dagger_apply) apply simp apply simp apply metis
  (* fert *) apply assumption
-
 oops
+
 
 
 find_theorems "_ -\<triangleleft> _ \<dagger>   _" 
 thm  munion_def  l_locs_of_Locs_of_iff l_dagger_apply
 thm f_in_dom_ar_subsume
-apply(subgoal_tac "")
 
 
 
