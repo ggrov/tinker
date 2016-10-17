@@ -303,6 +303,7 @@ struct
    
   fun apply_tactic args (tac : tactic) (pnode,pplan) = 
     (*let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in*)
+    
     tac args (#pctxt pnode) (get_index pnode pplan)  (#goal pplan)
     (*|> (fn x =>( writeln "DEBUG: ";Seq.list_of x |> map Thm.prop_of|> map (pretty_trm (#pctxt pnode)) |>map  Pretty.writeln ;x))*)
     |> Seq.maps (update (fn x => [x]) (pnode,pplan))
@@ -311,6 +312,8 @@ struct
            => (logging "FAILURE" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode ^ ", empty seqence"); 
                raise tinker_fail false) 
            | _ => x ))
+    handle _ => (logging "FAILURE" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode ); 
+               raise tinker_fail false)
     (*end*)
   (* Update the env and then apply a dummy id tac in isabelle *)
   fun apply_env_tactic args (env_tac : env_tac) (pnode,pplan) = 

@@ -281,8 +281,9 @@ ML{*
  | bound (env : IsaProver.env) _ [Clause_GT.Var v] = 
  (case dbg_lookup env v of (SOME _) => [env]  | _ => [])
  | bound _ _ _ = LH.log_undefined "GOALTYPE" "bound" []
-
 *}
+
+
 
 ML{*
 structure Sledgehammer_Tactics =
@@ -366,9 +367,9 @@ fun simp_only [IsaProver.A_Thm thm] = simp_only_tac [thm]
 
 fun rule_tac [IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
 let val _ = writeln "in rule tac" in
-  res_inst_tac ctxt  [(("x",0), (IsaProver.string_of_trm ctxt trm))] thm end
-|  rule_tac  _ _ = let val _ = writeln "in rule tac2" in
- K no_tac end; 
+  res_inst_tac ctxt  [(("x",0), (IsaProver.string_of_trm ctxt trm))] thm 
+handle _ => (writeln "catch exception" ;LH.log_undefined "EVAL" "fail to apply rule_tac" K no_tac)end
+|  rule_tac  _ _ =  K no_tac; 
 
 fun rule_tac1 [IsaProver.A_Str str, IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
   res_inst_tac ctxt  [((str,0), (IsaProver.string_of_trm ctxt trm))] thm
@@ -461,6 +462,7 @@ ML{*
   fun top_exists' n (Const ("HOL.Ex",_) $ Abs(_,_,t)) = top_exists' (n+1) t
    |  top_exists' n t = (n,t);
   val top_exists = top_exists' 0;
+
    *}
    
 -- "returns bound term and De-Bruijn (relative to top-level insts)"   
@@ -491,11 +493,24 @@ ML{*
      |  allp_match _ _ = []     
 *}
 
+-- "bound"
+ML{*
+ fun get_bound (Free _) = NONE
+ |   get_bound (Const _) = NONE
+ |   get_bound (Var _) = NONE
+ |   get_bound (Bound i) = SOME i
+ |   get_bound (t1 $ t2) = 
+       (case (get_bound t1) of NONE =>  get_bound t2
+                             | b  => b)
+ |   get_bound (Abs (_,_,t)) = get_bound t
+*}
+
 -- "the matching term"
 ML {*
+
  fun matching_term t = 
    let
-     val (n,t') = top_exists  (ignore_true_prop t);
+     val (n,t') = top_exists (ignore_true_prop t);
    in
      if n = 0 then NONE
      else 
@@ -503,19 +518,39 @@ ML {*
            NONE => NONE
          | SOME (t,_) => SOME t
    end  
+
+ fun opt_snd (SOME t) = SOME (snd t)
+   | opt_snd _ = NONE;
+
+fun opt_fst (SOME t) = SOME (fst t)
+   | opt_fst _ = NONE;
+
+ fun matching_nth_term n t =
+   let
+     val (n',t') = top_exists  (ignore_true_prop t);
+   in
+     if n' = 0 then NONE
+     else 
+        case allp_match 0 t' of
+           [] => NONE
+         | l  => List.find (fn e => snd e = n + 1) l |> opt_fst
+(* note that in term, bound starts at 1, while in the implementation it start at 1, so plus one *)
+   end  
 *}
 
-
 ML{*
-
-val t = @{prop "\<exists>y x . ((y > x) \<and> (y = (1::int)) \<and> (x + y = 5))"};
+val t = @{prop "\<exists>y x . ((y > x) \<and> (y = (4::int)) \<and> (x + y = 5) \<and> (x = y +1))"};
 (* get the number of ex quantifier at the top, as well as the term bound by quantifier *)
 val (n,t') = top_exists (ignore_true_prop t);
 
-val ms =  allp_match 0 t';
 
-Syntax.pretty_term @{context} t' |> Pretty.writeln
+onep_match;
+
+Syntax.pretty_term @{context} t' |> Pretty.writeln;
+matching_nth_term 0 t |> Option.valOf 
+|> get_bound
 *}
+
 -- depth
 ML{*
  fun tdepth k t =
@@ -547,6 +582,15 @@ ML{*
  tdepth v t1
 *}
 
+ML{*
+val t =  @{term "\<exists> callee' call'. (\<forall> x y. x \<in> callee' \<and> y \<in> call' `` {x} \<longrightarrow> x \<noteq> y) \<and>
+        (callee' = Domain call')  \<and> call' = call \<union> {(s1, s2)} "};
+matching_term t |> Option.valOf
+|> Syntax.pretty_term @{context}  |> Pretty.writeln;
+*}
+
+
+
 section "Atomic environment tactics"
 ML{*
   fun ENV_onep_match 
@@ -566,8 +610,30 @@ ML{*
    | ENV_exists_depth _ _ _ = LH.log_undefined "TACTIC" "ENV_exists_depth" []
 *}
 
-section "Atomic goal types"
+ML{*
+ fun ENV_bound_idx _ 
+ [IsaProver.A_Trm t,  IsaProver.A_Var v]
+  (env : IsaProver.env): IsaProver.env list =
+    (case get_bound t 
+      of NONE   => []
+      |  SOME n => [StrName.NTab.update (v, IsaProver.E_Str (Int.toString n)) env])
+ | ENV_bound_idx _ _ _ = [];
 
+ fun ENV_bound_onep_match _ 
+  [IsaProver.A_Trm t, IsaProver.A_Str n, IsaProver.A_Var v] 
+  (env : IsaProver.env): IsaProver.env list = 
+  let 
+    val idx  = Int.fromString n |> Option.valOf
+  in
+   ( case matching_nth_term idx t of 
+    NONE => []
+   | SOME (n) =>  [StrName.NTab.update (v, IsaProver.E_Trm n) env])
+  end
+  | ENV_bound_onep_match _ _ _ = []
+      
+*}
+
+section "Atomic goal types"
 -- "checks if it is one point rule"
 (* also add support for variable? *)
 ML{*
@@ -579,6 +645,15 @@ ML{*
        | _ => [env])
     | _ => [])
   | is_one_point _ _ _ = [];
+*}
+
+-- "check if there is a bound in the given term"
+ML{*
+ fun has_bound env pnode [v] = 
+   (case Clause_GT.project_terms env pnode v of
+    [t] => (case (get_bound t) of NONE => [] | _ =>  [env])
+    | _ => [])
+ |  has_bound _ _ _ = []
 *}
 
 -- "check if it is less than"
@@ -714,6 +789,7 @@ val clause_cls =
   |> Clause_GT.add_atomic "empty_list" empty_list
   |> Clause_GT.add_atomic "bound" bound
   |> Clause_GT.add_atomic "member_of" member_of
+  |> Clause_GT.add_atomic "has_bound" has_bound
 (* one point rule *)
   |> Clause_GT.add_atomic "is_one_point" is_one_point
   |> Clause_GT.add_atomic "is_top" is_top
@@ -747,11 +823,12 @@ ML{*
  
 ML{*
   val onep0 = PSGraph.read_json_file (SOME data) (pspath ^ onep0_file);
+  val onep = PSGraph.read_json_file (SOME data) (pspath ^ onep_file);
 *}
 
 
 setup {* PSGraphIsarMethod.add_graph ("onep0", onep0) *}
-(*setup {* PSGraphIsarMethod.add_graph ("onep", onep) *}*)
+setup {* PSGraphIsarMethod.add_graph ("onep", onep) *}
 
 
 
