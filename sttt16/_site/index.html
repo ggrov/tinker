@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html><head><title>Tinker2 - TACAS 16 paper resources</title>
+
+
+
+	<link rel="stylesheet" href="style/main.css">
+	<link rel="shortcut icon" href="favicon.ico">
+	
+<link rel="stylesheet" href="style/tinkerViz.css"><link rel="stylesheet" href="style/graph.css"></head><body>
+	<header id="header" class="">
+	</header><div>
+<div style="text-align: center;">
+		
+		</div>
+<h1 style="text-align: center;">Tinker - STTT 16 paper resources</h1>
+		
+<h3 style="text-align: center;">Authors : G. Grov and Y. Lin</h3>
+</div>
+	<div class="container">
+		<div class="section code" id="intro">
+			<h2>Foreword</h2>
+			<hr>
+			
+<p>This webpage aims to present resources used for our tool presentation. To use these resources</p>
+<p>1. Download and install Isabelle2014 from <a href="http://isabelle.in.tum.de/website-Isabelle2014/index.html" target="_blank">here</a>.<br>
+</p>
+<p>Then go to the contrib directory: 
+</p><p class="code"><span class="code">cd contrib</span> <br></p>
+<p>and grab the quantomatic libraries either over https, for isabelle 2014 or onwards:<br>
+</p>
+
+<p class="code"><span class="code">git clone -b integration https://github.com/Quantomatic/quantomatic</span> <br></p>
+
+<p> OR over ssh:<br>
+
+</p><p class="code"><span class="code">git clone -b integration git://github.com/Quantomatic/quantomatic.git </span> <br></p>
+
+Note that this assumed that you have `git` installed.<br>
+
+2. Download and install Tinker from here (to be updated). The example files is available under:
+
+<p class="code"><span class="code"> $SOME_PATH/tinker/src/core/demo/STTT16/</span> <br></p>
+Details on how to start the GUI can be found in <a href="../userGuide.pdf" title="">Tinker's user guide</a>.
+
+		</div>
+			<script src="script/d3.min.js"></script>
+			<script src="script/d3-tip.min.js"></script>
+			<script src="script/tinker.js"></script>
+			
+		<div class="section" id="dist">		
+			<h2>Disjunctions to the top</h2>
+			<hr>
+			<div id="record-dist">
+				<div id="graphContent" style="visibility: hidden;">
+					<div class="line">
+						<div class="line content">
+							<span>Evaluation Step : </span>
+							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
+							<span id="vizIndices"></span>
+							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
+							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
+						</div>
+					</div>
+					<div id="mainArea">
+						<div class="line content">
+							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
+							<div>
+								<select id="tacticList" class=""></select>
+								<span>Subgraphs : </span>
+								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
+								<span id="graphIndices"></span>
+								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
+							</div>
+						</div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+					</div>
+					<div id="graphError" style="visibility: hidden;"></div>
+				</div>
+			</div>
+			<script>
+				makeViz("record-dist","ressources/flat.json")
+			</script>
+		</div>
+		
+		<div class="section" id="onep">		
+			<h2>Existential quantifiers via a one-point rule</h2>
+			<hr>
+			<div id="debug-onep">
+				<div id="graphContent" style="visibility: hidden;">
+					<div class="line">
+						<div class="line content">
+							<span>Version0 -> Version1 : </span>
+							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
+							<span id="vizIndices"></span>
+							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
+							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
+						</div>
+					</div>
+					<div id="mainArea">
+						<div class="line content">
+							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
+							<div>
+								<select id="tacticList" class=""></select>
+								<span>Subgraphs : </span>
+								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
+								<span id="graphIndices"></span>
+								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
+							</div>
+						</div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+					</div>
+					<div id="graphError" style="visibility: hidden;"></div>
+				</div>
+			</div>
+			<script>
+				makeViz("debug-onep","ressources/flat.json")
+			</script>
+			<div id="record-onep">
+				<div id="graphContent" style="visibility: hidden;">
+					<div class="line">
+						<div class="line content">
+							<span>Evaluation Step : </span>
+							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
+							<span id="vizIndices"></span>
+							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
+							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
+						</div>
+					</div>
+					<div id="mainArea">
+						<div class="line content">
+							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
+							<div>
+								<select id="tacticList" class=""></select>
+								<span>Subgraphs : </span>
+								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
+								<span id="graphIndices"></span>
+								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
+							</div>
+						</div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+					</div>
+					<div id="graphError" style="visibility: hidden;"></div>
+				</div>
+			</div>
+			<script>
+				makeViz("record-onep","ressources/flat.json")
+			</script>
+		</div>
+		<div class="section" id="rippling">		
+			<h2>Rippling + PWF</h2>
+			<hr>
+			<div id="record1">
+				<div id="graphContent" style="visibility: hidden;">
+					<div class="line">
+						<div class="line content">
+							<span>Evaluation Step : </span>
+							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
+							<span id="vizIndices"></span>
+							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
+							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
+						</div>
+					</div>
+					<div id="mainArea">
+						<div class="line content">
+							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
+							<div>
+								<select id="tacticList" class=""></select>
+								<span>Subgraphs : </span>
+								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
+								<span id="graphIndices"></span>
+								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
+							</div>
+						</div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+					</div>
+					<div id="graphError" style="visibility: hidden;"></div>
+				</div>
+			</div>
+			<script>
+				makeViz("record1","ressources/flat.json")
+			</script>
+		</div>
+		<div class="section" id="demo">
+			<h2>Tool demo</h2>
+			<hr>
+			<ul>
+			    <li><a onclick="changeVideoSource(0)">Basic Drag and Drawing Editing</a></li>
+			    <li><a onclick="changeVideoSource(1)">Supports for Hierarchy</a></li>
+			    <li><a onclick="changeVideoSource(2)">PSGraph Library</a></li>
+			    <li><a onclick="changeVideoSource(3)">Evaluation and Debugging</a></li>
+			    <li><a onclick="changeVideoSource(4)">Breakpoint</a></li>
+			</ul>
+			<div id="vidContainer">
+				<iframe id="vid" src="" height="390" width="680">
+				</iframe>
+			</div>
+			<script>
+				var videosSource = [
+					"https://www.youtube.com/embed/Rll0NH4MFiI",
+					"https://www.youtube.com/embed/LTyAH9IJbfU",
+					"https://www.youtube.com/embed/soAA3pSUTAI",
+					"https://www.youtube.com/embed/L-RHYPXI4Ws",
+					"https://www.youtube.com/embed/JSLqI9dBaq4"
+					]
+				function changeVideoSource(index){
+					document.getElementById("vid").setAttribute("src",videosSource[index])
+				}
+				document.getElementById("vid").setAttribute("src",videosSource[0])
+			</script>
+		</div>
+	</div>
+</body></html>
