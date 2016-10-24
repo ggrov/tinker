@@ -15,7 +15,10 @@ struct
     val ctxt' = Config.put show_markup false ctxt;
    in Print_Mode.setmp [] (Syntax.string_of_term ctxt') t end;
   fun trm_of_string0 ctxt str = Syntax.parse_term ctxt str 
-  fun trm_of_string ctxt str = trm_of_string0 ctxt str (*|> Syntax.check_term ctxt*);
+  fun trm_of_string ctxt str = trm_of_string0 ctxt str 
+    |> (fn x => (Syntax.check_term ctxt x; x))(* support term (pat) for pattern matching *)
+   handle ERROR _ => Proof_Context.read_term_pattern ctxt str;
+(*|> Syntax.check_term ctxt*);
   fun prop_of_string ctxt x = 
     Syntax.parse_term ctxt x 
     |> (fn t => (Const ("HOL.Trueprop", dummyT) $ t))

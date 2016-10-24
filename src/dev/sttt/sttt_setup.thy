@@ -366,9 +366,8 @@ fun simp_only [IsaProver.A_Thm thm] = simp_only_tac [thm]
 | simp_only _  =  K (K no_tac);
 
 fun rule_tac [IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
-let val _ = writeln "in rule tac" in
-  res_inst_tac ctxt  [(("x",0), (IsaProver.string_of_trm ctxt trm))] thm 
-handle _ => (writeln "catch exception" ;LH.log_undefined "EVAL" "fail to apply rule_tac" K no_tac)end
+  (res_inst_tac ctxt  [(("x",0), (IsaProver.string_of_trm ctxt trm))] thm 
+handle _ => LH.log_undefined "EVAL" "fail to apply rule_tac" K no_tac)
 |  rule_tac  _ _ =  K no_tac; 
 
 fun rule_tac1 [IsaProver.A_Str str, IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
@@ -463,6 +462,9 @@ ML{*
    |  top_exists' n t = (n,t);
   val top_exists = top_exists' 0;
 
+Abs;
+ fun into_ex (Const ("HOL.Ex",_) $ Abs(x,ty,t)) = SOME(subst_bound (Free (x,ty),t))
+  |  into_ex _ = NONE
    *}
    
 -- "returns bound term and De-Bruijn (relative to top-level insts)"   
@@ -611,13 +613,13 @@ ML{*
 *}
 
 ML{*
- fun ENV_bound_idx _ 
+ fun ENV_bound_var _ 
  [IsaProver.A_Trm t,  IsaProver.A_Var v]
   (env : IsaProver.env): IsaProver.env list =
     (case get_bound t 
       of NONE   => []
       |  SOME n => [StrName.NTab.update (v, IsaProver.E_Str (Int.toString n)) env])
- | ENV_bound_idx _ _ _ = [];
+ | ENV_bound_var _ _ _ = [];
 
  fun ENV_bound_onep_match _ 
   [IsaProver.A_Trm t, IsaProver.A_Str n, IsaProver.A_Var v] 
@@ -728,6 +730,58 @@ ML{*
   | depth _ _ _ = LH.log_undefined "GOALTYPE" "ENV_exists_depth" [];
 *}
 
+-- "move into ex"
+ML{*
+
+fun intoex env pnode [t, v] = 
+  (case Clause_GT.project_terms env pnode t of
+   [trm] =>
+    (case into_ex (ignore_true_prop trm) of SOME (trm') => Clause_GT.update_var env (Clause_GT.Prover.E_Trm trm') v 
+    | _ => [])
+  | _ => [])
+| intoex _ _ _ = LH.log_undefined "GOALTYPE" "intoex" [];
+*}
+
+-- "pattern match"
+ML{*
+ fun pattern_match env pnode [p,t] = 
+  let
+   val ctxt = IsaProver.get_pnode_ctxt pnode
+   val thy = Proof_Context.theory_of ctxt
+  in
+   (case Clause_GT.project_terms env pnode p of
+    [pat] =>
+      (case Clause_GT.project_terms env pnode t of
+       [trm] => 
+         Pattern.matches thy (pat,ignore_true_prop trm)
+        |> bool_to_cl env
+       | _ => [])
+    | _ => [])
+  end
+ | pattern_match _ _ _ = LH.log_undefined "GOALTYPE" "match" [];
+*}
+
+ML{*
+val t = @{prop "\<exists>x y. (x = y \<or> x > y) \<and> (x*x + y*y = (50::nat))"};
+val t = into_ex (ignore_true_prop t)
+|> Option.valOf
+|> into_ex |> Option.valOf;
+Pattern.matches @{theory} (Proof_Context.read_term_pattern @{context} "(?B \<or> ?C)  \<and> ?A", t);
+*}
+
+ML{*
+structure C = Clause_GT;
+   val data = Clause_GT.add_atomic "match" pattern_match Clause_GT.default_data; 
+   val t = @{prop "A \<Longrightarrow> B \<Longrightarrow> A \<and> B \<Longrightarrow> C \<and> B \<and> A"}; 
+
+   val (pnode,pplan) = IsaProver.init @{context} (IsaProver.G_TERM ([], t));                         ;
+
+val p = C.scan_goaltyp @{context} "match(\"?A \<and> ?B\", concl)" 
+|> 
+   C.type_check data pnode 
+*} 
+
+
 -- "check if term is top-level"
 
 ML{*
@@ -759,6 +813,7 @@ val clause_cls =
  "is_goal(Z) :- eq_term(concl, Z)." ^
  "is_not_goal(Z) :- not(is_goal(Z))." ^
  "c(X) :- top_symbol(concl, X)." ^
+ "not_forall_conj() :- !c(forall), !c(conj)." ^
  "h(Z) :- member_of(hyps,X), top_symbol(X,Z)." ^
 (* rippling *)
  "hyp_embeds() :- member_of(hyps,X),embeds(X,concl)." ^
@@ -769,10 +824,12 @@ val clause_cls =
  "measure_reduces(X) :- member_of(hyps,Y),embeds(Y,concl),measure_reduced(Y,X,concl)." ^
  "rippled() :- hyp_bck_res(). " ^ "rippled() :- hyp_subst()." ^
  "can_ripple(X) :- has_wrules(X), !hyp_bck_res()." ^
-(* structure *)
- "pre_post(X,Y) :- bound(X), bound(Y)."^
-(* hca *)
- "has_cases(X,Y) :- is_term(X), is_term(Y)." ^
+(* dist *)
+ "need_move_disj_up() :- intoallex(concl,X),or and(X)." ^
+ "intoallex(X,Y) :- intoex(X,Z),intoallex(Z,Y)." ^
+ "intoallex(X,X) :- !intoex(X,_)." ^
+ "or_and(X) :- match(\"?A\<and>(?B\<or>?C)\",X)." ^
+ "or and(X) :- match(\"(?A\<or>?B)\<and>?C\",X)." ^
 (* one point *)
  "reduced(X,N) :- !is_top(X,concl),depth(X,concl,D),less(D,N)."
 (* end of rippling *)
@@ -790,6 +847,9 @@ val clause_cls =
   |> Clause_GT.add_atomic "bound" bound
   |> Clause_GT.add_atomic "member_of" member_of
   |> Clause_GT.add_atomic "has_bound" has_bound
+(* dist *)
+  |> Clause_GT.add_atomic "intoex" intoex
+  |> Clause_GT.add_atomic "match" pattern_match
 (* one point rule *)
   |> Clause_GT.add_atomic "is_one_point" is_one_point
   |> Clause_GT.add_atomic "is_top" is_top
@@ -815,18 +875,19 @@ section "steup psgraph files"
 ML{*
   (* define your local path here *)
   val pspath = OS.FileSys.getDir() ^ "/Workspace/StrategyLang/psgraph/src/dev/sttt/psgraph/"
-  val dist_file = "dist.psgraph"
+  val disj_file = "disj.psgraph"
   val onep0_file = "onepoint0.psgraph"
   val onep_file = "onepoint.psgraph"
   val rippling_file = "rippling.psgraph"; 
 *}
  
 ML{*
+  val disj = PSGraph.read_json_file (SOME data) (pspath ^ disj_file);
   val onep0 = PSGraph.read_json_file (SOME data) (pspath ^ onep0_file);
   val onep = PSGraph.read_json_file (SOME data) (pspath ^ onep_file);
 *}
 
-
+setup {* PSGraphIsarMethod.add_graph ("disj", disj) *}
 setup {* PSGraphIsarMethod.add_graph ("onep0", onep0) *}
 setup {* PSGraphIsarMethod.add_graph ("onep", onep) *}
 
