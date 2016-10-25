@@ -125,6 +125,11 @@ ML{*
     | x => x;
 
   val ignore_module = List.last o String.tokens (fn ch => #"." = ch) ;
+  fun norm_symb_str str = 
+    case str of
+      "forall" => "All"
+      | "not" => "Not"
+      | x => x; 
 
     fun top_level_str (Const (s,_)) = [ignore_module s]
   | top_level_str ((Const ("all",_)) $ f) = top_level_str f
@@ -144,30 +149,34 @@ ML{*
   |> maps (fn x => Clause_GT.update_var env (IsaProver.E_Trm x) d)
  | member_of _ _ _ = [];
 
- fun hack_not n0 = case n0 of "not" => "Not"| _ => n0;
+ fun ignore_true_prop t = 
+  case t of 
+  ((Const ("HOL.Trueprop",_)) $ f) => ignore_true_prop f
+  | _ => t ;
+
  fun top_symbol env pnode [r,Clause_GT.Var p] : IsaProver.env list= 
           let 
 
             val tops = Clause_GT.project_terms env pnode r
-                     |> maps top_level_str
+              |> maps top_level_str
           in 
             (case dbg_lookup env p of
                NONE => map (fn s => StrName.NTab.ins (p,Clause_GT.Prover.E_Str s) env) tops
-             | SOME (Clause_GT.Prover.E_Str s) => if member (op =) tops (hack_not s) then [env] else []
+             | SOME (Clause_GT.Prover.E_Str s) => if member (op =) tops (norm_symb_str s) then [env] else []
              | SOME _ => [])
           end
     |  top_symbol env pnode [r,Clause_GT.Name n0] = 
           let 
-            val n = hack_not n0;
+            val n = norm_symb_str n0;
             val tops = Clause_GT.project_terms env pnode r
-                     |> maps top_level_str
+              |> maps top_level_str
           in 
              if member (op =) tops n then [env] else []
           end
     |  top_symbol env pnode [r,Clause_GT.PVar p] = 
           let 
             val tops = Clause_GT.project_terms env pnode r
-                     |> maps top_level_str
+              |> maps top_level_str
           in 
             (case dbg_lookup (Clause_GT.Prover.get_pnode_env pnode) p of
                NONE => []
@@ -179,10 +188,6 @@ ML{*
     | top_symbol env pnode (x::xs) =
         maps (fn r => top_symbol env pnode [x,r]) xs;   
 
-   fun ignore_true_prop t = 
-    case t of 
-    ((Const ("HOL.Trueprop",_)) $ f) => ignore_true_prop f
-    | _ => t ;
 
    fun trm_eq thy (x,y) = Pattern.matches thy ((ignore_true_prop x), (ignore_true_prop y) )
        
@@ -374,17 +379,24 @@ fun rule_tac1 [IsaProver.A_Str str, IsaProver.A_Trm trm, IsaProver.A_Thm thm] ct
   res_inst_tac ctxt  [((str,0), (IsaProver.string_of_trm ctxt trm))] thm
 |  rule_tac1  _ _ =  K no_tac;
 
+fun top_forall_var (Abs(x,_,_)$_) = SOME x
+| top_forall_var (Abs(x,_,_)) = SOME x
+| top_forall_var (Const("Pure.all",_) $ t) = top_forall_var t
+| top_forall_var ((Const ("Pure.imp", _) $ t) $_)= top_forall_var t
+| top_forall_var _ = NONE
 
-fun erule_tac1 [IsaProver.A_Str str, IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
-  eres_inst_tac ctxt  [((str,0), (IsaProver.string_of_trm ctxt trm))] thm
-|  erule_tac1  _ _ =  K no_tac;
-
-fun erule_tac2 
-  [IsaProver.A_Str str1, IsaProver.A_Str str2, 
-   IsaProver.A_Trm trm1, IsaProver.A_Trm trm2, IsaProver.A_Thm thm] ctxt = 
+fun erule_tac [IsaProver.A_Thm thm] ctxt i st = 
+  (case top_forall_var (Thm.prop_of st) of 
+    SOME var_str => eres_inst_tac ctxt [(("x",0), var_str)] thm i st
+  | NONE => (LH.logging "TACTIC" "no top forall bound var found in erule_tac";(no_tac st))
+   )
+| erule_tac  [IsaProver.A_Str str, IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt i st = 
+  eres_inst_tac ctxt  [((str,0), (IsaProver.string_of_trm ctxt trm))] thm i st
+| erule_tac [IsaProver.A_Str str1, IsaProver.A_Str str2, 
+   IsaProver.A_Trm trm1, IsaProver.A_Trm trm2, IsaProver.A_Thm thm] ctxt i st = 
   eres_inst_tac ctxt  [((str1,0), (IsaProver.string_of_trm ctxt trm1)), 
-                       ((str2,0), (IsaProver.string_of_trm ctxt trm2))] thm
-| erule_tac2  _ _ = LH.log_undefined "TACTIC" "erule_tac2" (K no_tac);
+                       ((str2,0), (IsaProver.string_of_trm ctxt trm2))] thm i st
+| erule_tac  _ _ _ st = LH.log_undefined "TACTIC" "erule_tac" ( no_tac st );
 
 fun subst_tac [IsaProver.A_Str thmn] ctxt = 
   let val thms =  Find_Theorems.find_theorems ctxt NONE NONE false 
@@ -769,19 +781,6 @@ val t = into_ex (ignore_true_prop t)
 Pattern.matches @{theory} (Proof_Context.read_term_pattern @{context} "(?B \<or> ?C)  \<and> ?A", t);
 *}
 
-ML{*
-structure C = Clause_GT;
-   val data = Clause_GT.add_atomic "match" pattern_match Clause_GT.default_data; 
-   val t = @{prop "A \<Longrightarrow> B \<Longrightarrow> A \<and> B \<Longrightarrow> C \<and> B \<and> A"}; 
-
-   val (pnode,pplan) = IsaProver.init @{context} (IsaProver.G_TERM ([], t));                         ;
-
-val p = C.scan_goaltyp @{context} "match(\"?A \<and> ?B\", concl)" 
-|> 
-   C.type_check data pnode 
-*} 
-
-
 -- "check if term is top-level"
 
 ML{*
@@ -824,6 +823,8 @@ val clause_cls =
  "measure_reduces(X) :- member_of(hyps,Y),embeds(Y,concl),measure_reduced(Y,X,concl)." ^
  "rippled() :- hyp_bck_res(). " ^ "rippled() :- hyp_subst()." ^
  "can_ripple(X) :- has_wrules(X), !hyp_bck_res()." ^
+ "need_pwf(X) :- c(forall)." ^
+ "not_forall_conj() :- !c(forall), !c(conj)." ^
 (* dist *)
  "need_move_disj_up() :- intoallex(concl,X),or and(X)." ^
  "intoallex(X,Y) :- intoex(X,Z),intoallex(Z,Y)." ^
@@ -885,15 +886,30 @@ ML{*
   val disj = PSGraph.read_json_file (SOME data) (pspath ^ disj_file);
   val onep0 = PSGraph.read_json_file (SOME data) (pspath ^ onep0_file);
   val onep = PSGraph.read_json_file (SOME data) (pspath ^ onep_file);
-*}
+  val rippling = PSGraph.read_json_file (SOME data) (pspath ^ rippling_file);
+*} 
 
 setup {* PSGraphIsarMethod.add_graph ("disj", disj) *}
 setup {* PSGraphIsarMethod.add_graph ("onep0", onep0) *}
 setup {* PSGraphIsarMethod.add_graph ("onep", onep) *}
+setup {* PSGraphIsarMethod.add_graph ("rippling", rippling) *}
+
+ML{*
+structure C = Clause_GT;
+
+   val t = @{prop "A \<Longrightarrow> B \<Longrightarrow> A \<and> B \<Longrightarrow> C \<and> B \<and> A"}; 
+val t = @{prop " \<forall> x. C \<and> B \<and> A"}; 
+   val (pnode,pplan) = IsaProver.init @{context} (IsaProver.G_TERM ([], t));                         ;
+
+val p = C.scan_goaltyp @{context} "match(\"?A \<and> ?B\", concl)" 
+|>  C.type_check data pnode ;
 
 
+val p = C.scan_goaltyp @{context} "c(forall)" 
+|>  C.type_check data pnode ;
 
-
+IsaProver.get_pnode_concl pnode;
+*} 
 
 
 end

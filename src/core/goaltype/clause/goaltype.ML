@@ -189,6 +189,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
    |  project_name _ _ (Clause _) = []
 
   fun update_var env v (Var n) = [StrName.NTab.update (n,v) env]
+  | update_var env v (PVar n) = [StrName.NTab.update (n,v) env]
   | update_var env _ Ignore = [env]
   | update_var _ _ _ = []
 
@@ -388,7 +389,8 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
    end;
 
  (* scan clause *)
- fun scan_term ctxt = $$ "\"" |--  Scan.many (fn s => not(s = "\"")) --| $$ "\"" >> implode >> (Term o (Prover.trm_of_string ctxt));  
+ fun scan_term ctxt = 
+  $$ "\"" |--  Scan.many (fn s => not(s = "\"")) --| $$ "\"" >> implode >> (Term o (Prover.trm_of_string ctxt))
  fun scan_clause0 ctxt xs  =  (scan_name -- ( scan_empty || (scan_args ctxt)) >> Clause) xs 
  and scan_clause ctxt = ($$"!" |-- scan_clause0 ctxt) >> (fn x => Clause("not", [x])) || scan_clause0 ctxt
  (* Note: does not turn into term *)

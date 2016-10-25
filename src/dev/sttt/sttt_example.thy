@@ -13,9 +13,14 @@ apply (rule_tac x = 5 in exI)+
 by simp
 
 
-
-
 section "the telephone example"
+declare Relation.Domain_Un_eq [wrule]
+declare Set.Un_iff [wrule]
+declare Relation.Un_Image [wrule]
+declare HOL.conj_disj_distribL [wrule]
+declare HOL.conj_disj_distribR [wrule]
+declare HOL.imp_disjL [wrule]
+
 typedecl Digitseq
 
 lemma running_example: "callee = Domain(call :: Digitseq rel) \<Longrightarrow> 
@@ -29,8 +34,18 @@ ML_val {*-
   val ps_thm = Tinker.start_ieval @{context} (SOME onep0) (SOME []) (SOME st) (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
 *}
-
+(* some intermediate steps to simp goals *)
 apply (intro conjI) prefer 2 apply (rule refl) prefer 2 apply (rule refl) 
+
+apply (tinker rippling)
+ML_val {*-
+  val st =  Thm.cprem_of (#goal @{Isar.goal}) 1 |> Thm.term_of;
+  val ps_thm = Tinker.start_ieval @{context} (SOME rippling) (SOME []) (SOME st) (* prove the goal *)
+          |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
+*}
+
+
+
 find_theorems "(_ \<or> _)\<longrightarrow>_"
 thm Relation.Domain_Un_eq  Set.Un_iff Relation.Un_Image
 HOL.conj_disj_distribL HOL.conj_disj_distribR HOL.imp_disjL
