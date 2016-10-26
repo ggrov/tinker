@@ -1,5 +1,5 @@
-(*use_file (OS.FileSys.getDir() ^ "/psgraph/src/core/demo/TACAS16/tacas_setup");*)
-use_file (OS.FileSys.getDir() ^ "/../GIT/tinker/src/core/demo/TACAS16/tacas_setup");
+val tinkerhome = OS.FileSys.getDir() ^ "/../GIT/tinker";
+use_file (tinkerhome ^ "/src/core/demo/FIDE16/tacas_setup");
 
 
 val g : GOAL = 
@@ -10,7 +10,7 @@ val g : GOAL =
  val t = PSGraph.read_json_file NONE (pspath ^"simple_quantifier_tac.psgraph") |>   PSGraph.set_goaltype_data data; 
 
  set_goal g;
- apply_ps t;
+ apply_ps_i t;
 
  top_goal_state() |> print_goal_state;
 

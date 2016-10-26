@@ -3,7 +3,7 @@
   (*open_theory "hol";*)
   
   val root_path = OS.FileSys.getDir();
-  val build_path = root_path ^ "/psgraph/src/core/provers/proofpower/build";
+  val build_path = tinkerhome ^ "/src/core/provers/proofpower/build";
   OS.FileSys.chDir build_path;
 
   use "load_psgraph";
