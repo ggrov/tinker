@@ -1,4 +1,5 @@
 val tinkerhome = OS.FileSys.getDir() ^ "/../GIT/tinker";
+val tinkerhome = OS.FileSys.getDir() ^ "/psgraph";
 use_file (tinkerhome ^ "/src/core/demo/FIDE16/tacas_setup");
 
 
