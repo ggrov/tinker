@@ -1,36 +1,38 @@
 theory sttt_setup
-imports "../../core/provers/isabelle/clausal/CIsaP"  
+imports "../../provers/isabelle/clausal/CIsaP"  
 
 begin
-
+ML{*
+val tinkerhome = "/Workspace/StrategyLang/psgraph"
+*}
 section onepoint
 
 section rippling
 (* wrapping trm with name structure *)
-  ML_file "../../core/provers/isabelle/lib/rippling/unif_data.ML" 
-  ML_file "../../core/provers/isabelle/lib/rippling/collection.ML"   
-  ML_file "../../core/provers/isabelle/lib/rippling/pregraph.ML"  
-  ML_file "../../core/provers/isabelle/lib/rippling/rgraph.ML" 
-  ML_file "../../core/provers/isabelle/lib/rippling/embedding/paramtab.ML" 
-  ML_file "../../core/provers/isabelle/lib/rippling/embedding/trm.ML"  
-  ML_file "../../core/provers/isabelle/lib/rippling/embedding/isa_trm.ML"
-  ML_file "../../core/provers/isabelle/lib/rippling/embedding/instenv.ML"
-  ML_file "../../core/provers/isabelle/lib/rippling/embedding/typ_unify.ML"   
+  ML_file "../../provers/isabelle/lib/rippling/unif_data.ML" 
+  ML_file "../../provers/isabelle/lib/rippling/collection.ML"   
+  ML_file "../../provers/isabelle/lib/rippling/pregraph.ML"  
+  ML_file "../../provers/isabelle/lib/rippling/rgraph.ML" 
+  ML_file "../../provers/isabelle/lib/rippling/embedding/paramtab.ML" 
+  ML_file "../../provers/isabelle/lib/rippling/embedding/trm.ML"  
+  ML_file "../../provers/isabelle/lib/rippling/embedding/isa_trm.ML"
+  ML_file "../../provers/isabelle/lib/rippling/embedding/instenv.ML"
+  ML_file "../../provers/isabelle/lib/rippling/embedding/typ_unify.ML"   
 (* embeddings *)
-  ML_file "../../core/provers/isabelle/lib/rippling/embedding/eterm.ML"  
-  ML_file "../../core/provers/isabelle/lib/rippling/embedding/ectxt.ML" 
-  ML_file "../../core/provers/isabelle/lib/rippling/embedding/embed.ML"
+  ML_file "../../provers/isabelle/lib/rippling/embedding/eterm.ML"  
+  ML_file "../../provers/isabelle/lib/rippling/embedding/ectxt.ML" 
+  ML_file "../../provers/isabelle/lib/rippling/embedding/embed.ML"
 (* measure and skeleton *)
-  ML_file "../../core/provers/isabelle/lib/rippling/measure_traces.ML"
-  ML_file "../../core/provers/isabelle/lib/rippling/measure.ML" 
+  ML_file "../../provers/isabelle/lib/rippling/measure_traces.ML"
+  ML_file "../../provers/isabelle/lib/rippling/measure.ML" 
   (*ML_file "../../provers/isabelle/termlib/rippling/flow_measure.ML"*)
-  ML_file "../../core/provers/isabelle/lib/rippling/dsum_measure.ML" 
+  ML_file "../../provers/isabelle/lib/rippling/dsum_measure.ML" 
   (* wave rule set *)
-  ML_file  "../../core/provers/isabelle/lib/rippling/rulesets/substs.ML"
-  ML_file  "../../core/provers/isabelle/lib/induct.ML"
-  ML_file  "../../core/provers/isabelle/lib/term_fo_au.ML"  
-  ML_file  "../../core/provers/isabelle/lib/term_features.ML"  
-  ML_file  "../../core/provers/isabelle/lib//rippling/basic_ripple.ML" 
+  ML_file  "../../provers/isabelle/lib/rippling/rulesets/substs.ML"
+  ML_file  "../../provers/isabelle/lib/induct.ML"
+  ML_file  "../../provers/isabelle/lib/term_fo_au.ML"  
+  ML_file  "../../provers/isabelle/lib/term_features.ML"  
+  ML_file  "../../provers/isabelle/lib//rippling/basic_ripple.ML" 
 
   attribute_setup wrule = {* Attrib.add_del wrule_add wrule_del *} "maintaining a list of wrules"
 
@@ -379,14 +381,14 @@ fun rule_tac1 [IsaProver.A_Str str, IsaProver.A_Trm trm, IsaProver.A_Thm thm] ct
   res_inst_tac ctxt  [((str,0), (IsaProver.string_of_trm ctxt trm))] thm
 |  rule_tac1  _ _ =  K no_tac;
 
-fun top_forall_var (Abs(x,_,_)$_) = SOME x
-| top_forall_var (Abs(x,_,_)) = SOME x
-| top_forall_var (Const("Pure.all",_) $ t) = top_forall_var t
-| top_forall_var ((Const ("Pure.imp", _) $ t) $_)= top_forall_var t
-| top_forall_var _ = NONE
+fun least_forall_var (Abs(_,_,(Const("Pure.all",_) $ t))) = least_forall_var t
+| least_forall_var (Abs(x,_,_)) = SOME x
+| least_forall_var (Const("Pure.all",_) $ t) = least_forall_var t
+| least_forall_var ((Const ("Pure.imp", _) $ t) $_)= least_forall_var t
+| least_forall_var _ = NONE
 
 fun erule_tac [IsaProver.A_Thm thm] ctxt i st = 
-  (case top_forall_var (Thm.prop_of st) of 
+  (case least_forall_var (Thm.prop_of st) of 
     SOME var_str => eres_inst_tac ctxt [(("x",0), var_str)] thm i st
   | NONE => (LH.logging "TACTIC" "no top forall bound var found in erule_tac";(no_tac st))
    )
@@ -875,7 +877,7 @@ val clause_cls =
 section "steup psgraph files"
 ML{*
   (* define your local path here *)
-  val pspath = OS.FileSys.getDir() ^ "/Workspace/StrategyLang/psgraph/src/dev/sttt/psgraph/"
+  val pspath = OS.FileSys.getDir() ^ tinkerhome ^ "/src/core/examples/STTT16/psgraph/"
   val disj_file = "disj.psgraph"
   val onep0_file = "onepoint0.psgraph"
   val onep_file = "onepoint.psgraph"
@@ -898,7 +900,7 @@ ML{*
 structure C = Clause_GT;
 
    val t = @{prop "A \<Longrightarrow> B \<Longrightarrow> A \<and> B \<Longrightarrow> C \<and> B \<and> A"}; 
-val t = @{prop " \<forall> x. C \<and> B \<and> A"}; 
+val t = @{prop " \<forall> x y z. C \<and> B \<and> A"}; 
    val (pnode,pplan) = IsaProver.init @{context} (IsaProver.G_TERM ([], t));                         ;
 
 val p = C.scan_goaltyp @{context} "match(\"?A \<and> ?B\", concl)" 
@@ -910,6 +912,17 @@ val p = C.scan_goaltyp @{context} "c(forall)"
 
 IsaProver.get_pnode_concl pnode;
 *} 
+
+lemma" \<forall> x y z. C \<and> B \<and> A"
+apply (rule allI)
+apply (rule allI)
+apply (rule allI)
+ML_val{*
+ val st =  Thm.cprem_of (#goal @{Isar.goal}) 1 |> Thm.term_of ;
+least_forall_var st;
+
+*}
+oops
 
 
 end
