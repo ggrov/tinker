@@ -36,8 +36,8 @@ sig
   val get_current : T -> branch
   val get_branches : T -> branch list
   val get_parent : T -> (StrName.NTab.name * int) StrName.NTab.T
-  val get_name_current_hie: T -> StrName.NTab.name list
-  val get_name_current: T -> StrName.NTab.name
+  val get_name_current_hie: T -> (StrName.NTab.name* V.name) list
+  val get_name_current: T -> StrName.NTab.name * V.name
   val get_index_current : T -> int 
   val get_main_current : T -> StrName.NTab.name
 
@@ -71,10 +71,9 @@ sig
 (*
   val add_goals : PSGraph.Theory.Data.GoalTyp.Prover.pnode list -> T -> T
   val add_bgoals : PSGraph.Theory.Data.GoalTyp.Prover.pnode list -> branch -> branch
-*)
   val pop_cur_hie : T -> T
   val push_cur_hie : StrName.NTab.name -> T -> T
-
+*)
   (* methods for branches *)
   val get_bactive : branch -> active
   val get_bpplan : branch -> PSGraph.Theory.Data.GoalTyp.Prover.pplan
@@ -97,7 +96,7 @@ sig
   val get_bparent : branch -> (StrName.NTab.name * int) StrName.NTab.T
 
   val pop_bcur_hie : branch -> branch
-  val push_bcur_hie : StrName.NTab.name -> branch -> branch
+  val push_bcur_hie : StrName.NTab.name * V.name -> branch -> branch
 
   val get_bgraph : branch -> PSGraph.Theory.Graph.T 
   val set_bgraph : PSGraph.Theory.Graph.T -> branch -> branch
@@ -105,10 +104,10 @@ sig
   val get_bgraphs_gen : StrName.NTab.name -> branch -> PSGraph.Theory.Graph.T list
   val set_bgraph_gen : StrName.NTab.name -> int -> PSGraph.Theory.Graph.T -> branch -> branch
 
-  val update_bname_current_hie : (StrName.NTab.name list  -> StrName.NTab.name list)  -> branch -> branch
-  val set_bname_current_hie : StrName.NTab.name list -> branch -> branch
-  val get_bname_current_hie : branch ->  StrName.NTab.name list
-  val get_bname_current : branch ->  StrName.NTab.name
+  val update_bname_current_hie : ((StrName.NTab.name * V.name) list  -> (StrName.NTab.name * V.name) list)  -> branch -> branch
+  val set_bname_current_hie : (StrName.NTab.name* V.name) list -> branch -> branch
+  val get_bname_current_hie : branch ->  (StrName.NTab.name* V.name) list
+  val get_bname_current : branch ->  StrName.NTab.name* V.name
   val update_bindex_current : (int -> int) -> branch -> branch
   val set_bindex_current : int -> branch -> branch
   val get_bindex_current : branch -> int

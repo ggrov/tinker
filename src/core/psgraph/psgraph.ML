@@ -300,7 +300,7 @@ struct
     (*"args", arg_typ_to_json (#args subgraph)*)]
 
  fun input_subgraph_json (Json.Object jobj) =
-  let 
+  (let 
     val name =  JsonInputUtils.get_string jobj "name"
     val  _  =  debug_json "JSON_CORE" ("Json parsing: Graph name - " ^ name) ()
     val branchType = JsonInputUtils.get_string jobj "branch_type"
@@ -309,6 +309,8 @@ struct
   in
     (name, Graph_Tacs {name = name, branchType = branchType, graphs = graphs(*, args = args*)})
   end
+ handle Theory.Data.GoalTyp.gt_exp str => 
+  raise Theory.Data.GoalTyp.gt_exp (str ^ ", in graph " ^ JsonInputUtils.get_string jobj "name"))
  | input_subgraph_json _ = raise Json.parse_exn "unexcepted json strcure in input_subgraph_json"
  
  val get_V_from_occurs_record = (fn Json.String s => s) o List.last;

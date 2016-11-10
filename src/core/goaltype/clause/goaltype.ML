@@ -448,8 +448,10 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
      |> Json.String
    end
 
-  fun from_json (Json.String str) = scan_goaltyp Prover.default_ctxt str
-  | from_json _ = raise gt_exp "from_json: ill-formed json structure"
+  fun from_json (Json.String str) = 
+  (scan_goaltyp Prover.default_ctxt str
+  handle _ => raise gt_exp ("parse goaltype error: " ^ str))
+  | from_json _ = raise gt_exp "parse goaltype, ill-formed json structure. "
 
   (* JSON on goal nodes *)
   fun gnode_to_json g = 

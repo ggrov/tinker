@@ -11,7 +11,7 @@ local open LoggingHandler in
   datatype active = Active of {
      (*graph : PSGraph.Theory.Graph.T current graph *)
      index_current: int,
-     name_current_hie: StrName.NTab.name list,
+     name_current_hie: (StrName.NTab.name * V.name) list, (* *)
      parent: (StrName.NTab.name * int) StrName.NTab.T, (* record eval hierechy: child nanme -> parent name *)
      gnodes : gnode list, (* not updated, used to work with evalf for the order of the goal node *)
      searchf : string, (* not support *)
@@ -51,7 +51,7 @@ local open LoggingHandler in
   val get_goals = get_bgoals o get_current;
   val get_active = get_bactive o get_current;
 
-  val get_graph = (fn x => PSGraph.get_graph (get_psgraph x) ((get_aname_current o get_active) x) ((get_aindex_current o get_active) x));
+  val get_graph = (fn x => PSGraph.get_graph (get_psgraph x) ((fst o get_aname_current o get_active) x) ((get_aindex_current o get_active) x));
   val get_parent = get_aparent o get_active;
   val get_name_current = get_aname_current o get_active;
   val get_name_current_hie = get_aname_current_hie o get_active;
@@ -68,7 +68,7 @@ local open LoggingHandler in
   val get_bname_current = get_aname_current o get_bactive;
   val get_bname_current_hie = get_aname_current_hie o get_bactive;
   val get_bindex_current = get_aindex_current o get_bactive;
-  val get_bgraph =  (fn x => PSGraph.get_graph (get_bpsgraph x) (get_bname_current x) (get_bindex_current x));
+  val get_bgraph =  (fn x => PSGraph.get_graph (get_bpsgraph x) ((fst o get_bname_current) x) (get_bindex_current x));
   fun get_bgraph_gen name idx b =  PSGraph.get_graph (get_bpsgraph b) name idx;
   fun get_bgraphs_gen name b = PSGraph.get_graphs (get_bpsgraph b) name;
 
@@ -122,7 +122,7 @@ local open LoggingHandler in
   fun set_bgraph g b =     
     set_bpsgraph 
       (PSGraph.set_graph 
-        (get_bname_current b) 
+        ((fst o get_bname_current) b) 
         (get_bindex_current b) 
         g
         (get_bpsgraph b)) b
@@ -168,7 +168,7 @@ local open LoggingHandler in
   fun set_graph g ps = 
     set_psgraph 
       (PSGraph.set_graph 
-        ((get_aname_current o get_active) ps) 
+        ((fst o get_aname_current o get_active) ps) 
         ((get_aindex_current o get_active) ps) 
         g
         (get_psgraph ps)) 
@@ -192,7 +192,7 @@ local open LoggingHandler in
 
   fun init_active  vs main =
      Active {gnodes = vs, searchf = "depth_first", 
-     name_current_hie = [main], index_current = 0,
+     name_current_hie = [(main, V.mk "0" (* make a dummy id for main *))], index_current = 0,
      evalf = "depth_first", parent = StrName.NTab.empty}
 
   fun init_branch prf psgraph goals vs  =
