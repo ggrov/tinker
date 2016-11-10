@@ -242,11 +242,7 @@ struct
            read0 (str ^ msg) ins end 
       end
       val str = read0 "" s
-      val _ = String.size str  |> Int.toString |> writeln
-      val _ = File_Io.write_string "/Users/yuhuilin/Workspace/StrategyLang/psgraph/src/dev/ai4fm/json" str
       val json = Json.of_string str
-        handle _ => raise protocol_exn ("Fail to parse str as json: " ^ str)
-
       val _ = (dbg "JSON_GUI" ("JSON IN: " ^ (Json.encode json)))
       val json_output = LH.check_perform dispatch json "run_in_textstreams" (* this output is always a json object *)
       val _ =  dbg "JSON_GUI" ("JSON OUT: " ^ ( Json.encode json_output))

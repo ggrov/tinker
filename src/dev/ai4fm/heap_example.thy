@@ -1,65 +1,49 @@
 theory heap_example
 imports "ai4fm_setup" "heap/HEAP1" "heap/HEAP1Lemmas"
 begin  
+
+
 thm VDMMaps.f_in_dom_ar_the_subsume
 thm l_locs_of_Locs_of_iff
 
 lemma "l \<in> dom (S -\<triangleleft> f) \<Longrightarrow>  Locs_of (S -\<triangleleft> f) l =  Locs_of f l"
-sledgehammer
 by (metis Locs_of_def f_in_dom_ar_apply_not_elem l_dom_ar_notin_dom_or)
 
 
 ML{*
   (* define your local path here *)
-  val pspath = OS.FileSys.getDir() ^ "/Workspace/StrategyLang/psgraph/src/dev/ai4fm/"
-  val pre_post_file = "heap_pre_post.psgraph"
-  val hca_file = "heap_hca.psgraph"
-  val onep_file = "heap_onep.psgraph"
-  val structure_file = "heap_structure.psgraph"
-  val rippling_file = "heap_rippling.psgraph"; 
+  val pspath = tinker_home ^ "/psgraph/src/dev/ai4fm/"
+  val heap_tac_file = "heap_po.psgraph"
   val demo_rippling_file = "rippling/rippling.psgraph" 
 
- 
   val clause_def = "";
   val data =  data   
   |> Clause_GT.update_data_defs (fn x => (Clause_GT.scan_data IsaProver.default_ctxt clause_def) @ x);
 
+  val heap_tac = PSGraph.read_json_file (SOME data) (pspath ^ heap_tac_file);
   val demo_rippling =  PSGraph.read_json_file (SOME data) (pspath ^ demo_rippling_file);
-  val pre_post = PSGraph.read_json_file (SOME data) (pspath ^ pre_post_file);
-  val hca = PSGraph.read_json_file (SOME data) (pspath ^ hca_file);
-  val onep = PSGraph.read_json_file (SOME data) (pspath ^ onep_file);
-  val struct_break = PSGraph.read_json_file (SOME data) (pspath ^ structure_file);
-  val rippling = PSGraph.read_json_file (SOME data) (pspath ^ rippling_file);
-*}
 
+ *}
+ 
 setup {* PSGraphIsarMethod.add_graph ("demo_rippling", demo_rippling) *}
-setup {* PSGraphIsarMethod.add_graph ("pre_post", pre_post) *}
-setup {* PSGraphIsarMethod.add_graph ("hca", hca) *}
-setup {* PSGraphIsarMethod.add_graph ("onep", onep) *}
-setup {* PSGraphIsarMethod.add_graph ("struct_break", struct_break) *}
-setup {* PSGraphIsarMethod.add_graph ("rippling", demo_rippling) *}
+setup {* PSGraphIsarMethod.add_graph ("heap_tac", heap_tac) *}
 
-thm F1_inv_def
-thm Disjoint_def
-thm sep_def
-thm nat1_map_def
-
-thm VDMMaps.l_dom_dom_ar
-declare  VDMMaps.l_dom_dom_ar [wrule]
+(* setup wave rules *)
 lemma finite_Diff[wrule]: "finite A \<Longrightarrow> finite (A - B) = finite A"
-by (metis finite_Diff)
+ by (metis finite_Diff)
+declare  VDMMaps.l_dom_dom_ar [wrule]
+declare VDMMaps.f_in_dom_ar_the_subsume [wrule]
 
 (* the first simple rippling example in the book *)
 lemma "finite (dom(f)) \<and> the (f(r)) \<noteq> s \<and> nat1 s \<and> r \<in> dom(f) \<and> s \<le> the(f(r)) \<Longrightarrow> finite(dom({r} -\<triangleleft> f))"
-apply (elim conjE)+ 
-ML_val {*-
+apply (elim conjE)+  
+apply (-tinker demo_rippling)
+ML_val {* -
   val st =  Thm.cprem_of (#goal @{Isar.goal}) 1 |> Thm.term_of;
-  val ps_thm = Tinker.start_ieval @{context} (SOME rippling) (SOME []) (SOME st) (* prove the goal *)
+  val ps_thm = Tinker.start_ieval @{context} (SOME demo_rippling) (SOME []) (SOME st) (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
 *}
-apply (tinker rippling)
 done
-
 
 ML{*-
 TextSocket.safe_close();
@@ -83,9 +67,7 @@ lemma impE_fert2: "\<lbrakk>(P\<longrightarrow> Q); P' \<Longrightarrow>  P; P'\
 lemma domsub_dagger_apply: "x \<notin> s \<Longrightarrow> x \<notin> dom g \<Longrightarrow> (s -\<triangleleft> f \<dagger> g) x =  f x" 
 by (metis f_in_dom_ar_apply_not_elem l_dagger_apply)
 
-
 (*declare VDMMaps.f_in_dom_ar_apply_subsume [wrule]*)
-declare VDMMaps.f_in_dom_ar_the_subsume [wrule]
 
 (* Now move on to the real heap example *)
 (* The PO of new fsb *)
@@ -96,15 +78,17 @@ lemmas post_def = new1_postcondition_def new1_post_def new1_post_eq_def new1_pos
 lemmas inv_def = F1_inv_def Disjoint_def  Set.Ball_def
 theorem locale1_new_FSB: "PO_new1_feasibility"
 (* setup the goal *)
+thm l1_new1_precondition_def l1_invariant_def
 apply (insert l1_new1_precondition_def l1_invariant_def)
-
-(* Pattern: unfolding pre and post -- structure bd*)
-ML_val {*-
+thm PO_new1_feasibility_def new1_postcondition_def new1_pre_def new1_post_def
+(* before match_leq, need to elim conj and existence quantifier, maybe in structure brrak down *)
+ML_val {* -
   val st =  Thm.cprem_of (#goal @{Isar.goal}) 1 |> Thm.term_of;
-  val ps_thm = Tinker.start_ieval @{context} (SOME pre_post) (SOME []) (SOME st) (* prove the goal *)
+  val ps_thm = Tinker.start_ieval @{context} (SOME heap_tac) (SOME []) (SOME st) (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
 *}
-apply (tinker pre_post) 
+apply (-tinker heap_tac)
+
 apply (elim exE conjE)
 
 (* Move disj up *)

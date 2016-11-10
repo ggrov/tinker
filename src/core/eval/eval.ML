@@ -504,9 +504,15 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
         val (SOME nv) = Util.lookup_ivertex_data graph tnode
       in
         case nv of
-           (GData.T_Atomic _) => eval_apply_atomic gname tnode edata
-         | (GData.T_Identity) => eval_apply_id gname tnode edata
-         | (GData.T_Graph _) => enter_hgraph gname nv tnode edata 
+           (GData.T_Atomic (name, _)) => 
+            (debug_tracing ("apply tac " ^ name ^ " in " ^ "graph_name0"); 
+            eval_apply_atomic gname tnode edata)
+         | (GData.T_Identity) => 
+          (debug_tracing ("apply id  in " ^ "graph_name0"); 
+          eval_apply_id gname tnode edata)
+         | (GData.T_Graph (name,_)) => 
+          (debug_tracing ("enter hie graph " ^ name ^ " in " ^ "graph_name0"); 
+            enter_hgraph gname nv tnode edata )
          | (GData.G_Break) => 
             if if_debug then raise Breakpoint edata
             else eval_apply_id gname tnode edata

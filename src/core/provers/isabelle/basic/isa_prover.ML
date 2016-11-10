@@ -306,7 +306,6 @@ struct
    
   fun apply_tactic args (tac : tactic) (pnode,pplan) = 
     (*let val (tac : tactic)  = build_tac_code_with_arg tac_code args |> Tac_ML_Exec.eval_ml in*)
-    
     tac args (#pctxt pnode) (get_index pnode pplan)  (#goal pplan)
     (*|> (fn x =>( writeln "DEBUG: ";Seq.list_of x |> map Thm.prop_of|> map (pretty_trm (#pctxt pnode)) |>map  Pretty.writeln ;x))*)
     |> Seq.maps (update (fn x => [x]) (pnode,pplan))

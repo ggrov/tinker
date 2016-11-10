@@ -1,6 +1,10 @@
 theory ai4fm_setup
 imports "rippling/Rippling"
 begin
+ML{*
+val tinker_home =  OS.FileSys.getDir() ^ "/Workspace/StrategyLang";
+*}
+
 section "taut"
 lemma disjI3: " (\<not> P \<longrightarrow> Q) \<Longrightarrow> (P \<or> Q)" by auto
 
@@ -21,6 +25,72 @@ lemma not_False_eq_True_f: "(\<not> False) \<Longrightarrow> True" by auto
 
 thm not_not_f de_Morgan_conj_f de_Morgan_disj_f not_imp_f not_iff_f not_True_eq_False_f not_False_eq_True_f
 
+ML{*
+ val debug_msg = (*writeln;*) K;
+*}
+
+(* goaltype for rippling *)
+ML{*
+ fun bool_to_cl env ret = if ret then [env] else []
+ fun all_singleton [] = true
+   | all_singleton [x] = (case x of [i] => true | _ => false)
+   | all_singleton (x ::xs) = case x of [i] => all_singleton (xs) | _ => false
+
+ fun inductable env pnode [] = 
+  TermFeatures.is_inductable_structural 
+  (Prover.get_pnode_ctxt pnode |> Proof_Context.theory_of ) 
+  (Prover.get_pnode_concl pnode)
+  |> bool_to_cl env
+ | inductable _ _ _ = [];
+
+ fun cl_is_f f env pnode args  = 
+  let val args' = map (Clause_GT.project_terms env pnode) args in
+   if all_singleton args'
+   then
+      f (Prover.get_pnode_ctxt pnode) (map hd args') 
+      |> bool_to_cl env
+   else [] end;
+
+ fun cl2_wraper f ctxt [x,y] = f ctxt x y 
+ |   cl2_wraper _ _ _ = false;
+ fun cl3_wraper f ctxt [x,y,z] = f ctxt x y z
+ |   cl3_wraper _ _ _ = false;
+
+ fun measure_reduces0 env pnode [] =
+  let
+     val goal = Prover.get_pnode_concl pnode
+     val ctxt = Prover.get_pnode_ctxt pnode
+     val hyps' = map TermFeatures.fix_alls_as_var (Prover.get_pnode_hyps pnode)
+     val embedd_hyp =
+      filter (fn hyp => TermFeatures.ctxt_embeds ctxt hyp goal) hyps' (* use the hyp with no bindings *)
+      |> hd (* only get the first embedding *)
+     val wrules = BasicRipple.get_matched_wrules ctxt goal
+  in
+    TermFeatures.has_measure_decreasing_rules ctxt embedd_hyp wrules goal
+  end
+ | measure_reduces0 _ _ _ = false
+
+ fun measure_reduces env pnode [] = measure_reduces0 env pnode [] |> bool_to_cl env
+ | measure_reduces _ _ _ = [];
+ fun rippled env pnode [] = measure_reduces0 env pnode [] |> not |>  bool_to_cl env
+ | rippled _ _ _ = [];
+
+ fun has_wrules env pnode [r] = 
+  let val t =  Clause_GT.project_terms env pnode r in
+  case t of [gtrm] => 
+    (if (BasicRipple.get_matched_wrules (Prover.get_pnode_ctxt pnode) gtrm |> List.null)
+    then []
+    else [env])
+  | _ => []
+  end
+  | has_wrules _ _ _ = [];
+ 
+ fun ENV_bind _ [IsaProver.A_Trm trm, IsaProver.A_Var d] (env: IsaProver.env) : IsaProver.env list =
+  [StrName.NTab.update (d, IsaProver.E_Trm trm) env]
+ | ENV_bind  _ _ _ = [];
+
+*}
+
 
 section "general defs"
 ML{*
@@ -30,6 +100,11 @@ ML{*
     | x => x;
 
   val ignore_module = List.last o String.tokens (fn ch => #"." = ch) ;
+  fun norm_symb_str str = 
+    case str of
+      "forall" => "All"
+      | "not" => "Not"
+      | x => x; 
 
     fun top_level_str (Const (s,_)) = [ignore_module s]
   | top_level_str ((Const ("all",_)) $ f) = top_level_str f
@@ -49,7 +124,11 @@ ML{*
   |> maps (fn x => Clause_GT.update_var env (IsaProver.E_Trm x) d)
  | member_of _ _ _ = [];
 
- fun hack_not n0 = case n0 of "not" => "Not"| _ => n0;
+ fun ignore_true_prop t = 
+  case t of 
+  ((Const ("HOL.Trueprop",_)) $ f) => ignore_true_prop f
+  | _ => t ;
+
  fun top_symbol env pnode [r,Clause_GT.Var p] : IsaProver.env list= 
           let 
 
@@ -58,12 +137,12 @@ ML{*
           in 
             (case dbg_lookup env p of
                NONE => map (fn s => StrName.NTab.ins (p,Clause_GT.Prover.E_Str s) env) tops
-             | SOME (Clause_GT.Prover.E_Str s) => if member (op =) tops (hack_not s) then [env] else []
+             | SOME (Clause_GT.Prover.E_Str s) => if member (op =) tops (norm_symb_str s) then [env] else []
              | SOME _ => [])
           end
     |  top_symbol env pnode [r,Clause_GT.Name n0] = 
           let 
-            val n = hack_not n0;
+            val n = norm_symb_str n0;
             val tops = Clause_GT.project_terms env pnode r
                      |> maps top_level_str
           in 
@@ -271,22 +350,33 @@ fun drule [IsaProver.A_Thm thm] _  = dtac thm
 fun simp_only [IsaProver.A_Thm thm] = simp_only_tac [thm]
 | simp_only _  =  K (K no_tac);
 
+fun rule_tac [IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
+  (res_inst_tac ctxt  [(("x",0), (IsaProver.string_of_trm ctxt trm))] thm 
+handle _ => LH.log_undefined "EVAL" "fail to apply rule_tac" K no_tac)
+|  rule_tac  _ _ =  K no_tac; 
 
 fun rule_tac1 [IsaProver.A_Str str, IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
   res_inst_tac ctxt  [((str,0), (IsaProver.string_of_trm ctxt trm))] thm
 |  rule_tac1  _ _ =  K no_tac;
 
+fun least_forall_var (Abs(_,_,(Const("Pure.all",_) $ t))) = least_forall_var t
+| least_forall_var (Abs(x,_,_)) = SOME x
+| least_forall_var (Const("Pure.all",_) $ t) = least_forall_var t
+| least_forall_var ((Const ("Pure.imp", _) $ t) $_)= least_forall_var t
+| least_forall_var _ = NONE
 
-fun erule_tac1 [IsaProver.A_Str str, IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
-  eres_inst_tac ctxt  [((str,0), (IsaProver.string_of_trm ctxt trm))] thm
-|  erule_tac1  _ _ =  K no_tac;
-
-fun erule_tac2 
-  [IsaProver.A_Str str1, IsaProver.A_Str str2, 
-   IsaProver.A_Trm trm1, IsaProver.A_Trm trm2, IsaProver.A_Thm thm] ctxt = 
+fun erule_tac [IsaProver.A_Thm thm] ctxt i st = 
+  (case least_forall_var (Thm.prop_of st) of 
+    SOME var_str => eres_inst_tac ctxt [(("x",0), var_str)] thm i st
+  | NONE => (LH.logging "TACTIC" "no top forall bound var found in erule_tac";(no_tac st))
+   )
+| erule_tac  [IsaProver.A_Str str, IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt i st = 
+  eres_inst_tac ctxt  [((str,0), (IsaProver.string_of_trm ctxt trm))] thm i st
+| erule_tac [IsaProver.A_Str str1, IsaProver.A_Str str2, 
+   IsaProver.A_Trm trm1, IsaProver.A_Trm trm2, IsaProver.A_Thm thm] ctxt i st = 
   eres_inst_tac ctxt  [((str1,0), (IsaProver.string_of_trm ctxt trm1)), 
-                       ((str2,0), (IsaProver.string_of_trm ctxt trm2))] thm
-| erule_tac2  _ _ = LH.log_undefined "TACTIC" "erule_tac2" (K no_tac);
+                       ((str2,0), (IsaProver.string_of_trm ctxt trm2))] thm i st
+| erule_tac  _ _ _ st = LH.log_undefined "TACTIC" "erule_tac" ( no_tac st );
 
 fun subst_tac [IsaProver.A_Str thmn] ctxt = 
   let val thms =  Find_Theorems.find_theorems ctxt NONE NONE false 
@@ -303,6 +393,11 @@ fun asm_subst_tac [IsaProver.A_Str thmn] ctxt =
 |  asm_subst_tac [IsaProver.A_Thm thm] ctxt =  
   EqSubst.eqsubst_asm_tac ctxt [0] [thm]
 | asm_subst_tac  _ _ =  K no_tac;
+
+fun assumption  _ = atac;
+*}
+ML{*
+atac;
 *}
 
 ML{*
@@ -363,6 +458,9 @@ ML{*
   fun top_exists' n (Const ("HOL.Ex",_) $ Abs(_,_,t)) = top_exists' (n+1) t
    |  top_exists' n t = (n,t);
   val top_exists = top_exists' 0;
+
+ fun into_ex (Const ("HOL.Ex",_) $ Abs(x,ty,t)) = SOME(subst_bound (Free (x,ty),t))
+  |  into_ex _ = NONE
    *}
    
 -- "returns bound term and De-Bruijn (relative to top-level insts)"   
@@ -393,6 +491,18 @@ ML{*
      |  allp_match _ _ = []     
 *}
 
+-- "bound"
+ML{*
+ fun get_bound (Free _) = NONE
+ |   get_bound (Const _) = NONE
+ |   get_bound (Var _) = NONE
+ |   get_bound (Bound i) = SOME i
+ |   get_bound (t1 $ t2) = 
+       (case (get_bound t1) of NONE =>  get_bound t2
+                             | b  => b)
+ |   get_bound (Abs (_,_,t)) = get_bound t
+*}
+
 -- "the matching term"
 ML {*
  fun matching_term t = 
@@ -404,6 +514,24 @@ ML {*
         case onep_match 0 t' of
            NONE => NONE
          | SOME (t,_) => SOME t
+   end  
+
+ fun opt_snd (SOME t) = SOME (snd t)
+   | opt_snd _ = NONE;
+
+fun opt_fst (SOME t) = SOME (fst t)
+   | opt_fst _ = NONE;
+
+ fun matching_nth_term n t =
+   let
+     val (n',t') = top_exists  (ignore_true_prop t);
+   in
+     if n' = 0 then NONE
+     else 
+        case allp_match 0 t' of
+           [] => NONE
+         | l  => List.find (fn e => snd e = n + 1) l |> opt_fst
+(* note that in term, bound starts at 1, while in the implementation it start at 1, so plus one *)
    end  
 *}
 
@@ -463,6 +591,29 @@ ML{*
    | ENV_exists_depth _ _ _ = LH.log_undefined "TACTIC" "ENV_exists_depth" []
 *}
 
+ML{*
+ fun ENV_bound_var _ 
+ [IsaProver.A_Trm t,  IsaProver.A_Var v]
+  (env : IsaProver.env): IsaProver.env list =
+    (case get_bound t 
+      of NONE   => []
+      |  SOME n => [StrName.NTab.update (v, IsaProver.E_Str (Int.toString n)) env])
+ | ENV_bound_var _ _ _ = [];
+
+ fun ENV_bound_onep_match _ 
+  [IsaProver.A_Trm t, IsaProver.A_Str n, IsaProver.A_Var v] 
+  (env : IsaProver.env): IsaProver.env list = 
+  let 
+    val idx  = Int.fromString n |> Option.valOf
+  in
+   ( case matching_nth_term idx t of 
+    NONE => []
+   | SOME (n) =>  [StrName.NTab.update (v, IsaProver.E_Trm n) env])
+  end
+  | ENV_bound_onep_match _ _ _ = []
+      
+*}
+
 section "Atomic goal types"
 
 -- "checks if it is one point rule"
@@ -476,6 +627,15 @@ ML{*
        | _ => [env])
     | _ => [])
   | is_one_point _ _ _ = [];
+*}
+
+-- "check if there is a bound in the given term"
+ML{*
+ fun has_bound env pnode [v] = 
+   (case Clause_GT.project_terms env pnode v of
+    [t] => (case (get_bound t) of NONE => [] | _ =>  [env])
+    | _ => [])
+ |  has_bound _ _ _ = []
 *}
 
 -- "check if it is less than"
@@ -550,15 +710,47 @@ ML{*
   | depth _ _ _ = LH.log_undefined "GOALTYPE" "ENV_exists_depth" [];
 *}
 
+-- "move into ex"
+ML{*
+
+fun intoex env pnode [t, v] = 
+  (case Clause_GT.project_terms env pnode t of
+   [trm] =>
+    (case into_ex (ignore_true_prop trm) of SOME (trm') => Clause_GT.update_var env (Clause_GT.Prover.E_Trm trm') v 
+    | _ => [])
+  | _ => [])
+| intoex _ _ _ = LH.log_undefined "GOALTYPE" "intoex" [];
+*}
+
+-- "pattern match"
+ML{*
+ fun pattern_match env pnode [p,t] = 
+  let
+   val ctxt = IsaProver.get_pnode_ctxt pnode
+   val thy = Proof_Context.theory_of ctxt
+  in
+   (case Clause_GT.project_terms env pnode p of
+    [pat] =>
+      (case Clause_GT.project_terms env pnode t of
+       [trm] => 
+         Pattern.matches thy (pat,ignore_true_prop trm)
+        |> bool_to_cl env
+       | _ => [])
+    | _ => [])
+  end
+ | pattern_match _ _ _ = LH.log_undefined "GOALTYPE" "match" [];
+*}
+
+
 -- "check if term is top-level"
 
 ML{*
 
  fun is_top env _ [Clause_GT.Term k,Clause_GT.Term t] = 
       ( case tdepth k t of
-         NONE => []
+         NONE => ((debug_msg "got non in is_top");[])
        | SOME 0 => [env]
-       | _ => [])
+       | SOME x =>(debug_msg ("got some other in is_top: "^(Int.toString x)); []))
    (* the two variable cases (assumes bound) *)
    | is_top env pnode [Clause_GT.Term k,r] = 
      (case Clause_GT.project_terms env pnode r of 
@@ -581,7 +773,16 @@ val clause_cls =
  "is_goal(Z) :- eq_term(concl, Z)." ^
  "is_not_goal(Z) :- not(is_goal(Z))." ^
  "c(X) :- top_symbol(concl, X)." ^
+ "not_forall_conj() :- !c(forall), !c(conj)." ^
  "h(Z) :- member_of(hyps,X), top_symbol(X,Z)." ^
+(* dist *)
+ "need_move_disj_up() :- intoallex(concl,X),or and(X)." ^
+ "intoallex(X,Y) :- intoex(X,Z),intoallex(Z,Y)." ^
+ "intoallex(X,X) :- !intoex(X,_)." ^
+ "or_and(X) :- match(\"?A\<and>(?B\<or>?C)\",X)." ^
+ "or and(X) :- match(\"(?A\<or>?B)\<and>?C\",X)." ^
+(* one point *)
+ "reduced(X,N) :- !is_top(X,concl),depth(X,concl,D),less(D,N)."^
 (* rippling *)
  "hyp_embeds() :- member_of(hyps,X),embeds(X,concl)." ^
  "hyp_bck_res() :- member_of(hyps,X),sub_term(X,concl)." ^
@@ -594,9 +795,7 @@ val clause_cls =
 (* structure *)
  "pre_post(X,Y) :- bound(X), bound(Y)."^
 (* hca *)
- "has_cases(X,Y) :- is_term(X), is_term(Y)." ^
-(* one point *)
- "reduced(X,N) :- !is_top(X,concl),depth(X,concl,D),less(D,N)."
+ "has_cases(X,Y) :- is_term(X), is_term(Y)." 
 (* end of rippling *)
 ;
 
@@ -611,6 +810,9 @@ val clause_cls =
   |> Clause_GT.add_atomic "empty_list" empty_list
   |> Clause_GT.add_atomic "bound" bound
   |> Clause_GT.add_atomic "member_of" member_of
+(* dist *)
+  |> Clause_GT.add_atomic "intoex" intoex
+  |> Clause_GT.add_atomic "match" pattern_match
 (* one point rule *)
   |> Clause_GT.add_atomic "is_one_point" is_one_point
   |> Clause_GT.add_atomic "is_top" is_top
