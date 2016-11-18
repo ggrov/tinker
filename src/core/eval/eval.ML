@@ -491,12 +491,13 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
       if is_some graph_name0 then raise Fail "ERR: NOT Support to switch between subgraph yet" 
       else EData.get_graph edata
      val gnode = Util.gnode_of graph gname
+     val cur_g_n = fst (EData.get_name_current edata)
    in
      if (is_some o (try_get_out (EData.get_graph edata))) gname
      (* the goal is terminated in the current graph *)
      then (* either exit or raise an exception if it is in the main *)
-       if fst (EData.get_name_current edata)  = EData.get_main_current edata then raise Fail "ERR: main has already been terminated "
-       else (* exit the current hie *) exit_hgraph gname edata
+       if cur_g_n  = EData.get_main_current edata then raise Fail "ERR: main has already been terminated "
+       else (* exit the current hie *) (debug_tracing ("exit graph " ^ cur_g_n);exit_hgraph gname edata)
      else (* not terminated, so either apply atomic or apply hgraph*)
      (
       let      
@@ -505,13 +506,13 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
       in
         case nv of
            (GData.T_Atomic (name, _)) => 
-            (debug_tracing ("apply tac " ^ name ^ " in " ^ "graph_name0"); 
+            (debug_tracing ("apply tac " ^ name ^ " in " ^ cur_g_n); 
             eval_apply_atomic gname tnode edata)
          | (GData.T_Identity) => 
-          (debug_tracing ("apply id  in " ^ "graph_name0"); 
+          (debug_tracing ("apply id  in " ^ cur_g_n); 
           eval_apply_id gname tnode edata)
          | (GData.T_Graph (name,_)) => 
-          (debug_tracing ("enter hie graph " ^ name ^ " in " ^ "graph_name0"); 
+          (debug_tracing ("enter hie graph " ^ name ^ " in " ^ cur_g_n); 
             enter_hgraph gname nv tnode edata )
          | (GData.G_Break) => 
             if if_debug then raise Breakpoint edata

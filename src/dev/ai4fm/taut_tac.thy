@@ -3,7 +3,7 @@ imports ai4fm_setup
 begin
 ML{*   
   (* define your local path here *)
-  val pspath = OS.FileSys.getDir() ^ "/Workspace/StrategyLang/psgraph/src/dev/ai4fm/"
+  val pspath = tinker_home ^ "/psgraph/src/dev/ai4fm/"
   val ps_file = "simple_taut.psgraph";
 *}
   

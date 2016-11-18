@@ -9,7 +9,6 @@ thm l_locs_of_Locs_of_iff
 lemma "l \<in> dom (S -\<triangleleft> f) \<Longrightarrow>  Locs_of (S -\<triangleleft> f) l =  Locs_of f l"
 by (metis Locs_of_def f_in_dom_ar_apply_not_elem l_dom_ar_notin_dom_or)
 
-
 ML{*
   (* define your local path here *)
   val pspath = tinker_home ^ "/psgraph/src/dev/ai4fm/"
@@ -82,7 +81,7 @@ thm l1_new1_precondition_def l1_invariant_def
 apply (insert l1_new1_precondition_def l1_invariant_def)
 thm PO_new1_feasibility_def new1_postcondition_def new1_pre_def new1_post_def
 (* before match_leq, need to elim conj and existence quantifier, maybe in structure brrak down *)
-ML_val {* -
+ML_val {*-
   val st =  Thm.cprem_of (#goal @{Isar.goal}) 1 |> Thm.term_of;
   val ps_thm = Tinker.start_ieval @{context} (SOME heap_tac) (SOME []) (SOME st) (* prove the goal *)
           |> EData.get_pplan |> IsaProver.get_goal_thm(* get the theorem *)
