@@ -3,7 +3,12 @@ structure StrTable = Table(struct type key = string; val ord = String.compare en
 structure TermFeatures =
 struct
   local open PPTermLib in
-  
+
+  fun get_const_str t = 
+    case dest_simple_term t of Const(a,_) => SOME a
+    | _ => NONE
+
+
   fun top_level_const t = 
     let  val t' = dest_simple_term t in
       case t' of Var(_,_) => NONE

@@ -154,6 +154,19 @@ fun dest_trm env pnode [trm, p1, p2] =
  end handle _ => [] )
   | dest_trm _ _ _ = []
 
+fun const_str env pnode [trm, p] = 
+ (let 
+    val trm' = case ClauseGoalTyp.project_terms env pnode trm of [x] => x
+      | _ => raise dest_trm_exp "only one term is expected"
+    val str = case ClauseGoalTyp.project_name env pnode p of [x] => x
+      | _ => raise dest_trm_exp "only one string is expected"
+ in 
+    case get_const_str trm'
+      of NONE => []
+      | (SOME cstr) => if (decode_str cstr) = str then [env] else []
+ end handle _ => [] )
+  | const_str _ _ _ = []
+
   
  fun trm_const env pnode [ClauseGoalTyp.Var p] = 
    (case StrName.NTab.lookup env p 
@@ -267,6 +280,7 @@ fun dest_trm env pnode [trm, p1, p2] =
    |> ClauseGoalTyp.add_atomic "is_empty" is_empty 
    |> ClauseGoalTyp.add_atomic "member" is_member 
    |> ClauseGoalTyp.add_atomic "is_term" is_term 
+   |> ClauseGoalTyp.add_atomic "const_str" const_str
    
    
 end (* end of local *)
