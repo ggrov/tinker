@@ -7,7 +7,7 @@ struct
 (* note that this has to be turned off in isabelle, 
 as pretty printing contains some non-standard chars which breaks the protocal *)
   val DEBUG_ON = true;
-  val if_gui_mode = true;
+  val if_gui_mode = false;
 
   val tab = Unsynchronized.ref 0;
   fun inctab() = (tab := !tab +1);
@@ -295,12 +295,14 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
         (dbg ("evaluating " ^  (str_cls d)  ^ " with " ^ str_env gtenv);
         if length f_args = length a_args
          then
-           let 
+           let
              val gtenv0 = inst_gtenv pnode f_args a_args gtenv
              val _ = (dbg ("evaluating " ^ f ^ " body with " ^ str_env gtenv0); inctab())
              fun evalbody arg = maps (eval_arg data pnode arg)
              val res = (fold evalbody body [gtenv0] 
                  |> (map (res_gtenv f_args a_args)))
+                 |> map StrName.NTab.list_of
+                 |> map (List.foldr (fn (x,y) => StrName.NTab.update x y) gtenv)
            in
              dectab();dbg_res res
           end

@@ -1,8 +1,7 @@
 open_theory "hol";
-use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
-val tinker_path = OS.FileSys.getDir()  ^ "/psgraph/";
+use (tinkerhome ^ "/src/core/build/proofpower/tinker");
 open_theory "fef032";
-val pspath = tinker_path ^ "src/core/examples/JFR16/psgraph/fef/";
+val pspath = tinkerhome ^ "/src/core/examples/JFR16/psgraph/fef/";
 
 (*=====  tactics definitions *)
 val repeat_strip_tac = REPEAT strip_tac;

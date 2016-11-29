@@ -1,8 +1,9 @@
+val tinkerhome = OS.FileSys.getDir()  ^ "/psgraph";
 (* Steup the taut case study *)
-  use_file (OS.FileSys.getDir()  ^ "/psgraph/src/core/examples/JFR16/taut_setup.ML");
+  use_file (tinkerhome^"/src/core/examples/JFR16/taut_setup.ML");
 
  val g1 : GOAL = ([],¬T®);
- val g2 : GOAL = ([¬B®, ¬³ (A ± B)®],¬³ (A ± B)®);
+ val g2 : GOAL = ([¬³ (A ± B)®],¬³ (A ± B)®);
  val g3 : GOAL = ([],¬if a then F else T®);
  val g4 : GOAL = ([¬F®],¬A ´ B´A®);
  val g5 : GOAL = ([],¬³ (B)®);
@@ -31,6 +32,7 @@
  PPIntf.set_psg_goal (SOME g7) (SOME taut_v6_pre);
 
  val taut_v6 = PSGraph.read_json_file (SOME data) (pspath ^"simple_taut_tac_V6.psgraph"); 
- PPIntf.set_psg_goal (SOME g7) (SOME taut_v6);
+ PPIntf.set_psg_goal (SOME g8) (SOME taut_v6);
  pop_thm();
  TextSocket.safe_close();
+

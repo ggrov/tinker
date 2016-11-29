@@ -223,7 +223,7 @@ struct
   fun run_in_textstreams s init_json =
   let
     fun send_msg str =
-    let val dbg = writeln
+    let val dbg = K
     val _ = String.size str |> Int.toString |>(fn n =>  dbg ("size of msg: " ^ n)) in
      (TextSocket.write s ( str  ^ " \n"); TextSocket.flushOut s) end
     val _ = Json.encode init_json |> send_msg 
