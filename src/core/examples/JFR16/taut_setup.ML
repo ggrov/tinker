@@ -1,11 +1,10 @@
 (*===== Load the definition of taut_tac *) 
   new_theory  "psgraph_taut";
-  use_file1 (OS.FileSys.getDir()  ^ "/psgraph/src/core/examples/JFR16/pp_taut.sml");
+  use_file1 (tinkerhome  ^ "/src/core/examples/JFR16/pp_taut.sml");
 
 (*===== Load psgraph and tinker *)
-  use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
-  val tinker_path = OS.FileSys.getDir()  ^ "/psgraph/";
-  val pspath = tinker_path ^ "src/core/examples/JFR16/psgraph/taut/";
+  use (tinkerhome ^ "/src/core/build/proofpower/tinker");
+  val pspath = tinkerhome ^ "/src/core/examples/JFR16/psgraph/taut/";
 
  open_theory "psgraph_taut";
 
@@ -17,8 +16,8 @@
  val clause_def = 
  "c(Z) :- top_symbol(concl,Z)." ^
  "h(Z) :- member(X, hyps), top_symbol(X,Z). " ^
- "c_not_var(X) :- c(X), dest_term(concl, _, Y2), !trm_var(Y2)." ^
- "h_not_var(X) :- member(X, hyps), top_symbol(X,Z), dest_term(Y, _, Z2), !trm_var(Z2)." ^
+ "c_not_var(X) :- c(X), dest_trm(concl, _, Y2), !trm_var(Y2)." ^
+ "h_not_var(X) :- member(X, hyps), top_symbol(X,Z), dest_trm(Y, _, Z2), !trm_var(Z2)." ^
  "taut_simp() :- is_goal(true)." ^
  "taut_simp() :- has_hyp(concl)." ^
  "taut_simp() :- has_no_hyp(concl), c(conj)." ^

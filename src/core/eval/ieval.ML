@@ -90,7 +90,7 @@ struct
 
   fun eval_backtrack edata = 
    case EData.get_branches edata  
-   of [] => (logging "FAILURE" "All branches faul, no branch available for backtracking" ; Bad)
+   of [] => (logging "FAILURE" "All branches fail, no branch available for backtracking" ; Bad)
     | branch  => 
         (EData.PSGraph.Theory.Data.GoalTyp.Prover.restore_pplan (EData.get_bpplan (hd branch));
         Cont( EData.set_current (hd branch) edata |> EData.set_branches (tl branch)))
@@ -108,18 +108,19 @@ struct
   fun eval_until_graph edata graph_name  =
    let val ret = eval_any0 false edata in
    case ret of Cont e => 
-    if (EData.get_name_current e) = graph_name
+    if (EData.get_name_current e |> fst) = graph_name
     then ret
     else eval_until_graph e graph_name  | _ => ret end;
    
   fun eval_step_over node_name edata =      
-  let val ret = eval_goal0 false node_name edata val cur_graph_name = EData.get_name_current edata in
+  let val ret = eval_goal0 false node_name edata 
+  val cur_graph_name = EData.get_name_current edata |> fst in
   case ret
     of Cont edata' => eval_until_graph edata' cur_graph_name 
     | _  => ret end
 
  fun eval_finish edata = 
-  let val dest_graph_name = EData.get_name_current edata in
+  let val dest_graph_name = EData.get_name_current edata |> fst in
   if dest_graph_name = EData.get_main_current edata then eval_complete edata
   else(
     StrName.NTab.get (EData.get_parent edata) dest_graph_name |> fst
@@ -161,7 +162,7 @@ struct
       ("eval_psgraph",
         EData.get_psgraph edata
         |> (fn e => EData.PSGraph.output_eval_json
-                    (EData.get_name_current_hie edata) 
+                    (map fst (EData.get_name_current_hie edata))
                     (EData.get_index_current edata) 
                     e)
            ),

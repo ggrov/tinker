@@ -8,6 +8,7 @@ struct
   type typ = TYPE
   type term = TERM
   type thm = THM
+  datatype goal = G_THM of (thm * int) | G_TERM of (term list * term)
   type context = string list * string (* context string list * theory string *)
   
   val default_ctxt = get_current_pc (); (* used in those place need context in general *)
@@ -244,7 +245,7 @@ struct
     
   exception atomic_exp of string
 
-  fun init ctxt asms_trms concl_trm : (pnode * pplan) =
+  fun init ctxt (G_TERM(asms_trms, concl_trm)) : (pnode * pplan) =
     let
       val (pcs, thy) = ctxt
       val _ = if ((asms_trms, concl_trm) = ([], ¬false®)) then set_merge_pcs pcs else(set_merge_pcs pcs; set_goal (asms_trms, concl_trm)); (* setup goal *)
@@ -449,6 +450,7 @@ struct
     type typ = typ
     type term = term
     type thm = thm
+    type goal = goal
     type context = context
     type tactic = tactic
     type pplan = pplan

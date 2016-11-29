@@ -5,6 +5,7 @@ struct
   type typ = typ
   type term = Term.term  
   type thm = Thm.thm
+  datatype goal = G_THM of (thm * int) | G_TERM of (term list * term)
   type context = Proof.context
 
   val default_ctxt = @{context}
@@ -14,16 +15,22 @@ struct
     val ctxt' = Config.put show_markup false ctxt;
    in Print_Mode.setmp [] (Syntax.string_of_term ctxt') t end;
   fun trm_of_string0 ctxt str = Syntax.parse_term ctxt str 
-  fun trm_of_string ctxt str = trm_of_string0 ctxt str (*|> Syntax.check_term ctxt*);
+  fun trm_of_string ctxt str = trm_of_string0 ctxt str 
+    |> (fn x => (Syntax.check_term ctxt x; x))(* support term (pat) for pattern matching *)
+   handle ERROR _ => Proof_Context.read_term_pattern ctxt str;
+(*|> Syntax.check_term ctxt*);
   fun prop_of_string ctxt x = 
     Syntax.parse_term ctxt x 
     |> (fn t => (Const ("HOL.Trueprop", dummyT) $ t))
     |> Syntax.check_term ctxt
   val string_of_trm = (*Syntax.string_of_term*) term_to_string;
-  fun get_thm_by_name ctxt name = 
-    Find_Theorems.find_theorems ctxt NONE NONE false [(true, Find_Theorems.Name name)]
-    |> snd |> List.last |> snd
-   handle _ => (logging "FAILURE" ("Fail to get thm by name: " ^ name); raise tinker_fail true)
+
+  fun get_thms_by_name ctxt name = 
+    Proof_Context.get_fact ctxt (Facts.named name)
+   handle _ => (logging "FAILURE" ("Fail to get thms by name: " ^ name); raise tinker_fail true)
+
+  fun get_thm_by_name ctxt name = get_thms_by_name ctxt name |> List.last
+
   val pretty_trm = Syntax.pretty_term;
 
   fun subst_trm_vars vts trm = 
@@ -82,6 +89,7 @@ struct
   fun env_to_arg (E_Str str) = A_Str str
   |   env_to_arg (E_Trm trm) = A_Trm trm
   |   env_to_arg (E_Thm thm) = A_Thm thm
+  |   env_to_arg (E_L l) = A_L (map env_to_arg l)
   |   env_to_arg env = (logging "FAILURE" ("Do not suppport the conversion from env to arg: " ^ (pretty_env_data default_ctxt env|> Pretty.string_of)) ;
       raise tinker_fail true)
 
@@ -124,6 +132,7 @@ struct
       |> Syntax.check_term ctxt |> E_Trm
     | "prop" => prop_of_string ctxt def |> E_Trm
     | "thm" => get_thm_by_name ctxt def |> E_Thm
+    | "thms" => get_thms_by_name ctxt def |> map E_Thm |> E_L
     | "string" => E_Str def
     | "dummy" => snd (hd vts)
     | illform => (logging "FAILURE" ("Unsupported env data type: " ^ illform) ;
@@ -161,8 +170,9 @@ struct
 
   exception atomic_exp of string
 
-  fun init ctxt [] trm =
-    let 
+  fun init ctxt st  =
+  case st of G_TERM (_, trm) =>
+   (let 
       val th = Proof_Context.theory_of ctxt
       val goal = Thm.cterm_of th trm
                |> Goal.init;
@@ -170,29 +180,16 @@ struct
       val pplan = { goal = goal, opengs = [pnode], usedgs = StrName.NSet.single "g"}
    in
      (pnode,pplan)
-   end;
-
-(*
-  fun init_of_thm (ctxt : context) thm = 
-    let 
-      val prems = Thm.prems_of thm
-      fun add prem (prms,nms) = 
-          let 
-             val (nm,nms') = StrName.NSet.add_new "g" nms
-          in
-            (prms @ [{ pname = nm, pctxt = ctxt, ptrm = prem, env = StrName.NTab.empty}],nms')
-          end
-      val (pnds,usedgs) = fold add prems ([],StrName.NSet.empty)
-      val pplan = { goal = thm, opengs = pnds, usedgs = usedgs}
+   end)
+  | G_THM (thm, i) => 
+   (let 
+      val goal = thm
+      val pnode = { pname = "g", pctxt = ctxt, ptrm = (Thm.cprem_of thm i |> Thm.term_of), env = StrName.NTab.empty}
+      val pplan = { goal = goal, opengs = [pnode], usedgs = StrName.NSet.single "g"}
    in
-     (pnds,pplan)
-   end;
-*)
+     (pnode,pplan)
+   end);
 
-(*
-  fun init_with_assm _ _ _ =   (* a dummy init which is not used in isabelle by LYH*)
-    raise atomic_exp "init_with_assm should not be used in isabelle"
-*)
   fun get_ind str _ [] = raise atomic_exp ("goal " ^ str ^ " does not exists")
    |  get_ind str n (x::xs) = if str = (#pname x) then n else get_ind str (n+1) xs;
 
@@ -294,7 +291,7 @@ struct
      [ "[ Goal ",
      (get_pnode_name pnode),
       " : ",
-     term_to_string (get_pnode_ctxt pnode) (get_pnode_concl pnode),
+     (*term_to_string*) Syntax.pretty_term (get_pnode_ctxt pnode) (get_pnode_concl pnode) |> Pretty.string_of,
      " ]"] |> Pretty.str
 
   fun pretty_pnode pnode = 
@@ -317,6 +314,8 @@ struct
            => (logging "FAILURE" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode ^ ", empty seqence"); 
                raise tinker_fail false) 
            | _ => x ))
+    handle _ => (logging "FAILURE" ("Fail to apply tactic for pnode " ^ get_pnode_name pnode ); 
+               raise tinker_fail false)
     (*end*)
   (* Update the env and then apply a dummy id tac in isabelle *)
   fun apply_env_tactic args (env_tac : env_tac) (pnode,pplan) = 
@@ -376,6 +375,7 @@ struct
    ("\<subseteq>", "<_uni_symb_lsubseteq_>"),
    ("\<supseteq>", "<_uni_symb_rsubseteq_>"),
    ("\<lhd>", "<_uni_symb_domres_>"),
+   ("\<triangleleft>", "<_uni_symb_domres_>"),
    ("\<rhd>", "<_uni_symb_ranres_>"),
    
    ("\<Longrightarrow>", "<_uni_symb_metaimpies_>"),
@@ -403,6 +403,8 @@ struct
     type tactic = tactic
     type pplan = pplan
     type pnode = pnode
+    type goal = goal
+
   end
 end (* struct *)
 

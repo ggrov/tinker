@@ -131,6 +131,8 @@ fun eq env pnode [ClauseGoalTyp.PVar pc, ClauseGoalTyp.PVar pcc] = eq0 env pnode
 | eq env pnode [ClauseGoalTyp.Var pc, ClauseGoalTyp.Var pcc] = eq0 env pnode pc pcc
 | eq _ _ _ = []
 
+
+
  val clause_def = 
  "is_rec_conv(X) :- is_unary_conv(X)." ^
  "is_rec_conv(X) :- is_param_conv(X)." ^

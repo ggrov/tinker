@@ -12,6 +12,9 @@ signature BASIC_GOALTYPE =
 sig
   structure Prover : PROVER
 
+  exception eval_exp of string;
+  exception gt_exp of string; 
+
   type T
   type gnode
   type data

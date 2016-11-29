@@ -53,7 +53,7 @@ class EditController(model:PSGraph) extends Publisher {
 		tacticEditor.clear()
 		tacticEditor.appendText("// edit your tactic here\n")
 		model.atCollection.foreach{
-			case (k,v) =>
+			case (k,v) if !v.name.startsWith("?") =>
 				tacticEditor.appendText("tactic "+v.name+" := "+v.tactic+";\n")
 			case _ =>
 		}
@@ -260,7 +260,14 @@ class EditController(model:PSGraph) extends Publisher {
 										Service.recordCtrl.record()
 									}
 								}
-								confirmDialog = TinkerDialog.openConfirmationDialog("The atomic tactic name "+name+" is already defined.",Array(newAction,duplicateAction))
+								val cancelAction = new Action("Cancel") {
+									def apply(): Unit = { confirmDialog.close() }
+								}
+								confirmDialog = TinkerDialog.openConfirmationDialog(
+									"The atomic tactic name "+name+" is already defined.",
+									Array(newAction,duplicateAction, cancelAction),
+									cancelAction
+								)
 							}
 						}
 					}
@@ -293,7 +300,14 @@ class EditController(model:PSGraph) extends Publisher {
 										publish(GraphTacticListEvent())
 									}
 								}
-								confirmDialog = TinkerDialog.openConfirmationDialog("The graph tactic name "+name+" is already defined.",Array(newAction,duplicateAction))
+								val cancelAction = new Action("Cancel"){
+									def apply(): Unit = { confirmDialog.close() }
+								}
+								confirmDialog = TinkerDialog.openConfirmationDialog(
+									"The graph tactic name "+name+" is already defined.",
+									Array(newAction,duplicateAction, cancelAction),
+									cancelAction
+								)
 							}
 						}
 					}
@@ -424,7 +438,11 @@ class EditController(model:PSGraph) extends Publisher {
 								}
 							}
 							val cancelAction = new Action("Cancel"){def apply() = { confirmDialog.close() }}
-							confirmDialog = TinkerDialog.openConfirmationDialog("The atomic tactic name "+name+" is already taken.",Array(duplicateAction,redoAction,cancelAction))
+							confirmDialog = TinkerDialog.openConfirmationDialog(
+								"The atomic tactic name "+name+" is already taken.",
+								Array(duplicateAction,redoAction,cancelAction),
+								cancelAction
+							)
 						} else if(name == tacticValue) {
 							Service.documentCtrl.registerChanges()
 							QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
@@ -455,7 +473,11 @@ class EditController(model:PSGraph) extends Publisher {
 									}
 								}
 								val cancelAction = new Action("Cancel"){def apply() = { confirmDialog.close() }}
-								confirmDialog = TinkerDialog.openConfirmationDialog("The atomic tactic "+name+" has many occurrences.",Array(createAction,updateAction,cancelAction))
+								confirmDialog = TinkerDialog.openConfirmationDialog(
+									"The atomic tactic "+name+" has many occurrences.",
+									Array(createAction,updateAction,cancelAction),
+									cancelAction
+								)
 							}
 						}
 					}
@@ -490,7 +512,7 @@ class EditController(model:PSGraph) extends Publisher {
 							val cancelAction = new Action("Cancel"){def apply() = { confirmDialog.close() }}
 							// the following will not give the option to link a nested node to another graph tactic
 							// if the user is evaluating and the is editing the evaluation path
-							val actionArray:Array[Action] =
+							val actionArray:Array[Action{def apply():Unit}] =
 								if(Service.evalCtrl.inEval
 									&& Service.evalCtrl.evalPath.contains(model.getCurrentGTName)
 									&& Service.evalCtrl.evalPath.contains(tacticValue)){
@@ -498,7 +520,11 @@ class EditController(model:PSGraph) extends Publisher {
 								} else {
 									Array(duplicateAction,redoAction,cancelAction)
 								}
-							confirmDialog = TinkerDialog.openConfirmationDialog("The graph tactic name "+name+" is already taken.",actionArray)
+							confirmDialog = TinkerDialog.openConfirmationDialog(
+								"The graph tactic name "+name+" is already taken.",
+								actionArray,
+								cancelAction
+							)
 						} else if(name == tacticValue && branchType == model.getGTBranchType(name)){
 							Service.documentCtrl.registerChanges()
 							QuantoLibAPI.setVertexLabel(nodeId,values("Name"))
@@ -533,7 +559,7 @@ class EditController(model:PSGraph) extends Publisher {
 								val cancelAction = new Action("Cancel"){def apply() = { confirmDialog.close() }}
 								// the following will not give the option to create a new graph tactic
 								// if the user is evaluating and the is editing the evaluation path
-								val actionArray:Array[Action] =
+								val actionArray:Array[Action{def apply():Unit}] =
 									if(Service.evalCtrl.inEval
 										&& Service.evalCtrl.evalPath.contains(model.getCurrentGTName)
 										&& Service.evalCtrl.evalPath.contains(tacticValue)){
@@ -541,7 +567,11 @@ class EditController(model:PSGraph) extends Publisher {
 									} else {
 										Array(createAction,updateAction,cancelAction)
 									}
-								confirmDialog = TinkerDialog.openConfirmationDialog("The graph tactic "+name+" has many occurrences.",actionArray)
+								confirmDialog = TinkerDialog.openConfirmationDialog(
+									"The graph tactic "+name+" has many occurrences.",
+									actionArray,
+									cancelAction
+								)
 							}
 						}
 					}
@@ -623,7 +653,7 @@ class EditController(model:PSGraph) extends Publisher {
 		*/
 	def editSubgraph(tactic:String, index:Int, parents:Option[Array[String]] = None) {
 		try {
-			Service.documentCtrl.registerChanges()
+			// Service.documentCtrl.registerChanges()
 			model.changeCurrent(tactic, index, parents)
 			Service.graphNavCtrl.viewedGraphChanged(model.isMain,false)
 			QuantoLibAPI.loadFromJson(model.getCurrentJson)

@@ -24,7 +24,7 @@ fun is_member env pnode [d, r] =
              |> maps top_level_str'
   in 
     (case StrName.NTab.lookup env p of
-       NONE => map (fn s => StrName.NTab.ins (p,ClauseGoalTyp.Prover.E_Str s) env) tops
+       NONE => [](*map (fn s => StrName.NTab.ins (p,ClauseGoalTyp.Prover.E_Str s) env) tops*)
      | SOME (ClauseGoalTyp.Prover.E_Str s) => if member (op =) tops s then [env] else []
      | SOME _ => [])
   end
@@ -142,45 +142,18 @@ fun is_member env pnode [d, r] =
   then [] else [env]  
  | has_no_hyp _ _ _ = []
  
+exception dest_trm_exp of string 
+fun dest_trm env pnode [trm, p1, p2] = 
+ (let 
+    val trm' = case ClauseGoalTyp.project_terms env pnode trm of [x] => x
+      | _ => raise dest_trm_exp "only one term is expected"
+    val (trm1, trm2) = dest_app trm'
+ in 
+     ClauseGoalTyp.update_var env (ClauseGoalTyp.Prover.E_Trm trm1) p1
+    |> maps (fn e => ClauseGoalTyp.update_var e (ClauseGoalTyp.Prover.E_Trm trm2) p2)
+ end handle _ => [] )
+  | dest_trm _ _ _ = []
 
- fun dest_term env pnode [ClauseGoalTyp.Concl, ClauseGoalTyp.Var p1, ClauseGoalTyp.Var p2] = 
-  (let 
-    val (trm1, trm2) = dest_app (PPProver.get_pnode_concl pnode) 
-  in 
-     StrName.NTab.update (p1, PPProver.E_Trm trm1) env
-     |> StrName.NTab.update (p2, PPProver.E_Trm trm2) 
-     |> (fn x => [x])
-  end handle _ => [])
-  | dest_term env pnode [ClauseGoalTyp.Term t, ClauseGoalTyp.Var p1, ClauseGoalTyp.Var p2] = 
-   (let 
-    val (trm1, trm2)  = dest_app t
-   in 
-     StrName.NTab.update (p1, PPProver.E_Trm trm1) env
-     |> StrName.NTab.update (p2, PPProver.E_Trm trm2) 
-     |> (fn x => [x])
-   end handle _ => [])
-  | dest_term env pnode [ClauseGoalTyp.Var input, ClauseGoalTyp.Var p1, ClauseGoalTyp.Var p2] = 
-    (case StrName.NTab.lookup env input of
-       NONE => []
-     | SOME (PPProver.E_Trm t) => 
-      (let val (trm1, trm2)  = dest_app t in 
-        StrName.NTab.update (p1, PPProver.E_Trm trm1) env
-        |> StrName.NTab.update (p2, PPProver.E_Trm trm2) 
-        |> (fn x => [x])
-       end handle _ => [])
-     | SOME (PPProver.E_L l) =>
-      (map (fn (PPProver.E_Trm t) => t) l
-      |> map 
-        (fn x => 
-           dest_app x 
-           |> (fn (a,b) => (PPProver.E_Trm a, PPProver.E_Trm b)))
-      |> ListPair.unzip
-      |> (fn ((a:PPProver.env_data list),(b:PPProver.env_data list)) => 
-          StrName.NTab.update (p1, PPProver.E_L a) env
-          |> StrName.NTab.update (p2, PPProver.E_L b))
-      |> (fn x => [x]) handle _ => [])
-     | _ => [])
-  | dest_term _ _ _ = []
   
  fun trm_const env pnode [ClauseGoalTyp.Var p] = 
    (case StrName.NTab.lookup env p 
@@ -283,7 +256,7 @@ fun is_member env pnode [d, r] =
    |> ClauseGoalTyp.add_atomic "is_not_goal" is_not_goal
    |> ClauseGoalTyp.add_atomic "has_hyp" has_hyp
    |> ClauseGoalTyp.add_atomic "has_no_hyp" has_no_hyp
-   |> ClauseGoalTyp.add_atomic "dest_term" dest_term
+   |> ClauseGoalTyp.add_atomic "dest_trm" dest_trm
    |> ClauseGoalTyp.add_atomic "trm_var" trm_var
    |> ClauseGoalTyp.add_atomic "not_trm_var" not_trm_var
    |> ClauseGoalTyp.add_atomic "trm_const" trm_const

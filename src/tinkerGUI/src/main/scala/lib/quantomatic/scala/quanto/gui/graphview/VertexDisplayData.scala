@@ -87,9 +87,9 @@ trait VertexDisplayData { self: GraphView =>
             case _ => ""
           }*/
 
-          var fm = peer.getGraphics.getFontMetrics(GraphView.VertexLabelFont)
+          var fm = peer.getGraphics.getFontMetrics(GraphView.VertexLabelFont.deriveFont((trans scaleToScreen 0.25).toFloat))
           // added for tinker, change font metric for smaller size in case of breakpoint type, changed fm to var for that
-          if(vertexData.typ == "G_Break") fm = peer.getGraphics.getFontMetrics(GraphView.VertexLabelFontSmall)
+          if(vertexData.typ == "G_Break") fm = peer.getGraphics.getFontMetrics(GraphView.VertexLabelFontSmall.deriveFont((trans scaleToScreen 0.16).toFloat))
           val labelDisplay = LabelDisplayData(
             text, (x,y), fm,
             vertexData.typeInfo.style.labelForegroundColor,
@@ -113,11 +113,11 @@ trait VertexDisplayData { self: GraphView =>
             case Theory.VertexShape.Triangle =>
               new java.awt.Polygon(
                 Array(labelDisplay.bounds.getCenterX.toInt,
-                  labelDisplay.bounds.getCenterX.toInt-(labelDisplay.bounds.getWidth.toInt/2)-12,
-                  labelDisplay.bounds.getCenterX.toInt+(labelDisplay.bounds.getWidth.toInt/2)+12),
-                Array(labelDisplay.bounds.getCenterY.toInt-(labelDisplay.bounds.getWidth.toInt/2)-15,
-                  labelDisplay.bounds.getCenterY.toInt+7,
-                  labelDisplay.bounds.getCenterY.toInt+7),
+                  labelDisplay.bounds.getCenterX.toInt-(labelDisplay.bounds.getWidth.toInt/2)-(trans scaleToScreen 0.24).toInt,
+                  labelDisplay.bounds.getCenterX.toInt+(labelDisplay.bounds.getWidth.toInt/2)+(trans scaleToScreen 0.24).toInt),
+                Array(labelDisplay.bounds.getCenterY.toInt-(labelDisplay.bounds.getWidth.toInt/2)-(trans scaleToScreen 0.3).toInt,
+                  labelDisplay.bounds.getCenterY.toInt+(trans scaleToScreen 0.14).toInt,
+                  labelDisplay.bounds.getCenterY.toInt+(trans scaleToScreen 0.14).toInt),
                 3)
             case Theory.VertexShape.Octagon =>
               new java.awt.Polygon(

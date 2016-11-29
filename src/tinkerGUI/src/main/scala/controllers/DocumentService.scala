@@ -126,6 +126,29 @@ object DocumentService extends Publisher {
 		}
 	}
 
+	/** Method to save the current graph in a dot file.
+		*
+		* @param rootDir Optional directory with which to set the chooser starting directory.
+		*                Default value is None which will make use of [[previousDir]].
+		*/
+	def exportDot(rootDir: Option[String] = None): Unit ={
+		val chooser = new FileChooser()
+		chooser.peer.setCurrentDirectory(rootDir match {
+			case Some(d) => new File(d)
+			case None => previousDir
+		})
+		chooser.peer.setSelectedFile(new File(proofTitle+".gv"))
+		chooser.fileFilter = new FileNameExtensionFilter("DOT File (*.gv)","gv")
+		chooser.showSaveDialog(Service.getMainFrame) match {
+			case FileChooser.Result.Approve =>
+				previousDir = chooser.selectedFile
+				val p = chooser.selectedFile.getAbsolutePath
+				val file = new File(if (p.endsWith("." + "gv")) p else p + "." + "gv")
+				if(promptExists(file)) QuantoLibAPI.toDot(file)
+			case _ =>
+		}
+	}
+
 	/** Method displaying a prompt dialog in case a file exist.
 		* Will ask if the user want to overwrite the file.
 		*

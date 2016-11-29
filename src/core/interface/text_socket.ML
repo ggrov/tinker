@@ -27,7 +27,7 @@ functor TextSocket_FUN  (structure Prover : PROVER) : TEXT_SOCKET =
 struct
   exception Fail = RunCall.Fail
   structure Prover = Prover
-(* the func is generutee to compute without interruption,
+(* this func ensures computation without interruption,
   a way to prevernt isabelle from interrupt a thread, *)
   fun run_in_atomic func = 
    let
@@ -93,7 +93,7 @@ struct
   (* with given sock, init TEXT_IO stream for input and output *)
   fun make_streams sock =
     let
-      val bufsize = (*Unsynchronized.ref*) 4096;
+      val bufsize = (*Unsynchronized.ref*) (*1024*64*) 4096;
       val buffering = IO.BLOCK_BUF;
       val socket_name = "text_socket";
       val reader = TextPrimIO.RD {
@@ -178,6 +178,7 @@ struct
 
   fun write s_data msg = TextIO.output (get_outstream s_data, Prover.encoding_to_gui msg);
   fun flushOut s_data = TextIO.flushOut (get_outstream s_data);
+
   fun read s_data = TextIO.input (get_instream s_data) |> Prover.encoding_from_gui;
 
   fun close0 s_data _ =

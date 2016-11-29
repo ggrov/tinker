@@ -7,7 +7,7 @@ struct
 (* note that this has to be turned off in isabelle, 
 as pretty printing contains some non-standard chars which breaks the protocal *)
   val DEBUG_ON = true;
-  val if_gui_mode = true;
+  val if_gui_mode = false;
 
   val tab = Unsynchronized.ref 0;
   fun inctab() = (tab := !tab +1);
@@ -137,6 +137,15 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
   (**********************
     HELPER METHODS
    **********************)
+  fun dbg_arg_typ (Name _) = writeln "Name"
+   |  dbg_arg_typ (Var _) = writeln "Var"
+   |  dbg_arg_typ (PVar _) = writeln "PVar"
+   |  dbg_arg_typ  Concl = writeln "Concl"
+   |  dbg_arg_typ  Ignore = writeln "Ignore"
+   |  dbg_arg_typ Hyps = writeln "Hyps"
+   |  dbg_arg_typ (Term _) = writeln "Term"
+   |  dbg_arg_typ  (Clause _) = writeln "Clause"
+
 
   fun project_env_terms (Prover.E_Trm t) = [t]
    |  project_env_terms (Prover.E_Thm t) = [Prover.concl_of_thm t]
@@ -180,6 +189,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
    |  project_name _ _ (Clause _) = []
 
   fun update_var env v (Var n) = [StrName.NTab.update (n,v) env]
+  | update_var env v (PVar n) = [StrName.NTab.update (n,v) env]
   | update_var env _ Ignore = [env]
   | update_var _ _ _ = []
 
@@ -275,7 +285,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
       val _ = dbg ("Negating " ^ nf ^ " : ") 
     in 
       case eval_arg data pnode (Clause (nf,args)) gtenv of 
-          [] => [Prover.get_pnode_env pnode]
+          [] => [gtenv](*[Prover.get_pnode_env pnode]*)
         | _  => []
     end
    |   eval_not_clause _ _ _ _ = []
@@ -285,21 +295,24 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
         (dbg ("evaluating " ^  (str_cls d)  ^ " with " ^ str_env gtenv);
         if length f_args = length a_args
          then
-           let 
+           let
              val gtenv0 = inst_gtenv pnode f_args a_args gtenv
              val _ = (dbg ("evaluating " ^ f ^ " body with " ^ str_env gtenv0); inctab())
              fun evalbody arg = maps (eval_arg data pnode arg)
              val res = (fold evalbody body [gtenv0] 
                  |> (map (res_gtenv f_args a_args)))
+                 |> map StrName.NTab.list_of
+                 |> map (List.foldr (fn (x,y) => StrName.NTab.update x y) gtenv)
            in
              dectab();dbg_res res
           end
-       else (dbg "ERROR: wrong number of args";[]))
+       else (dbg ("ERROR: wrong number of args in " ^(str_cls d));[]))
       else []
 
    (* TO DO: is this reflected in formal semantics? *)
    and eval_clauses data pnode clauses (name,args) gtenv = 
-         maps (fn c => eval_clause data pnode c (name,args) gtenv handle eval_exp msg => (dbg ("ERROR: " ^ msg);[])) clauses;
+         maps (fn c => eval_clause data pnode c (name,args) gtenv 
+           handle eval_exp msg => (dbg ("ERROR: " ^ msg);[])) clauses;
  
   fun eval_defs (data as P {defs,...}) pnode (name,args) gtenv = 
      eval_clauses data pnode defs (name,args) gtenv
@@ -307,12 +320,12 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
   (* 
     Goaltype evaluation / goaltype checking
   *)
-  fun lift pn = G {name = (Prover.get_pnode_name pn), pretty = Prover.pretty_goal pn}
+  fun lift pn = G {name = (Prover.get_pnode_name pn), pretty = Prover.pretty_pnode pn}
 
   (* note that this is when atomic on edge *)
   fun match_atomic (data as (P {atomics,...}))  pnode (t as (f,args):T) gtenv = 
     case StrName.NTab.lookup atomics f of
-     NONE => []
+     NONE => ( dbg ("WARNING: no atomic definition found for " ^ f);[])
     | SOME f_a => 
         ((dbg ("evaluating " ^  (str_arg (Clause t))  ^ " with " ^ str_env gtenv ));
         dbg_res (f_a gtenv pnode args));
@@ -378,7 +391,8 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
    end;
 
  (* scan clause *)
- fun scan_term ctxt = $$ "\"" |--  Scan.many (fn s => not(s = "\"")) --| $$ "\"" >> implode >> (Term o (Prover.trm_of_string ctxt));  
+ fun scan_term ctxt = 
+  $$ "\"" |--  Scan.many (fn s => not(s = "\"")) --| $$ "\"" >> implode >> (Term o (Prover.trm_of_string ctxt))
  fun scan_clause0 ctxt xs  =  (scan_name -- ( scan_empty || (scan_args ctxt)) >> Clause) xs 
  and scan_clause ctxt = ($$"!" |-- scan_clause0 ctxt) >> (fn x => Clause("not", [x])) || scan_clause0 ctxt
  (* Note: does not turn into term *)
@@ -436,8 +450,10 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
      |> Json.String
    end
 
-  fun from_json (Json.String str) = scan_goaltyp Prover.default_ctxt str
-  | from_json _ = raise gt_exp "from_json: ill-formed json structure"
+  fun from_json (Json.String str) = 
+  (scan_goaltyp Prover.default_ctxt str
+  handle _ => raise gt_exp ("parse goaltype error: " ^ str))
+  | from_json _ = raise gt_exp "parse goaltype, ill-formed json structure. "
 
   (* JSON on goal nodes *)
   fun gnode_to_json g = 

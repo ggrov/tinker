@@ -25,7 +25,7 @@ struct
   type T = ((Json.json -> Json.json) * string) Symtab.table
 
   fun pp_goal edata =  (fn x => ((EData.pretty_goals edata 
-    |> ((logging "GOAL") o Pretty.string_of)) ; x))
+    |> ((logging "GOAL") o Pretty.str_of)) ; x))
 
   fun get_cmd_name (Json.Object obj) =  
     JsonInputUtils.get_string obj "cmd" 
@@ -88,8 +88,8 @@ struct
       (SOME ps) => ps
     | NONE => JsonInputUtils.get_array obj "psgraph" |> hd
     |> EData.PSGraph.input_json true
-    val edata0 = IEVal.EVal.init ps ctxt assms g |> hd (* FIXME: only get the first one *)
-    handle _ => (logging "FAILURE" "Fail to init the goal with the top-level graph"; raise tinker_fail true);
+    val edata0 = IEVal.EVal.init ps ctxt (Prover.G_TERM(assms, g)) |> hd (* FIXME: only get the first one *)
+    handle _ => (logging "FAILURE" "Fail to init the goal with the top-level graph";raise tinker_fail true);
     val _ = set_data edata0;
     val _ = pp_goal edata0 ()
    in
@@ -223,14 +223,28 @@ struct
   fun run_in_textstreams s init_json =
   let
     fun send_msg str =
-     (TextSocket.write s ( str  ^ " \n"); TextSocket.flushOut s) 
+    let val dbg = K
+    val _ = String.size str |> Int.toString |>(fn n =>  dbg ("size of msg: " ^ n)) in
+     (TextSocket.write s ( str  ^ " \n"); TextSocket.flushOut s) end
     val _ = Json.encode init_json |> send_msg 
     fun protocol_loop src =
     let
-      val str = TextSocket.read s
-      (* a bit hacky *)
+     val dbg = (*writeln*)K
+     fun read0 str ins = 
+      let val _ = dbg"!in read0 ---" 
+       fun peak_json src  = 
+        let val _ = Json.of_string src in true end
+        handle _ => false 
+        in 
+         if peak_json str then (dbg "end"; str)
+         else
+           let val msg = TextSocket.read ins
+           val _ = dbg ("received: " ^ msg)
+           in 
+           read0 (str ^ msg) ins end 
+      end
+      val str = read0 "" s
       val json = Json.of_string str
-        handle _ => raise protocol_exn ("Fail to parse str as json: " ^ str)
       val _ = (dbg "JSON_GUI" ("JSON IN: " ^ (Json.encode json)))
       val json_output = LH.check_perform dispatch json "run_in_textstreams" (* this output is always a json object *)
       val _ =  dbg "JSON_GUI" ("JSON OUT: " ^ ( Json.encode json_output))
@@ -274,9 +288,9 @@ struct
       get_data () |> (fn x => (reset_data () ; reset_init_data (); Option.valOf x))
     end
 
-fun start_eval ctxt ps assms g = 
+fun start_eval ctxt ps st = 
  let
-  val edata0 = IEVal.EVal.init ps ctxt assms g |> hd (* FIXME: only get the first one *)
+  val edata0 = IEVal.EVal.init ps ctxt st |> hd (* FIXME: only get the first one *)
  in
    IEVal.eval_complete edata0;()
 end

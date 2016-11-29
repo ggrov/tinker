@@ -18,7 +18,7 @@ class TreeGraph() extends Panel{
 	def drawTree(g:Graphics2D): Unit ={
 		elementCoordinates = Array()
 		try{
-			drawElement(g, Service.hierarchyCtrl.root, 100, 30, 1, Array())
+			drawElement(g, Service.hierarchyCtrl.root, 50, 30, 1, Array())
 		} catch {
 			case e:InfiniteTreeException => TinkerDialog.openErrorDialog("The hierarchy tree could not be drawn.<br>"+e.msg)
 		}
@@ -26,7 +26,8 @@ class TreeGraph() extends Panel{
 
 	def drawElement(g: Graphics2D, node: String, x: Int, y: Int, depth: Int, parents:Array[String]): Int = {
 		val children = Service.hierarchyCtrl.getGTChildren(node)
-		var childrenWidth = 0
+		var childrenHeight = 0
+		var lastChildY = y
 		try{
 			if(parents contains node){
 				throw new InfiniteTreeException("the graph tactic "+node+" has itself as a child.")
@@ -35,21 +36,23 @@ class TreeGraph() extends Panel{
 				if(parents contains c.name){
 					throw new InfiniteTreeException("the graph tactic "+c.name+" has itself as a child.")
 				} else {
-					var space = 15
-					var totalSpace = space+((g.getFontMetrics.getStringBounds(c.name, g).getWidth.toInt /2)-8)
-					if(childrenWidth == 0) { space = 0; totalSpace = 0}
-					g.drawLine(x, y, x+childrenWidth+totalSpace, y+80)
-					childrenWidth += drawElement(g, c.name, x+childrenWidth+totalSpace, y+80, depth+1, parents :+ node)
-					childrenWidth += space
+					var space = 25
+					var totalSpace = space+g.getFontMetrics.getStringBounds(c.name, g).getHeight.toInt
+					// if(childrenHeight == 0) { space = 0; totalSpace = 0}
+					g.drawLine(x, y+childrenHeight+totalSpace, x+40, y+childrenHeight+totalSpace)
+					lastChildY = y+childrenHeight+totalSpace
+					childrenHeight += drawElement(g, c.name, x+40, y+childrenHeight+totalSpace, depth+1, parents :+ node)
+					childrenHeight += space
 				}
 			}
 		} catch {
 			case e: InfiniteTreeException => throw e
 		}
-		this.preferredSize = new Dimension(max(preferredSize.getWidth.toInt, childrenWidth+200), max(preferredSize.getHeight.toInt, depth*50+200))
-		val nodeWidth = if (node == Service.getCurrent) drawActiveNode(g, node, x, y, parents) else drawNode(g, node, x, y, parents)
-		if (childrenWidth > 0) childrenWidth
-		else nodeWidth
+		this.preferredSize = new Dimension(max(preferredSize.getWidth.toInt, childrenHeight+200), max(preferredSize.getHeight.toInt, depth*50+200))
+		g.drawLine(x, y, x, lastChildY)
+		val nodeHeight = if (node == Service.getCurrent) drawActiveNode(g, node, x, y, parents) else drawNode(g, node, x, y, parents)
+		if (childrenHeight > 0) childrenHeight
+		else nodeHeight
 	}
 
 	def drawNode(g: Graphics2D, n: String, x: Int, y: Int, parents:Array[String]): Int ={
@@ -60,7 +63,7 @@ class TreeGraph() extends Panel{
 		g.drawRect(x - (r.getWidth.toInt / 2) - 8, y - (r.getHeight.toInt / 2) - 8, r.getWidth.toInt+16, r.getHeight.toInt+16)
 		g.drawString(n, x - (r.getWidth.toInt / 2), y + (r.getHeight.toInt / 2))
 		elementCoordinates = elementCoordinates :+ (n, x, y, (r.getWidth.toInt+16)/2, (r.getHeight.toInt+16)/2, parents)
-		r.getWidth.toInt+16
+		r.getHeight.toInt+16
 	}
 
 	def drawActiveNode(g: Graphics2D, n: String, x: Int, y: Int, parents:Array[String]): Int ={
@@ -74,7 +77,7 @@ class TreeGraph() extends Panel{
 		g.drawString(n, x - (r.getWidth.toInt / 2), y + (r.getHeight.toInt / 2))
 		g.setColor(Color.BLACK)
 		elementCoordinates = elementCoordinates :+ (n, x, y, (r.getWidth.toInt+16)/2, (r.getHeight.toInt+16)/2, parents)
-		r.getWidth.toInt+16
+		r.getHeight.toInt+16
 	}
 
 	def hit(pt: java.awt.Point){

@@ -232,7 +232,7 @@ struct
         if a = NONE then Pretty.block [Pretty.str(Int.toString b), Pretty.str"_", Pretty.str "NONE"]
         else Pretty.block [Pretty.str(Int.toString b), Pretty.str"_", Pretty.str "SOME sink"];
 *)
-   (*   val _ =  Pretty.block [Pretty.str " skel - ",
+   (*  val _ =  Pretty.block [Pretty.str " skel - ",
                             (Syntax.pretty_term ctxt skel)] |> Pretty.writeln;
       val _ = Pretty.block [Pretty.str " next g - ",
                             (Syntax.pretty_term ctxt new_gterm)] |> Pretty.writeln;
@@ -247,8 +247,6 @@ struct
       |> (fn x => if x > 0 then (writeln (Int.toString x );writeln "is better! "; true) else ("NOT better! ";false))*)
     end
 
-
- 
   (* return a list of pair of rule and occ to subst *)
   fun get_decreased_measure_params ctxt skel matches gtrm = 
     let

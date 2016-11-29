@@ -210,9 +210,9 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
            new_graphs
    end;
 
- fun init psgraph ctxt assms goals =
+ fun init psgraph ctxt st =
    let
-     val (pnode,pplan) = Prover.init ctxt assms goals
+     val (pnode,pplan) = Prover.init ctxt st
      val pnode_tab = 
        StrName.NTab.ins
          (Prover.get_pnode_name pnode,pnode)
@@ -238,20 +238,13 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
       let
         val res = partition gt_data pnds gnode_opt pplan goal_typs  
       in
-(*       map 
-       (fn (pp, branch) => 
-         ( EData.set_bpplan pp b
-        (* |> EData.add_bgoals pnds*),  
-         branch
-      )) res
-      |>  *)
-        case pnds of [] => Seq.single (pplan, [])
+       case pnds of [] => Seq.single (pplan, [])
        | _ =>  (map (print_outedges o snd) res ; Seq.of_list res)
       end
     handle partition_exp {pnodes,...}  => 
-      (logging "FAILURE" ("Fail to match any goaltype for the output goal pnode :\n" ^ 
+      (logging "GOAL" ("Discard the result due to no matched goaltype for the output goal pnode :\n" ^ 
        ((hd pnodes) |> Prover.pretty_pnode |> Pretty.string_of)); 
-       raise tinker_fail false)
+       (*raise tinker_fail false*) Seq.empty)
    in
     Seq.maps apply_one ngs
    end
@@ -303,7 +296,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
       result
    end
 
- fun enter_hgraph gnode_name hgraph_nv edata = 
+ fun enter_hgraph gnode_name hgraph_nv tnode edata = 
    let
     val graph = EData.get_graph edata
     val goal = Util.gnode_of graph gnode_name
@@ -313,7 +306,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
       case hgraph_nv of (GData.T_Graph _) => GData.get_nvdata_name hgraph_nv 
       | _ => raise GData.node_exp ("expect hgraph, but some other type of nvnode",hgraph_nv);
     val graph_tacs_args = GData.get_nvdata_args hgraph_nv
-    val cur_name = EData.get_name_current edata
+    val cur_name = EData.get_name_current edata |> fst
     val cur_idx =  EData.get_index_current edata
     val gt_data = EData.get_psgraph edata |> EData.PSGraph.get_goaltype_data
     val graph' = Util.del_gnode gnode_name graph
@@ -363,7 +356,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
      (* move to the subgraph and save the current grah hie in the parent *)
      |> EData.update_bparent (StrName.NTab.ins (hgraph_name, (cur_name, cur_idx)) 
         handle _ => (logging "FAILURE" "Fail to re-insert the hgraph"; raise tinker_fail true))
-     |> EData.push_bcur_hie hgraph_name
+     |> EData.push_bcur_hie (hgraph_name, tnode)
      (* get subgraphs, for each subgraph, create a branch *)
      |> (fn b => set_hgraph_idx (EData.get_bgraphs_gen hgraph_name b |> List.length |> (fn x => x -1)) b)
      |> maps insert_gnode 
@@ -372,7 +365,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
 
  fun move_upto_parent b = 
    let 
-    val cur_name = EData.get_bname_current b
+    val cur_name = EData.get_bname_current b |> fst
     val (_, idx) = StrName.NTab.get  (EData.get_bparent b) cur_name  
    in
      EData.pop_bcur_hie b
@@ -391,9 +384,9 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
     val pplan = EData.get_pplan edata
     val pnode = Prover.get_open_pnode_by_name pplan  (GoalTyp.goal_name goal)
     val cur_b = EData.get_current edata
-    val (par_name, par_idx) = StrName.NTab.get (EData.get_parent edata) (EData.get_name_current edata)
+    val (par_name, par_idx) = StrName.NTab.get (EData.get_parent edata) (EData.get_name_current edata |> fst)
     val parent_graph = EData.get_bgraph_gen par_name par_idx cur_b
-    val parent_hgraph_node = Util.lookup_hgragh_by_graph_name parent_graph (EData.get_name_current edata)
+    val parent_hgraph_node = EData.get_name_current edata |> snd
     val out_edges = Util.out_edges parent_graph parent_hgraph_node
     val out_goaltypes = map (fn e => (Util.goaltype_of parent_graph e)) out_edges
 (*     fun insert_gnode b = 
@@ -498,12 +491,13 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
       if is_some graph_name0 then raise Fail "ERR: NOT Support to switch between subgraph yet" 
       else EData.get_graph edata
      val gnode = Util.gnode_of graph gname
+     val cur_g_n = fst (EData.get_name_current edata)
    in
      if (is_some o (try_get_out (EData.get_graph edata))) gname
      (* the goal is terminated in the current graph *)
      then (* either exit or raise an exception if it is in the main *)
-       if EData.get_name_current edata  = EData.get_main_current edata then raise Fail "ERR: main has already been terminated "
-       else (* exit the current hie *) exit_hgraph gname edata
+       if cur_g_n  = EData.get_main_current edata then raise Fail "ERR: main has already been terminated "
+       else (* exit the current hie *) (debug_tracing ("exit graph " ^ cur_g_n);exit_hgraph gname edata)
      else (* not terminated, so either apply atomic or apply hgraph*)
      (
       let      
@@ -511,9 +505,15 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
         val (SOME nv) = Util.lookup_ivertex_data graph tnode
       in
         case nv of
-           (GData.T_Atomic _) => eval_apply_atomic gname tnode edata
-         | (GData.T_Identity) => eval_apply_id gname tnode edata
-         | (GData.T_Graph _) => enter_hgraph gname nv edata
+           (GData.T_Atomic (name, _)) => 
+            (debug_tracing ("apply tac " ^ name ^ " in " ^ cur_g_n); 
+            eval_apply_atomic gname tnode edata)
+         | (GData.T_Identity) => 
+          (debug_tracing ("apply id  in " ^ cur_g_n); 
+          eval_apply_id gname tnode edata)
+         | (GData.T_Graph (name,_)) => 
+          (debug_tracing ("enter hie graph " ^ name ^ " in " ^ cur_g_n); 
+            enter_hgraph gname nv tnode edata )
          | (GData.G_Break) => 
             if if_debug then raise Breakpoint edata
             else eval_apply_id gname tnode edata

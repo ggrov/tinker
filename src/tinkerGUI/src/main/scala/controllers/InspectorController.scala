@@ -11,24 +11,27 @@ class InspectorController(model: PSGraph) extends Publisher {
 	private var tacticToShow = ""
 	private var indexToShow = 0
 	private var tacticTotal = 0
+	private var lock = false;
 
 	val indexOnTotal = new Label((indexToShow +1) + " / " + tacticTotal)
 
 	var gtList = model.gtCollection.keys.toList :+ model.mainTactic.name
 
 	def inspect(name:String){
-		if(name == "Select a tactic"){
-			publish(PreviewEvent(false,false))
-		} else {
-			try{
-				tacticToShow = name
-				indexToShow = 0
-				tacticTotal = if(name == model.mainTactic.name) 1 else model.getSizeGT(name)
-				indexOnTotal.text = (indexToShow + 1) + " / " + tacticTotal
-				publish(UpdateSelectedTacticToInspectEvent(tacticToShow))
-				showPreview()
-			} catch {
-				case e:GraphTacticNotFoundException => publish(PreviewEvent(false,false))
+		if(!lock){
+			if(name == "Select a tactic"){
+				publish(PreviewEvent(false,false))
+			} else {
+				try{
+					tacticToShow = name
+					indexToShow = 0
+					tacticTotal = if(name == model.mainTactic.name) 1 else model.getSizeGT(name)
+					indexOnTotal.text = (indexToShow + 1) + " / " + tacticTotal
+					publish(UpdateSelectedTacticToInspectEvent(tacticToShow))
+					showPreview()
+				} catch {
+					case e:GraphTacticNotFoundException => publish(PreviewEvent(false,false))
+				}
 			}
 		}
 	}
@@ -104,6 +107,11 @@ class InspectorController(model: PSGraph) extends Publisher {
 		case GraphTacticListEvent() =>
 			gtList = model.gtCollection.keys.toList :+ model.mainTactic.name
 			publish(UpdateGTListEvent())
+	}
+
+	def toggleLock(): Unit = {
+		this.lock = !this.lock
+		publish(InspectorLockEvent(this.lock))
 	}
 
 	listenTo(QuantoLibAPI)

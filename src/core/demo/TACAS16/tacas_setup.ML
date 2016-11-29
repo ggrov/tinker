@@ -1,10 +1,10 @@
  open_theory "hol";
- use (OS.FileSys.getDir() ^ "/psgraph/src/core/build/proofpower/tinker");
- val tinker_path = OS.FileSys.getDir()  ^ "/psgraph/src/core/demo/TACAS16/";
+ use (tinkerhome ^ "/src/core/build/proofpower/tinker");
+ val tinker_path = tinkerhome  ^ "/src/core/demo/TACAS16/";
  val pspath = tinker_path;
  open_theory "z_library";
  set_pc "z_library";
- use_file (OS.FileSys.getDir() ^ "/psgraph/src/core/demo/TACAS16/imp058.sml");
+ use_file (tinkerhome ^ "/src/core/demo/TACAS16/imp058.sml");
 
 
 (* the defnition of the pp version 

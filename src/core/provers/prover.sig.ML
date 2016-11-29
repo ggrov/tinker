@@ -12,6 +12,7 @@ sig
   type env_tac
   type pplan
   type pnode
+  type goal
 end
 
 signature PROVER =
@@ -21,6 +22,7 @@ sig
   type thm
   type context
   type tactic 
+  datatype goal = G_THM of (thm * int) | G_TERM of (term list * term)
 
   (* arguments for atomic goal types and tactics *)
   datatype arg_data =  
@@ -55,7 +57,6 @@ sig
   val id_env_tac_f: env -> env_tac
 
   exception env_data_exp 
-
   type pplan
   type pnode
   type appf = pnode * pplan -> (pnode list * pplan) Seq.seq
@@ -82,7 +83,7 @@ sig
 
  (* val subst_trm_vars : (string * term) list -> term -> term*)
 
-  val init : context -> term list -> term -> pnode * pplan
+  val init : context -> goal -> pnode * pplan
 
   val apply_tactic : arg_data list -> tactic (* name of tactic *) -> appf
   (* tactics that only update env (used to be in the goaltype)
@@ -131,6 +132,7 @@ sig
     sharing type Sharing.typ = typ
     sharing type Sharing.term = term 
     sharing type Sharing.thm = thm
+    sharing type Sharing.goal = goal
     sharing type Sharing.context = context
     sharing type Sharing.tactic = tactic 
     sharing type Sharing.env_data = env_data

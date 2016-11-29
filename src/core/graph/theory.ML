@@ -26,10 +26,10 @@ sig
     val insert_node_on_edge : Graph.nvdata -> E.name -> Graph.T -> E.name * E.name * Graph.T
     val is_gnode : Graph.T -> V.name -> bool 
     val is_gtyp : Graph.T -> E.name -> bool
-    val is_hgragh_with_graph_name : Graph.T -> string -> V.name -> bool
+   (* val is_hgragh_with_graph_name : Graph.T -> string -> V.name -> bool*)
     val is_tactic : Graph.T -> V.name -> bool
     val lookup_gnode : Graph.T -> V.name -> Data.GoalTyp.gnode option 
-    val lookup_hgragh_by_graph_name : Graph.T -> string -> V.name
+    (*val lookup_hgragh_by_graph_name : Graph.T -> string -> V.name*)
     val lookup_ivertex_data : Graph.T -> V.name -> Graph.nvdata option
     val match_lhs : Graph.T -> Graph.T -> (Graph.subst * (Graph.subst * Graph.T)) Seq.seq
     val matched_lhs : Graph.T -> V.name -> (Graph.subst * (Graph.subst * Graph.T)) Seq.seq
@@ -182,10 +182,10 @@ struct
      | SOME Data.T_Identity => true
      | _ => false; 
 
-   fun is_hgragh_with_graph_name graph n v = 
-     case lookup_ivertex_data graph v of 
-       SOME (Data.T_Graph (name,_)) => n = name
-       | _ => false; 
+   fun get_hgragh_with_graph_name graph n vname = 
+     let val v = lookup_ivertex_data graph vname in case  v of 
+       SOME (Data.T_Graph (name,_)) => if (n = name) then SOME v else NONE
+       | _ => NONE end
 
    fun is_gnode graph v = 
      case lookup_ivertex_data graph v of 
@@ -223,19 +223,15 @@ struct
      Graph.get_vertices graph
      |> filter (is_hgragh graph);
 *)
-   fun lookup_hgragh_by_graph_name graph graph_name =  
-     get_vertex_list graph
-     |> filter (is_hgragh_with_graph_name graph graph_name)
+(*
+   fun lookup_hgragh_by_graph_name graph graph_name vname=  
+     get_hgragh_with_graph_name graph graph_name vname
      |> (fn x => (case x of 
-                   [] => 
+                   NONE => 
                    	(logging "FAILURE" ("Fail to find hgraph by name:" ^ graph_name); 
                    	raise tinker_fail true) 
-                   
-                 | [h] => h
-                 | _ => 
-                 	(logging "FAILURE" ("ERR: fail to find hgraph by name, more than one result are returned: " ^ graph_name); 
-                 	raise tinker_fail true)))
- 
+                 | SOME v => v))
+*) 
    (* FIXME: makes one for each input - can be generalised by vars on the edges  instead - then we only need on lhs per rule  *)
    fun mk_lhs graph v =
      let 

@@ -1,4 +1,5 @@
-use_file (OS.FileSys.getDir() ^ "/psgraph/src/core/examples/JFR16/fef_setup.ML");
+val tinkerhome = OS.FileSys.getDir() ^ "/psgraph";
+use_file ( tinkerhome ^ "/src/core/examples/JFR16/fef_setup.ML");
 
 open_theory "fef033";
 

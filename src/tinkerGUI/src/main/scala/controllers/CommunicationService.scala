@@ -182,7 +182,7 @@ object CommunicationService extends Publisher {
 					getEvalLog(j ? "log_info", "UPDATE_PSGRAPH")
 				case "RSP_EXCEPTION" => // command for exception
 					getEvalLog(j ? "log_info", "EXCEPTION")
-					if (state == CommunicationState.WaitingForUpdate) {
+					if (state == CommunicationState.WaitingForUpdate || state == CommunicationState.WaitingForInit) {
 						j ? "if_interrupt" match {
 							case interrupt: Json if interrupt == JsonNull => sendErrorResponse("RSP_ERROR_EXCEPTION","no if_interrupt")
 							case interrupt: JsonBool =>

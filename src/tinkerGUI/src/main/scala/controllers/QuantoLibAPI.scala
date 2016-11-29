@@ -338,6 +338,7 @@ object QuantoLibAPI extends Publisher{
 		graph.outEdges(n).foreach{e =>
 			graph.vdata(graph.target(e)) match {
 				case d:NodeV if d.typ == "T_Graph" => res = true
+				case d:NodeV if d.typ == "G" => res = hasNestedTacticAfter(graph.target(e).s)
 				case _ =>
 			}
 		}
@@ -380,7 +381,8 @@ object QuantoLibAPI extends Publisher{
 	/** Private method deleting edges.
 	  *
 	  * If the edge has a boundary source or target, we delete it, if there are no edges coming from or to this boundary
-	  * @param e Id of the edge
+		*
+		* @param e Id of the edge
 	  */
 	private def deleteEdge(e: EName) {
 		var edge = e
@@ -584,7 +586,8 @@ object QuantoLibAPI extends Publisher{
 	/** Method that updates the source or target of an edge on user request
 		*
 	  * This method first check if the new source or target exists
-	  * @param e Id of the edge
+		*
+		* @param e Id of the edge
 		* @param s New source name
 	  * @param t New target name
 	  */
@@ -1017,7 +1020,8 @@ object QuantoLibAPI extends Publisher{
 	/** Method launching the edition process of an element, depending on specified coordinates.
 	  *
 		* Used with double click, only enable the edition of a nested or atomic node or an edge.
-	  * @param pt Coordinates of the potential element.
+		*
+		* @param pt Coordinates of the potential element.
 	  */
 	def editGraphElement(pt: java.awt.Point){
 		val vertexHit = view.vertexDisplay find { case (v, disp) =>
@@ -1225,6 +1229,48 @@ object QuantoLibAPI extends Publisher{
 		view.repaint()
 	}
 
+
+	def toDot(file:File): Unit = {
+		val nodes = graph.vdata.foldLeft(Map[String,(String,String)]()){ (m,p) =>
+			p._2 match {
+				case d:NodeV if d.typ == "T_Identity" => m + (p._1.s -> ("id",""))
+				case d:NodeV if d.typ == "T_Atomic" => m + (p._1.s -> ("atm",d.label))
+				case d:NodeV if d.typ == "T_Graph" => m + (p._1.s -> ("nst",d.label))
+				case d:NodeV if d.typ == "G_Break" => m + (p._1.s -> ("break","STOP"))
+				case d:NodeV if d.typ == "G" => m + (p._1.s -> ("goal",d.label))
+				case d:WireV => m + (p._1.s -> ("bound",""))
+			}
+		}
+		val edges = graph.edata.foldLeft(Map[String,(String,String,String)]()){ (m,p) =>
+			val src = graph.source(p._1).s
+			val tgt = graph.target(p._1).s
+			m + (p._1.s -> (p._2.value,src,tgt))
+		}
+		FileHelper.printToFile(file, append = false)(p=>{
+			def printNode(id:String, typ:String, label:String): Unit ={
+				var s = id+" [label=\""+label+"\""
+				typ match {
+					case "id" => s += ",shape=invtriangle,style=filled,fillcolor=\"#99CCFF\",width=0.45"
+					case "atm" => s += ",shape=box,style=filled,fillcolor=\"#CCFF99\",height=0.3"
+					case "nst" => s += ",shape=box,style=filled,fillcolor=\"#FFCC99\""
+					case "break" => s += ",shape=octagon,style=filled,fillcolor=\"#FF3333\",fontcolor=\"#FFFFFF\",fontsize=8.0,fontname=\"Hevetica bold\",width=0.4,height=0.4,margin=\"0 0\""
+					case "goal" => s += ",shape=circle,style=filled,fillcolor=\"#CCFFFF\",width=0.4,height=0.4,margin=\"0 0\""
+					case "bound" => s += ",shape=none"
+				}
+				s += "];"
+				p.println(s)
+			}
+			def printEdge(label:String, src:String, tgt:String): Unit ={
+				p.println(src+" -> "+tgt+" [label=\""+label+"\"];")
+			}
+			p.println("digraph "+Service.getCurrent+" {")
+			p.println("node[fontname=\"Hevetica\",fontsize=12.0];")
+			p.println("edge[fontname=\"Hevetica\",fontsize=12.0];")
+			nodes.foreach(n => printNode(n._1,n._2._1,n._2._2))
+			edges.foreach(e => printEdge(e._2._1,e._2._2,e._2._3))
+			p.println("}")
+		})
+	}
 
 	def toSvg(file:File) {
 		def getPolygonCoordinates(center:(Double,Double),scale:Double,rotationAngle:Double,numberOfPoints:Int):Array[(Double,Double)] = {
@@ -1441,7 +1487,7 @@ object QuantoLibAPI extends Publisher{
 			}
 			p.println("<svg width=\""+(maxX+40)+"\" height=\""+(maxY+40)+"\">")
 			p.println("\t<defs>")
-			p.println("\t\t<style type=\"text/css\"><![CDATA[path{stroke:#333;}path.edge{fill:none;stroke-width:2px;}text{fill:#333;font-family:Arial;}text.nodeId{fill:#151515;font-size:9;font-weight:bold;}text.label{text-anchor:middle;font-size:14;}text.labelEdge{text-anchor:middle;font-size:12;}text.labelBreak{fill:#eee;text-anchor:middle;font-size:10;font-weight:bold;}rect{stroke-width:1px;stroke:#333;}rect.labelEdge{stroke:0px;fill:#a0a8d9;fill-opacity:0.6;}rect.atm{fill:#89D674;}rect.nst{fill:#F7A943;}polygon{stroke-width:1px;stroke:#333;}polygon.id{fill:#6495ED;}polygon.break{fill:#FF3000;}circle{stroke-width:1px;stroke:#333;}circle.break{fill:#FF3000;}circle.goal{fill:#B0C4DE;}]]></style>")
+			p.println("\t\t<style type=\"text/css\"><![CDATA[path{stroke:#333;}path.edge{fill:none;stroke-width:2px;}text{fill:#333;font-family:Arial;}text.nodeId{fill:#151515;font-size:9;font-weight:bold;}text.label{text-anchor:middle;font-size:14;}text.labelEdge{text-anchor:middle;font-size:12;}text.labelBreak{fill:#eee;text-anchor:middle;font-size:10;font-weight:bold;}rect{stroke-width:1px;stroke:#333;}rect.labelEdge{stroke:0px;fill:#a0a8d9;fill-opacity:0.6;}rect.atm{fill:#CCFF99;}rect.nst{fill:#FFCC99;}polygon{stroke-width:1px;stroke:#333;}polygon.id{fill:#99CCFF;}polygon.break{fill:#FF3000;}circle{stroke-width:1px;stroke:#333;}circle.break{fill:#FF3000;}circle.goal{fill:#B0C4DE;}]]></style>")
 			p.println("\t\t<marker id=\"end-arrow\" viewBox=\"0 -5 10 10\" refY=\"5\" refX=\"10\" markerWidth=\"4\" markerHeight=\"4\" orient=\"auto\">\n\t\t\t<path fill=\"#333\" d=\"M0,-5L10,0L0,5\"></path>\n\t\t</marker>")
 			p.println("\t</defs>")
 			edges.foreach(e => printEdge(e._2._1,e._2._2,e._2._3,e._2._4,e._2._5))
@@ -1516,7 +1562,7 @@ object QuantoLibAPI extends Publisher{
 						Service.editCtrl.createTactic(vertexName.s, d.value.stringValue, toPasteATactics(d.value.stringValue), true)
 					}
 					if (d.typ == "T_Graph") {
-						Service.editCtrl.createTactic(vertexName.s, d.value.stringValue, toPasteATactics(d.value.stringValue), false)
+						Service.editCtrl.createTactic(vertexName.s, d.value.stringValue, toPasteGTactics(d.value.stringValue), false)
 					}
 				case d: WireV =>
 					val vertexName = graph.verts.freshWithSuggestion(VName("b0"))

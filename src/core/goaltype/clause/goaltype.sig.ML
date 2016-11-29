@@ -2,9 +2,6 @@ signature CLAUSE_GOALTYPE =
 sig
   include BASIC_GOALTYPE
 
-  exception eval_exp of string;
-  exception gt_exp of string; (* used by JSON *)
-
   datatype arg = Name of string (* x,y,x *)
                 | Var of string (* X,Y,Z *)
                 | PVar of string (* ?x,?y,?z ...*)
@@ -42,7 +39,7 @@ sig
   (**********************
     HELPER METHODS
    **********************)
-
+  val dbg_arg_typ : arg -> unit
   val project_env_terms : Prover.env_data -> Prover.term list
   val project_env_str : Prover.env_data -> string list
 

@@ -1,7 +1,7 @@
 package tinkerGUI.utils
 
 import scala.swing._
-import scala.swing.event.KeyReleased
+import scala.swing.event.{Key, KeyPressed, KeyReleased}
 
 /** Object implementing generic dialogs for tinker.
 	*
@@ -25,7 +25,9 @@ object TinkerDialog {
 		* @param actions List of possible actions, e.g. "Yes" and "No".
 		* @return Dialog instance. Must be closed by the actions.
 		*/
-	def openConfirmationDialog(message: String, actions: Array[Action]):Dialog = {
+	def openConfirmationDialog(message: String,
+														 actions: Array[Action{def apply():Unit}],
+														 cancelAction:Action{def apply():Unit}):Dialog = {
 		val confirmationDialog: Dialog = new Dialog()
 		confirmationDialog.resizable = false
 		confirmationDialog.maximumSize = max
@@ -37,6 +39,13 @@ object TinkerDialog {
 				actions.foreach{ action =>
 					contents += new Button(action)
 				}
+			}
+			listenTo(keys)
+			reactions += {
+				case KeyPressed(source, Key.Escape, _, _) =>
+					if(source == this) {
+						cancelAction()
+					}
 			}
 		}
 		confirmationDialog.open()
@@ -62,14 +71,17 @@ object TinkerDialog {
 					icon = new javax.swing.ImageIcon(tinkerGUI.views.MainGUI.getClass.getResource("error.png"), "Error")
 				}
 			}
+			val closeAction = new Action("OK"){def apply(){errorDialog.close()}}
 			contents += new FlowPanel(){
-				contents += new Button(){
-					action = new Action("OK"){def apply(){errorDialog.close()}}
-				}
+				contents += new Button(closeAction)
 			}
-//			contents += new FlowPanel(){
-//				contents += new Label("<html><h5>If a problem persists, look at the project website : ggrov.github.io/tinker.</h5></html>")
-//			}
+			listenTo(keys)
+			reactions += {
+				case KeyPressed(source, Key.Escape, _, _) =>
+					if(source == this) {
+						closeAction()
+					}
+			}
 		}
 		errorDialog.open()
 		errorDialog.centerOnScreen()
@@ -91,10 +103,16 @@ object TinkerDialog {
 			contents += new FlowPanel(){
 				contents += new Label("<html><body style='width:400px'>"+message+"</body></html>")
 			}
+			val closeAction = new Action("OK"){def apply(){infoDialog.close()}}
 			contents += new FlowPanel(){
-				contents += new Button(){
-					action = new Action("OK"){def apply(){infoDialog.close()}}
-				}
+				contents += new Button(closeAction)
+			}
+			listenTo(keys)
+			reactions += {
+				case KeyPressed(source, Key.Escape, _, _) =>
+					if(source == this) {
+						closeAction()
+					}
 			}
 		}
 		infoDialog.open()
@@ -111,6 +129,7 @@ object TinkerDialog {
 		* @return Dialog instance.
 		*/
 	def openEditDialog(message: String, fields: Map[String,String], success:(Map[String,String])=>Unit, failure:()=>Unit):Dialog = {
+
 		val editDialog:Dialog = new Dialog()
 		editDialog.resizable = true
 		//editDialog.maximumSize = max
@@ -120,6 +139,7 @@ object TinkerDialog {
 		var textfieldMap = Map[String, TextComponent]()
 		var radios:List[RadioButton] = List()
 		var checks:Map[String,CheckBox] = Map()
+
 		editDialog.contents = new GridPanel(fields.size+2, 1){
 			contents += new FlowPanel() {
 				contents += new Label(message)
@@ -159,40 +179,56 @@ object TinkerDialog {
 					}
 				}
 			}
+
+			val doneAction = new Action("Done"){
+				def apply() {
+					textfieldMap.foreach { case (k, v) =>
+						if (k == "Branch type") {
+							var text = ""
+							radios.foreach { case r => if (r.selected) text = r.text }
+							newValMap += (k -> text)
+							// for checkboxes
+							//								} else if(k == "Create html app"){
+							//									val text = if(checks(k).selected) "true" else "false"
+							//									newValMap += (k -> text)
+						} else {
+							newValMap += (k -> v.text)
+						}
+					}
+					editDialog.close()
+					success(newValMap)
+				}
+			}
+			val cancelAction = new Action("Cancel"){
+				def apply(){
+					editDialog.close()
+					failure()
+				}
+			}
+
+
 			contents += new FlowPanel(){
-				contents += new Button(
-					new Action("Done"){
-						def apply() {
-							textfieldMap.foreach { case (k, v) =>
-								if (k == "Branch type") {
-									var text = ""
-									radios.foreach { case r => if (r.selected) text = r.text }
-									newValMap += (k -> text)
-									// for checkboxes
-//								} else if(k == "Create html app"){
-//									val text = if(checks(k).selected) "true" else "false"
-//									newValMap += (k -> text)
-								} else {
-									newValMap += (k -> v.text)
-								}
-							}
-							editDialog.close()
-							success(newValMap)
-						}
+				contents += new Button(doneAction)
+				contents += new Button(cancelAction)
+			}
+
+			listenTo(keys)
+			textfieldMap.values.foreach(t => listenTo(t.keys))
+			reactions += {
+				case KeyPressed(source, Key.Escape, _, _) =>
+					if(source == this || textfieldMap.values.toSet.contains(source)) {
+						cancelAction()
 					}
-				)
-				contents += new Button(
-					new Action("Cancel"){
-						def apply(){
-							editDialog.close()
-							failure()
-						}
+				case KeyPressed(source, Key.Enter, Key.Modifier.Control, _) =>
+					if(source == this || textfieldMap.values.toSet.contains(source)) {
+						doneAction()
 					}
-				)
 			}
 		}
 		editDialog.open()
 		editDialog.centerOnScreen()
+
+
 		editDialog
 	}
 }
