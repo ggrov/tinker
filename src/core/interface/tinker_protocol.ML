@@ -3,7 +3,7 @@ functor TinkerProtocol (structure IEVal : IEVAL
                         val gui_socket_port : int 
                         val prover_socket_port: int)=
 struct
-  open JsonControllerUtil LoggingHandler
+  open  LoggingHandler
 
   exception protocol_exn of string
   exception user_exn of string

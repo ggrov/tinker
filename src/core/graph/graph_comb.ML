@@ -4,7 +4,7 @@
          can we use wires better?
          can code be added to bbox?
 *)
-
+...
 (* contains graph combinators *)
 signature GRAPH_COMB = 
 sig
