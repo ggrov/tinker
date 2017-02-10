@@ -66,7 +66,6 @@ end (* signature *)
 
 functor PSGraph_TheoryFun ( structure  Data : PSGRAPH_DATA ) : PS_THEORY=
 struct
-  exception Fail = RunCall.Fail;
 
   structure GoalTyp = Data.GoalTyp;
 
@@ -305,7 +304,7 @@ struct
       |> SOME;
   in
     Scan.catch (get_env_arg_name0) str
-    handle Fail _ => NONE
+    handle RunCallFail _ => NONE
   end
   
   fun parse_arg_data ctxt pnode args = 

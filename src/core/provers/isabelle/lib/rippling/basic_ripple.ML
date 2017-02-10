@@ -22,7 +22,7 @@ struct
       fold (Substset.add) rules Substset.empty 
     end
 
-  fun get_matched_wrules ctxt trm = Substset.match (Proof_Context.theory_of ctxt) (get_wrules ctxt) trm;
+  fun get_matched_wrules ctxt trm = Substset.match ctxt (get_wrules ctxt) trm;
 
 
   fun ripple_tac ctxt i thm = 

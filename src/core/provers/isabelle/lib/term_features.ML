@@ -157,7 +157,7 @@ struct
     fun term_frees t = add_term_frees(t,[]);
       val frees_of_term = map Term.dest_Free o term_frees;
       fun datatype_chk (Type(tn,_))  = 
-           Basics.is_some (Datatype.get_info thry tn)
+           Basics.is_some (Old_Datatype_Data.get_info thry tn)
         | datatype_chk _ = false;
     in 
       List.partition (datatype_chk o snd) 
@@ -251,7 +251,7 @@ struct
   fun get_decreased_measure_params ctxt skel matches gtrm = 
     let
       val matches' = map (fn (x,y) => (gen_occl x, y)) matches; (* occs -> occL *)
-      val gthm = Thm.cterm_of (Proof_Context.theory_of ctxt) gtrm |> Thm.trivial;
+      val gthm = Thm.cterm_of ctxt gtrm |> Thm.trivial;
       fun filter_valid_occ (occL, rule) = 
         let
           val thm = Substset.thm_of_rule rule;
@@ -288,7 +288,7 @@ struct
   fun is_subterm thy src sub =
     let
       val ctrm = (Thm.cterm_of thy src);
-      val maxid = (#maxidx (rep_cterm ctrm))
+      val maxid = Thm.maxidx_of_cterm ctrm
       val searchinfo = (thy, maxid, Zipper.mktop src) 
       val sub' = case sub of ((Const ("HOL.Trueprop",_)) $ f) => f | _ => sub
     in 

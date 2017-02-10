@@ -174,7 +174,7 @@ struct
   case st of G_TERM (_, trm) =>
    (let 
       val th = Proof_Context.theory_of ctxt
-      val goal = Thm.cterm_of th trm
+      val goal = Thm.cterm_of ctxt trm
                |> Goal.init;
       val pnode = { pname = "g", pctxt = ctxt, ptrm = trm, env = StrName.NTab.empty}
       val pplan = { goal = goal, opengs = [pnode], usedgs = StrName.NSet.single "g"}

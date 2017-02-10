@@ -2,6 +2,7 @@
   fun I x = x;
   fun K x = fn _ => x;
   fun x |> f = f x;
+  exception RunCallFail = Run.CallFail;
 
 (* some utilities *)
   use "../../../utils/psgraph_names.ML"; 

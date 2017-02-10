@@ -1159,19 +1159,20 @@ fun uninst_vars_deps (Insts rep) = VTab.fold cons (#deps rep) [];
 
 (* instantiation of Isabelle cterm and thms... one day this may be moved *)
 fun inst_cterm e ct = 
-    Thm.cterm_of (get_theory e) (inst_trm e (Thm.term_of ct));
+    Thm.cterm_of (get_ctxt e) (inst_trm e (Thm.term_of ct));
 
 fun inst_thm ienv th = 
     let 
       val thry = get_theory ienv;
-      val ctermify = Thm.cterm_of thry;
-      val ctypify = Thm.ctyp_of thry 
+      val ctxt = get_ctxt ienv;
+      val ctermify = Thm.cterm_of ctxt;
+      val ctypify = Thm.ctyp_of ctxt 
     in
       th |> (Thm.instantiate 
-               (map (fn (n,(srt,ty)) => (ctypify (TVar (n,srt)), ctypify ty))
+               (map (fn (n,(srt,ty)) => ((n,srt), ctypify ty))
                     (tvar_insts ienv),[]))
          |> (Thm.instantiate 
-               ([],map (fn (n,(typ,t)) => (ctermify (Var (n,typ)), ctermify t))
+               ([],map (fn (n,(typ,t)) => ((n,typ), ctermify t))
                        (var_insts ienv)))
     end;
 

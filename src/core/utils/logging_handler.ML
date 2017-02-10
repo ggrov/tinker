@@ -35,7 +35,7 @@ struct
          Pretty.block [Pretty.str "[ LOGGING - ", 
                        Pretty.str (tag ^ ": "),
                        Pretty.str msg,
-                       Pretty.str " ]"]|> Pretty.str_of |> writeln)) 
+                       Pretty.str " ]"]|> Pretty.string_of |> writeln)) 
    else (fn _ =>( fn _ => ()))
   fun debug_json tag str x = (if if_debug then logging_handler_print0 tag str else (); x);
  

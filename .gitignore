@@ -14,3 +14,13 @@
 /src/rodin_plugin/*
 !/src/rodin_plugin/tinker.for.rodin
 .tinkerConfig
+src/dev/ai4fm/ewen.zip
+src/dev/ai4fm/ewen/heap_example.thy
+src/dev/ai4fm/ewen/heap/HEAP0.thy
+src/dev/ai4fm/ewen/heap/HEAP0Lemmas.thy
+src/dev/ai4fm/ewen/heap/HEAP1.thy
+src/dev/ai4fm/ewen/heap/HEAP1Lemmas.thy
+src/dev/ai4fm/ewen/heap/HEAP1LemmasIJW.thy
+src/dev/ai4fm/ewen/heap/HEAP1Proofs.thy
+src/dev/ai4fm/ewen/heap/HEAPPreamble.thy
+src/dev/ai4fm/ewen/heap/VDMMaps.thy

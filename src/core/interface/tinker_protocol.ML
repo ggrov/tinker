@@ -25,7 +25,7 @@ struct
   type T = ((Json.json -> Json.json) * string) Symtab.table
 
   fun pp_goal edata =  (fn x => ((EData.pretty_goals edata 
-    |> ((logging "GOAL") o Pretty.str_of)) ; x))
+    |> ((logging "GOAL") o Pretty.string_of)) ; x))
 
   fun get_cmd_name (Json.Object obj) =  
     JsonInputUtils.get_string obj "cmd" 
@@ -254,7 +254,7 @@ struct
           | "CMD_END_EVAL_SESSION" =>  send_msg (Json.encode json_output) (* send to stop cmd and quit *)
         (*  | "RSP_EXCEPTION" => send_msg (Json.encode json_output) *)(* end session and flash out the exception string*)
           | "RSP_MESSAGE_ERROR" => 
-            raise RunCall.Fail "\n Error: Received RSP_MESSAGE_ERROR from GUI. \n Please set if_debug to true in LoggingHandler to see more debugging info for this failure" 
+            raise RunCallFail "\n Error: Received RSP_MESSAGE_ERROR from GUI. \n Please set if_debug to true in LoggingHandler to see more debugging info for this failure" 
           | "Dummy_RSP" => ((); protocol_loop s)
           | "PRINT_ONLY_RSP" => 
             ((get_print_only_msg  json_output

@@ -72,7 +72,7 @@ struct
        |> (fn x => 
             (((Pretty.str "all goals in the current graph: " ::
               (map (fn y => Pretty.block [Pretty.str y, Pretty.str " "] ) x)) |> Pretty.block 
-              |> Pretty.str_of |> logging "EVAL");
+              |> Pretty.string_of |> logging "EVAL");
             x))
        |> (fn gl => (* filter out those on the edges when at the top level,shoule never reach here if the current graph is finished *)
            if EVal.is_top_level_psgraph edata 

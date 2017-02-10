@@ -416,8 +416,8 @@ and solve_bnd_embedding_agenda e =
     end;
 
 fun check e = 
-    (Thm.cterm_of (get_theory e) (src e); 
-     Thm.cterm_of (get_theory e) (tgt e); ());
+    (Thm.cterm_of (get_ctxt e) (src e); 
+     Thm.cterm_of (get_ctxt e) (tgt e); ());
 
 exception embed_exp of Ectxt.T * Term.term * Term.term;
 

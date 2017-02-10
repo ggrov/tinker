@@ -149,7 +149,7 @@ sig
    * Accept an instream and return a Source.source, which will pull the next JSON
    * object/array from the stream
    *)
-  val json_source : TextIO.instream -> (json, (string, unit) RawSource.source) RawSource.source
+  val json_source : TextIO.instream -> (json, (string, unit) Source.source) Source.source
   
   (**
    * Read in a file containing JSON
@@ -441,10 +441,10 @@ val of_string = Parser.parse
   |> Source.set_prompt ""*)
 
 fun json_source instream =
-  RawSource.source Symbol.stopper
+  Source.source Symbol.stopper
     (Parser.p_top_level >> single) NONE
-      (RawSource.raw_stream (fn c => c = "}" orelse c = "]") instream)
-  |> RawSource.set_prompt ""
+      (Source.raw_stream (fn c => c = "}" orelse c = "]") instream)
+  |> Source.set_prompt ""
 
 fun read_file file = let
   val get_one_json = RawSource.get_single o json_source

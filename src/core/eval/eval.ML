@@ -17,7 +17,7 @@ struct
     { pnodes :  EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list,
       input :  EData.PSGraph.Theory.Data.GoalTyp.gnode option, 
       goaltypes : EData.PSGraph.Theory.Data.GoalTyp.T list } 
-  exception Fail = RunCall.Fail
+  
   exception Breakpoint of EData.T;
 
   local open Theory.Graph_Utils LoggingHandler in
@@ -488,7 +488,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
       |> (Pretty.string_of )
       |> logging "ENV_DATA" 
      val graph = 
-      if is_some graph_name0 then raise Fail "ERR: NOT Support to switch between subgraph yet" 
+      if is_some graph_name0 then raise RunCallFail "ERR: NOT Support to switch between subgraph yet" 
       else EData.get_graph edata
      val gnode = Util.gnode_of graph gname
      val cur_g_n = fst (EData.get_name_current edata)
@@ -496,7 +496,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
      if (is_some o (try_get_out (EData.get_graph edata))) gname
      (* the goal is terminated in the current graph *)
      then (* either exit or raise an exception if it is in the main *)
-       if cur_g_n  = EData.get_main_current edata then raise Fail "ERR: main has already been terminated "
+       if cur_g_n  = EData.get_main_current edata then raise RunCallFail "ERR: main has already been terminated "
        else (* exit the current hie *) (debug_tracing ("exit graph " ^ cur_g_n);exit_hgraph gname edata)
      else (* not terminated, so either apply atomic or apply hgraph*)
      (

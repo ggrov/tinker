@@ -1,10 +1,14 @@
 theory isalib
-imports Pure
-begin
+  imports Pure
+  
+begin 
+ML{*
+structure x = Output;
+*}
+(*ML_file "isalib/testing.ML"*)
+(*ML_file "isalib/raw_source.ML"*)
 
-ML_file "isalib/log.ML"
-ML_file "isalib/testing.ML"
-ML_file "isalib/raw_source.ML"
+                    
 ML_file "isalib/json.ML"
 ML_file "isalib/text_socket.ML"
 

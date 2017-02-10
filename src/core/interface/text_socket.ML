@@ -25,7 +25,6 @@ end
  
 functor TextSocket_FUN  (structure Prover : PROVER) : TEXT_SOCKET =
 struct
-  exception Fail = RunCall.Fail
   structure Prover = Prover
 (* this func ensures computation without interruption,
   a way to prevernt isabelle from interrupt a thread, *)
@@ -160,7 +159,7 @@ struct
     in
       SockData { sock = sock, passive = NONE (*dummy*),
                 sin = sin, sout = sout} end
-   (*handle OS.SysErr (msg, _) => raise Fail (msg ^ "\n")*)
+   (*handle OS.SysErr (msg, _) => raise RunCallFail (msg ^ "\n")*)
  
   fun local_client port =
     run_in_atomic (local_client0 port)

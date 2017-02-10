@@ -1,7 +1,7 @@
 theory LoadQuantoLib
 imports
   Main
-  "~~/contrib/quantomatic/core/quanto"  
+  "~~/contrib/quantomatic/core/quanto"
 
 begin 
 (* ML_file "inject.ML" *)

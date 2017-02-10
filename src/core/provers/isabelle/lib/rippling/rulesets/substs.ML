@@ -38,7 +38,7 @@ sig
   val mk_sym_thm : Thm.thm -> Thm.thm
 
   (* lookup: changed due to it's more easier to apply it as tactics, but it might be less efficient *)
-  val match : theory -> T -> term -> (int * rule) list
+  val match : Proof.context -> T -> term -> (int * rule) list
 end;
 
 
@@ -68,9 +68,9 @@ struct
       Pretty.block [Pretty.str "Lhs: '", Syntax.pretty_term @{context} (lhs_of_rule r), (* FIXME: can I use @{context} here? *)
                     Pretty.str "Name: '",  Pretty.str (name_of_rule r),
                     Pretty.str "' => Thm: ", 
-                    Display.pretty_thm (global_ctxt_of_rule r) (thm_of_rule r)];
+                    Thm.pretty_thm (global_ctxt_of_rule r) (thm_of_rule r)];
   fun pretty_rule_sml r = 
-      Display.pretty_thm (global_ctxt_of_rule r) (thm_of_rule r);
+      Thm.pretty_thm (global_ctxt_of_rule r) (thm_of_rule r);
 
   type T = rule Net.net;
 
@@ -105,7 +105,7 @@ struct
 
   fun mk_searchinfo thy gtrm = 
     let val ctrm = (Thm.cterm_of thy gtrm);
-    val maxid = (#maxidx (rep_cterm ctrm)) in
+    val maxid = Thm.maxidx_of_cterm ctrm in
     (thy, maxid, Zipper.mktop gtrm) end;
 
 
@@ -113,13 +113,13 @@ struct
     EqSubst.searchf_lr_unify_valid (mk_searchinfo thy gtrm) lhs
     |> Seq.flat
 
-  fun match thy db t = 
+  fun match ctxt db t = 
     let
       val rule_list = Net.entries db;
     in 
       map 
       (fn r => 
-        match_lhs thy t (lhs_of_rule r)
+        match_lhs ctxt t (lhs_of_rule r)
         |> Seq.list_of
         |> length
         |> (fn x => (x, r))) (* return num of matched occurances paired with the rules *)

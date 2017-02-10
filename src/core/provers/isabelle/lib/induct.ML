@@ -30,10 +30,10 @@ struct
   
   (* the free variables of a term that are of a datatype 
      (can have induction applied) *)
-  fun inductable_things_in_term thry t = 
+  fun inductable_things_in_term (thry: theory) t = 
       let 
-        fun lookup thy s = 
-         (case (Datatype.get_info thy s) of
+        fun lookup (thy : theory)  s = 
+         (case (Old_Datatype_Data.get_info thy s) of
           NONE => NONE
           | SOME di => SOME ( {default_ind_thm = #induct di,
                                    all_ind_thms = [#induct di]}));
@@ -55,7 +55,7 @@ struct
   fun inductable_things_in_sg i th = 
       inductable_things_in_term 
         (Thm.theory_of_thm th) 
-        (Library.nth (prems_of th) (i - 1));
+        (Library.nth (Thm.prems_of th) (i - 1));
   
   fun induct_tac' rule vars ith goalthm ifArbitrary= 
       let
@@ -71,7 +71,7 @@ struct
         val otherVars = if ifArbitrary then [non_ithings @ otherfrees] else []
            (* Throw away Isar related stuff and only take the Thm.thm seq *)
         val nw_thms = 
-            Seq.map snd (Induct.induct_tac
+             (Induct.induct_tac
                            ctxt false insts otherVars [] rule [] 1 goalthm)
         in
          (* the freezeT is a hack to correct a bug/feature in 

@@ -359,26 +359,26 @@ fun simp ctxt =
 
 fun simp_only_tac thml ctxt= fold Simplifier.add_simp thml (Raw_Simplifier.clear_simpset ctxt) |> simp_tac;
 
-
-fun subgoals_tac [IsaProver.A_Trm t] ctxt = subgoal_tac ctxt (IsaProver.string_of_trm ctxt t)
+Rule_Insts.subgoal_tac;
+fun subgoals_tac [IsaProver.A_Trm t] ctxt = Rule_Insts.subgoal_tac ctxt (IsaProver.string_of_trm ctxt t) []
 | subgoals_tac _ _ =  K no_tac
 
-fun rule [IsaProver.A_Thm thm] _  =  rtac thm
-| rule  _ _ =  K no_tac;
-fun erule [IsaProver.A_Thm thm] _  = etac thm
+fun rule [IsaProver.A_Thm thm] ctxt  = resolve_tac ctxt [thm]
+| rule  _ _ =  K Tactical.no_tac;
+fun erule [IsaProver.A_Thm thm] ctxt  = eresolve_tac ctxt [thm]
 | erule  _ _ =  K no_tac;
-fun drule [IsaProver.A_Thm thm] _  = dtac thm
+fun drule [IsaProver.A_Thm thm] ctxt  = dresolve_tac ctxt [thm]
 | drule  _ _ =  K no_tac;
 fun simp_only [IsaProver.A_Thm thm] = simp_only_tac [thm]
 | simp_only _  =  K (K no_tac);
 
 fun rule_tac [IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
-  (res_inst_tac ctxt  [(("x",0), (IsaProver.string_of_trm ctxt trm))] thm 
+  (Rule_Insts.res_inst_tac ctxt  [((("x",0), Position.start), (IsaProver.string_of_trm ctxt trm))] [] thm 
 handle _ => LH.log_undefined "EVAL" "fail to apply rule_tac" K no_tac)
 |  rule_tac  _ _ =  K no_tac; 
 
 fun rule_tac1 [IsaProver.A_Str str, IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt = 
-  res_inst_tac ctxt  [((str,0), (IsaProver.string_of_trm ctxt trm))] thm
+  Rule_Insts.res_inst_tac ctxt  [(((str,0),Position.start), (IsaProver.string_of_trm ctxt trm))] [] thm
 |  rule_tac1  _ _ =  K no_tac;
 
 fun least_forall_var (Abs(_,_,(Const("Pure.all",_) $ t))) = least_forall_var t
@@ -389,15 +389,15 @@ fun least_forall_var (Abs(_,_,(Const("Pure.all",_) $ t))) = least_forall_var t
 
 fun erule_tac [IsaProver.A_Thm thm] ctxt i st = 
   (case least_forall_var (Thm.prop_of st) of 
-    SOME var_str => eres_inst_tac ctxt [(("x",0), var_str)] thm i st
+    SOME var_str => Rule_Insts.eres_inst_tac ctxt [((("x",0),Position.start), var_str)] [] thm i st
   | NONE => (LH.logging "TACTIC" "no top forall bound var found in erule_tac";(no_tac st))
    )
 | erule_tac  [IsaProver.A_Str str, IsaProver.A_Trm trm, IsaProver.A_Thm thm] ctxt i st = 
-  eres_inst_tac ctxt  [((str,0), (IsaProver.string_of_trm ctxt trm))] thm i st
+  Rule_Insts.eres_inst_tac ctxt  [(((str,0), Position.start), (IsaProver.string_of_trm ctxt trm))] [] thm i st
 | erule_tac [IsaProver.A_Str str1, IsaProver.A_Str str2, 
    IsaProver.A_Trm trm1, IsaProver.A_Trm trm2, IsaProver.A_Thm thm] ctxt i st = 
-  eres_inst_tac ctxt  [((str1,0), (IsaProver.string_of_trm ctxt trm1)), 
-                       ((str2,0), (IsaProver.string_of_trm ctxt trm2))] thm i st
+  Rule_Insts.eres_inst_tac ctxt  [(((str1,0),Position.start), (IsaProver.string_of_trm ctxt trm1)), 
+                       (((str2,0),Position.start), (IsaProver.string_of_trm ctxt trm2))] [] thm i st
 | erule_tac  _ _ _ st = LH.log_undefined "TACTIC" "erule_tac" ( no_tac st );
 
 fun subst_tac [IsaProver.A_Str thmn] ctxt = 
