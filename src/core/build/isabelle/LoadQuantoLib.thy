@@ -1,8 +1,8 @@
 theory LoadQuantoLib
   imports
   Main                              
-  "../../../../../quantomatic/core/quanto"  
-
+  (*"../../../../../quantomatic/core/quanto"*)
+  "~~/contrib/quantomatic/core/quanto"
 begin 
 
 ML{*
