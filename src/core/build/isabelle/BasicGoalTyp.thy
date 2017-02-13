@@ -1,6 +1,6 @@
 (* simple test of proof representation *)
 theory BasicGoalTyp   
-imports LoadQuantoLib16      (*LoadQuantoLib13 *)            
+imports LoadQuantoLib            
 begin
   ML_file "../../utils/psgraph_names.ML" 
   ML_file "../../utils/unicode_helper.ML"

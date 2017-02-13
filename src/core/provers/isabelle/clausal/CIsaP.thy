@@ -33,7 +33,7 @@ ML{*
  *}
 
 ML{* open Env_Tac_Utils  *}
-ML_file "../basic/psgraph_isar_method.ML"       
+ML_file "../psgraph_isar_method.ML"       
 end
 
 

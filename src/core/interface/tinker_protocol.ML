@@ -223,13 +223,15 @@ struct
   fun run_in_textstreams s init_json =
   let
     fun send_msg str =
-    let val dbg = K
-    val _ = String.size str |> Int.toString |>(fn n =>  dbg ("size of msg: " ^ n)) in
+    let
+    val debug_io = false
+    val path =  OS.FileSys.getDir() ^ "/Workspace/StrategyLang/psgraph/tmp.txt";
+    val _ = if debug_io then  File_Io.write_string path str else ()
+    val _ = String.size str |> Int.toString |> (fn n =>  dbg ("size of msg: " ^ n)) in
      (TextSocket.write s ( str  ^ " \n"); TextSocket.flushOut s) end
     val _ = Json.encode init_json |> send_msg 
     fun protocol_loop src =
     let
-     val dbg = (*writeln*)K
      fun read0 str ins = 
       let val _ = dbg"!in read0 ---" 
        fun peak_json src  = 

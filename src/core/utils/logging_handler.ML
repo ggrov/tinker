@@ -3,7 +3,7 @@ struct
   exception tinker_fail of (bool) (* if critical *)
   exception logging_exp of string
 
-  val if_debug =  false (* to enable local print, an overall control for all local print *)
+  val if_debug =  true (* to enable local print, an overall control for all local print *)
   val if_check_perform = false (* print time for each steps *)
 
   val debug_tracing = fn msg =>  if if_debug then writeln (("TRACING: ") ^ msg) else ()

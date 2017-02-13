@@ -8,6 +8,7 @@ struct
 as pretty printing contains some non-standard chars which breaks the protocal *)
   val DEBUG_ON = true;
   val if_gui_mode = true;
+  val str_of_pretty = Pretty.unformatted_string_of
 
   val tab = Unsynchronized.ref 0;
   fun inctab() = (tab := !tab +1);
@@ -109,10 +110,10 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
 
  (* val pretty_env = StrName.NTab.pretty (Prover.pretty_env_data Prover.default_ctxt);*)
   val pretty_env  = Prover.pretty_env  Prover.default_ctxt;
-  val str_env = pretty_env #> Pretty.string_of;
+  val str_env = pretty_env #> str_of_pretty;
   (* val dbg_env = str_env #> dbg; *)
-  val str_cls = pretty_clause #> Pretty.string_of;
-  val str_arg = pretty_arg #> Pretty.string_of;
+  val str_cls = pretty_clause #> str_of_pretty;
+  val str_arg = pretty_arg #> str_of_pretty;
 
   (**********************
      Record GET/SET/UPDATE methods
@@ -440,7 +441,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
   (* JSON on goal types *)
   fun to_json gt =
    let 
-    val args = snd gt |> map pretty_arg |> map Pretty.string_of
+    val args = snd gt |> map pretty_arg |> map str_of_pretty
     fun app_args [] = ""
         | app_args [x] =  x
         | app_args (x::xs)  =  x ^ "," ^ (app_args xs);
@@ -459,7 +460,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
   fun gnode_to_json g = 
    Json.mk_object[
     ("name", Json.String (goal_name g)),
-    ("goal", Json.String (Pretty.string_of (goal_pretty g)))];
+    ("goal", Json.String (Pretty.symbolic_string_of (goal_pretty g)))];
 
   fun gnode_from_json (Json.Object obj) = 
     G {name = JsonInputUtils.get_string obj "name", 
@@ -479,7 +480,7 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
         |> (fn defs => set_data_defs defs default_data)
   | data_from_json _ = raise gt_exp "from_json: ill-formed json structure"
 *)
-  fun data_to_json gn = Json.String (Pretty.string_of (pretty_data gn)); 
+  fun data_to_json gn = Json.String (Pretty.symbolic_string_of (pretty_data gn)); 
 
   fun data_from_json (Json.String str) = 
     let val _ = debug_json "JSON_CORE" ("Json parsing: GoalType data - " ^ str) ()in 

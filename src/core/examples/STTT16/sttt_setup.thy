@@ -1,5 +1,5 @@
 theory sttt_setup
-imports "../../provers/isabelle/clausal/CIsaP"  
+imports "../../provers/isabelle/clausal/CIsaP"  HOL
 
 begin
 ML{*
@@ -291,8 +291,8 @@ ML{*
 *}
 
 
-
 ML{*
+(* copy from  HOL/TPTP/sledgehammer_tactics.ML *)
 structure Sledgehammer_Tactics =
 struct
 
@@ -304,7 +304,7 @@ open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 open Sledgehammer_Commands
 
-fun run_prover override_params fact_override i n ctxt goal =
+fun run_prover override_params fact_override chained i n ctxt goal =
   let
     val thy = Proof_Context.theory_of ctxt
     val mode = Normal
@@ -314,37 +314,35 @@ fun run_prover override_params fact_override i n ctxt goal =
     val default_max_facts = default_max_facts_of_prover ctxt name
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal i ctxt
     val ho_atp = exists (is_ho_atp ctxt) provers
-    val reserved = reserved_isar_keyword_table ()
+    val keywords = Thy_Header.get_keywords' ctxt
     val css_table = clasimpset_rule_table_of ctxt
     val facts =
-      nearly_all_facts ctxt ho_atp fact_override reserved css_table [] hyp_ts concl_t
-      |> relevant_facts ctxt params name
-             (the_default default_max_facts max_facts) fact_override hyp_ts
-             concl_t
+      nearly_all_facts ctxt ho_atp fact_override keywords css_table chained hyp_ts concl_t
+      |> relevant_facts ctxt params name (the_default default_max_facts max_facts) fact_override
+        hyp_ts concl_t
       |> hd |> snd
     val problem =
       {comment = "", state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
-       factss = [("", facts)]}
+       factss = [("", facts)], found_proof = I}
   in
-    (case prover params (K (K (K ""))) problem of
+    (case prover params problem of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME
     | _ => NONE)
     handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)
   end
 
-fun sledgehammer_with_metis_tac ctxt override_params fact_override i th =
+fun sledgehammer_with_metis_tac ctxt override_params fact_override chained i th =
   let val override_params = override_params @ [("preplay_timeout", "0")] in
-    case run_prover override_params fact_override i i ctxt th of
+    (case run_prover override_params fact_override chained i i ctxt th of
       SOME facts =>
       Metis_Tactic.metis_tac [] ATP_Problem_Generate.combs_or_liftingN ctxt
-          (maps (thms_of_name ctxt) facts) i th
-    | NONE => Seq.empty
+        (maps (thms_of_name ctxt) facts) i th
+    | NONE => Seq.empty)
   end
-
-end;
+end
 
   fun sledgehammer ctxt i = 
-    Sledgehammer_Tactics.sledgehammer_with_metis_tac ctxt []  {add = [], del = [], only = false} i
+    Sledgehammer_Tactics.sledgehammer_with_metis_tac ctxt []  {add = [], del = [], only = false} [] i
 *}
 
 ML{*
@@ -432,7 +430,7 @@ fun ENV_hyp_match ctxt
    case hyp of [] => []
    | _ => (* a bit hack here, only get the head ele*)
     let 
-      val tenvir = Pattern.unify thy (term_pat, hd hyp) (Envir.empty 0) |> Envir.term_env
+      val tenvir = Pattern.unify (Context.Proof ctxt) (term_pat, hd hyp) (Envir.empty 0) |> Envir.term_env
       fun get_v v = 
         case Vartab.lookup tenvir (v, 0) 
           of NONE => raise hyp_match v1
@@ -863,7 +861,7 @@ val clause_cls =
   |> Clause_GT.add_atomic "has_wrules" has_wrules
   |> Clause_GT.add_atomic "embeds"
     (cl_is_f (cl2_wraper TermFeatures.ctxt_embeds))
-  |> Clause_GT.add_atomic "sub_term" (cl_is_f (cl2_wraper (TermFeatures.is_subterm o Proof_Context.theory_of)))
+  |> Clause_GT.add_atomic "sub_term" (cl_is_f (cl2_wraper (TermFeatures.is_subterm)))
   |> Clause_GT.add_atomic  "measure_reduced" (cl_is_f (cl3_wraper (TermFeatures.is_measure_decreased)))
   |> Clause_GT.update_data_defs (fn x => (Clause_GT.scan_data Prover.default_ctxt "") @ x);
 
@@ -873,6 +871,9 @@ val clause_cls =
 
 *}
 
+ML{*
+K sledgehammer
+*}
 
 section "steup psgraph files"
 ML{*

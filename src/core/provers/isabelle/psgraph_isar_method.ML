@@ -35,12 +35,31 @@ struct
       |> Seq.single
    end)
 
+  fun itinker_tac name ctxt i st = 
+  case SOME (Thm.cprem_of st i) handle THM _ => NONE of
+  NONE => Seq.empty
+  |SOME _ =>
+    (let
+      val ps = get_graph (Proof_Context.theory_of ctxt) name
+    in
+      Tinker.start_ieval ctxt (SOME ps) (SOME []) (SOME (Thm.cprem_of st i |> Thm.term_of))
+      |> EVal.EData.get_pplan 
+      |> thm_of_pplan 
+      |> Seq.single
+   end)
+
   fun tinker_method str ctxt = 
    SIMPLE_METHOD' (tinker_tac str ctxt);
 
-  val str_parser : string context_parser = (Scan.lift (Args.name));
-    val _ = Context.>> (Context.map_theory
-     (Method.setup (Binding.name "tinker") (str_parser >> tinker_method) "apply tinker tactic"));
+  fun itinker_method str ctxt = 
+   SIMPLE_METHOD' (itinker_tac str ctxt);
+
+
+  val str_parser : string context_parser = (Scan.lift (Args.name)); 
+  val _ = Context.>> (Context.map_theory
+     (Method.setup (Binding.name "tinker") (str_parser >> tinker_method) "apply Tinker tactic"));
+  val _ = Context.>> (Context.map_theory
+     (Method.setup (Binding.name "itinker") (str_parser >> itinker_method) "debug tactic with the Tinker GUI"));
  
 end
 
