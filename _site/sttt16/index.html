@@ -3,6 +3,8 @@
 
 
 
+
+
 	<link rel="stylesheet" href="style/main.css">
 	<link rel="shortcut icon" href="favicon.ico">
 	
@@ -17,30 +19,34 @@
 <h3 style="text-align: center;">Authors : G. Grov and Y. Lin</h3>
 </div>
 	<div class="container">
-		<div class="section code" id="intro">
+		<div class="section" id="intro">
 			<h2>Foreword</h2>
 			<hr>
 			
 <p>This webpage aims to present resources used for our tool presentation. To use these resources</p>
-<p>1. Download and install Isabelle2014 from <a href="http://isabelle.in.tum.de/website-Isabelle2014/index.html" target="_blank">here</a>.<br>
+<p>1. Download and install Isabelle (the latest version is 2016-1) from <a href="https://isabelle.in.tum.de/installation.html" target="_blank">here</a>.<br>
 </p>
 <p>Then go to the contrib directory: 
 </p><p class="code"><span class="code">cd contrib</span> <br></p>
-<p>and grab the quantomatic libraries either over https, for isabelle 2014 or onwards:<br>
+<p>and grab the quantomatic libraries either over https,:<br>
 </p>
 
-<p class="code"><span class="code">git clone -b integration https://github.com/Quantomatic/quantomatic</span> <br></p>
-
-<p> OR over ssh:<br>
-
-</p><p class="code"><span class="code">git clone -b integration git://github.com/Quantomatic/quantomatic.git </span> <br></p>
+<p class="code"><span class="code">git clone -b tinker https://github.com/Quantomatic/quantomatic</span> <br></p>
 
 Note that this assumed that you have `git` installed.<br>
+<br>
 
-2. Download and install Tinker from here (to be updated). The example files is available under:
+2. Download and install Tinker from here <br>
+<p class="code" style="font-family: monospace;"><span>git clone -b sttt16 https://github.com/ggrov/tinker.git</span></p>
+<p> </p>
+The example files are available under:
 
 <p class="code"><span class="code"> $SOME_PATH/tinker/src/core/demo/STTT16/</span> <br></p>
-Details on how to start the GUI can be found in <a href="../userGuide.pdf" title="">Tinker's user guide</a>.
+
+In <span style="font-style: italic;">sttt_setup.thy</span>, set <span style="font-style: italic; font-weight: bold;">tinkerhome</span> to the path of tinker, e.g.
+<p class="code"><span class="code"> $SOME_PATH/tinker</span> <br></p>
+
+The example can then be run by opening the file  <span style="font-style: italic;">sttt_example.thy</span>. For more details on how to start the GUI can be found in <a href="../userGuide.pdf" title="">Tinker's user guide</a>.
 
 		</div>
 			<script src="script/d3.min.js"></script>
@@ -78,7 +84,7 @@ Details on how to start the GUI can be found in <a href="../userGuide.pdf" title
 				</div>
 			</div>
 			<script>
-				makeViz("record-dist","ressources/dist.json")
+				makeViz("record-dist","ressources/disj.json")
 			</script>
 		</div>
 		
@@ -86,10 +92,11 @@ Details on how to start the GUI can be found in <a href="../userGuide.pdf" title
 			<h2>Existential quantifiers via a one-point rule</h2>
 			<hr>
 			<div id="debug-onep">
+			<p> This recording shows the use of breakpoint to debug version0 of the one point rule:</p>
 				<div id="graphContent" style="visibility: hidden;">
 					<div class="line">
 						<div class="line content">
-							<span>Version0 -> Version1 : </span>
+							<span>Version0 -&gt; Version1 : </span>
 							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
 							<span id="vizIndices"></span>
 							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
@@ -113,9 +120,11 @@ Details on how to start the GUI can be found in <a href="../userGuide.pdf" title
 				</div>
 			</div>
 			<script>
-				makeViz("debug-onep","ressources/flat.json")
+				makeViz("debug-onep","ressources/onep_debug.json")
 			</script>
-			<div id="record-onep">
+			<div id="versions-onep">
+			 <p> This recording compares the differences between version0 and version1</p>
+
 				<div id="graphContent" style="visibility: hidden;">
 					<div class="line">
 						<div class="line content">
@@ -143,7 +152,39 @@ Details on how to start the GUI can be found in <a href="../userGuide.pdf" title
 				</div>
 			</div>
 			<script>
-				makeViz("record-onep","ressources/flat.json")
+				makeViz("versions-onep","ressources/oneps.json")
+			</script>
+			<div id="record-onep">
+			<p> This recording shows the evaluation of the version1:</p>
+
+				<div id="graphContent" style="visibility: hidden;">
+					<div class="line">
+						<div class="line content">
+							<span>Evaluation Step : </span>
+							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
+							<span id="vizIndices"></span>
+							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
+							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
+						</div>
+					</div>
+					<div id="mainArea">
+						<div class="line content">
+							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
+							<div>
+								<select id="tacticList" class=""></select>
+								<span>Subgraphs : </span>
+								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
+								<span id="graphIndices"></span>
+								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
+							</div>
+						</div>
+						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
+					</div>
+					<div id="graphError" style="visibility: hidden;"></div>
+				</div>
+			</div>
+			<script>
+				makeViz("record-onep","ressources/onep_full.json")
 			</script>
 		</div>
 		<div class="section" id="rippling">		
@@ -177,7 +218,7 @@ Details on how to start the GUI can be found in <a href="../userGuide.pdf" title
 				</div>
 			</div>
 			<script>
-				makeViz("record1","ressources/flat.json")
+				makeViz("record1","ressources/rippling.json")
 			</script>
 		</div>
 		<div class="section" id="demo">
