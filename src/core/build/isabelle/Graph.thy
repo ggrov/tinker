@@ -1,7 +1,7 @@
 (* simple test of proof representation *)
 theory Graph                                                                                           
 imports                            
-  BasicGoalTyp                                                                                                                        
+  GoalTyp                                                                                                                        
 begin
 
   ML_file "../../graph/graph_data.sig.ML"          

@@ -8,7 +8,7 @@ end
 
 signature PSGRAPH_DATA =
 sig
-  structure GoalTyp : BASIC_GOALTYPE
+  structure GoalTyp : CLAUSE_GOALTYPE
 
   type arg_typ = string list list 
   (*e.g. [[trm, A_Trm], [ml_str, A_ML]] = (trm : A_Trm) (ml_str : A_ML), eventually,

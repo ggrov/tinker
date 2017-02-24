@@ -6,9 +6,7 @@ begin
  (* socket communication for the tinker gui *)
  ML_file "../../interface/text_socket.ML"
  ML_file "../../interface/tinker_protocol.ML"
-
- ML_file "../../goaltype/goaltype.sig.ML"                                                                                                                      
- ML_file "../../goaltype/goaltype.ML"                                                                                                                        
+                                                                                                                     
 
  -- "the prover"  
  ML_file "../../provers/Isabelle/isa_prover.ML"                              

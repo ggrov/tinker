@@ -1,4 +1,4 @@
-functor PSGraphDataFun (GoalTyp : BASIC_GOALTYPE) : PSGRAPH_DATA
+functor PSGraphDataFun (GoalTyp : CLAUSE_GOALTYPE) : PSGRAPH_DATA
 = struct
 local open LoggingHandler in
   structure GoalTyp = GoalTyp;
