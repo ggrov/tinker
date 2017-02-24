@@ -1,6 +1,5 @@
 val tinkerhome = OS.FileSys.getDir() ^ "/psgraph";
-use_file (tinkerhome ^ "/src/core/demo/TACAS16/tacas_setup");
-
+use_file (tinkerhome ^ "/src/core/examples/TACAS16/tacas_setup");
 
 val g : GOAL = 
  ([],

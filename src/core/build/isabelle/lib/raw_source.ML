@@ -1,8 +1,5 @@
-(*  Title:      Pure/General/source.ML
-    Author:     Markus Wenzel, TU Muenchen
-
-Coalgebraic data sources -- efficient purely functional input streams.
-*)
+(* Copy and changed  from Pure/General/source.ML.
+It is used to handle JSON stream *)
 
 signature RAW_SOURCE =
 sig

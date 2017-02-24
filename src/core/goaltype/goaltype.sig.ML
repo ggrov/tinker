@@ -1,6 +1,29 @@
+signature BASIC_GOALTYPE_SHARING =
+sig
+  type T
+  type gnode
+  type data
+  type gtyp
+  structure Prover : PROVER_SHARING
+end
+
 signature CLAUSE_GOALTYPE =
 sig
-  include BASIC_GOALTYPE
+ structure Prover : PROVER
+
+  exception eval_exp of string;
+  exception gt_exp of string; 
+
+  type T
+  type gnode
+  type data
+  type gtyp
+  structure GoalTyp_ML_Exec : ML_EXEC
+  sharing type GoalTyp_ML_Exec.ret_typ = gtyp
+   
+  val default : T
+  val default_gnode : gnode
+  val default_data : data
 
   datatype arg = Name of string (* x,y,x *)
                 | Var of string (* X,Y,Z *)
@@ -14,6 +37,33 @@ sig
                   | Constraint of arg; (* will this be used at all? *)
 
   type env = Prover.env (* provided by prover *)
+  
+  (**********************
+    Order and comparing
+   **********************)
+  val eq : (T * T) -> bool
+  val gnode_eq : (gnode * gnode) -> bool
+  val goal_name : gnode -> string
+
+  (**********************
+    JSON IO
+   **********************)
+  val gnode_to_json : gnode -> Json.json 
+  val gnode_from_json : Json.json -> gnode 
+
+  val merge_data : data -> data -> data
+  val data_to_json : data -> Json.json
+  val data_from_json : Json.json -> data
+
+  val to_json : T -> Json.json 
+  val from_json : Json.json -> T 
+
+  (**********************
+    Pretty
+   **********************)
+  val pretty_gnode : gnode -> Pretty.T
+  val pretty_data :  data -> Pretty.T
+  val pretty :  T -> Pretty.T
   
   val goal_pretty : gnode -> Pretty.T
  
@@ -50,6 +100,8 @@ sig
   (**********************
     EVALUATION
    **********************)
+   val check : data * T -> (gnode option * Prover.pnode) -> bool
+   val lift : Prover.pnode -> gnode
 
    val eval_arg : data -> Prover.pnode -> arg -> env -> env list
    val eval_filter_clause : data -> Prover.pnode -> arg -> env -> env list
@@ -61,6 +113,7 @@ sig
    val match :  data -> Prover.pnode -> T -> env -> env list 
    val imatch :  data -> Prover.pnode -> T -> env list
    val type_check : data -> Prover.pnode -> T -> bool
+
 
   (************************************
     SCAN/PARSE data and goaltype
@@ -80,5 +133,13 @@ sig
 
   val add_parse_def : string -> data -> data
  
+
+
+  structure BasicSharing : BASIC_GOALTYPE_SHARING
+    sharing type BasicSharing.T = T
+    sharing type BasicSharing.gnode = gnode
+    sharing type BasicSharing.data = data    
+    sharing type BasicSharing.gtyp = gtyp    
+    sharing BasicSharing.Prover = Prover.Sharing
 
 end (* struct *)
