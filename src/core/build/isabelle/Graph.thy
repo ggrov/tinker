@@ -3,33 +3,32 @@ theory Graph
 imports                            
   GoalTyp                                                                                                                        
 begin
+  
+ML_file "../../graph/graph_data.sig.ML"          
+ML_file "../../graph/graph_data.ML" 
+ML_file "../../graph/env_tac_utils.ML"
 
-  ML_file "../../graph/graph_data.sig.ML"          
-  ML_file "../../graph/graph_data.ML"                                           
-  ML_file "../../graph/io.ML"
-  ML_file "../../graph/theory.ML"
-  ML_file "../../graph/env_tac_utils.ML"
-  ML_file "../../graph/theory_io.sig.ML"    
-  ML_file "../../graph/theory_io.ML"
-       
+ML_file "../../graph/graph.sig.ML"
+  ML_file "../../graph/graph.ML"
+  
+  ML_file "../../graph/graph_io.sig.ML"    
+  ML_file "../../graph/graph_io.ML"
+  
+    
+ML{*
 
-  (* generic for graphs - move to quantomatic? *)
-  (* ML_file "../../graph/graph_comb.ML" *)
+  type arg_typ = string list list
 
-(*
-  "../../graph/substdata.ML"                                  
-  "../../graph/vertex.ML"                            
-  "../../graph/edge.ML"  
-  "../../graph/graph.ML"                     
-  "../../graph/theory.ML"    
-*)                               
 
- (* changes
-    Graph.EData.data -> Graph.edata
-    Graph.get_edge -> Graph.get_edge_info
-    Graph.get_vnames -> get_vertices 
-  *)
+  datatype nvdata = T_Atomic of (string * arg_typ)
+                  | T_Graph of (string * arg_typ) 
+                  | T_Identity 
+                  | G_Break (* breakpoint *)
+                  | G of GoalTyp.gnode 
+                  | T_Var of string (* variable of rtechn *)
+                  | G_Var of string (* variable of gnode *)
 
+*}
 end
 
 

@@ -1,10 +1,14 @@
-theory LoadQuantoLib
-  imports
-  Main                              
-  (*"../../../../../quantomatic/core/quanto"*)
-  "~~/contrib/quantomatic/core/quanto"
+theory LoadLib
+  imports Main
+  "../../../lib/isalib" 
+(*  "~~/contrib/quantomatic/core/quanto" *)
 begin 
-
+ML{*
+signature x =
+sig
+structure V : SSTR_NAME  
+end
+*}
 ML{*
 Induct.induct_tac;
   exception RunCallFail = Fail;
@@ -13,10 +17,9 @@ Induct.induct_tac;
   {debug = false, file = "", line = 0, verbose = false}
 *}  
   
- 
 ML{*
 (* a quick test for the use of the top level context for eval ML code *)
   eval_text "eval_text";
 *}
-
+  
 end

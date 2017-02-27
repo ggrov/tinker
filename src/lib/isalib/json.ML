@@ -162,7 +162,7 @@ sig
   val write_file : string -> json -> unit
 end
 
-structure Json : JSON =
+structure Json (*: JSON *) =
 struct
 
 (* JObj stores the order in which keys are added, so that it can be
@@ -434,17 +434,10 @@ val pretty = pretty_d 0
 val string_of = Pretty.string_of o pretty
 val of_string = Parser.parse
 
-(*fun json_source instream =
-  Source.source Symbol.stopper
-    (Parser.p_top_level >> single) NONE
-      (Source.tty' (fn c => c = "]" orelse c = "}") instream)
-  |> Source.set_prompt ""*)
-
 fun json_source instream =
-  Source.source Symbol.stopper
-    (Parser.p_top_level >> single) NONE
-      (Source.raw_stream (fn c => c = "}" orelse c = "]") instream)
-  |> Source.set_prompt ""
+  RawSource.source Symbol.stopper
+    (Parser.p_top_level >> single)
+      (RawSource.raw_stream (fn c => c = "}" orelse c = "]") instream)
 
 fun read_file file = let
   val get_one_json = RawSource.get_single o json_source

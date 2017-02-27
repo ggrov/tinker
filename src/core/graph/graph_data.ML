@@ -1,5 +1,5 @@
-functor PSGraphDataFun (GoalTyp : CLAUSE_GOALTYPE) : PSGRAPH_DATA
-= struct
+functor PSGraphDataFun (GoalTyp : CLAUSE_GOALTYPE) : GRAPH_DATA
+= struct                                                   
 local open LoggingHandler in
   structure GoalTyp = GoalTyp;
 
@@ -74,130 +74,28 @@ local open LoggingHandler in
   |  edata_eq (GT_Var v1,GT_Var v2) = (v1 = v2)
   |  edata_eq _ = false;
 
-  (* substution: for tactic gnode and edge *)
-  datatype subst = Subst of { tactic : nvdata StrName.NTab.T,
-                              gnode : GoalTyp.gnode StrName.NTab.T,
-                              edge : edata StrName.NTab.T }
-
-  (* fixme : not sure how to use psubst *)
-  type psubst = subst; 
-
-  fun add_vsubst (n,v) (Subst subst) = 
-   Subst { tactic = StrName.NTab.ins (n,v) (#tactic subst),
-           gnode = #gnode subst,
-           edge = #edge subst }
-  fun add_gsubst (n,v) (Subst subst) = 
-   Subst { tactic = #tactic subst,
-           gnode = StrName.NTab.ins (n,v) (#gnode subst),
-           edge = #edge subst }
-  fun add_esubst (n,v) (Subst subst) = 
-   Subst { tactic = #tactic subst,
-           gnode = #gnode subst,
-           edge = StrName.NTab.ins (n,v) (#edge subst) }
-
-  fun lookup_tsubst (Subst {tactic,...}) = 
-      StrName.NTab.lookup tactic;
-  fun lookup_esubst (Subst {edge,...}) = 
-      StrName.NTab.lookup edge;
-  fun lookup_gsubst (Subst {gnode,...}) = 
-      StrName.NTab.lookup gnode;
-
-  val empty_subst = 
-    Subst { tactic = StrName.NTab.empty,
-            gnode = StrName.NTab.empty,
-            edge = StrName.NTab.empty};
-
-  fun compose_subst (Subst s1,Subst s2) =
-    Subst { tactic = StrName.NTab.merge_joint nvdata_eq (#tactic s1) (#tactic s2),
-            gnode = StrName.NTab.merge_joint GoalTyp.gnode_eq (#gnode s1) (#gnode s2),
-            edge = StrName.NTab.merge_joint edata_eq (#edge s1) (#edge s2)};
-
-  (* matching *)
-  fun match_nvdata (T_Var v,nd) subst = 
-      (if (is_tactic_node nd)
-       then
-        (case lookup_tsubst subst v of
-            NONE => SOME (add_vsubst (v,nd) subst) (* bind vi if not bound *)
-          | SOME nd' => if nvdata_eq (nd,nd') then SOME subst else NONE)
-       else NONE)
-    | match_nvdata (G_Var v, G gn) subst =
-        (case lookup_gsubst subst v of
-            NONE => SOME (add_gsubst (v,gn) subst) (* bind vi if not bound *)
-          | SOME gn' => if GoalTyp.gnode_eq (gn,gn') then SOME subst else NONE )
-    | match_nvdata (_,T_Var _) _ = NONE
-    | match_nvdata (_,G_Var _) _ = NONE  
-    | match_nvdata (nd1,nd2) subst =  
-       if nvdata_eq(nd1,nd2) then SOME subst else NONE;
-
-  fun match_edata (GT_Var v1,e) subst =
-      (case lookup_esubst subst v1 of
-            NONE => SOME (add_esubst (v1,e) subst)
-          | SOME e2 => if edata_eq(e,e2) then SOME subst else NONE)
-   |  match_edata (GT gt1,GT gt2) subst = 
-        if GoalTyp.eq(gt1,gt2) then SOME subst else NONE
-   |  match_edata (GT _,GT_Var _) _ = NONE
-
-  (* dummy: not sure what this id used for... *)
-  val solve_psubst = Seq.single;
-
-  (* I think it should be empty to start with and 
-     only instantiated by pattern matching *)
-  fun init_psubst_from_data _ _ = empty_subst;
-
-  (* Apply substitutions to data. *)
-
-  fun subst_in_nvdata subst (T_Var v) =
-        (case lookup_tsubst subst v of
-          NONE => (subst, T_Var v) (* or should it fail? *)
-        | (SOME d) => (subst, d))
-   |  subst_in_nvdata subst (G_Var v) =
-        (case lookup_gsubst subst v of
-          NONE => (subst, G_Var v) (* or should it fail? *)
-        | SOME d => (subst, G d))
-   |  subst_in_nvdata subst nd = (subst,nd);
-
-  fun subst_in_edata subst (GT gt) = (subst, GT gt)
-   |  subst_in_edata subst (GT_Var v) = 
-        (case lookup_esubst subst v of
-          NONE => (subst, GT_Var v)
-        | (SOME d) => (subst,d));
-
-
-  (* default stuff *)
-
   (* default vertex and edge data *)
   val default_nvdata  = T_Identity;
   val default_edata = GT GoalTyp.default;
 
-  (* dummy values - not used... *)
-  val default_nvdata_of_typestring =  K default_nvdata;
-  val default_edata_of_typestring = K default_edata;
 
   (* pretty printing *)
-
   val pretty_theory_name = Pretty.str "PSGraph";
-  (* fixme *)
+
   fun pretty_nvdata (T_Atomic name) = Pretty.str (get_nvdata_name (T_Atomic name))
    |  pretty_nvdata (T_Graph name) = Pretty.str (get_nvdata_name (T_Graph name))
    |  pretty_nvdata (T_Identity) = Pretty.str "id"
    |  pretty_nvdata (G_Break) = Pretty.str "break_point"
-   |  pretty_nvdata (G gn) = Pretty.str "" (* FIXME *)
+   |  pretty_nvdata (G gn) = GoalTyp.goal_pretty gn
    |  pretty_nvdata (T_Var s) = Pretty.str ("?T_" ^ s)
    |  pretty_nvdata (G_Var s) = Pretty.str ("?G_" ^ s)
 
   val print_nvdata = Pretty.writeln o pretty_nvdata;
 
-  fun pretty_edata (GT gt) = Pretty.str "" (* FIXME *)
+  fun pretty_edata (GT gt) = GoalTyp.pretty gt
    |  pretty_edata (GT_Var v) = Pretty.str ("?" ^ v)
+
   val print_edata = Pretty.writeln o pretty_edata;
-
-  fun pretty_subst (Subst {tactic,gnode,edge}) =
-    Pretty.block [Pretty.str "vertex subst: ",StrName.NTab.pretty pretty_nvdata tactic,
-           (* FIXME *)
-           (*     Pretty.str "gnode subst: ",StrName.NTab.pretty GoalTyp.pretty_gnode gnode, *) 
-                  Pretty.str "edge subst: ",StrName.NTab.pretty pretty_edata edge];
-  val print_subst = Pretty.writeln o pretty_subst;  
-
   
  exception gdata_json_exp of string * Json.json
 
@@ -206,9 +104,12 @@ local open LoggingHandler in
  fun arg_typ_from_json (Json.Array args) = 
   map 
   (fn (Json.Array x) => 
-    map 
-    (fn y => case y of (Json.String str) => str) 
+    (map 
+    (fn y => 
+      case y of (Json.String str) => str 
+               | _ => raise Json.parse_exn "unexcepted json strcure in arg_typ_from_json") 
     x)
+    |_ => raise Json.parse_exn "unexcepted json strcure in arg_typ_from_json")
   args 
  | arg_typ_from_json _ =  raise Json.parse_exn "unexcepted json strcure in arg_typ_from_json"
 
