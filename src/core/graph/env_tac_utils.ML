@@ -1,33 +1,33 @@
 signature ENV_TAC_UTILS_SHARING = 
 sig
-  structure PS_Theory : PS_THEORY_SHARING
+  structure Graph : GRAPH_SHARING
 end
 
 signature ENV_TAC_UTILS = 
 sig
-  structure PS_Theory : PS_THEORY
+  structure Graph : GRAPH
 
   val is_abbrv_env_tac : string -> bool
   val scan_abbrv_env_tac : 
-     PS_Theory.Data.GoalTyp.Prover.context
+     Graph.Data.GoalTyp.Prover.context
      -> string
-     -> PS_Theory.Data.GoalTyp.Prover.env
-     -> PS_Theory.Data.GoalTyp.Prover.env_tac
+     -> Graph.Data.GoalTyp.Prover.env
+     -> Graph.Data.GoalTyp.Prover.env_tac
 
   structure Sharing : ENV_TAC_UTILS_SHARING
-    sharing Sharing.PS_Theory = PS_Theory.Sharing
+    sharing Sharing.Graph = Graph.Sharing
 end
 
-functor EnvTacUtilsFunc (structure Theory : PS_THEORY val struct_name : string) (*: ENV_TAC_UTILS *)= 
+functor EnvTacUtilsFunc (structure Graph : GRAPH val struct_name : string) (*: ENV_TAC_UTILS *)= 
 struct
   structure PS_Theory = Theory
-  structure Prover = PS_Theory.Data.GoalTyp.Prover
+  structure Prover = Graph.Data.GoalTyp.Prover
   local open LoggingHandler in 
     val env_var_prefix = "PSGRAPH_ENV_VAR_";
     val if_local_debug = false;
 
     fun parse_env_var_name' name (* raise exception*) =
-       case PS_Theory.Graph_Utils.parse_env_var_name name 
+       case Graph.Graph_Utils.parse_env_var_name name 
         of NONE 
           => (logging "ENV_DATA" ("Invalid env variable name: " ^ name); raise tinker_fail true)
         | (SOME n) => n;

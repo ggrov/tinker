@@ -1,14 +1,59 @@
 signature GRAPH_SHARING = 
 sig
-  type T
-  structure data : GRAPH_DATA_SHARING
+ type T
+ structure Data : GRAPH_DATA_SHARING
 end
 
 signature GRAPH  =
 sig
-  structure graph_data : GRAPH_DATA
+ structure Data : GRAPH_DATA
+ datatype vdata = NVert of Data.nvdata | WVert (* vertex data *)
+ type edata = Data.edata
 
-  type T
+ type T
 
-  structure Sharing : GRAPH_SHARING
+ val empty : T 
+
+(* graph is empty *)
+ val is_empty : T -> bool
+
+(* containment checks *)
+ val has_vertex : T -> V.name -> bool
+ val has_edge : T -> E.name -> bool
+ val get_boundary : T -> V.NSet.T
+ val get_inputs   : T -> V.NSet.T
+ val get_outputs  : T -> V.NSet.T
+
+ val is_boundary  : T -> V.name -> bool
+ val is_input     : T -> V.name -> bool
+ val is_output    : T -> V.name -> bool 
+
+ val get_edge_source : T -> E.name -> V.name
+ val get_edge_target : T -> E.name -> V.name
+
+ val get_in_edges  : T -> V.name -> E.NSet.T
+ val get_out_edges : T -> V.name -> E.NSet.T
+
+
+ val get_vertex_data : T -> V.name -> vdata
+ val get_edge_data   : T -> E.name -> edata
+ val set_vertex_data : vdata -> V.name -> T -> T
+ val set_edge_data   : edata -> E.name -> T -> T
+ val update_vertex_data : (vdata -> vdata) -> V.name -> T -> T
+ val update_edge_data   : (edata -> edata) -> E.name -> T -> T
+
+ val add_vertex    : vdata -> T -> V.name * T 
+ val add_edge      : edata -> V.name -> V.name -> T -> E.name * T
+ val delete_edge   : E.name -> T -> T
+ val delete_vertex : V.name -> T -> T
+
+ val rename_vertex : V.name -> V.name -> T -> T
+ val rename_edge   : E.name -> E.name -> T -> T
+
+ val normalise : T -> T
+
+ val pretty : T -> Pretty.T
+ val print : T -> unit
+
+ structure Sharing : GRAPH_SHARING
 end

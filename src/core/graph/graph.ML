@@ -1,6 +1,6 @@
-functor Graph (Data: GRAPH_DATA) : GRAPH=
+functor Graph (Data: GRAPH_DATA) : GRAPH =
 struct
- structure graph_data = Data
+ structure Data = Data
 
  datatype T = G of {
   vdata  : Data.nvdata VTab.T,
@@ -12,7 +12,7 @@ struct
  structure Sharing =
  struct
   type T = T
-  structure data = Data.Sharing
+  structure Data = Data.Sharing
  end
 
 end

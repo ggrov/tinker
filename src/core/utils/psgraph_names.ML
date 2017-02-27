@@ -7,11 +7,8 @@
   structure VTab = SStrTab
   structure ETab = SStrTab
 
-  structure EVFn : NAME_FUNCTION
-      where type dom = E.name
-        and type DomSet.T = E.NSet.T
-        and type cod = V.name
-        and type CodSet.T = V.NSet.T
+  structure SStrFn  = NameFunction(structure Dom = SStrName; structure Cod = SStrName)
+  structure EVFn = SStrFn
 
 
 

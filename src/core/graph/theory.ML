@@ -9,46 +9,7 @@ sig
   structure Theory : GRAPHICAL_THEORY
   structure PSDataIO : GRAPH_COMPONENT_DATA_IO
   include GRAPHICAL_THEORY
-  structure Graph_Utils : 
-  sig 
-    val add_outs : E.name list -> Graph.nvdata list -> Graph.T -> Graph.T 
-    val all_gnodes : Graph.T -> V.name list
-    val all_tactics : Graph.T -> V.name list 
-    val del_gnode : V.name -> Graph.T -> Graph.T
-    val edge_data : Graph.T -> E.name -> Graph.edata 
-    val edge_dest : Graph.T -> E.name -> V.name
-    val edge_src : Graph.T -> E.name -> V.name 
-    val get_vertex_list : Graph.T -> V.NSet.name list
-    val gnode_of : Graph.T -> V.name -> Data.GoalTyp.gnode
-    val goaltype_of : Graph.T -> E.name -> Data.GoalTyp.T
-    val in_edges : Graph.T -> V.name -> E.NSet.name list
-    val input_boundary : Graph.T -> (V.name * (E.name * Graph.edata) * V.name) list
-    val insert_node_on_edge : Graph.nvdata -> E.name -> Graph.T -> E.name * E.name * Graph.T
-    val is_gnode : Graph.T -> V.name -> bool 
-    val is_gtyp : Graph.T -> E.name -> bool
-   (* val is_hgragh_with_graph_name : Graph.T -> string -> V.name -> bool*)
-    val is_tactic : Graph.T -> V.name -> bool
-    val lookup_gnode : Graph.T -> V.name -> Data.GoalTyp.gnode option 
-    (*val lookup_hgragh_by_graph_name : Graph.T -> string -> V.name*)
-    val lookup_ivertex_data : Graph.T -> V.name -> Graph.nvdata option
-    val match_lhs : Graph.T -> Graph.T -> (Graph.subst * (Graph.subst * Graph.T)) Seq.seq
-    val matched_lhs : Graph.T -> V.name -> (Graph.subst * (Graph.subst * Graph.T)) Seq.seq
-    val mk_binput : Graph.edata -> V.name -> Graph.T -> Graph.T 
-    val mk_boutput : Graph.edata -> V.name -> Graph.T -> Graph.T
-    val mk_gnode : Data.GoalTyp.gnode -> Data.nvdata 
-    val mk_lhs : Graph.T -> V.name -> Graph.T list
-    val out_edges : Graph.T -> V.name -> E.NSet.name list
-    val output_boundary : Graph.T -> (V.name * (E.name * Graph.edata) * V.name) list
-    val parse_arg_data : Data.GoalTyp.Prover.context -> Data.GoalTyp.Prover.pnode 
-        -> Data.arg_typ -> Data.GoalTyp.Prover.arg_data list
-    val rewrite : Rule.T -> Graph.T -> Graph.T list 
-    val rewrite_lazy : Rule.T -> Graph.T -> Graph.T Seq.seq
-    val symmetric_rule : Rule.T -> Rule.T
-    val vertex_data : Graph.T -> V.name -> Graph.nvdata 
-    val is_env_tactic_name : string -> bool
-    val is_env_tactic : Graph.T -> V.name -> bool
-    val parse_env_var_name : string -> string option
-  end
+
 
   sharing type Graph.T = Theory.Graph.T
   sharing type Graph.nvdata = Data.nvdata
