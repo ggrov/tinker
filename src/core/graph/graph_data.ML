@@ -5,23 +5,26 @@ local open LoggingHandler in
 
   type arg_typ = string list list
 
-  (* FIXME: need a proper parse, currently only support ML *)
+  datatype vdata =  
+       T_Atomic of  (string * arg_typ)
+     | T_Graph of (string * arg_typ)
+     | T_Identity 
+     | G_Break (* breakpoint *)
+     | G of GoalTyp.gnode 
+     | T_Var of string (* variable of rtechn *)
+     | G_Var of string (* variable of gnode *)
+     | Boundary (* boundary of a graph *)
 
-  datatype nvdata = T_Atomic of (string * arg_typ)
-                  | T_Graph of (string * arg_typ) 
-                  | T_Identity 
-                  | G_Break (* breakpoint *)
-                  | G of GoalTyp.gnode 
-                  | T_Var of string (* variable of rtechn *)
-                  | G_Var of string (* variable of gnode *)
   
-  fun get_nvdata_name (T_Atomic atom) = fst atom
-  | get_nvdata_name (T_Graph g) = fst g
-  | get_nvdata_name _ = ""
+  fun get_vdata_name vdata = 
+    case vdata of
+     (T_Atomic atom) => fst atom
+    | (T_Graph g) => fst g
+    | _ => ""
 
-  fun get_nvdata_args (T_Atomic atom) = snd atom
-  | get_nvdata_args (T_Graph g) = snd g
-  | get_nvdata_args _ = [[]]
+  fun get_vdata_args (T_Atomic atom) = snd atom
+  | get_vdata_args (T_Graph g) = snd g
+  | get_vdata_args _ = [[]]
 
   val get_graph_tac_name = fst
   val get_graph_tac_args = snd
@@ -38,7 +41,7 @@ local open LoggingHandler in
   datatype edata  = GT of GoalTyp.T
                   | GT_Var of string (* variable of goalnode *)
 
-  exception node_exp of string * nvdata;
+  exception node_exp of string * vdata;
 
   val identity = T_Identity;
   val break_point =  G_Break; (* breakpoint *)
@@ -60,37 +63,42 @@ local open LoggingHandler in
   fun is_break_point G_Break = true
    |  is_break_point _ = false;
 
+  fun is_boundary Boundary = true
+  |   is_boundary _ = false
+
   (* node equality *)
-  fun nvdata_eq (T_Atomic a1,T_Atomic a2) = (get_nvdata_name (T_Atomic a1) = get_nvdata_name (T_Atomic a2))
-   | nvdata_eq (T_Graph n1,T_Graph n2) = (get_nvdata_name (T_Graph n1) = get_nvdata_name (T_Graph n2))
-   | nvdata_eq (T_Identity,T_Identity) = true 
-   | nvdata_eq (G_Break,G_Break) = true 
-   |  nvdata_eq (G g1,G g2) = GoalTyp.gnode_eq (g1,g2)
-   |  nvdata_eq (T_Var v1,T_Var v2) = (v1 = v2)
-   |  nvdata_eq (G_Var v1,G_Var v2) = (v1 = v2)
-   |  nvdata_eq _ = false;
+  fun vdata_eq (T_Atomic a1,T_Atomic a2) = (get_vdata_name (T_Atomic a1) = get_vdata_name (T_Atomic a2))
+   | vdata_eq (T_Graph n1,T_Graph n2) = (get_vdata_name (T_Graph n1) = get_vdata_name (T_Graph n2))
+   | vdata_eq (T_Identity,T_Identity) = true 
+   | vdata_eq (G_Break,G_Break) = true
+   | vdata_eq (G g1,G g2) = GoalTyp.gnode_eq (g1,g2)
+   | vdata_eq (T_Var v1,T_Var v2) = (v1 = v2)
+   | vdata_eq (G_Var v1,G_Var v2) = (v1 = v2)
+   | vdata_eq (Boundary, Boundary) = true
+   | vdata_eq _ = false;
 
  fun edata_eq (GT gt1,GT gt2) = GoalTyp.eq (gt1,gt2)
   |  edata_eq (GT_Var v1,GT_Var v2) = (v1 = v2)
   |  edata_eq _ = false;
 
   (* default vertex and edge data *)
-  val default_nvdata  = T_Identity;
+  val default_vdata = T_Identity;
   val default_edata = GT GoalTyp.default;
 
 
   (* pretty printing *)
   val pretty_theory_name = Pretty.str "PSGraph";
 
-  fun pretty_nvdata (T_Atomic name) = Pretty.str (get_nvdata_name (T_Atomic name))
-   |  pretty_nvdata (T_Graph name) = Pretty.str (get_nvdata_name (T_Graph name))
-   |  pretty_nvdata (T_Identity) = Pretty.str "id"
-   |  pretty_nvdata (G_Break) = Pretty.str "break_point"
-   |  pretty_nvdata (G gn) = GoalTyp.goal_pretty gn
-   |  pretty_nvdata (T_Var s) = Pretty.str ("?T_" ^ s)
-   |  pretty_nvdata (G_Var s) = Pretty.str ("?G_" ^ s)
+  fun pretty_vdata (T_Atomic name) = Pretty.str (get_vdata_name (T_Atomic name))
+   |  pretty_vdata (T_Graph name) = Pretty.str (get_vdata_name (T_Graph name))
+   |  pretty_vdata (T_Identity) = Pretty.str "id"
+   |  pretty_vdata (G_Break) = Pretty.str "break_point"
+   |  pretty_vdata (G gn) = GoalTyp.goal_pretty gn
+   |  pretty_vdata (T_Var s) = Pretty.str ("?T_" ^ s)
+   |  pretty_vdata (G_Var s) = Pretty.str ("?G_" ^ s)
+   |  pretty_vdata (Boundary) = Pretty.str "boundary"
 
-  val print_nvdata = Pretty.writeln o pretty_nvdata;
+  val print_vdata = Pretty.writeln o pretty_vdata;
 
   fun pretty_edata (GT gt) = GoalTyp.pretty gt
    |  pretty_edata (GT_Var v) = Pretty.str ("?" ^ v)
@@ -114,26 +122,26 @@ local open LoggingHandler in
  | arg_typ_from_json _ =  raise Json.parse_exn "unexcepted json strcure in arg_typ_from_json"
 
 
- fun nvdata_to_json (T_Atomic atom) = 
+ fun vdata_to_json (T_Atomic atom) = 
       Json.mk_object ([("type", Json.String "T_Atomic"), 
-          ("atm", Json.String (get_nvdata_name (T_Atomic atom))), 
-          ("args", arg_typ_to_json (get_nvdata_args (T_Atomic atom)))])
-   | nvdata_to_json (T_Graph tg) = 
+          ("atm", Json.String (get_vdata_name (T_Atomic atom))), 
+          ("args", arg_typ_to_json (get_vdata_args (T_Atomic atom)))])
+   | vdata_to_json (T_Graph tg) = 
       Json.mk_object ([("type", Json.String "T_Graph"), 
           ("subgraph",  Json.String (get_graph_tac_name tg)),
            ("args", arg_typ_to_json (get_graph_tac_args tg))]) 
-   | nvdata_to_json T_Identity = 
+   | vdata_to_json T_Identity = 
       Json.mk_object [("type", Json.String "T_Identity")]
-   | nvdata_to_json G_Break = 
+   | vdata_to_json G_Break = 
       Json.mk_object [("type", Json.String "G_Break")] 
-   | nvdata_to_json (G gn) = 
+   | vdata_to_json (G gn) = 
       Json.mk_object [("type", Json.String "G"), ("gn", GoalTyp.gnode_to_json gn)]
-   | nvdata_to_json (T_Var t_var) =
+   | vdata_to_json (T_Var t_var) =
       Json.mk_object [("type", Json.String "T_Var"), ("t_var", Json.String t_var)]
-   | nvdata_to_json (G_Var g_var) =
+   | vdata_to_json (G_Var g_var) =
       Json.mk_object [("type", Json.String "G_Var"), ("g_var", Json.String g_var)]
    
- fun nvdata_from_json (Json.Object jobj) (* has to be jobj *) = 
+ fun vdata_from_json (Json.Object jobj) (* has to be jobj *) = 
        (case JsonInputUtils.get_string jobj "type" of
               "T_Atomic" =>
               (debug_json "JSON_CORE" ("Json parsing: Node (T_Atomic) - " ^ JsonInputUtils.get_string jobj "atm") ();
@@ -152,9 +160,9 @@ local open LoggingHandler in
             | "G_Var" => T_Var (JsonInputUtils.get_string jobj "g_var")
             | _ => raise gdata_json_exp ("unexpected node type in JSON encoding", Json.Object jobj)
        )
-    | nvdata_from_json x = 
+    | vdata_from_json x = 
         raise gdata_json_exp 
-              ("Fail to parse nvdata from json, the expected formate of json has to be jobj",
+              ("Fail to parse vdata from json, the expected formate of json has to be jobj",
               x);
 
 
@@ -174,16 +182,14 @@ local open LoggingHandler in
             | _ => raise gdata_json_exp ("unexpected edge type in JSON encoding", Json.Object jobj))
     | edata_from_json x = 
         raise gdata_json_exp 
-              ("Fail to parse edata from json, the expected formate of json has to be jobj",
+              ("Fail to parse edata from json, the expected format of json has to be jobj",
               x);
 
   structure Sharing = 
   struct
-    type nvdata = nvdata
+    type vdata = vdata
     type edata = edata
     structure GoalTyp = GoalTyp.BasicSharing
   end
  end
 end;
-
-

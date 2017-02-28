@@ -7,9 +7,6 @@ end
 signature GRAPH  =
 sig
  structure Data : GRAPH_DATA
- datatype vdata = NVert of Data.nvdata | WVert (* vertex data *)
- type edata = Data.edata
-
  type T
 
  val empty : T 
@@ -24,7 +21,6 @@ sig
  val get_inputs   : T -> V.NSet.T
  val get_outputs  : T -> V.NSet.T
 
- val is_boundary  : T -> V.name -> bool
  val is_input     : T -> V.name -> bool
  val is_output    : T -> V.name -> bool 
 
@@ -34,23 +30,20 @@ sig
  val get_in_edges  : T -> V.name -> E.NSet.T
  val get_out_edges : T -> V.name -> E.NSet.T
 
+ val get_vertex_data : T -> V.name -> Data.vdata
+ val get_edge_data   : T -> E.name -> Data.edata
+ val set_vertex_data : Data.vdata -> V.name -> T -> T
+ val set_edge_data   : Data.edata -> E.name -> T -> T
+ val update_vertex_data : (Data.vdata -> Data.vdata) -> V.name -> T -> T
+ val update_edge_data   : (Data.edata -> Data.edata) -> E.name -> T -> T
 
- val get_vertex_data : T -> V.name -> vdata
- val get_edge_data   : T -> E.name -> edata
- val set_vertex_data : vdata -> V.name -> T -> T
- val set_edge_data   : edata -> E.name -> T -> T
- val update_vertex_data : (vdata -> vdata) -> V.name -> T -> T
- val update_edge_data   : (edata -> edata) -> E.name -> T -> T
-
- val add_vertex    : vdata -> T -> V.name * T 
- val add_edge      : edata -> V.name -> V.name -> T -> E.name * T
+ val add_vertex    : Data.vdata -> T -> V.name * T 
+ val add_edge      : Data.edata -> V.name -> V.name -> T -> E.name * T
  val delete_edge   : E.name -> T -> T
  val delete_vertex : V.name -> T -> T
 
  val rename_vertex : V.name -> V.name -> T -> T
  val rename_edge   : E.name -> E.name -> T -> T
-
- val normalise : T -> T
 
  val pretty : T -> Pretty.T
  val print : T -> unit

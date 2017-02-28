@@ -1,7 +1,7 @@
 (* to do: all should be in a single file *)
 signature GRAPH_DATA_SHARING = 
 sig
-  type nvdata
+  type vdata
   type edata
   structure GoalTyp : BASIC_GOALTYPE_SHARING
 end
@@ -18,52 +18,55 @@ sig
 
 
 (* note: variables only for evaluation! *)
-  datatype nvdata =  T_Atomic of  (string * arg_typ)
-             | T_Graph of (string * arg_typ)
-             | T_Identity 
-             | G_Break (* breakpoint *)
-             | G of GoalTyp.gnode 
-             | T_Var of string (* variable of rtechn *)
-             | G_Var of string (* variable of gnode *)
+  datatype vdata =  
+     T_Atomic of  (string * arg_typ)
+   | T_Graph of (string * arg_typ)
+   | T_Identity 
+   | G_Break (* breakpoint *)
+   | G of GoalTyp.gnode 
+   | T_Var of string (* variable of rtechn *)
+   | G_Var of string (* variable of gnode *)
+   | Boundary (* boundary of a graph *)
 
   datatype edata = GT of GoalTyp.T
                  | GT_Var of string (* variable of goal node *)
   
   exception gdata_json_exp of string * Json.json
-  val get_nvdata_name : nvdata -> string
-  val get_nvdata_args : nvdata -> arg_typ
-  val nvdata_to_json : nvdata -> Json.json
-  val nvdata_from_json : Json.json -> nvdata
+  val get_vdata_name : vdata -> string
+  val get_vdata_args : vdata -> arg_typ
+  val vdata_to_json : vdata -> Json.json
+  val vdata_from_json : Json.json -> vdata
   val edata_to_json : edata -> Json.json
   val edata_from_json : Json.json -> edata
 
-  val nvdata_eq : nvdata * nvdata -> bool
+  val vdata_eq : vdata * vdata -> bool
   val edata_eq : edata * edata -> bool
 
-  exception node_exp of string * nvdata;
+  exception node_exp of string * vdata;
 
-  val identity : nvdata
-  val break_point : nvdata
+  val identity : vdata
+  val break_point : vdata
 
-  val is_tactic_node : nvdata -> bool
-  val is_atomic : nvdata -> bool
-  val is_nested : nvdata -> bool
-  val is_identity : nvdata -> bool
-  val is_break_point : nvdata -> bool
+  val is_tactic_node : vdata -> bool
+  val is_atomic : vdata -> bool
+  val is_nested : vdata -> bool
+  val is_identity : vdata -> bool
+  val is_break_point : vdata -> bool
+  val is_boundary  : vdata -> bool
 
   val pretty_theory_name : Pretty.T
 
   (* default vertex and edge data *)
-  val default_nvdata : nvdata
+  val default_vdata : vdata
   val default_edata : edata
 
-  val pretty_nvdata : nvdata -> Pretty.T
+  val pretty_vdata : vdata -> Pretty.T
   val pretty_edata : edata -> Pretty.T
-  val print_nvdata : nvdata -> unit
+  val print_vdata : vdata -> unit
   val print_edata : edata -> unit
 
   structure Sharing : GRAPH_DATA_SHARING
-    sharing type Sharing.nvdata = nvdata
+    sharing type Sharing.vdata = vdata
     sharing type Sharing.edata = edata
     sharing Sharing.GoalTyp = GoalTyp.BasicSharing
 
