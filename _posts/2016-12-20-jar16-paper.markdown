@@ -1,0 +1,13 @@
+---
+layout: post
+category: publications
+tags:
+  - news
+slug: jfr16-paper
+
+title: "Understanding and maintaining tactics graphically OR how we are learning that a diagram can be worth more than 10K LoC"
+date: 2016-12-20
+
+---
+Yuhui Lin, Gudmund Grov and Rob Arthan. **Understanding and maintaining tactics graphically OR how we are learning that a diagram can be worth more than 10K LoC**. In _Journal of Formalized Reasoning_, Volume 9, No 2 (2016), pages 69-130. <a href="https://jfr.unibo.it/article/view/6298">[link]</a><a href="http://ggrov.github.io/tinker/jfr16/">[paper resource]</a>
+

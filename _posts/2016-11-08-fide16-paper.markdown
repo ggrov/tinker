@@ -1,0 +1,12 @@
+---
+layout: post
+category: publications
+tags:
+  - news
+slug: abz16rodin-paper
+
+title: "‘The Tinker’ for Rodin"
+date: 2016-11-08
+
+---
+Gudmund Grov, Yuhui Lin and Pierre Le Bras. **‘The Tinker GUI for graphical proof strategies (tool demo).**. In _In Proceedings of 3rd Workshop on Formal Integrated Development Environment_, Volume 240, pages 98-101. EPTCS, 2016. <a href="http://eptcs.web.cse.unsw.edu.au/content.cgi?FIDE2016">[link]</a>
