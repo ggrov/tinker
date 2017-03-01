@@ -21,9 +21,6 @@ sig
  val get_inputs   : T -> V.NSet.T
  val get_outputs  : T -> V.NSet.T
 
- val is_input     : T -> V.name -> bool
- val is_output    : T -> V.name -> bool 
-
  val get_edge_source : T -> E.name -> V.name
  val get_edge_target : T -> E.name -> V.name
 
