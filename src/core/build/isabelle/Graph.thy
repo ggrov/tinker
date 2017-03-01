@@ -3,7 +3,7 @@ theory Graph
 imports                            
   GoalTyp                                                                                                                        
 begin
-  
+
 ML_file "../../graph/graph_data.sig.ML"          
 ML_file "../../graph/graph_data.ML" 
 

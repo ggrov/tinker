@@ -38,12 +38,12 @@ sig
  val add_edge      : Data.edata -> V.name -> V.name -> T -> E.name * T
  val delete_edge   : E.name -> T -> T
  val delete_vertex : V.name -> T -> T
-
+(*
  val rename_vertex : V.name -> V.name -> T -> T
  val rename_edge   : E.name -> E.name -> T -> T
 
  val pretty : T -> Pretty.T
  val print : T -> unit
-
+*)
  structure Sharing : GRAPH_SHARING
 end

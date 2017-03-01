@@ -48,7 +48,7 @@ struct
 (* inputs are those boundaries which do not have input edges *)
   fun get_inputs g = get_target g |> EVFn.get_dom_set |> V.NSet.subtract (get_boundary g)
 (* output are those boundaries which do not have out edges *)
-  fun get_onputs g = get_source g |> EVFn.get_dom_set |> V.NSet.subtract (get_boundary g)
+  fun get_outputs g = get_source g |> EVFn.get_dom_set |> V.NSet.subtract (get_boundary g)
 
   fun get_edge_source g n = EVFn.get (get_source g) n
   fun get_edge_target g n = EVFn.get (get_target g) n
@@ -72,34 +72,28 @@ struct
   fun set_edge_data data n g = 
     set_edata (VTab.set (n, data) (get_edata g)) g
 
-  fun udpate_vertex_data f n g = 
+  fun update_vertex_data f n g = 
     if has_vertex g n then g |> update_vdata (VTab.map_entry f n)
     else raise no_such_vertex_exp ("update_vertex_data", n)
 
-  fun udpate_edge_data f n g = 
+  fun update_edge_data f n g = 
     if has_edge g n then g |> update_edata (VTab.map_entry f n)
     else raise no_such_edge_exp ("udpate_edge_data", n)
 
   fun add_vertex data g = 
   let val fresh_name = V.NSet.new (get_vertices g) V.default_name in
-  (fresh_name, update_vdata (VTab.add (fresh_name, data))) end
+  (fresh_name, update_vdata (VTab.add (fresh_name, data)) g) end
 
-  fun add_edge data g = 
+  fun add_edge data from_v to_v  g = 
   let val fresh_name = V.NSet.new (get_edges g) E.default_name in
-  (fresh_name, update_edata (VTab.add (fresh_name, data))) end
+  (fresh_name, update_edata (VTab.add (fresh_name, data)) g) end
 
+  fun delete_edge n g = g
+  fun delete_vertex n g = g
 (*
- val delete_edge   : E.name -> T -> T
- val delete_vertex : V.name -> T -> T
-
  val rename_vertex : V.name -> V.name -> T -> T
  val rename_edge   : E.name -> E.name -> T -> T
-
- val pretty : T -> Pretty.T
- val print : T -> unit
-
 *)
-
 
  structure Sharing =
  struct
