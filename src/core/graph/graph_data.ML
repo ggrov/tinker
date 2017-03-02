@@ -121,6 +121,7 @@ local open LoggingHandler in
   args 
  | arg_typ_from_json _ =  raise Json.parse_exn "unexcepted json strcure in arg_typ_from_json"
 
+ exception boundary_node_json_exp of string
 
  fun vdata_to_json (T_Atomic atom) = 
       Json.mk_object ([("type", Json.String "T_Atomic"), 
@@ -140,6 +141,7 @@ local open LoggingHandler in
       Json.mk_object [("type", Json.String "T_Var"), ("t_var", Json.String t_var)]
    | vdata_to_json (G_Var g_var) =
       Json.mk_object [("type", Json.String "G_Var"), ("g_var", Json.String g_var)]
+   | vdata_to_json Boundary = raise boundary_node_json_exp "Boundary node are not suppored to handle in vdata_to_json"
    
  fun vdata_from_json (Json.Object jobj) (* has to be jobj *) = 
        (case JsonInputUtils.get_string jobj "type" of

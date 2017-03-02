@@ -1,11 +1,13 @@
 functor Graph (Data: GRAPH_DATA) : GRAPH =
 struct
  structure Data = Data
-
+ 
  exception no_such_edge_exp of string * E.name
  exception no_such_vertex_exp of string * V.name
  exception dup_edge_exp of string * E.name
  exception dup_vertex_exp of string * V.name
+ exception ill_form_json_graph of string * Json.json
+
 
  datatype T = G of {
   vdata  : Data.vdata VTab.T,
@@ -84,15 +86,104 @@ struct
   let val fresh_name = V.NSet.new (get_vertices g) V.default_name in
   (fresh_name, update_vdata (VTab.add (fresh_name, data)) g) end
 
-  fun add_edge data from_v to_v  g = 
+ (* TODO *)
+  fun add_edge data from_vn to_vn  g = 
   let val fresh_name = V.NSet.new (get_edges g) E.default_name in
   (fresh_name, update_edata (VTab.add (fresh_name, data)) g) end
 
-  fun delete_edge n g = g
-  fun delete_vertex n g = g
+  fun delete_edge n g = g (* TODO *)
+  fun delete_vertex n g = g (* TODO *)
+
+  fun update_with_vertex_item id (Json.Object jobj) g =
+   update_vdata (VTab.add (V.mk id, Json.get jobj "data" |> Data.vdata_from_json)) g
+    | update_with_vertex_item _  json  _= raise ill_form_json_graph ("update_vertex_item", json)
+
+  fun update_with_boundary_item id g = update_vdata (VTab.add (V.mk id, Data.Boundary)) g
+
+  fun update_with_edge_item id (Json.Object jobj) g = 
+   update_edata (VTab.add (E.mk id, Json.get jobj "data" |> Data.edata_from_json)) g
+   |> update_source (EVFn.add (E.mk id, JsonInputUtils.get_string jobj "src" |> V.mk))  
+   |> update_target (EVFn.add (E.mk id, JsonInputUtils.get_string jobj "tgt" |> V.mk))
+   | update_with_edge_item _ json _ = raise ill_form_json_graph ("update_with_edge_item", json)
+
+  fun from_json (Json.Object jobj) = 
+   let 
+   (* a list of (id, data) *)
+    fun get_item_list name = 
+      JsonInputUtils.get_obj jobj name
+      |> (fn x => map  (fn y => (y, Json.get x y)) (Json.properties x))
+    val dir_edges = get_item_list "dir_edges"
+    val boundary_vertices = get_item_list "wire_vertices" |> map fst (* the data part does not matter *)
+    val node_vertices = get_item_list "node_vertices"
+   in
+    List.foldr (fn (x,y) => update_with_vertex_item (fst x) (snd x) y) empty node_vertices
+    |> (fn g =>  List.foldr (fn (x,y) => update_with_boundary_item x y) g  boundary_vertices)
+    |> (fn g =>  List.foldr (fn (x,y) => update_with_edge_item (fst x) (snd x) y) g dir_edges)
+   end
+    | from_json j = raise ill_form_json_graph ("from josn", j)
+
+  fun mk_node_vertices_json (v_list : (V.name * Data.vdata) list) = 
+   Json.mk_object 
+   (map 
+     (fn (x,y) => 
+       (V.string_of_name x, 
+        Json.mk_object[("data", Data.vdata_to_json y)])) 
+   v_list)
+   |> (fn x => Json.mk_object [("node_vertices",x)])
+
+  fun mk_wire_vertices_json l = 
+   Json.mk_object 
+   (map 
+     (fn x => 
+       (V.string_of_name x , 
+        Json.mk_object[("annotation", Json.mk_object [("boundary", Json.Bool true)])])) 
+    l)
+   |> (fn x => Json.mk_object [("wire_vertices", x)])
+
+  fun mk_dir_edges_json (e_list : (E.name * Data.edata) list) src_tbl tgt_tbl  =
+   Json.mk_object 
+   (map 
+     (fn (x,y) => 
+       (V.string_of_name x, 
+        Json.mk_object
+        [("data", Data.edata_to_json y), 
+          ("src", EVFn.get src_tbl x |> V.string_of_name |> Json.String),
+          ("tgt", EVFn.get tgt_tbl x |> V.string_of_name |> Json.String)])) 
+   e_list)
+   |> (fn x => Json.mk_object [("node_vertices",x)])
+
+
+(* assume the given graph is well-formed  *)
+  fun to_json g = 
+  let 
+   val edata = get_edata g 
+   val vdata = get_vdata g 
+   val src = get_source g 
+   val tgt = get_target g 
+   val edges = VTab.list_of edata
+   val nodes = VTab.list_of vdata |> List.filter (fn (_,y) => not (Data.is_boundary y))
+   val boundaries = VTab.list_of vdata |> List.filter (fn (_,y) => Data.is_boundary y) |> map fst
+  in
+   Json.mk_object[
+     ("dir_edges" ,mk_dir_edges_json edges src tgt),
+     ("wire_vertices", mk_wire_vertices_json boundaries),
+     ("node_vertices", mk_node_vertices_json nodes)]
+  end
+  
+  fun pretty g = to_json g |> Json.encode |> Pretty.str
+  fun print g = to_json g |> Json.encode |>  writeln
+
+ (*        .
+    | from_json x = raise ill_form_json_graph ("Unexpected Json structure in Graph.from_json",  x)   
+
+  fun to_json 
+*)
+
 (*
  val rename_vertex : V.name -> V.name -> T -> T
  val rename_edge   : E.name -> E.name -> T -> T
+
+and json io
 *)
 
  structure Sharing =

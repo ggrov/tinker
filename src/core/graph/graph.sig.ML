@@ -7,7 +7,14 @@ end
 signature GRAPH  =
 sig
  structure Data : GRAPH_DATA
+
  type T
+
+ exception no_such_edge_exp of string * E.name
+ exception no_such_vertex_exp of string * V.name
+ exception dup_edge_exp of string * E.name
+ exception dup_vertex_exp of string * V.name
+ exception ill_form_json_graph of string * Json.json
 
  val empty : T 
 
@@ -41,9 +48,13 @@ sig
 (*
  val rename_vertex : V.name -> V.name -> T -> T
  val rename_edge   : E.name -> E.name -> T -> T
+*)
+
+ val to_json : T -> Json.json
+ val from_json : Json.json -> T
 
  val pretty : T -> Pretty.T
  val print : T -> unit
-*)
+
  structure Sharing : GRAPH_SHARING
 end

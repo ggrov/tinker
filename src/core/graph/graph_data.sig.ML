@@ -34,10 +34,6 @@ sig
   exception gdata_json_exp of string * Json.json
   val get_vdata_name : vdata -> string
   val get_vdata_args : vdata -> arg_typ
-  val vdata_to_json : vdata -> Json.json
-  val vdata_from_json : Json.json -> vdata
-  val edata_to_json : edata -> Json.json
-  val edata_from_json : Json.json -> edata
 
   val vdata_eq : vdata * vdata -> bool
   val edata_eq : edata * edata -> bool
@@ -53,6 +49,13 @@ sig
   val is_identity : vdata -> bool
   val is_break_point : vdata -> bool
   val is_boundary  : vdata -> bool
+
+  (* Json io *)
+  val vdata_to_json : vdata -> Json.json
+  val vdata_from_json : Json.json -> vdata
+  val edata_to_json : edata -> Json.json
+  val edata_from_json : Json.json -> edata
+
 
   val pretty_theory_name : Pretty.T
 
