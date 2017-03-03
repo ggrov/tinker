@@ -141,8 +141,8 @@ struct
     fun mk_node_json id vdata = 
      case VTab.get_opt coord id of
       SOME c => 
-       [("data", Data.vdata_to_json vdata), 
-        ("annotation", Json.mk_object([("coord", map Json.Real c |> Json.Array)]))]
+       [("annotation", Json.mk_object [("coord", map Json.Real c |> Json.Array)]),
+         ("data", Data.vdata_to_json vdata)]
     | NONE  => [("data", Data.vdata_to_json vdata)]
    in
     Json.mk_object 
@@ -151,14 +151,14 @@ struct
         (V.string_of_name x, 
          Json.mk_object (mk_node_json x y))) 
     v_list)
-    |> (fn x => Json.mk_object [("node_vertices",x)])
+    (*|> (fn x => Json.mk_object [("node_vertices",x)])*)
    end
 
   fun mk_wire_vertices_json l coord = 
    let 
     fun mk_anno_json id  = 
      case VTab.get_opt coord id of 
-       SOME c => [("boundary", Json.Bool true),("coord", map Json.Real c |> Json.Array)]
+       SOME c => [("coord", map Json.Real c |> Json.Array), ("boundary", Json.Bool true)]
      | NONE   =>  [("boundary", Json.Bool true)]
   in
    Json.mk_object 
@@ -167,7 +167,7 @@ struct
        (V.string_of_name x , 
         Json.mk_object[("annotation", Json.mk_object (mk_anno_json x))])) 
     l)
-   |> (fn x => Json.mk_object [("wire_vertices", x)])
+ (*  |> (fn x => Json.mk_object [("wire_vertices", x)])*)
   end
 
   fun mk_dir_edges_json (e_list : (E.name * Data.edata) list) src_tbl tgt_tbl  =
@@ -176,11 +176,11 @@ struct
      (fn (x,y) => 
        (V.string_of_name x, 
         Json.mk_object
-        [("data", Data.edata_to_json y), 
-          ("src", EVFn.get src_tbl x |> V.string_of_name |> Json.String),
-          ("tgt", EVFn.get tgt_tbl x |> V.string_of_name |> Json.String)])) 
+        [("data", Data.edata_to_json y),
+         ("tgt", EVFn.get tgt_tbl x |> V.string_of_name |> Json.String),
+         ("src", EVFn.get src_tbl x |> V.string_of_name |> Json.String)])) 
    e_list)
-   |> (fn x => Json.mk_object [("node_vertices",x)])
+   (*|> (fn x => Json.mk_object [("node_vertices",x)])*)
 
 
 (* assume the given graph is well-formed  *)
@@ -197,8 +197,8 @@ struct
   in
    Json.mk_object[
      ("dir_edges" ,mk_dir_edges_json edges src tgt),
-     ("wire_vertices", mk_wire_vertices_json boundaries coord),
-     ("node_vertices", mk_node_vertices_json nodes coord)]
+     ("node_vertices", mk_node_vertices_json nodes coord),
+     ("wire_vertices", mk_wire_vertices_json boundaries coord)]
   end
   
   fun pretty g = to_json g |> Json.encode |> Pretty.str

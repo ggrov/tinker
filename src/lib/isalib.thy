@@ -7,6 +7,7 @@ ML_file "isalib/log.ML"
 ML_file "isalib/raw_source.ML"
 ML_file "isalib/json.ML"
 ML_file "isalib/json_io.ML"
+ML_file "isalib/file_io.ML"
 ML_file "isalib/text_socket.ML"
 
 (* Generic Tools for namers, fresh names tables, and collections *)
