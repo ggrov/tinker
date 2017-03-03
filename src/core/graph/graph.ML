@@ -13,25 +13,29 @@ struct
   vdata  : Data.vdata VTab.T,
   edata  : Data.edata ETab.T,
   source : EVFn.T,
-  target : EVFn.T }
+  target : EVFn.T,
+  coord  : real list VTab.T (* cooirdination for vertices *) }
 
- val empty = G {vdata = VTab.empty, edata = ETab.empty, source = EVFn.empty, target = EVFn.empty};
+ val empty = G {vdata = VTab.empty, edata = ETab.empty, source = EVFn.empty, target = EVFn.empty, coord = VTab.empty};
 
 (* get, set and update*)
- fun update_vdata f (G g) = G {vdata = f(#vdata g), edata = #edata g, source = #source g, target = #target g}
- fun update_edata f (G g) = G {vdata = #vdata g, edata = f(#edata g), source = #source g, target = #target g}
- fun update_source f (G g) = G {vdata = #vdata g, edata = #edata g, source = f(#source g), target = #target g}
- fun update_target f (G g) = G {vdata = #vdata g, edata = #edata g, source = #source g, target = f(#target g)}
+ fun update_vdata f (G g) = G {vdata = f(#vdata g), edata = #edata g, source = #source g, target = #target g, coord = #coord g}
+ fun update_edata f (G g) = G {vdata = #vdata g, edata = f(#edata g), source = #source g, target = #target g, coord = #coord g}
+ fun update_source f (G g) = G {vdata = #vdata g, edata = #edata g, source = f(#source g), target = #target g, coord = #coord g}
+ fun update_target f (G g) = G {vdata = #vdata g, edata = #edata g, source = #source g, target = f(#target g), coord = #coord g}
+ fun update_coord f (G g) = G {vdata = #vdata g, edata = #edata g, source = #source g, target = #target g, coord = f(#coord g)}
 
  fun get_vdata (G g) = #vdata g
  fun get_edata (G g) = #edata g
  fun get_source (G g) = #source g
  fun get_target (G g) = #target g
+ fun get_coord (G g) = #coord g
 
  fun set_vdata x = update_vdata (fn _ => x)
  fun set_edata x = update_edata (fn _ => x)
  fun set_source x = update_source (fn _ => x)
  fun set_target x = update_target (fn _ => x)
+ fun set_coord x =  update_coord (fn _ => x)
 
  fun is_empty g = get_vdata g |> VTab.is_empty
 
@@ -94,17 +98,27 @@ struct
   fun delete_edge n g = g (* TODO *)
   fun delete_vertex n g = g (* TODO *)
 
+  fun coord_from_json (Json.Object jobj) = 
+    JsonInputUtils.get_obj jobj "annotation" 
+    |> (fn x => JsonInputUtils.get_array x "coord")
+    |> map (fn (Json.Real r) => r)
+  |   coord_from_json x = raise ill_form_json_graph ("coord_from_json", x)
+
   fun update_with_vertex_item id (Json.Object jobj) g =
    update_vdata (VTab.add (V.mk id, Json.get jobj "data" |> Data.vdata_from_json)) g
-    | update_with_vertex_item _  json  _= raise ill_form_json_graph ("update_vertex_item", json)
+   |> update_coord (VTab.add (V.mk id, coord_from_json (Json.Object jobj)))
+  |   update_with_vertex_item _  json  _= raise ill_form_json_graph ("update_vertex_item", json)
 
-  fun update_with_boundary_item id g = update_vdata (VTab.add (V.mk id, Data.Boundary)) g
+  fun update_with_boundary_item id (Json.Object jobj) g = 
+   update_vdata (VTab.add (V.mk id, Data.Boundary)) g
+   |> update_coord (VTab.add (V.mk id, coord_from_json (Json.Object jobj)))
+ |  update_with_boundary_item is json _ = raise ill_form_json_graph ("update_with_boundary_item", json)
 
   fun update_with_edge_item id (Json.Object jobj) g = 
    update_edata (VTab.add (E.mk id, Json.get jobj "data" |> Data.edata_from_json)) g
    |> update_source (EVFn.add (E.mk id, JsonInputUtils.get_string jobj "src" |> V.mk))  
    |> update_target (EVFn.add (E.mk id, JsonInputUtils.get_string jobj "tgt" |> V.mk))
-   | update_with_edge_item _ json _ = raise ill_form_json_graph ("update_with_edge_item", json)
+  |   update_with_edge_item _ json _ = raise ill_form_json_graph ("update_with_edge_item", json)
 
   fun from_json (Json.Object jobj) = 
    let 
@@ -113,32 +127,48 @@ struct
       JsonInputUtils.get_obj jobj name
       |> (fn x => map  (fn y => (y, Json.get x y)) (Json.properties x))
     val dir_edges = get_item_list "dir_edges"
-    val boundary_vertices = get_item_list "wire_vertices" |> map fst (* the data part does not matter *)
+    val boundary_vertices = get_item_list "wire_vertices"
     val node_vertices = get_item_list "node_vertices"
    in
     List.foldr (fn (x,y) => update_with_vertex_item (fst x) (snd x) y) empty node_vertices
-    |> (fn g =>  List.foldr (fn (x,y) => update_with_boundary_item x y) g  boundary_vertices)
+    |> (fn g =>  List.foldr (fn (x,y) => update_with_boundary_item (fst x) (snd x) y) g  boundary_vertices)
     |> (fn g =>  List.foldr (fn (x,y) => update_with_edge_item (fst x) (snd x) y) g dir_edges)
    end
     | from_json j = raise ill_form_json_graph ("from josn", j)
 
-  fun mk_node_vertices_json (v_list : (V.name * Data.vdata) list) = 
-   Json.mk_object 
-   (map 
-     (fn (x,y) => 
-       (V.string_of_name x, 
-        Json.mk_object[("data", Data.vdata_to_json y)])) 
-   v_list)
-   |> (fn x => Json.mk_object [("node_vertices",x)])
+  fun mk_node_vertices_json (v_list : (V.name * Data.vdata) list) coord =
+   let 
+    fun mk_node_json id vdata = 
+     case VTab.get_opt coord id of
+      SOME c => 
+       [("data", Data.vdata_to_json vdata), 
+        ("annotation", Json.mk_object([("coord", map Json.Real c |> Json.Array)]))]
+    | NONE  => [("data", Data.vdata_to_json vdata)]
+   in
+    Json.mk_object 
+    (map 
+      (fn (x,y) => 
+        (V.string_of_name x, 
+         Json.mk_object (mk_node_json x y))) 
+    v_list)
+    |> (fn x => Json.mk_object [("node_vertices",x)])
+   end
 
-  fun mk_wire_vertices_json l = 
+  fun mk_wire_vertices_json l coord = 
+   let 
+    fun mk_anno_json id  = 
+     case VTab.get_opt coord id of 
+       SOME c => [("boundary", Json.Bool true),("coord", map Json.Real c |> Json.Array)]
+     | NONE   =>  [("boundary", Json.Bool true)]
+  in
    Json.mk_object 
    (map 
      (fn x => 
        (V.string_of_name x , 
-        Json.mk_object[("annotation", Json.mk_object [("boundary", Json.Bool true)])])) 
+        Json.mk_object[("annotation", Json.mk_object (mk_anno_json x))])) 
     l)
    |> (fn x => Json.mk_object [("wire_vertices", x)])
+  end
 
   fun mk_dir_edges_json (e_list : (E.name * Data.edata) list) src_tbl tgt_tbl  =
    Json.mk_object 
@@ -156,6 +186,7 @@ struct
 (* assume the given graph is well-formed  *)
   fun to_json g = 
   let 
+   val coord = get_coord g
    val edata = get_edata g 
    val vdata = get_vdata g 
    val src = get_source g 
@@ -166,8 +197,8 @@ struct
   in
    Json.mk_object[
      ("dir_edges" ,mk_dir_edges_json edges src tgt),
-     ("wire_vertices", mk_wire_vertices_json boundaries),
-     ("node_vertices", mk_node_vertices_json nodes)]
+     ("wire_vertices", mk_wire_vertices_json boundaries coord),
+     ("node_vertices", mk_node_vertices_json nodes coord)]
   end
   
   fun pretty g = to_json g |> Json.encode |> Pretty.str
