@@ -1,6 +1,6 @@
 signature ENV_TAC_UTILS_SHARING = 
 sig
-  structure Graph : GRAPH_SHARING
+  structure Graph: GRAPH_SHARING
 end
 
 signature ENV_TAC_UTILS = 
@@ -18,16 +18,18 @@ sig
     sharing Sharing.Graph = Graph.Sharing
 end
 
-functor EnvTacUtilsFunc (structure Graph : GRAPH val struct_name : string) (*: ENV_TAC_UTILS *)= 
+functor EnvTacUtilsFunc (structure Graph_Utils : GRAPH_UTILS val struct_name : string) (*: ENV_TAC_UTILS *)= 
 struct
-  structure PS_Theory = Theory
+  
+  structure Graph = Graph_Utils.Graph
   structure Prover = Graph.Data.GoalTyp.Prover
   local open LoggingHandler in 
     val env_var_prefix = "PSGRAPH_ENV_VAR_";
     val if_local_debug = false;
 
+
     fun parse_env_var_name' name (* raise exception*) =
-       case Graph.Graph_Utils.parse_env_var_name name 
+       case Graph_Utils.parse_env_var_name name 
         of NONE 
           => (logging "ENV_DATA" ("Invalid env variable name: " ^ name); raise tinker_fail true)
         | (SOME n) => n;
@@ -170,6 +172,6 @@ struct
 
   structure Sharing = 
   struct
-    structure PS_Theory = PS_Theory.Sharing
+    structure Graph = Graph.Sharing
   end
 end
