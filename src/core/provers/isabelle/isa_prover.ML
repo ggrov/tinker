@@ -404,7 +404,7 @@ struct
     type pplan = pplan
     type pnode = pnode
     type goal = goal
-
+    type arg_data = arg_data
   end
 end (* struct *)
 

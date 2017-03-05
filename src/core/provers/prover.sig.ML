@@ -13,6 +13,7 @@ sig
   type pplan
   type pnode
   type goal
+  type arg_data
 end
 
 signature PROVER =
@@ -139,6 +140,7 @@ sig
     sharing type Sharing.pplan = pplan
     sharing type Sharing.pnode = pnode
     sharing type Sharing.env_tac = env_tac
+    sharing type Sharing.arg_data = arg_data
 
 end;
 (*

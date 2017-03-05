@@ -4,12 +4,12 @@ sig
   structure EData : EVAL_DATA
 
   exception Breakpoint of EData.T;
-  exception apply_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode
-  exception node_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode * EData.PSGraph.Theory.Data.nvdata
+  exception apply_exp of string * EData.PSGraph.Graph.Data.GoalTyp.gnode
+  exception node_exp of string * EData.PSGraph.Graph.Data.GoalTyp.gnode * EData.PSGraph.Graph.Data.vdata
   exception partition_exp of
-    { pnodes :  EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list,
-      input :  EData.PSGraph.Theory.Data.GoalTyp.gnode option, 
-      goaltypes : EData.PSGraph.Theory.Data.GoalTyp.T list } 
+    { pnodes :  EData.PSGraph.Graph.Data.GoalTyp.Prover.pnode list,
+      input :  EData.PSGraph.Graph.Data.GoalTyp.gnode option, 
+      goaltypes : EData.PSGraph.Graph.Data.GoalTyp.T list } 
 
   val is_all_gns_on_boundary : EData.T -> bool
   val is_gn_on_boundary : EData.T -> string (* gname *) -> bool
@@ -30,8 +30,8 @@ sig
       -> EData.PSGraph.Theory.Data.nvdata (* tactic assumption *)
       -> (EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list * EData.PSGraph.Theory.Data.GoalTyp.Prover.pplan) Seq.seq
 *)
-  val init : EData.PSGraph.T -> EData.PSGraph.Theory.Data.GoalTyp.Prover.context 
-    -> EData.PSGraph.Theory.Data.GoalTyp.Prover.goal 
+  val init : EData.PSGraph.T -> EData.PSGraph.Graph.Data.GoalTyp.Prover.context 
+    -> EData.PSGraph.Graph.Data.GoalTyp.Prover.goal 
     -> EData.T list
   val exit_hgraph_no_goal_node : EData.T -> EData.branch Seq.seq
   val eval_goal_gnodename :  bool -> V.name -> EData.T 

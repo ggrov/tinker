@@ -1,26 +1,26 @@
 (* evaluation *)
 
-functor EValFun(EData : EVAL_DATA) : EVAL  =
+functor EValFun(EvalData : EVAL_DATA) : EVAL  =
 struct
- structure EData = EData;
- structure Theory = EData.PSGraph.Theory;
- structure Graph = Theory.Graph;
- structure Env_Tac_Utils = EData.PSGraph.Env_Tac_Utils;
- structure GoalTyp = EData.PSGraph.Theory.Data.GoalTyp;
- structure Prover = GoalTyp.Prover;
- structure GData = EData.PSGraph.Theory.Data;
- structure Util =  Theory.Graph_Utils;
+ structure EData = EvalData;
+ structure PSGraph = EData.PSGraph
+ structure Graph = PSGraph.Graph
+ structure GData = Graph.Data;
+ structure GoalTyp = GData.GoalTyp;
+ structure Prover= GoalTyp.Prover
 
-  exception apply_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode
-  exception node_exp of string * EData.PSGraph.Theory.Data.GoalTyp.gnode * EData.PSGraph.Theory.Data.nvdata
+  exception apply_exp of string * EData.PSGraph.Graph.Data.GoalTyp.gnode
+  exception node_exp of string * EData.PSGraph.Graph.Data.GoalTyp.gnode * EData.PSGraph.Graph.Data.vdata
   exception partition_exp of
-    { pnodes :  EData.PSGraph.Theory.Data.GoalTyp.Prover.pnode list,
-      input :  EData.PSGraph.Theory.Data.GoalTyp.gnode option, 
-      goaltypes : EData.PSGraph.Theory.Data.GoalTyp.T list } 
+    { pnodes :  EData.PSGraph.Graph.Data.GoalTyp.Prover.pnode list,
+      input :  EData.PSGraph.Graph.Data.GoalTyp.gnode option, 
+      goaltypes : EData.PSGraph.Graph.Data.GoalTyp.T list } 
   
   exception Breakpoint of EData.T;
 
-  local open Theory.Graph_Utils LoggingHandler in
+  local 
+   open  
+     LoggingHandler in
   (*******
     Application of tactic - link with TP systems
   *******)   
@@ -29,15 +29,15 @@ struct
          val ps = EData.get_psgraph edata
          val pplan = EData.get_pplan edata
          val pnode = Prover.get_open_pnode_by_name pplan  (GoalTyp.goal_name gnode)
-         val env = Prover.get_pnode_env pnode
-         val ctxt = Prover.get_pnode_ctxt pnode
-         val name = (GData.get_nvdata_name (GData.T_Atomic atom))
-         val arg_list = (GData.get_nvdata_args (GData.T_Atomic atom)) |> parse_arg_data ctxt pnode
+         val env =  GData.GoalTyp.Prover.get_pnode_env pnode
+         val ctxt = GData.GoalTyp.Prover.get_pnode_ctxt pnode
+         val name = (GData.get_vdata_name (GData.T_Atomic atom))
+         val arg_list = (GData.get_vdata_args (GData.T_Atomic atom)) |> PSGraph.Graph_Utils.parse_arg_data ctxt pnode
        in  
-        if is_env_tactic_name name 
+        if PSGraph.Graph_Utils.is_env_tactic_name name 
         then 
-        let val env_tac = if Env_Tac_Utils.is_abbrv_env_tac name
-        then Env_Tac_Utils.scan_abbrv_env_tac ctxt name env
+        let val env_tac = if PSGraph.Env_Tac_Utils.is_abbrv_env_tac name
+        then PSGraph.Env_Tac_Utils.scan_abbrv_env_tac ctxt name env
         else EData.PSGraph.get_atomic_env_tac_by_name ps name in
         Prover.apply_env_tactic arg_list env_tac (pnode,pplan) end
         else 
@@ -95,22 +95,23 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
   val partition_to_gnodes = map (map GData.G);
 *) 
   fun get_next_tnode graph node = 
-    if Util.is_gnode graph node
+    if PSGraph.Graph_Utils.is_gnode graph node
     then
       get_next_tnode graph
-        (Util.out_edges graph node
+        ( Graph.get_out_edges graph node
+        |> V.NSet.list_of
         |> (fn [x] => x) (* raise exception: log if not singleton list *)
-        |> Util.edge_dest graph)
+        |> Graph.get_edge_target graph)
     else node
 
    (* allows to step over gnodes *)
   fun try_get_out graph v =
-   if Util.is_tactic graph v (* assume no variables *) 
+   if PSGraph.Graph_Utils.is_tactic graph v (* assume no variables *) 
     then NONE
     else 
-     case Util.out_edges graph v  of
+     case Graph.get_out_edges graph v |> V.NSet.list_of of
          [] => SOME v (* output *)
-      | [e] => try_get_out graph (Util.edge_dest graph e) (* gnode or  *)
+      | [e] => try_get_out graph (Graph.get_edge_target graph e) (* gnode or  *)
       |  _  => NONE (* many outputs (shouldn't happen) *);
 
    (* allows to step over gnodes *)
@@ -130,15 +131,15 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
   fun is_gn_on_boundary edata goal_name =
    let
     val graph = EData.get_graph edata
-    val gnode = Util.all_gnodes graph
-               |> filter (fn gn => goal_name = GoalTyp.goal_name (Util.gnode_of graph gn))
+    val gnode = PSGraph.Graph_Utils.all_gnodes graph
+               |> filter (fn gn => goal_name = GoalTyp.goal_name (PSGraph.Graph_Utils.gnode_of graph gn))
                |> (fn [x] => x) (* raise exception: log if not singleton list *)
    in
      (is_some o try_get_out graph) gnode
    end
 
   fun is_all_gns_on_boundary edata = 
-    Util.all_gnodes (EData.get_graph edata)
+    PSGraph.Graph_Utils.all_gnodes (EData.get_graph edata)
     |> forall (is_some o (try_get_out (EData.get_graph edata))); 
 
   fun has_psgraph_terminated edata = 
@@ -196,13 +197,13 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
                  |> EData.get_psgraph  
                  |> EData.PSGraph.get_goaltype_data
      val graph = EData.get_graph edata
-     fun to_gt e = [(e,Util.goaltype_of graph e)] handle _ => []
-     val in_edges = Util.input_boundary graph
+     fun to_gt e = [(e,PSGraph.Graph_Utils.goaltype_of graph e)] handle _ => []
+     val in_edges = Graph.input_boundary graph
                   |> maps (fn (_,(e,_),_) => to_gt e)
      fun new_graph (e,gt) = 
        case GoalTyp.check (gt_data,gt) (NONE,pnode) of
          false => [] (* not needed *)
-         | true => map (fn gn => (gn, #3 (Util.insert_node_on_edge (Util.mk_gnode gn) e graph))) [GoalTyp.lift pnode] 
+         | true => map (fn gn => (gn, #3 (Graph.insert_node_on_edge (PSGraph.Graph_Utils.mk_gnode gn) e graph))) [GoalTyp.lift pnode] 
      val new_graphs = maps new_graph in_edges
    in  (* fixme: this should be updated according to strategy *)
        map (fn (gn,g) => edata |> EData.update_gnodes (fn gs => gn::gs) 
@@ -261,13 +262,13 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
 
   fun add_gnode n e g =
     let 
-      val (from,_,g') = Util.insert_node_on_edge n e g 
+      val (from,_,g') = Graph.insert_node_on_edge n e g 
     in
       (from,g')
    end
 
   fun add_gnodes (edge::edges) (res::ress) graph = 
-     fold (fn gn => fn (e,gr) => add_gnode (Theory.Data.G gn) e gr) res (edge,graph)
+     fold (fn gn => fn (e,gr) => add_gnode (GData.G gn) e gr) res (edge,graph)
      |> #2
      |> add_gnodes edges ress
   | add_gnodes [] _ graph = graph
@@ -276,11 +277,11 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
   fun eval_apply_atomic gnode_name tnode edata =
    let
      val graph = EData.get_graph edata (* has to be the current one *)
-     val out_edges = Util.out_edges graph tnode
-     val out_goaltypes = map (Util.goaltype_of graph) out_edges
-     val graph' = Util.del_gnode gnode_name graph
-     val goal = Util.gnode_of graph gnode_name
-     val (SOME tactic) = Util.lookup_ivertex_data graph tnode 
+     val out_edges = Graph.get_out_edges graph tnode |> V.NSet.list_of
+     val out_goaltypes = map (PSGraph.Graph_Utils.goaltype_of graph) out_edges
+     val graph' = Graph.delete_1on1_node gnode_name graph
+     val goal = PSGraph.Graph_Utils.gnode_of graph gnode_name
+     val (SOME tactic) = Graph.lookup_vertex_data graph tnode 
      val result = apply_atomic edata goal tactic out_goaltypes
    in
    (*
@@ -299,24 +300,24 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
  fun enter_hgraph gnode_name hgraph_nv tnode edata = 
    let
     val graph = EData.get_graph edata
-    val goal = Util.gnode_of graph gnode_name
+    val goal = PSGraph.Graph_Utils.gnode_of graph gnode_name
     val pplan = EData.get_pplan edata
     val pnode = Prover.get_open_pnode_by_name pplan  (GoalTyp.goal_name goal)
     val hgraph_name = 
-      case hgraph_nv of (GData.T_Graph _) => GData.get_nvdata_name hgraph_nv 
+      case hgraph_nv of (GData.T_Graph _) => GData.get_vdata_name hgraph_nv 
       | _ => raise GData.node_exp ("expect hgraph, but some other type of nvnode",hgraph_nv);
-    val graph_tacs_args = GData.get_nvdata_args hgraph_nv
+    val graph_tacs_args = GData.get_vdata_args hgraph_nv
     val cur_name = EData.get_name_current edata |> fst
     val cur_idx =  EData.get_index_current edata
     val gt_data = EData.get_psgraph edata |> EData.PSGraph.get_goaltype_data
-    val graph' = Util.del_gnode gnode_name graph
+    val graph' = Graph.delete_1on1_node gnode_name graph
     fun set_hgraph_idx 0 b = [EData.set_bindex_current 0 b]
     | set_hgraph_idx i b = (EData.set_bindex_current i b) :: (set_hgraph_idx (i-1) b) 
     fun insert_gnode b = 
      let 
       val g0 = EData.get_bgraph b
-      val (in_es, in_gtypes) = Util.input_boundary g0
-        |> map (fn (_,(e,_),_) =>(e, Util.goaltype_of g0 e))
+      val (in_es, in_gtypes) = Graph.input_boundary g0
+        |> map (fn (_,(e,_),_) =>(e, PSGraph.Graph_Utils.goaltype_of g0 e))
         |> (fn x => (map fst x, map snd x))
      in 
       mk_ngs_to_branch gt_data NONE in_gtypes (Seq.single([pnode], pplan))
@@ -378,17 +379,17 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
  fun exit_hgraph gnode_name edata = 
   let 
     val graph = EData.get_graph edata
-    val graph' = Util.del_gnode gnode_name graph
+    val graph' = Graph.delete_1on1_node gnode_name graph
     val gt_data = edata |> EData.get_psgraph |> EData.PSGraph.get_goaltype_data
-    val goal = Util.gnode_of graph gnode_name
+    val goal = PSGraph.Graph_Utils.gnode_of graph gnode_name
     val pplan = EData.get_pplan edata
     val pnode = Prover.get_open_pnode_by_name pplan  (GoalTyp.goal_name goal)
     val cur_b = EData.get_current edata
     val (par_name, par_idx) = StrName.NTab.get (EData.get_parent edata) (EData.get_name_current edata |> fst)
     val parent_graph = EData.get_bgraph_gen par_name par_idx cur_b
     val parent_hgraph_node = EData.get_name_current edata |> snd
-    val out_edges = Util.out_edges parent_graph parent_hgraph_node
-    val out_goaltypes = map (fn e => (Util.goaltype_of parent_graph e)) out_edges
+    val out_edges = Graph.get_out_edges parent_graph parent_hgraph_node |> V.NSet.list_of
+    val out_goaltypes = map (fn e => (PSGraph.Graph_Utils.goaltype_of parent_graph e)) out_edges
 (*     fun insert_gnode b = 
      let 
       val g0 = EData.get_bgraph b
@@ -419,7 +420,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
 *)
 
   in
-    if List.length (Util.all_gnodes (EData.get_graph edata)) > 1 (* more than one goal node *)
+    if List.length (PSGraph.Graph_Utils.all_gnodes (EData.get_graph edata)) > 1 (* more than one goal node *)
     then (* delete the g; add it in the parent graph; update both graph as a branch *)
       EData.set_bgraph graph' (EData.get_current edata)
       |> (fn b => 
@@ -445,12 +446,12 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
    let
     val gt_data = edata |> EData.get_psgraph |> EData.PSGraph.get_goaltype_data
     val graph = EData.get_graph edata
-    val goal = Util.gnode_of graph gnode_name
+    val goal = PSGraph.Graph_Utils.gnode_of graph gnode_name
     val pplan = EData.get_pplan edata
     val pnode = Prover.get_open_pnode_by_name pplan  (GoalTyp.goal_name goal)
-    val graph' = Util.del_gnode gnode_name graph
-    val out_edges = Util.out_edges graph id_node
-    val out_goaltypes = map (fn e => (Util.goaltype_of graph e)) out_edges
+    val graph' = Graph.delete_1on1_node gnode_name graph
+    val out_edges = Graph.get_out_edges graph id_node |> V.NSet.list_of
+    val out_goaltypes = map (fn e => (PSGraph.Graph_Utils.goaltype_of graph e)) out_edges
 (* 
     fun gen_new_graph (e,gt) = 
      if GoalTyp.check (gt_data,gt) (NONE, pnode) 
@@ -482,7 +483,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
   fun eval_goal_gen if_debug gname graph_name0 index0 edata = 
    let
      val _ = 
-      Util.gnode_of (EData.get_graph edata) gname
+      PSGraph.Graph_Utils.gnode_of (EData.get_graph edata) gname
       |> (fn x =>  Prover.get_open_pnode_by_name (EData.get_pplan edata) (GoalTyp.goal_name x))
       |> (fn pnode => Prover.pretty_env (Prover.get_pnode_ctxt pnode) (Prover.get_pnode_env pnode))
       |> (Pretty.string_of )
@@ -490,7 +491,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
      val graph = 
       if is_some graph_name0 then raise RunCallFail "ERR: NOT Support to switch between subgraph yet" 
       else EData.get_graph edata
-     val gnode = Util.gnode_of graph gname
+     val gnode = PSGraph.Graph_Utils.gnode_of graph gname
      val cur_g_n = fst (EData.get_name_current edata)
    in
      if (is_some o (try_get_out (EData.get_graph edata))) gname
@@ -502,7 +503,7 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
      (
       let      
         val tnode = get_next_tnode graph gname
-        val (SOME nv) = Util.lookup_ivertex_data graph tnode
+        val (SOME nv) = Graph.lookup_vertex_data graph tnode
       in
         case nv of
            (GData.T_Atomic (name, _)) => 
@@ -527,8 +528,8 @@ branch should have a pplan, as goaltype will change the env so that the gnode in
   fun eval_goal_goalname is_debug gname edata = 
    let
      val graph = EData.get_graph edata
-     val gnode_name = Util.all_gnodes graph
-               |> filter (fn gn => gname = GoalTyp.goal_name (Util.gnode_of graph gn))
+     val gnode_name = PSGraph.Graph_Utils.all_gnodes graph
+               |> filter (fn gn => gname = GoalTyp.goal_name (PSGraph.Graph_Utils.gnode_of graph gn))
                |> (fn [x] => x) (* raise exception: log if not singleton list *)
    in
      eval_goal_gen is_debug gnode_name NONE NONE edata

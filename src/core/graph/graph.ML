@@ -1,4 +1,4 @@
-functor Graph (Data: GRAPH_DATA) : GRAPH =
+functor GraphFun (Data: GRAPH_DATA) : GRAPH =
 struct
  structure Data = Data
  

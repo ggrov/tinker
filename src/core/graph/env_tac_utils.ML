@@ -8,21 +8,21 @@ sig
   structure Graph : GRAPH
 
   val is_abbrv_env_tac : string -> bool
-  val scan_abbrv_env_tac : 
+  val scan_abbrv_env_tac :
      Graph.Data.GoalTyp.Prover.context
      -> string
      -> Graph.Data.GoalTyp.Prover.env
      -> Graph.Data.GoalTyp.Prover.env_tac
-
+  
   structure Sharing : ENV_TAC_UTILS_SHARING
     sharing Sharing.Graph = Graph.Sharing
 end
 
-functor EnvTacUtilsFunc (structure Graph_Utils : GRAPH_UTILS val struct_name : string) (*: ENV_TAC_UTILS *)= 
+functor EnvTacUtilsFunc (structure Graph_Utils : GRAPH_UTILS val struct_name : string) : ENV_TAC_UTILS = 
 struct
-  
   structure Graph = Graph_Utils.Graph
   structure Prover = Graph.Data.GoalTyp.Prover
+   
   local open LoggingHandler in 
     val env_var_prefix = "PSGRAPH_ENV_VAR_";
     val if_local_debug = false;

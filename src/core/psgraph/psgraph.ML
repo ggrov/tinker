@@ -1,19 +1,24 @@
-functor PSGraphFun(structure Theory_IO : PSGRAPH_THEORY_IO 
-                   structure Env_Tac_Utils : ENV_TAC_UTILS
-                   sharing Theory_IO.PS_Theory.Sharing = Env_Tac_Utils.Sharing.PS_Theory) : PS_GRAPH =
+functor PSGraphFun(
+  structure Graph : GRAPH
+  structure Graph_Utils : GRAPH_UTILS
+  structure Env_Tac_Utils : ENV_TAC_UTILS
+  sharing Graph.Sharing = Graph_Utils.Graph.Sharing
+  sharing Graph.Sharing = Env_Tac_Utils.Graph.Sharing) : PS_GRAPH =
 struct
- structure Theory = Theory_IO.PS_Theory;
- structure Prover = Theory.Data.GoalTyp.Prover;
- structure Theory_IO = Theory_IO;
- structure Env_Tac_Utils = Env_Tac_Utils;
+ 
+ structure Graph = Graph
+ structure Graph_Utils = Graph_Utils
+ structure Env_Tac_Utils = Env_Tac_Utils
+
+ structure Prover = Graph.Data.GoalTyp.Prover;
 
  local open LoggingHandler in
 
   datatype graph_tacs = Graph_Tacs of {
     name : StrName.NTab.name,
     branchType : string,
-    graphs: Theory.Graph.T list
-    (*args : Theory.Data.arg_typ*)
+    graphs: Graph.T list
+    (*args : Graph.Data.arg_typ*)
   }
 
   fun update_graphs_graph_tacs f (Graph_Tacs rep) = 
@@ -27,14 +32,14 @@ struct
      name : string, 
      tactic: Prover.tactic,
      def: string
-     (*args : Theory.Data.arg_typ*)
+     (*args : Graph.Data.arg_typ*)
   }
 
   datatype env_tacs = Env_Tacs of {
      name : string, 
      tactic: Prover.env_tac (* actual ml code of the tactic *),
      def: string
-     (*args : Theory.Data.arg_typ*)
+     (*args : Graph.Data.arg_typ*)
   }
 
   datatype occurences = Occurs of {
@@ -59,7 +64,7 @@ struct
       env_tactics : env_tacs StrName.NTab.T,
 (* as we allow using tactic with various arguments, the types of tactics various, we need to use string *)
       (*tactics : Prover.tactic StrName.NTab.T,*) (* atomic_tactics name -> tactic *) (* do we still need it ? *)
-      goaltype_data : Theory.Data.GoalTyp.data,
+      goaltype_data : Graph.Data.GoalTyp.data,
       occurs : occurences 
   }
 
@@ -183,15 +188,15 @@ struct
    PSGraph { graph_tactics = StrName.NTab.ins (name, mk_default_graph_tacs name graph) StrName.NTab.empty,
              atomic_tactics = StrName.NTab.empty,
              env_tactics = StrName.NTab.empty,
-             main = "default", occurs = default_occurs, goaltype_data = Theory.Data.GoalTyp.default_data};
+             main = "default", occurs = default_occurs, goaltype_data = Graph.Data.GoalTyp.default_data};
  val default_psgraph =    
    PSGraph { graph_tactics =  StrName.NTab.empty,
              atomic_tactics = StrName.NTab.empty,
              env_tactics = StrName.NTab.empty,
              main = "default", occurs = default_occurs,
-             goaltype_data = Theory.Data.GoalTyp.default_data};
+             goaltype_data = Graph.Data.GoalTyp.default_data};
 
- val empty = of_graph "default" Theory.Graph.empty;
+ val empty = of_graph "default" Graph.empty;
 
  fun all_names ps = 
    let
@@ -216,7 +221,7 @@ struct
              atomic_tactics = atomic_tactics',
              env_tactics = env_tactics',
              occurs = default_occurs,
-             goaltype_data = Theory.Data.GoalTyp.default_data
+             goaltype_data = Graph.Data.GoalTyp.default_data
             (* TODO: should be able to merger*)
               }
    end
@@ -240,7 +245,7 @@ struct
     ("tactic", Json.String (#def env)) 
     (*"args", arg_typ_to_json (#args atom)*)]
 
- fun is_atom_tac (Json.Object jobj) = not (Theory.Graph_Utils.is_env_tactic_name (JsonInputUtils.get_string jobj "name"))
+ fun is_atom_tac (Json.Object jobj) = not (Graph_Utils.is_env_tactic_name (JsonInputUtils.get_string jobj "name"))
  | is_atom_tac _ = raise Json.parse_exn "unexcepted json strcure in is_env in PSGraph"
 
  fun input_env_json b (Json.Object jobj) = 
@@ -296,7 +301,7 @@ struct
    Json.mk_object [
     ("name", Json.String name),
     ("branch_type", Json.String (#branchType subgraph)),
-    ("graphs", map Theory_IO.out_json (#graphs subgraph) |> Json.Array)
+    ("graphs", map Graph.to_json (#graphs subgraph) |> Json.Array)
     (*"args", arg_typ_to_json (#args subgraph)*)]
 
  fun input_subgraph_json (Json.Object jobj) =
@@ -304,13 +309,13 @@ struct
     val name =  JsonInputUtils.get_string jobj "name"
     val  _  =  debug_json "JSON_CORE" ("Json parsing: Graph name - " ^ name) ()
     val branchType = JsonInputUtils.get_string jobj "branch_type"
-    val graphs = JsonInputUtils.get_array jobj "graphs" |> map Theory_IO.in_json
+    val graphs = JsonInputUtils.get_array jobj "graphs" |> map Graph.from_json
    (* val args = (arg_typ_from_json (Json.get jobj "args"))*)
   in
     (name, Graph_Tacs {name = name, branchType = branchType, graphs = graphs(*, args = args*)})
   end
- handle Theory.Data.GoalTyp.gt_exp str => 
-  raise Theory.Data.GoalTyp.gt_exp (str ^ ", in graph " ^ JsonInputUtils.get_string jobj "name"))
+ handle Graph.Data.GoalTyp.gt_exp str => 
+  raise Graph.Data.GoalTyp.gt_exp (str ^ ", in graph " ^ JsonInputUtils.get_string jobj "name"))
  | input_subgraph_json _ = raise Json.parse_exn "unexcepted json strcure in input_subgraph_json"
  
  val get_V_from_occurs_record = (fn Json.String s => s) o List.last;
@@ -349,14 +354,14 @@ struct
      |> Json.mk_object)]
    |> Json.mk_object;
 
- fun to_prover_json (Json.String s) = Theory.Data.GoalTyp.Prover.encoding_to_prover s |> Json.String
+ fun to_prover_json (Json.String s) = Graph.Data.GoalTyp.Prover.encoding_to_prover s |> Json.String
  | to_prover_json (Json.Array arr) = map to_prover_json arr |> Json.Array
  | to_prover_json (Json.Object obj) = 
     Json.fold (fn (n,j) => Json.update (n, to_prover_json j)) obj Json.empty_obj
     |> Json.Object
  | to_prover_json x = x
 
- fun from_prover_json (Json.String s) = Theory.Data.GoalTyp.Prover.encoding_from_prover s |> Json.String
+ fun from_prover_json (Json.String s) = Graph.Data.GoalTyp.Prover.encoding_from_prover s |> Json.String
  | from_prover_json (Json.Array arr) = map from_prover_json arr |> Json.Array
  | from_prover_json (Json.Object obj) = 
     Json.fold (fn (n,j) => Json.update (n, from_prover_json j)) obj Json.empty_obj
@@ -423,7 +428,7 @@ struct
     val gt_data = 
       Json.get object "goal_types"
       |> debug_json "JSON_CORE" "Json parsing: goal_types"
-      |> Theory.Data.GoalTyp.data_from_json
+      |> Graph.Data.GoalTyp.data_from_json
     val graph_tactics = 
       JsonInputUtils.get_array object "graphs"
       |> debug_json "JSON_CORE""Json parsing: graphs"
@@ -458,12 +463,12 @@ struct
  | input_json _ _ = raise Json.parse_exn "unexcepted json structure in input_json"
 
  fun write_json_file path ps = 
-  File_Io.write_string path (output_json ps |> Json.encode |> Theory.Data.GoalTyp.Prover.encoding_to_gui);
+  File_Io.write_string path (output_json ps |> Json.encode |> Graph.Data.GoalTyp.Prover.encoding_to_gui);
 
  fun read_json_file data path = 
   let 
    val ps = File_Io.read_string path 
-   |> Theory.Data.GoalTyp.Prover.encoding_from_gui
+   |> Graph.Data.GoalTyp.Prover.encoding_from_gui
    |> Json.of_string 
    |> to_prover_json
    |> input_json true
@@ -471,7 +476,7 @@ struct
    case data of NONE => ps
    | (SOME gt_data) => 
     get_goaltype_data ps 
-    |> (fn x => Theory.Data.GoalTyp.merge_data x gt_data)
+    |> (fn x => Graph.Data.GoalTyp.merge_data x gt_data)
     |> (fn x => set_goaltype_data x ps )
   end
 
@@ -493,6 +498,6 @@ struct
   type atomic_tacs = atomic_tacs
   type env_tacs = env_tacs
   type occurences = occurences 
-  structure Theory = Theory.Sharing
+  structure Graph = Graph.Sharing
  end
 end

@@ -32,9 +32,10 @@ sig
   val parse_env_var_name : string -> string option
 
   structure Sharing : GRAPH_UTILS_SHARING
+  sharing Sharing.Graph = Graph.Sharing
 end
 
-functor GraphUtilFunc (Graph: GRAPH) : GRAPH_UTILS =
+functor GraphUtilsFun (Graph: GRAPH) : GRAPH_UTILS =
 struct 
 
  local open LoggingHandler in

@@ -10,7 +10,7 @@ struct
 
   structure IEVal = IEVal
   structure EData = IEVal.EData
-  structure Prover = EData.PSGraph.Theory.Data.GoalTyp.Prover
+  structure Prover = EData.PSGraph.Graph.Data.GoalTyp.Prover
   structure TextSocket = TextSocket
   
   val if_gui_dbg_mode = true
@@ -56,9 +56,9 @@ struct
   fun set_data d = edata := SOME (d)
 
   val init_data : 
-    (EData.PSGraph.Theory.Data.GoalTyp.Prover.context option * 
-     EData.PSGraph.Theory.Data.GoalTyp.Prover.term option * 
-     EData.PSGraph.Theory.Data.GoalTyp.Prover.term list option *
+    (EData.PSGraph.Graph.Data.GoalTyp.Prover.context option * 
+     EData.PSGraph.Graph.Data.GoalTyp.Prover.term option * 
+     EData.PSGraph.Graph.Data.GoalTyp.Prover.term list option *
      EData.PSGraph.T option)  Unsynchronized.ref = Unsynchronized.ref (NONE, NONE, NONE, NONE)
  
   fun reset_init_data _ = init_data := (NONE, NONE, NONE, NONE)
@@ -75,15 +75,15 @@ struct
     val g = case (#2 init_data) of 
       (SOME g0) => g0
      | NONE => JsonInputUtils.get_array obj "goal" |> hd 
-      |> (fn (Json.String str) => EData.PSGraph.Theory.Data.GoalTyp.Prover.prop_of_string ctxt str)
-    val _ = logging "EVAL" ("To prove goal:" ^ (EData.PSGraph.Theory.Data.GoalTyp.Prover.string_of_trm ctxt g))
+      |> (fn (Json.String str) => EData.PSGraph.Graph.Data.GoalTyp.Prover.prop_of_string ctxt str)
+    val _ = logging "EVAL" ("To prove goal:" ^ (EData.PSGraph.Graph.Data.GoalTyp.Prover.string_of_trm ctxt g))
     val assms = case (#3 init_data) of 
       (SOME assms) => assms
     | NONE => JsonInputUtils.get_array obj "goal" |> tl |> hd 
        |> (fn (Json.Array arr) => 
-            map (fn (Json.String str) => EData.PSGraph.Theory.Data.GoalTyp.Prover.prop_of_string ctxt str)
+            map (fn (Json.String str) => EData.PSGraph.Graph.Data.GoalTyp.Prover.prop_of_string ctxt str)
             arr) 
-    val _ = logging "EVAL" ("With assms: " ^ (str_blocks " " (map (EData.PSGraph.Theory.Data.GoalTyp.Prover.string_of_trm ctxt) assms)))
+    val _ = logging "EVAL" ("With assms: " ^ (str_blocks " " (map (EData.PSGraph.Graph.Data.GoalTyp.Prover.string_of_trm ctxt) assms)))
     val ps = case (#4 init_data) of 
       (SOME ps) => ps
     | NONE => JsonInputUtils.get_array obj "psgraph" |> hd
@@ -216,9 +216,7 @@ struct
 
 (****************************************************
   protocol executer 
-****************************************************)
-
-  val version_string = Json.String gui_version 
+****************************************************) 
 
   fun run_in_textstreams s init_json =
   let

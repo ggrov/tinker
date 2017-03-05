@@ -27,7 +27,7 @@ struct
     case new_branches of 
       [] => (logging "FAILURE" "Err: All branches fail";Bad) (* no more branches *)
       | (x::xs) => (* fixme: this should be based on the search strategy *)
-          ((if if_backtrack then EData.PSGraph.Theory.Data.GoalTyp.Prover.restore_pplan (EData.get_bpplan x) 
+          ((if if_backtrack then EData.PSGraph.Graph.Data.GoalTyp.Prover.restore_pplan (EData.get_bpplan x) 
             else ());
            Cont (edata 
                 |> EData.set_current x 
@@ -37,8 +37,8 @@ struct
   fun eval_goal0 if_debug node_name edata = 
    let 
     val graph = (EData.get_graph edata) 
-    val g = EVal.EData.PSGraph.Theory.Graph_Utils.gnode_of graph (V.mk node_name) 
-            |> EData.PSGraph.Theory.Data.GoalTyp.goal_name
+    val g = EVal.EData.PSGraph.Graph_Utils.gnode_of graph (V.mk node_name) 
+            |> EData.PSGraph.Graph.Data.GoalTyp.goal_name
    in
      if EVal.has_psgraph_terminated edata then Good edata
      else
@@ -51,14 +51,14 @@ struct
          (*|> map fst  map out branches *)
          |> update_branches edata
    end
-   handle EVal.EData.PSGraph.Theory.Graph.no_such_vertex_exp (f, v, _) => 
+   handle EVal.EData.PSGraph.Graph.no_such_vertex_exp (f, v) => 
      (logging "FAILURE" ("Exception in " ^ f ^ " for node " ^ (V.string_of_name v) ^ ": no such vertex");
        raise tinker_fail true)
 
    fun eval_any0 if_debug edata = 
    let 
     val graph = (EData.get_graph edata) 
-    val cur_gnodenames = EVal.EData.PSGraph.Theory.Graph_Utils.all_gnodes graph
+    val cur_gnodenames = EVal.EData.PSGraph.Graph_Utils.all_gnodes graph
    in
     if EVal.has_psgraph_terminated edata then Good edata
     else
@@ -67,8 +67,8 @@ struct
     else
    (* todo: hierichecal one *)
      cur_gnodenames
-       |> map (EVal.EData.PSGraph.Theory.Graph_Utils.gnode_of graph)
-       |> map (EVal.EData.PSGraph.Theory.Data.GoalTyp.goal_name)
+       |> map (EVal.EData.PSGraph.Graph_Utils.gnode_of graph)
+       |> map (EVal.EData.PSGraph.Graph.Data.GoalTyp.goal_name)
        |> (fn x => 
             (((Pretty.str "all goals in the current graph: " ::
               (map (fn y => Pretty.block [Pretty.str y, Pretty.str " "] ) x)) |> Pretty.block 
@@ -92,7 +92,7 @@ struct
    case EData.get_branches edata  
    of [] => (logging "FAILURE" "All branches fail, no branch available for backtracking" ; Bad)
     | branch  => 
-        (EData.PSGraph.Theory.Data.GoalTyp.Prover.restore_pplan (EData.get_bpplan (hd branch));
+        (EData.PSGraph.Graph.Data.GoalTyp.Prover.restore_pplan (EData.get_bpplan (hd branch));
         Cont( EData.set_current (hd branch) edata |> EData.set_branches (tl branch)))
 
   fun eval_complete0 if_debug (* if debug mode, i.e. breakpoint *) edata = 
@@ -142,7 +142,7 @@ struct
       case EData.get_branches e
        of [] => 
        (* no more branches to evaluate, then restore pplan and update branches *)
-       (EData.PSGraph.Theory.Data.GoalTyp.Prover.restore_pplan (EData.get_bpplan (hd newbs));
+       (EData.PSGraph.Graph.Data.GoalTyp.Prover.restore_pplan (EData.get_bpplan (hd newbs));
         update_branches e newbs)
        | _ => (case eval_backtrack e of Cont e0 => eval_until_break0 e0 newbs) 
      end

@@ -66,4 +66,6 @@ sig
  val print : T -> unit
 
  structure Sharing : GRAPH_SHARING
+  sharing type Sharing.T = T
+  sharing Sharing.Data = Data.Sharing
 end

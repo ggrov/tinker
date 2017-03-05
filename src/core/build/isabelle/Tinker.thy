@@ -1,7 +1,7 @@
 (* JSON protocal and comnumnication interfaces with the tinker GUI *)
 theory Tinker                                                                                                                                                                                           
 imports           
-  Graph                                                                       
+  EVal                                                                       
 begin
  (* socket communication for the tinker gui *)
  ML_file "../../interface/text_socket.ML"
@@ -29,12 +29,11 @@ str1 = str2;
 ML{*
   structure Clause_GT = ClauseGTFun(structure Prover = IsaProver val struct_name = "Clause_GT");
   structure Data = PSGraphDataFun(Clause_GT);
-  structure PSDataIO = PSGraphIOFun(structure Data = Data);
-  structure Theory = PSGraph_TheoryFun(structure GoalTyp = Clause_GT  
-                                     structure Data = Data);
-  structure Theory_IO = PSGraph_Theory_IOFun(structure PSTheory = Theory)
-  structure Env_Tac_Utils = EnvTacUtilsFunc (structure Theory = Theory val struct_name = "Env_Tac_Utils" );
-  structure PSGraph = PSGraphFun(structure Theory_IO = Theory_IO structure Env_Tac_Utils = Env_Tac_Utils);
+  structure Graph = GraphFun(Data);
+  structure Graph_Utils = GraphUtilsFun(Graph);
+  structure Env_Tac_Utils = EnvTacUtilsFunc (structure Graph_Utils = Graph_Utils val struct_name = "Env_Tac_Utils" );
+  structure PSGraph = 
+  PSGraphFun(structure Graph = Graph structure Graph_Utils = Graph_Utils structure Env_Tac_Utils = Env_Tac_Utils);
   (*structure PSComb = PSCombFun (structure PSGraph = PSGraph)*)
   structure EData =  EDataFun( PSGraph);
   structure EVal = EValFun(EData);

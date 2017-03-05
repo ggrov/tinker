@@ -3,9 +3,9 @@ functor EDataFun(PSGraph : PS_GRAPH) : EVAL_DATA  =
 struct
 local open LoggingHandler in
   structure PSGraph = PSGraph;
-  structure Prover = PSGraph.Theory.Data.GoalTyp.Prover;
+  structure Prover = PSGraph.Graph.Data.GoalTyp.Prover;
 
-  type gnode = PSGraph.Theory.Data.GoalTyp.gnode
+  type gnode = PSGraph.Graph.Data.GoalTyp.gnode
 
 
   datatype active = Active of {
