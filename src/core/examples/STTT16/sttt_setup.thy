@@ -1,5 +1,5 @@
 theory sttt_setup
-imports "../../provers/isabelle/clausal/CIsaP"  HOL
+imports "../../build/isabelle/Tinker"  HOL
 
 begin
 ML{*
@@ -32,7 +32,7 @@ section rippling
   ML_file  "../../provers/isabelle/lib/induct.ML"
   ML_file  "../../provers/isabelle/lib/term_fo_au.ML"  
   ML_file  "../../provers/isabelle/lib/term_features.ML"  
-  ML_file  "../../provers/isabelle/lib//rippling/basic_ripple.ML" 
+  ML_file  "../../provers/isabelle/lib/rippling/basic_ripple.ML" 
 
   attribute_setup wrule = {* Attrib.add_del wrule_add wrule_del *} "maintaining a list of wrules"
 
@@ -65,8 +65,8 @@ ML{*
 
  fun inductable env pnode [] = 
   TermFeatures.is_inductable_structural 
-  (Prover.get_pnode_ctxt pnode |> Proof_Context.theory_of ) 
-  (Prover.get_pnode_concl pnode)
+  (Clause_GT.Prover.get_pnode_ctxt pnode |> Proof_Context.theory_of ) 
+  (Clause_GT.Prover.get_pnode_concl pnode)
   |> bool_to_cl env
  | inductable _ _ _ = [];
 
@@ -74,7 +74,7 @@ ML{*
   let val args' = map (Clause_GT.project_terms env pnode) args in
    if all_singleton args'
    then
-      f (Prover.get_pnode_ctxt pnode) (map hd args') 
+      f (Clause_GT.Prover.get_pnode_ctxt pnode) (map hd args') 
       |> bool_to_cl env
    else [] end;
 
@@ -85,9 +85,9 @@ ML{*
 
  fun measure_reduces0 env pnode [] =
   let
-     val goal = Prover.get_pnode_concl pnode
-     val ctxt = Prover.get_pnode_ctxt pnode
-     val hyps' = map TermFeatures.fix_alls_as_var (Prover.get_pnode_hyps pnode)
+     val goal = Clause_GT.Prover.get_pnode_concl pnode
+     val ctxt = Clause_GT.Prover.get_pnode_ctxt pnode
+     val hyps' = map TermFeatures.fix_alls_as_var (IsaProver.get_pnode_hyps pnode)
      val embedd_hyp =
       filter (fn hyp => TermFeatures.ctxt_embeds ctxt hyp goal) hyps' (* use the hyp with no bindings *)
       |> hd (* only get the first embedding *)
@@ -105,7 +105,7 @@ ML{*
  fun has_wrules env pnode [r] = 
   let val t =  Clause_GT.project_terms env pnode r in
   case t of [gtrm] => 
-    (if (BasicRipple.get_matched_wrules (Prover.get_pnode_ctxt pnode) gtrm |> List.null)
+    (if (BasicRipple.get_matched_wrules (IsaProver.get_pnode_ctxt pnode) gtrm |> List.null)
     then []
     else [env])
   | _ => []
@@ -863,7 +863,7 @@ val clause_cls =
     (cl_is_f (cl2_wraper TermFeatures.ctxt_embeds))
   |> Clause_GT.add_atomic "sub_term" (cl_is_f (cl2_wraper (TermFeatures.is_subterm)))
   |> Clause_GT.add_atomic  "measure_reduced" (cl_is_f (cl3_wraper (TermFeatures.is_measure_decreased)))
-  |> Clause_GT.update_data_defs (fn x => (Clause_GT.scan_data Prover.default_ctxt "") @ x);
+  |> Clause_GT.update_data_defs (fn x => (Clause_GT.scan_data Clause_GT.Prover.default_ctxt "") @ x);
 
   val data =  
   data_atom 
@@ -871,9 +871,6 @@ val clause_cls =
 
 *}
 
-ML{*
-K sledgehammer
-*}
 
 section "steup psgraph files"
 ML{*

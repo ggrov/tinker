@@ -12,19 +12,6 @@ begin
  ML_file "../../provers/Isabelle/isa_prover.ML"                              
 
    
-ML{*
-  structure Clause_GT = ClauseGTFun(structure Prover = IsaProver val struct_name = "Clause_GT");
-  structure Data = PSGraphDataFun(Clause_GT);
-  structure Graph = Graph(Data);
-
-val path = "/Users/yuhuilin/Desktop/scratch.psgraph";
-val path2 = "/Users/yuhuilin/Desktop/scratch2.psgraph";
-
-val str1  = File_Io.read_string path 
-val str2 =  Json.of_string str1 |> Graph.from_json |> Graph.to_json |> Json.encode;
-str1 = str2;
- 
-*}   
  -- "setting up PSGraph"
 ML{*
   structure Clause_GT = ClauseGTFun(structure Prover = IsaProver val struct_name = "Clause_GT");

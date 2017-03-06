@@ -6,7 +6,7 @@ struct
   val if_debug =  true (* to enable local print, an overall control for all local print *)
   val if_check_perform = false (* print time for each steps *)
 
-  val debug_tracing = fn msg =>  if if_debug then writeln (("TRACING: ") ^ msg) else ()
+  val debug_tracing = fn msg =>  if if_debug then tracing (("TRACING: ") ^ msg) else ()
   val logging_tags = [ 
     "GOAL",
     "GOALTYPE",

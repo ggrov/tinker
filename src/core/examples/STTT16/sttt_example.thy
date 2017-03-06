@@ -8,14 +8,13 @@ ML{*-
 (* a command to reset the GUI connection, if needed. No need to run this if everything goes well *)
   TextSocket.safe_close();
 *} 
-
 lemma "\<exists>x y. (x = y \<or> x > y) \<and> (x*x + y*y = (50::nat))"
 (*apply (subst conj_disj_distribR)
 apply (subst ex_disj_distrib)+*)
   (* auto mode, no need to launch GUI *)
   apply (tinker disj)
  (* interactive mode for debugging *)
- (*apply (itinker disj)*)   
+  (*apply (-itinker disj)*)
   apply (rule disjI1)
   apply (rule_tac x = 5 in exI)+
   by simp

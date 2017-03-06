@@ -40,7 +40,7 @@ struct
            |> atomic_tracing
     val _ = str_chunks (["goal in rippling: "] @ [((Prover.string_of_trm ctxt goal))])|> atomic_tracing*)
     val skel = filter (fn hyp => TermFeatures.ctxt_embeds ctxt hyp goal) hyps |> hd (* only get the first embedding *)
-    val _ = str_chunks ([ "skel in rippling: "] @ [((Prover.string_of_trm ctxt skel))])|> atomic_tracing
+    val _ = str_chunks ([ "skel in rippling: "] @ [((IsaProver.string_of_trm ctxt skel))])|> atomic_tracing
     val wrules = get_matched_wrules ctxt goal
     val params = TermFeatures.get_decreased_measure_params ctxt skel wrules goal;
 (*    val pretty_params = map TermFeatures.Data.pretty_subst_params params;
