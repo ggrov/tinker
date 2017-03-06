@@ -149,7 +149,7 @@ sig
    * Accept an instream and return a Source.source, which will pull the next JSON
    * object/array from the stream
    *)
-  val json_source : TextIO.instream -> (json, (string, unit) Source.source) Source.source
+  val json_source : TextIO.instream -> (json, (string, unit) RawSource.source) RawSource.source
   
   (**
    * Read in a file containing JSON

@@ -1,0 +1,46 @@
+1）assume that the quantomatics repo and the psgraph are cloned in the same folder, for example,
+ 
+   $SOME_PATH/tinker 
+
+we can check the readme file to make sure the path is correct, e.g. the readme for quantomatoics repo will be
+
+   $SOME_PATH/tinker/quantomatic/README
+
+similarly, the readme for the psgraph repo will be 
+
+   $SOME_PATH/tinker/psgraph/Readme
+
+Note that both repo need to be latest version.
+
+2) go to the tinker folder by
+
+	cd $SOME_PATH/tinker 
+
+ then to make the psgraph db, using 
+
+	pp_make_database -p zed psgraph
+
+3) then to open the psgraph db in the same directory, i.e.
+
+ 	xpp -d psgraph
+
+4) in the cpp, to open the install file in
+
+	$SOME_PATH/tinker/psgraph/src/core/provers/proofpower/build/install.ML
+
+then to run this run to compile the required library into the psgraph db. 
+
+5) now the psgraph db should be ok to load psgraph and run and run some experiments, no need to do steps 1 - 4 from this point.
+
+6) to run some examples, open the psgraph db under
+	$SOME_PATH/tinker 
+by
+	xpp -d psgraph
+
+then open the following demo file in the pp to see if the tool can run correctly
+	$SOME_PATH/tinker /psgraph/src/core/demo/AdvisoryBoardMeeting2015/tinker_proofpower
+
+
+The line 
+	PPIntf.set_psg_goal
+is to ask pp to connect gui for proofs. Note that to enable gui to accept the connection from pp.

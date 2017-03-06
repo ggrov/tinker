@@ -1,16 +1,13 @@
 theory LoadLib
   imports Main
   "../../../lib/isalib" 
-(*  "~~/contrib/quantomatic/core/quanto" *)
+
 begin 
 ML{*
-signature x =
-sig
-structure V : SSTR_NAME  
-end
+Library.member;
+fold;
 *}
 ML{*
-Induct.induct_tac;
   exception RunCallFail = Fail;
 (*  fun eval_text text = ML_Context.eval ML_Compiler.flags (Position.start) (ML_Lex.read (Position.start) text); *)
  val eval_text = ML_Compiler0.ML ML_Env.context
