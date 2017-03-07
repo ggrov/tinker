@@ -50,6 +50,13 @@ fun eq_option eq (SOME x, SOME y) = eq (x, y)
 
 (*** Pair *)
 fun pair x y = (x, y);
+
+fun eq_fst eq ((x1, _), (x2, _)) = eq (x1, x2);
+fun eq_snd eq ((_, y1), (_, y2)) = eq (y1, y2);
+fun eq_pair eqx eqy ((x1, y1), (x2, y2)) = eqx (x1, x2) andalso eqy (y1, y2);
+
+fun swap (x, y) = (y, x);
+
 fun apfst f (x, y) = (f x, y);
 fun apsnd f (x, y) = (x, f y);
 fun apply2 f (x, y) = (f x, f y);
@@ -194,6 +201,25 @@ fun exists_string pred str =
   in ex 0 end;
 
 fun forall_string pred = not o exists_string (not o pred);
+
+
+(*** items tagged by integer index *)
+
+
+
+(*insert tags*)
+fun tag_list k [] = []
+  | tag_list k (x :: xs) = (k:int, x) :: tag_list (k + 1) xs;
+
+(*remove tags and suppress duplicates -- list is assumed sorted!*)
+fun untag_list [] = []
+  | untag_list [(k: int, x)] = [x]
+  | untag_list ((k, x) :: (rest as (k', x') :: _)) =
+      if k = k' then untag_list rest
+      else x :: untag_list rest;
+
+(*return list elements in original order*)
+fun order_list list = untag_list (sort (int_ord o apply2 fst) list);
 
 
 end

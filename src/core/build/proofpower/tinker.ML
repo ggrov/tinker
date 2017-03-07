@@ -1,8 +1,8 @@
+
   (*open_theory "z_library";*)
   (*set_pc "z_library";*)
   (*open_theory "hol";*)
-
-(* define your own root path here ! *)
+  (* define your own root path here ! *)
   val cur_path = OS.FileSys.getDir();
   val tinkerhome = cur_path ^ "/psgraph"; 
   val root_path = OS.FileSys.getDir();

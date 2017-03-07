@@ -61,7 +61,7 @@ use "pure/exn.ML";
 use "pure/table.ML";
 use "pure/scan.ML";
 use "pure/symbol.ML";
-(*use "pure/pretty.ML";*)
+use "pure/pretty.ML";
 structure Library = PureLib;
 open PureLib;
 use "isalib.ML" ;
