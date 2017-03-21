@@ -94,7 +94,7 @@ end;
 
 structure Scan: SCAN =
 struct
-local open PureLib in 
+local open Basics PureLib in 
 
 (** scanners **)
 

@@ -3,7 +3,8 @@ val raw_explode = SML90.explode;
 val implode = String.concat;
 val pointer_eq = PolyML.pointerEq;
 
-
+structure Basics =
+struct
 (* List *)
 fun fold _ [] y = y
   | fold f (x :: xs) y = fold f xs (f x y);
@@ -18,9 +19,16 @@ fun take (0: int) xs = []
   | take _ [] = []
   | take n (x :: xs) = x :: take (n - 1) xs;
 
+fun chop (0: int) xs = ([], xs)
+  | chop _ [] = ([], [])
+  | chop n (x :: xs) = chop (n - 1) xs |>> cons x;
+
+val forall = List.all;
+end
 (*** more utils *)
 structure PureLib = 
 struct
+local open Basics in 
 (*** option *)
 fun is_some (SOME _) = true
   | is_some NONE = false;
@@ -222,4 +230,17 @@ fun untag_list [] = []
 fun order_list list = untag_list (sort (int_ord o apply2 fst) list);
 
 
+(* partiality *)
+fun try f x = SOME (f x)
+  handle exn => if Exn.is_interrupt exn then Exn.reraise exn else NONE;
+
+fun can f x = is_some (try f x);
+
+
+(* others *)
+val writeln = print;
+val tracing = print;
+val warning = print;
+
+end (* nend of open local BAsics*)
 end

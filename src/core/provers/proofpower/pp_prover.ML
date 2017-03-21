@@ -457,5 +457,6 @@ struct
     type pnode = pnode
     type env_data = env_data
     type env_tac = env_tac
+    type arg_data = arg_data
   end (* end of local open *) end
 end

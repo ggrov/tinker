@@ -4,7 +4,7 @@ use "isalib/raw_source.ML";
 use "isalib/json.ML";
 use "isalib/json_io.ML";
 use "isalib/file_io.ML";
-use "isalib/text_socket.ML";
+(*use "isalib/text_socket.ML";*)
 
 (* Generic Tools for namers, fresh names tables, and collections *)
 (* for creating fresh names, has name suc and pred operation, 
@@ -20,7 +20,7 @@ use "isalib/names/basic_renaming.ML"; (* renaming, based on tables and sets *)
 (* generic Name structure provies nametables, namesets and collections *)
 use "isalib/names/basic_name.ML";
 use "isalib/names/compound_renaming.ML"; (* renaming within datatypes *)
-use "isalib/names/renaming.ML" (* renamings which can be renamed *)
+use "isalib/names/renaming.ML"; (* renamings which can be renamed *)
 
 (* as above, but with renaming *)
 use "isalib/names/nameset.ML";

@@ -37,6 +37,9 @@ val backdoor_use_file = use_file;
 infix 1 |> |>> |-> ||> ||>>;
 fun I x = x;
 fun K x = fn _ => x;
+fun curry f x y = f (x, y);
+fun uncurry f (x, y) = f x y;
+
 fun x |> f = f x;
 fun (x, y) |>> f = (f x, y);
 fun (x, y) |-> f = f x y;
@@ -51,19 +54,42 @@ fun (f #>> g) x  = x |> f |>> g;
 fun (f ##> g) x  = x |> f ||> g;
 fun (f ##>> g) x = x |> f ||>> g;
 
+infix 2 ?
+infix 3 o oo ooo oooo
+(*conditional application*)
+fun b ? f = fn x => if b then f x else x;
+(*composition with multiple args*)
+fun (f oo g) x y = f (g x y);
+fun (f ooo g) x y z = f (g x y z);
+fun (f oooo g) x y z w = f (g x y z w);
+
+
 (* a pretedned Unsynchronized.ref*)
-structure Unsynchronized = struct datatype ref = datatype ref end;
 (* load libraries *)
 OS.FileSys.chDir (tinkerhome ^ "/src/lib");
 (* some libraries from Isabelle/Pure *)
-use "pure/lib.ML";
+(* exception and multi-threading *)
 use "pure/exn.ML";
+
+(* utils *)
+use "pure/lib.ML";
 use "pure/table.ML";
 use "pure/scan.ML";
 use "pure/symbol.ML";
 use "pure/pretty.ML";
+use "pure/seq.ML";
+
 structure Library = PureLib;
-open PureLib;
+open Basics PureLib Thread;
+
+fun print_exception_trace (_: exn -> string) = PolyML.exception_trace;
+val seconds = Time.fromReal;
+use "pure/multithreading.ML";
+use "pure/multithreading_polyml.ML";
+use "pure/unsynchronized.ML";
+use "pure/simple_thread.ML";
+use "pure/synchronized.ML";
+(* isalib *)
 use "isalib.ML" ;
 OS.FileSys.chDir (build_path);
 

@@ -1,25 +1,9 @@
-
-  (*open_theory "z_library";*)
-  (*set_pc "z_library";*)
-  (*open_theory "hol";*)
-  (* define your own root path here ! *)
+(* define your own root path here ! *)
   val cur_path = OS.FileSys.getDir();
   val tinkerhome = cur_path ^ "/psgraph"; 
   val root_path = OS.FileSys.getDir();
   val build_path = tinkerhome ^ "/src/core/build/proofpower";
   OS.FileSys.chDir build_path;
-
 (* load lib *)
-  use "lib/loadLib.ML";
-
-  use "load_psgraph";
- (*use "build_simple_GT.ML"; *) 
-  use "build_clause_GT.ML"; 
-  OS.FileSys.chDir root_path;
- 
-(* enable the subgoal package printing 
-  set_flags [
-  ("subgoal_package_quiet", false), (* enable xpp output *)
-  ("output_in_utf8", false), 
-  ("input_in_utf8", false)];(* disable uftp-8 encoding for GUI *)
-*)
+  use "lib/load_lib.ML";
+  use "lib/load_psgraph.ML";

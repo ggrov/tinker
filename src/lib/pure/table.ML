@@ -63,6 +63,7 @@ end;
 functor Table(Key: KEY): TABLE =
 struct
 
+local open Basics in 
 (* some lib from pure *)
 val is_some = PureLib.is_some;
 val the = PureLib.the;
@@ -422,8 +423,8 @@ val map = map_table;
 val fold = fold_table;
 val fold_rev = fold_rev_table;
 
+end (* end of local open Basics *)
 end;
-
 structure Inttab = Table(type key = int val ord = PureLib.int_ord);
 structure Symtab = Table(type key = string val ord = PureLib.fast_string_ord);
 structure Symreltab = Table(type key = string * string
