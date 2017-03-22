@@ -1,0 +1,13 @@
+---
+layout: post
+category: publications
+tags:
+  - news
+slug: sttt17-paper
+
+title: "The Tinker tool for graphical tactic development"
+date: 2017-03-22
+
+---
+Gudmund Grov and Yuhui Lin. **The Tinker tool for graphical tactic development**. Int J Softw Tools Technol Transfer (2017). doi:10.1007/s10009-017-0452-7. <a href="http://www.springer.com/-/0/AVro4ZQRCYMfo4g2YHx-">[link]</a><a href="http://ggrov.github.io/tinker/sttt16/">[paper resource]</a>
+

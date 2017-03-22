@@ -1,253 +1,105 @@
-<!DOCTYPE html>
-<html><head><title>Tinker2 - TACAS 16 paper resources</title>
-
-
-
-
-
-	<link rel="stylesheet" href="style/main.css">
-	<link rel="shortcut icon" href="favicon.ico">
-	
-<link rel="stylesheet" href="style/tinkerViz.css"><link rel="stylesheet" href="style/graph.css"></head><body>
-	<header id="header" class="">
-	</header><div>
-<div style="text-align: center;">
-		
-		</div>
-<h1 style="text-align: center;">Tinker - STTT 16 paper resources</h1>
-		
-<h3 style="text-align: center;">Authors : G. Grov and Y. Lin</h3>
-</div>
-	<div class="container">
-		<div class="section" id="intro">
-			<h2>Foreword</h2>
-			<hr>
-			
-<p>This webpage aims to present resources used for our tool presentation. To use these resources</p>
-<p>1. Download and install Isabelle (the latest version is 2016-1) from <a href="https://isabelle.in.tum.de/installation.html" target="_blank">here</a>.<br>
-</p>
-<p>Then go to the contrib directory: 
-</p><p class="code"><span class="code">cd contrib</span> <br></p>
-<p>and grab the quantomatic libraries either over https,:<br>
-</p>
-
-<p class="code"><span class="code">git clone -b tinker https://github.com/Quantomatic/quantomatic</span> <br></p>
-
-Note that this assumed that you have `git` installed.<br>
-<br>
-
-2. Download and install Tinker from here <br>
-<p class="code" style="font-family: monospace;"><span>git clone -b sttt16 https://github.com/ggrov/tinker.git</span></p>
-<p> </p>
-The example files are available under:
-
-<p class="code"><span class="code"> $SOME_PATH/tinker/src/core/demo/STTT16/</span> <br></p>
-
-In <span style="font-style: italic;">sttt_setup.thy</span>, set <span style="font-style: italic; font-weight: bold;">tinkerhome</span> to the path of tinker, e.g.
-<p class="code"><span class="code"> $SOME_PATH/tinker</span> <br></p>
-
-The example can then be run by opening the file  <span style="font-style: italic;">sttt_example.thy</span>. For more details on how to start the GUI can be found in <a href="../userGuide.pdf" title="">Tinker's user guide</a>.
-
-		</div>
-			<script src="script/d3.min.js"></script>
-			<script src="script/d3-tip.min.js"></script>
-			<script src="script/tinker.js"></script>
-			
-		<div class="section" id="dist">		
-			<h2>Disjunctions to the top</h2>
-			<hr>
-			<div id="record-dist">
-				<div id="graphContent" style="visibility: hidden;">
-					<div class="line">
-						<div class="line content">
-							<span>Evaluation Step : </span>
-							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
-							<span id="vizIndices"></span>
-							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
-							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
-						</div>
-					</div>
-					<div id="mainArea">
-						<div class="line content">
-							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
-							<div>
-								<select id="tacticList" class=""></select>
-								<span>Subgraphs : </span>
-								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
-								<span id="graphIndices"></span>
-								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
-							</div>
-						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
-					</div>
-					<div id="graphError" style="visibility: hidden;"></div>
-				</div>
-			</div>
-			<script>
-				makeViz("record-dist","ressources/disj.json")
-			</script>
-		</div>
-		
-		<div class="section" id="onep">		
-			<h2>Existential quantifiers via a one-point rule</h2>
-			<hr>
-			<div id="debug-onep">
-			<p> This recording shows the use of breakpoint to debug version0 of the one point rule:</p>
-				<div id="graphContent" style="visibility: hidden;">
-					<div class="line">
-						<div class="line content">
-							<span>Version0 -&gt; Version1 : </span>
-							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
-							<span id="vizIndices"></span>
-							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
-							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
-						</div>
-					</div>
-					<div id="mainArea">
-						<div class="line content">
-							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
-							<div>
-								<select id="tacticList" class=""></select>
-								<span>Subgraphs : </span>
-								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
-								<span id="graphIndices"></span>
-								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
-							</div>
-						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
-					</div>
-					<div id="graphError" style="visibility: hidden;"></div>
-				</div>
-			</div>
-			<script>
-				makeViz("debug-onep","ressources/onep_debug.json")
-			</script>
-			<div id="versions-onep">
-			 <p> This recording compares the differences between version0 and version1</p>
-
-				<div id="graphContent" style="visibility: hidden;">
-					<div class="line">
-						<div class="line content">
-							<span>Evaluation Step : </span>
-							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
-							<span id="vizIndices"></span>
-							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
-							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
-						</div>
-					</div>
-					<div id="mainArea">
-						<div class="line content">
-							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
-							<div>
-								<select id="tacticList" class=""></select>
-								<span>Subgraphs : </span>
-								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
-								<span id="graphIndices"></span>
-								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
-							</div>
-						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
-					</div>
-					<div id="graphError" style="visibility: hidden;"></div>
-				</div>
-			</div>
-			<script>
-				makeViz("versions-onep","ressources/oneps.json")
-			</script>
-			<div id="record-onep">
-			<p> This recording shows the evaluation of the version1:</p>
-
-				<div id="graphContent" style="visibility: hidden;">
-					<div class="line">
-						<div class="line content">
-							<span>Evaluation Step : </span>
-							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
-							<span id="vizIndices"></span>
-							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
-							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
-						</div>
-					</div>
-					<div id="mainArea">
-						<div class="line content">
-							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
-							<div>
-								<select id="tacticList" class=""></select>
-								<span>Subgraphs : </span>
-								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
-								<span id="graphIndices"></span>
-								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
-							</div>
-						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
-					</div>
-					<div id="graphError" style="visibility: hidden;"></div>
-				</div>
-			</div>
-			<script>
-				makeViz("record-onep","ressources/onep_full.json")
-			</script>
-		</div>
-		<div class="section" id="rippling">		
-			<h2>Rippling + PWF</h2>
-			<hr>
-			<div id="record1">
-				<div id="graphContent" style="visibility: hidden;">
-					<div class="line">
-						<div class="line content">
-							<span>Evaluation Step : </span>
-							<button id="previousPSGraph" onclick="previousPSGraph()">&#9664;</button>
-							<span id="vizIndices"></span>
-							<button id="nextPSGraph" onclick="nextPSGraph()">&#9654;</button>
-							<!--<button id="playPSGraph" onclick="playViz()">Play</button>-->
-						</div>
-					</div>
-					<div id="mainArea">
-						<div class="line content">
-							<div class=""><span>Evaluation path : </span><span id="graphTactic"></span></div>
-							<div>
-								<select id="tacticList" class=""></select>
-								<span>Subgraphs : </span>
-								<button id="previousSubGraph" onclick="previousSubGraph()">&#9664;</button>
-								<span id="graphIndices"></span>
-								<button id="nextSubGraph" onclick="nextSubGraph()">&#9654;</button>
-							</div>
-						</div>
-						<div class="content"><div id="graph" class=""></div><div id="credits">Credits : <a href="http://d3js.org/">d3.js</a> &amp; <a href="http://labratrevenge.com/d3-tip/">d3-tip</a></div></div>
-					</div>
-					<div id="graphError" style="visibility: hidden;"></div>
-				</div>
-			</div>
-			<script>
-				makeViz("record1","ressources/rippling.json")
-			</script>
-		</div>
-		<div class="section" id="demo">
-			<h2>Tool demo</h2>
-			<hr>
-			<ul>
-			    <li><a onclick="changeVideoSource(0)">Basic Drag and Drawing Editing</a></li>
-			    <li><a onclick="changeVideoSource(1)">Supports for Hierarchy</a></li>
-			    <li><a onclick="changeVideoSource(2)">PSGraph Library</a></li>
-			    <li><a onclick="changeVideoSource(3)">Evaluation and Debugging</a></li>
-			    <li><a onclick="changeVideoSource(4)">Breakpoint</a></li>
-			</ul>
-			<div id="vidContainer">
-				<iframe id="vid" src="" height="390" width="680">
-				</iframe>
-			</div>
-			<script>
-				var videosSource = [
-					"https://www.youtube.com/embed/Rll0NH4MFiI",
-					"https://www.youtube.com/embed/LTyAH9IJbfU",
-					"https://www.youtube.com/embed/soAA3pSUTAI",
-					"https://www.youtube.com/embed/L-RHYPXI4Ws",
-					"https://www.youtube.com/embed/JSLqI9dBaq4"
-					]
-				function changeVideoSource(index){
-					document.getElementById("vid").setAttribute("src",videosSource[index])
-				}
-				document.getElementById("vid").setAttribute("src",videosSource[0])
-			</script>
-		</div>
-	</div>
-</body></html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title>Tinker2 - TACAS 16 paper resources</title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="1404.47">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000; min-height: 14.0px}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; text-align: center; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000; min-height: 14.0px}
+    p.p6 {margin: 0.0px 0.0px 6.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000; min-height: 14.0px}
+    p.p7 {margin: 0.0px 0.0px 12.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000}
+    p.p8 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000}
+    p.p9 {margin: 0.0px 0.0px 12.0px 0.0px; line-height: 14.0px; font: 12.0px Courier; color: #000000; -webkit-text-stroke: #000000}
+    p.p10 {margin: 0.0px 0.0px 12.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000; min-height: 14.0px}
+    li.li8 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000}
+    span.s1 {font-kerning: none}
+    span.s2 {text-decoration: underline ; font-kerning: none; color: #0000ee; -webkit-text-stroke: 0px #0000ee}
+    span.s3 {font: 11.0px '.Hiragino Kaku Gothic Interface'; font-kerning: none; background-color: #c0c0c0}
+    span.s4 {font: 11.0px 'Lucida Grande'; font-kerning: none; background-color: #c0c0c0}
+    span.s5 {-webkit-text-stroke: 0px #000000}
+    ul.ul1 {list-style-type: disc}
+  </style>
+</head>
+<body>
+<p class="p1"><span class="s1"></span><br></p>
+<p class="p2"><span class="s1"></span><br></p>
+<h1 style="margin: 0.0px 0.0px 16.1px 0.0px; text-align: center; line-height: 28.0px; font: 24.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Tinker - STTT paper resources</b></span></h1>
+<h3 style="margin: 0.0px 0.0px 14.0px 0.0px; text-align: center; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Authors : G. Grov and Y. Lin</b></span></h3>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; line-height: 22.0px; font: 18.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Foreword</b></span></h2>
+<p class="p6"><span class="s1"></span><br></p>
+<p class="p7"><span class="s1">This webpage aims to present resources used for our tool presentation. To use these resources</span></p>
+<p class="p7"><span class="s1">1. Download and install Isabelle (the latest version is 2016-1) from <a href="https://isabelle.in.tum.de/installation.html"><span class="s2">here</span></a>.<br>
+</span></p>
+<p class="p7"><span class="s1">Then go to the contrib directory:<span class="Apple-converted-space"> </span></span></p>
+<p class="p7"><span class="s1">cd contrib <br>
+</span></p>
+<p class="p7"><span class="s1">and grab the quantomatic libraries either over https,:<br>
+</span></p>
+<p class="p7"><span class="s1">git clone -b tinker https://github.com/Quantomatic/quantomatic <br>
+</span></p>
+<p class="p8"><span class="s1">Note that this assumed that you have `git` installed.</span></p>
+<p class="p1"><span class="s1"></span><br></p>
+<p class="p8"><span class="s1">2. Download and install Tinker from here<span class="Apple-converted-space"> </span></span></p>
+<p class="p9"><span class="s1">git clone -b sttt16 https://github.com/ggrov/tinker.git</span></p>
+<p class="p10"><span class="s1"></span><br></p>
+<p class="p8"><span class="s1">The example files are available under:</span></p>
+<p class="p7"><span class="s1">$SOME_PATH/tinker/src/core/demo/STTT16/ <br>
+</span></p>
+<p class="p8"><span class="s1">In <i>sttt_setup.thy</i>, set <b><i>tinkerhome</i></b> to the path of tinker, e.g.</span></p>
+<p class="p7"><span class="s1">$SOME_PATH/tinker <br>
+</span></p>
+<p class="p8"><span class="s1">The example can then be run by opening the file <i>sttt_example.thy</i>. For more details on how to start the GUI can be found in <a href="file:///Users/yuhuilin/Workspace/StrategyLang/projectPage/userGuide.pdf"><span class="s2">Tinker's user guide</span></a>.<span class="Apple-converted-space"> </span></span></p>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; line-height: 22.0px; font: 18.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Disjunctions to the top</b></span></h2>
+<p class="p6"><span class="s1"></span><br></p>
+<p class="p8"><span class="s1">Evaluation Step : </span><span class="s3">◀</span><span class="s1"> </span><span class="s4">▶</span><span class="s1"><span class="Apple-converted-space"> </span></span></p>
+<p class="p8"><span class="s1">Evaluation path :<span class="Apple-converted-space"> </span></span></p>
+<p class="p8"><span class="s1">Subgraphs : </span><span class="s3">◀</span><span class="s1"> </span><span class="s4">▶</span><span class="s1"><span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"></span><br></p>
+<p class="p8"><span class="s1">Credits : <a href="http://d3js.org/"><span class="s2">d3.js</span></a> &amp; <a href="http://labratrevenge.com/d3-tip/"><span class="s2">d3-tip</span></a></span></p>
+<p class="p1"><span class="s1"></span><br></p>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; line-height: 22.0px; font: 18.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Existential quantifiers via a one-point rule</b></span></h2>
+<p class="p6"><span class="s1"></span><br></p>
+<p class="p7"><span class="s1">This recording shows the use of breakpoint to debug version0 of the one point rule:</span></p>
+<p class="p8"><span class="s1">Version0 -&gt; Version1 : </span><span class="s3">◀</span><span class="s1"> </span><span class="s4">▶</span><span class="s1"><span class="Apple-converted-space"> </span></span></p>
+<p class="p8"><span class="s1">Evaluation path :<span class="Apple-converted-space"> </span></span></p>
+<p class="p8"><span class="s1">Subgraphs : </span><span class="s3">◀</span><span class="s1"> </span><span class="s4">▶</span><span class="s1"><span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"></span><br></p>
+<p class="p8"><span class="s1">Credits : <a href="http://d3js.org/"><span class="s2">d3.js</span></a> &amp; <a href="http://labratrevenge.com/d3-tip/"><span class="s2">d3-tip</span></a></span></p>
+<p class="p1"><span class="s1"></span><br></p>
+<p class="p7"><span class="s1">This recording compares the differences between version0 and version1</span></p>
+<p class="p8"><span class="s1">Evaluation Step : </span><span class="s3">◀</span><span class="s1"> </span><span class="s4">▶</span><span class="s1"><span class="Apple-converted-space"> </span></span></p>
+<p class="p8"><span class="s1">Evaluation path :<span class="Apple-converted-space"> </span></span></p>
+<p class="p8"><span class="s1">Subgraphs : </span><span class="s3">◀</span><span class="s1"> </span><span class="s4">▶</span><span class="s1"><span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"></span><br></p>
+<p class="p8"><span class="s1">Credits : <a href="http://d3js.org/"><span class="s2">d3.js</span></a> &amp; <a href="http://labratrevenge.com/d3-tip/"><span class="s2">d3-tip</span></a></span></p>
+<p class="p1"><span class="s1"></span><br></p>
+<p class="p7"><span class="s1">This recording shows the evaluation of the version1:</span></p>
+<p class="p8"><span class="s1">Evaluation Step : </span><span class="s3">◀</span><span class="s1"> </span><span class="s4">▶</span><span class="s1"><span class="Apple-converted-space"> </span></span></p>
+<p class="p8"><span class="s1">Evaluation path :<span class="Apple-converted-space"> </span></span></p>
+<p class="p8"><span class="s1">Subgraphs : </span><span class="s3">◀</span><span class="s1"> </span><span class="s4">▶</span><span class="s1"><span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"></span><br></p>
+<p class="p8"><span class="s1">Credits : <a href="http://d3js.org/"><span class="s2">d3.js</span></a> &amp; <a href="http://labratrevenge.com/d3-tip/"><span class="s2">d3-tip</span></a></span></p>
+<p class="p1"><span class="s1"></span><br></p>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; line-height: 22.0px; font: 18.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Rippling + PWF</b></span></h2>
+<p class="p6"><span class="s1"></span><br></p>
+<p class="p8"><span class="s1">Evaluation Step : </span><span class="s3">◀</span><span class="s1"> </span><span class="s4">▶</span><span class="s1"><span class="Apple-converted-space"> </span></span></p>
+<p class="p8"><span class="s1">Evaluation path :<span class="Apple-converted-space"> </span></span></p>
+<p class="p8"><span class="s1">Subgraphs : </span><span class="s3">◀</span><span class="s1"> </span><span class="s4">▶</span><span class="s1"><span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"></span><br></p>
+<p class="p8"><span class="s1">Credits : <a href="http://d3js.org/"><span class="s2">d3.js</span></a> &amp; <a href="http://labratrevenge.com/d3-tip/"><span class="s2">d3-tip</span></a></span></p>
+<p class="p1"><span class="s1"></span><br></p>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; line-height: 22.0px; font: 18.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Tool demo</b></span></h2>
+<p class="p6"><span class="s1"></span><br></p>
+<ul class="ul1">
+  <li class="li8"><span class="s5"></span><span class="s1">Basic Drag and Drawing Editing</span></li>
+  <li class="li8"><span class="s5"></span><span class="s1">Supports for Hierarchy</span></li>
+  <li class="li8"><span class="s5"></span><span class="s1">PSGraph Library</span></li>
+  <li class="li8"><span class="s5"></span><span class="s1">Evaluation and Debugging</span></li>
+  <li class="li8"><span class="s5"></span><span class="s1">Breakpoint</span></li>
+</ul>
+<p class="p1"><span class="s1"></span><br></p>
+</body>
+</html>
