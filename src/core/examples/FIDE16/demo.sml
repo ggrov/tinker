@@ -1,6 +1,6 @@
-val tinkerhome = OS.FileSys.getDir() ^ "/../GIT/tinker";
+(*val tinkerhome = OS.FileSys.getDir() ^ "/../GIT/tinker";*)
 val tinkerhome = OS.FileSys.getDir() ^ "/psgraph";
-use_file (tinkerhome ^ "/src/core/demo/FIDE16/tacas_setup");
+use_file (tinkerhome ^ "/src/core/examples/FIDE16/tacas_setup");
 
 
 val g : GOAL = 

@@ -473,4 +473,4 @@ val simple_taut_tac : TACTIC = (fn gl =>
 	|	_ => fail "simple_taut_tac" 28121 []
 );
 end;
-open List Basics;
+open List;
