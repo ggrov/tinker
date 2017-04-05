@@ -14,11 +14,11 @@ apply (subst ex_disj_distrib)+*)
   (* auto mode, no need to launch GUI *)
   apply (tinker disj)
  (* interactive mode for debugging *)
-  (*apply (-itinker disj)*)
+  (*apply (itinker disj)*)
   apply (rule disjI1)
   apply (rule_tac x = 5 in exI)+
   by simp
-
+                                                                         
 
 section "the telephone example"
 declare Relation.Domain_Un_eq [wrule]

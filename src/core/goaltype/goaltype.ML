@@ -425,6 +425,21 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
 
   fun scan_data ctxt = explode #> scan_all (scan_prog ctxt); 
 
+  fun scan_until scan =  
+  (Scan.repeat (Scan.unless (scan) (Scan.one Symbol.not_eof))
+  |> Scan.finite Symbol.stopper) >> String.concat;
+
+  fun ignore_comments0 xs = 
+  scan_until (Scan.this_string "/*") xs
+  |> (fn (x,y) => 
+       if y = [] 
+       then (x, []) 
+       else (x, (scan_until (Scan.this_string "*/") --| Scan.this_string "*/") y |> snd));
+
+  fun ignore_comments (x, []) = x
+  |   ignore_comments (x, y) = ignore_comments0 y |> (fn (m,n) => (x ^ (ignore_comments (m,n))));
+
+
   fun scan_gt_single0 ctxt = (scan_name -- (scan_args ctxt || scan_empty)) 
   fun scan_gt_single ctxt =  ($$"!" |-- scan_gt_single0 ctxt)>> (fn x => ("not", [Clause x])) || scan_gt_single0 ctxt ;
   fun scan_gt_full ctxt = (scan_gt_single ctxt) -- Scan.repeat ($$ "," |-- (scan_gt_single ctxt)) --| $$ "." >> op :: ; 
@@ -483,8 +498,10 @@ as pretty printing contains some non-standard chars which breaks the protocal *)
   fun data_to_json gn = Json.String (Pretty.symbolic_string_of (pretty_data gn)); 
 
   fun data_from_json (Json.String str) = 
-    let val _ = debug_json "JSON_CORE" ("Json parsing: GoalType data - " ^ str) ()in 
-         scan_data Prover.default_ctxt str
+    let val _ = debug_json "JSON_CORE" ("Json parsing: GoalType data - " ^ str) () in 
+        ("", explode str)
+        |> ignore_comments
+        |> scan_data Prover.default_ctxt
         |> (fn defs => set_data_defs defs default_data) end
   | data_from_json _ = raise gt_exp "from_json: ill-formed json structure"
 

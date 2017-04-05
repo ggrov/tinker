@@ -1,12 +1,18 @@
 theory test
 imports
-  "../../build/isabelle/BasicGoalTyp"  
-  "../../provers/isabelle/basic/build/BIsaP"    
+  "../build/isabelle/GoalTyp"  
 begin
 
   ML_file "goaltype.sig.ML"
   ML_file "goaltype.ML"                                                                                                                          
   
+
+ML{*
+val explode = Symbol.explode;
+#>;
+("", (explode ""))
+|> ignore_comments
+*}
   section "Test for Isabelle"
 
   -- "instantiating with prover"
